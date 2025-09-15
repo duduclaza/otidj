@@ -14,7 +14,7 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
   <title><?= e($title) ?></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    // Tailwind config (optional branding)
+    // Tailwind config with dark theme
     tailwind.config = {
       theme: {
         extend: {
@@ -27,6 +27,44 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
       }
     }
   </script>
+  <style>
+    /* Page transition styles */
+    .page-transition {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease-in-out;
+    }
+    .page-transition.loaded {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* Smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(30, 41, 59, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease-in-out;
+    }
+    .loading-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
   <div class="min-h-screen flex">
@@ -39,9 +77,62 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
         <?php if ($msg = flash('error')): ?>
           <div class="mb-4 rounded-md border border-red-200 bg-red-50 text-red-800 px-4 py-2 text-sm"><?= e($msg) ?></div>
         <?php endif; ?>
-        <?php include $viewFile; ?>
+        <div class="page-transition">
+          <?php include $viewFile; ?>
+        </div>
       </div>
     </main>
   </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="text-white text-center">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+      <div class="text-sm">Carregando...</div>
+    </div>
+  </div>
+
+  <script>
+    // Page transition and smooth navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add loaded class for initial page load
+      const pageContent = document.querySelector('.page-transition');
+      if (pageContent) {
+        setTimeout(() => pageContent.classList.add('loaded'), 100);
+      }
+
+      // Handle page navigation with smooth transitions
+      document.addEventListener('click', function(e) {
+        const link = e.target.closest('.page-link');
+        if (link && link.href && !link.href.includes('#')) {
+          e.preventDefault();
+          
+          // Show loading overlay
+          const overlay = document.getElementById('loadingOverlay');
+          overlay.classList.add('active');
+          
+          // Add fade out effect
+          const currentContent = document.querySelector('.page-transition');
+          if (currentContent) {
+            currentContent.classList.remove('loaded');
+          }
+          
+          // Navigate after short delay
+          setTimeout(() => {
+            window.location.href = link.href;
+          }, 200);
+        }
+      });
+
+      // Handle form submissions with loading
+      document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.tagName === 'FORM') {
+          const overlay = document.getElementById('loadingOverlay');
+          overlay.classList.add('active');
+        }
+      });
+    });
+  </script>
 </body>
 </html>

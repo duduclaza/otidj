@@ -20,16 +20,19 @@ $menu = [
 ];
 $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/') ?: '/';
 ?>
-<aside class="hidden lg:flex lg:w-72 flex-col bg-white border-r border-gray-200">
-  <div class="h-16 flex items-center px-6 border-b border-gray-200">
-    <span class="text-lg font-semibold text-primary-700">SGQ OTI - DJ</span>
+<aside class="hidden lg:flex lg:w-72 flex-col bg-slate-800 border-r border-slate-700">
+  <div class="h-16 flex items-center px-6 border-b border-slate-700">
+    <div>
+      <div class="text-lg font-semibold text-white">Sistema SGQ</div>
+      <div class="text-xs text-slate-400">Gestão da Qualidade</div>
+    </div>
   </div>
   <nav class="flex-1 overflow-y-auto py-4">
     <ul class="space-y-1 px-3">
       <li>
-        <a href="/" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-primary-50 <?php echo $current==='/'?'bg-primary-100 text-primary-700':'text-gray-700'; ?>">
-          <span>🏠</span>
-          <span>Início</span>
+        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
+          <span class="text-lg">🏠</span>
+          <span>Dashboard</span>
         </a>
       </li>
       <?php foreach ($menu as $item):
@@ -48,20 +51,24 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         <li>
           <?php if ($hasSubmenu): ?>
             <div class="submenu-container">
-              <button onclick="toggleSubmenu(this)" class="flex items-center justify-between w-full px-3 py-2 rounded-md text-sm font-medium hover:bg-primary-50 <?php echo $submenuActive?'bg-primary-100 text-primary-700':'text-gray-700'; ?>">
+              <button onclick="toggleSubmenu(this)" class="flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $submenuActive?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
                 <div class="flex items-center gap-3">
-                  <span><?= e($item['icon']) ?></span>
+                  <span class="text-lg"><?= e($item['icon']) ?></span>
                   <span><?= e($item['label']) ?></span>
                 </div>
-                <span class="submenu-arrow transition-transform">▼</span>
+                <span class="submenu-arrow transition-transform duration-200 text-slate-400">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </span>
               </button>
-              <ul class="submenu ml-6 mt-1 space-y-1 hidden">
+              <ul class="submenu ml-6 mt-2 space-y-1 hidden">
                 <?php foreach ($item['submenu'] as $sub):
                   $subActive = rtrim($sub['href'], '/') === $current;
                 ?>
                   <li>
-                    <a href="<?= e($sub['href']) ?>" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-primary-50 <?php echo $subActive?'bg-primary-100 text-primary-700':'text-gray-600'; ?>">
-                      <span><?= e($sub['icon']) ?></span>
+                    <a href="<?= e($sub['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $subActive?'bg-blue-500 text-white shadow-md':'text-slate-400 hover:text-white'; ?>">
+                      <span class="text-base"><?= e($sub['icon']) ?></span>
                       <span><?= e($sub['label']) ?></span>
                     </a>
                   </li>
@@ -69,8 +76,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
               </ul>
             </div>
           <?php else: ?>
-            <a href="<?= e($item['href']) ?>" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium hover:bg-primary-50 <?php echo $active?'bg-primary-100 text-primary-700':'text-gray-700'; ?>">
-              <span><?= e($item['icon']) ?></span>
+            <a href="<?= e($item['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $active?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
+              <span class="text-lg"><?= e($item['icon']) ?></span>
               <span><?= e($item['label']) ?></span>
             </a>
           <?php endif; ?>
@@ -82,18 +89,26 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
 
 <!-- Mobile sidebar -->
 <div class="lg:hidden">
-  <div class="h-14 flex items-center justify-between px-4 bg-white border-b border-gray-200">
-    <button id="menuBtn" class="p-2 rounded-md border text-gray-600">☰</button>
-    <span class="text-base font-semibold text-primary-700">SGQ OTI - DJ</span>
+  <div class="h-14 flex items-center justify-between px-4 bg-slate-800 border-b border-slate-700">
+    <button id="menuBtn" class="p-2 rounded-md text-white hover:bg-slate-700">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+    <div class="text-center">
+      <div class="text-sm font-semibold text-white">Sistema SGQ</div>
+    </div>
     <span></span>
   </div>
-  <div id="mobileMenu" class="hidden fixed inset-0 bg-black/30 z-40"></div>
-  <div id="mobileDrawer" class="hidden fixed inset-y-0 left-0 w-72 bg-white z-50 shadow-lg">
-    <div class="h-14 flex items-center px-4 border-b">Menu</div>
+  <div id="mobileMenu" class="hidden fixed inset-0 bg-black/50 z-40"></div>
+  <div id="mobileDrawer" class="hidden fixed inset-y-0 left-0 w-72 bg-slate-800 z-50 shadow-lg">
+    <div class="h-14 flex items-center px-4 border-b border-slate-700">
+      <div class="text-white font-semibold">Menu</div>
+    </div>
     <nav class="p-3 space-y-1">
-      <a href="/" class="block px-3 py-2 rounded hover:bg-primary-50">Início</a>
+      <a href="/" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200">Dashboard</a>
       <?php foreach ($menu as $item): ?>
-        <a href="<?= e($item['href']) ?>" class="block px-3 py-2 rounded hover:bg-primary-50"><?= e($item['label']) ?></a>
+        <a href="<?= e($item['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"><?= e($item['label']) ?></a>
       <?php endforeach; ?>
     </nav>
   </div>
