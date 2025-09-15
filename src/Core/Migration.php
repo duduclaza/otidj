@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 1;
+    private const CURRENT_VERSION = 2;
 
     public function __construct()
     {
@@ -55,14 +55,22 @@ class Migration
 
     private function migrate(): void
     {
-        // Create main tables
-        $this->createFilialTable();
-        $this->createDepartamentosTable();
-        $this->createFornecedoresTable();
-        $this->createParametrosRetornadosTable();
+        $currentVersion = $this->getCurrentVersion();
         
-        // Seed default data
-        $this->seedDefaults();
+        if ($currentVersion < 1) {
+            // Version 1: Create initial tables
+            $this->createFilialTable();
+            $this->createDepartamentosTable();
+            $this->createFornecedoresTable();
+            $this->createParametrosRetornadosTable();
+            $this->seedDefaults();
+        }
+        
+        if ($currentVersion < 2) {
+            // Version 2: Ensure fornecedores table exists with correct structure
+            $this->createFornecedoresTable();
+            $this->fixFornecedoresTable();
+        }
     }
 
     private function createFilialTable(): void
@@ -96,6 +104,32 @@ class Migration
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX (nome)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+    }
+
+    private function fixFornecedoresTable(): void
+    {
+        // Check if table exists and has correct structure
+        try {
+            $stmt = $this->db->query("SHOW COLUMNS FROM fornecedores LIKE 'created_at'");
+            if (!$stmt->fetch()) {
+                // Add missing columns if they don't exist
+                $this->db->exec('ALTER TABLE fornecedores 
+                    ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+            }
+        } catch (\PDOException $e) {
+            // Table might not exist, create it
+            $this->createFornecedoresTable();
+        }
+
+        // Ensure contato and rma can be NULL
+        try {
+            $this->db->exec('ALTER TABLE fornecedores 
+                MODIFY COLUMN contato VARCHAR(200) NULL,
+                MODIFY COLUMN rma VARCHAR(200) NULL');
+        } catch (\PDOException $e) {
+            // Ignore if columns already allow NULL
+        }
     }
 
     private function createParametrosRetornadosTable(): void
