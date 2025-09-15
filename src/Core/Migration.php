@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 2;
+    private const CURRENT_VERSION = 3;
 
     public function __construct()
     {
@@ -70,6 +70,11 @@ class Migration
             // Version 2: Ensure fornecedores table exists with correct structure
             $this->createFornecedoresTable();
             $this->fixFornecedoresTable();
+        }
+        
+        if ($currentVersion < 3) {
+            // Version 3: Create toners table
+            $this->createTonersTable();
         }
     }
 
@@ -200,5 +205,27 @@ class Migration
                 ':ori' => 'Se a % for >= 90%: Teste o Toner; se a qualidade estiver boa, envie para o estoque como novo e marque na caixa; se estiver ruim, solicite garantia.'
             ]);
         }
+    }
+
+    private function createTonersTable(): void
+    {
+        $this->db->exec('CREATE TABLE IF NOT EXISTS toners (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            modelo VARCHAR(200) NOT NULL,
+            peso_cheio DECIMAL(8,2) NOT NULL COMMENT "Peso em gramas",
+            peso_vazio DECIMAL(8,2) NOT NULL COMMENT "Peso em gramas", 
+            gramatura DECIMAL(8,2) GENERATED ALWAYS AS (peso_cheio - peso_vazio) STORED COMMENT "Calculado automaticamente",
+            capacidade_folhas INT NOT NULL COMMENT "Quantidade de folhas",
+            preco_toner DECIMAL(10,2) NOT NULL COMMENT "Preço em reais",
+            gramatura_por_folha DECIMAL(10,4) GENERATED ALWAYS AS (gramatura / capacidade_folhas) STORED COMMENT "Calculado automaticamente",
+            custo_por_folha DECIMAL(10,4) GENERATED ALWAYS AS (preco_toner / capacidade_folhas) STORED COMMENT "Calculado automaticamente",
+            cor ENUM("Yellow", "Magenta", "Cyan", "Black") NOT NULL,
+            tipo ENUM("Original", "Compativel", "Remanufaturado") NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX (modelo),
+            INDEX (cor),
+            INDEX (tipo)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
     }
 }

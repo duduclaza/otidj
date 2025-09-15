@@ -1,6 +1,9 @@
 <?php
 $menu = [
-  ['label' => 'Controle de Toners', 'href' => '/controle-de-toners', 'icon' => '🖨️'],
+  ['label' => 'Controle de Toners', 'href' => '#', 'icon' => '🖨️', 'submenu' => [
+    ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '🖨️'],
+    ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋'],
+  ]],
   ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅'],
   ['label' => 'Amostragens', 'href' => '/amostragens', 'icon' => '🧪'],
   ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️'],

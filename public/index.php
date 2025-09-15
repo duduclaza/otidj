@@ -48,7 +48,12 @@ $router = new Router(basePath: $basePath);
 
 // Define routes
 $router->get('/', [App\Controllers\PageController::class, 'home']);
-$router->get('/controle-de-toners', [App\Controllers\PageController::class, 'controleDeToners']);
+// Controle de Toners - páginas separadas
+$router->get('/toners/cadastro', [App\Controllers\TonersController::class, 'cadastro']);
+$router->post('/toners/cadastro', [App\Controllers\TonersController::class, 'store']);
+$router->post('/toners/cadastro/edit', [App\Controllers\TonersController::class, 'update']);
+$router->post('/toners/cadastro/delete', [App\Controllers\TonersController::class, 'delete']);
+$router->get('/toners/retornados', [App\Controllers\TonersController::class, 'retornados']);
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/amostragens', [App\Controllers\PageController::class, 'amostragens']);
 $router->get('/garantias', [App\Controllers\PageController::class, 'garantias']);
