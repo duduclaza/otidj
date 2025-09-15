@@ -6,8 +6,8 @@ header('Pragma: no-cache');
 header('Expires: 0');
 
 // Display errors only if APP_DEBUG=true
-ini_set('display_errors', '0');
-ini_set('display_startup_errors', '0');
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 // Project base path
@@ -28,6 +28,9 @@ $dotenv->safeLoad();
 if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
+} else {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
 }
 
 // Run auto-migrations
