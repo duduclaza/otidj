@@ -179,26 +179,18 @@
       <!-- Destination Selection -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-3">Destino Final *</label>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button type="button" onclick="selectDestino('descarte')" class="destino-btn p-3 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors" data-destino="descarte">
-            <div class="text-center">
-              <div class="text-lg font-bold">DESCARTE</div>
-            </div>
+        <div class="grid grid-cols-2 gap-3">
+          <button type="button" onclick="selectDestino('descarte')" class="destino-btn p-4 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-center" data-destino="descarte">
+            <div class="text-sm font-bold">DESCARTE</div>
           </button>
-          <button type="button" onclick="selectDestino('estoque')" class="destino-btn p-3 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors" data-destino="estoque">
-            <div class="text-center">
-              <div class="text-lg font-bold">ESTOQUE</div>
-            </div>
+          <button type="button" onclick="selectDestino('estoque')" class="destino-btn p-4 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-center" data-destino="estoque">
+            <div class="text-sm font-bold">ESTOQUE</div>
           </button>
-          <button type="button" onclick="selectDestino('uso_interno')" class="destino-btn p-3 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors" data-destino="uso_interno">
-            <div class="text-center">
-              <div class="text-lg font-bold">USO INTERNO</div>
-            </div>
+          <button type="button" onclick="selectDestino('uso_interno')" class="destino-btn p-4 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center" data-destino="uso_interno">
+            <div class="text-sm font-bold">USO INTERNO</div>
           </button>
-          <button type="button" onclick="selectDestino('garantia')" class="destino-btn p-3 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors" data-destino="garantia">
-            <div class="text-center">
-              <div class="text-lg font-bold">GARANTIA</div>
-            </div>
+          <button type="button" onclick="selectDestino('garantia')" class="destino-btn p-4 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-center" data-destino="garantia">
+            <div class="text-sm font-bold">GARANTIA</div>
           </button>
         </div>
         <input type="hidden" name="destino" id="destinoSelected">
@@ -221,6 +213,7 @@
           Registrar
         </button>
       </div>
+    </div>
     </div>
   </div>
 </div>
