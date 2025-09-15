@@ -341,103 +341,317 @@ class DebugReport {
         
         <style>
         .debug-report {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-        }
-        .debug-header {
-            background: #343a40;
-            color: white;
-            padding: 15px;
-            border-radius: 8px 8px 0 0;
-        }
-        .debug-header h2 {
-            margin: 0 0 5px 0;
-            font-size: 18px;
-        }
-        .timestamp {
-            margin: 0;
-            opacity: 0.8;
-        }
-        .debug-content {
-            padding: 15px;
-        }
-        .debug-section {
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
-            border-radius: 4px;
-            padding: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
             background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+            overflow: hidden;
+            border: 1px solid #e3e6f0;
         }
-        .debug-section h3 {
-            margin: 0 0 10px 0;
-            color: #495057;
+        
+        .debug-header {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .debug-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+        
+        .debug-header h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .timestamp {
+            margin: 12px 0 0 0;
+            opacity: 0.9;
             font-size: 14px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
         }
-        .debug-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .status-conectado, .status-ok { color: #28a745; font-weight: bold; }
-        .status-erro, .status-error { color: #dc3545; font-weight: bold; }
-        .tables-info, .file-status, .test-result {
-            margin: 5px 0;
-            padding: 5px;
-            background: #f8f9fa;
-            border-radius: 3px;
-        }
-        .table-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 2px 0;
-        }
+        
         .debug-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-        }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn:hover { opacity: 0.8; }
-        
-        .summary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .summary h3 { color: white; }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 12px;
             margin-top: 15px;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
         }
-        .summary-item {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
+        
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .btn-secondary { 
+            background: #6c757d; 
+            color: white; 
+        }
+        .btn-primary { 
+            background: #007bff; 
+            color: white; 
+        }
+        .btn-success { 
+            background: #28a745; 
+            color: white; 
+        }
+        
+        .btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .debug-content {
+            padding: 25px;
+            background: #f8f9fc;
+        }
+        
+        .debug-section {
+            margin-bottom: 25px;
+            border: 1px solid #e3e6f0;
             border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        .debug-section:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .debug-section h3 {
+            background: linear-gradient(135deg, #f8f9fc 0%, #e9ecef 100%);
+            margin: 0;
+            padding: 18px 25px;
+            border-bottom: 1px solid #e3e6f0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #5a5c69;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .summary-item.success { border-left: 4px solid #28a745; }
-        .summary-item.error { border-left: 4px solid #dc3545; }
-        .summary-item.warning { border-left: 4px solid #ffc107; }
-        .summary-item.info { border-left: 4px solid #17a2b8; }
-        .summary-icon { font-size: 20px; }
-        .summary-text { font-weight: bold; }
+        
+        .debug-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 15px;
+            padding: 25px;
+        }
+        
+        .debug-grid > div {
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid #e3e6f0;
+            transition: all 0.3s ease;
+        }
+        
+        .debug-grid > div:hover {
+            background: linear-gradient(135deg, #e3e6f0 0%, #f8f9fc 100%);
+            transform: translateY(-1px);
+        }
+        
+        .debug-grid > div strong {
+            color: #5a5c69;
+            font-weight: 600;
+        }
+        
+        .debug-list {
+            padding: 25px;
+        }
+        
+        .debug-list ul {
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .debug-list li {
+            margin: 8px 0;
+            padding: 12px 15px;
+            background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%);
+            border-radius: 6px;
+            border-left: 3px solid #4e73df;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .debug-list li:hover {
+            background: linear-gradient(135deg, #e3e6f0 0%, #f8f9fc 100%);
+            transform: translateX(5px);
+        }
+        
+        .table-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f3f3;
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .summary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+            pointer-events: none;
+        }
+        
+        .summary h3 { 
+            color: white; 
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            padding: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .summary-item {
+            background: rgba(255,255,255,0.15);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .summary-item:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .summary-item.success { 
+            border-left: 4px solid #28a745;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
+        }
+        .summary-item.error { 
+            border-left: 4px solid #dc3545;
+            box-shadow: 0 0 20px rgba(220, 53, 69, 0.3);
+        }
+        .summary-item.warning { 
+            border-left: 4px solid #ffc107;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.3);
+        }
+        .summary-item.info { 
+            border-left: 4px solid #17a2b8;
+            box-shadow: 0 0 20px rgba(23, 162, 184, 0.3);
+        }
+        
+        .summary-icon { 
+            font-size: 24px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .summary-text { 
+            font-weight: 600;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        /* Animações */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .debug-section {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        
+        .debug-section:nth-child(1) { animation-delay: 0.1s; }
+        .debug-section:nth-child(2) { animation-delay: 0.2s; }
+        .debug-section:nth-child(3) { animation-delay: 0.3s; }
+        .debug-section:nth-child(4) { animation-delay: 0.4s; }
+        .debug-section:nth-child(5) { animation-delay: 0.5s; }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .debug-report {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .debug-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .summary-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .debug-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
         </style>
         
         <script>
