@@ -25,7 +25,128 @@ class TonersController
 
     public function retornados(): void
     {
-        $this->render('toners/retornados', ['title' => 'Registro de Retornados']);
+        try {
+            // Get all toners for modelo dropdown
+            $stmt = $this->db->query('SELECT modelo FROM toners ORDER BY modelo');
+            $toners = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // Get all filiais for filial dropdown
+            $stmt = $this->db->query('SELECT nome FROM filiais ORDER BY nome');
+            $filiais = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // Get all retornados for grid
+            $stmt = $this->db->query('
+                SELECT id, modelo, codigo_cliente, usuario, filial, destino, 
+                       data_registro, modelo_cadastrado, valor_calculado
+                FROM retornados 
+                ORDER BY created_at DESC
+            ');
+            $retornados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $this->render('toners/retornados', [
+                'title' => 'Registro de Retornados',
+                'toners' => $toners,
+                'filiais' => $filiais,
+                'retornados' => $retornados
+            ]);
+        } catch (\PDOException $e) {
+            $this->render('toners/retornados', [
+                'title' => 'Registro de Retornados',
+                'toners' => [],
+                'filiais' => [],
+                'retornados' => [],
+                'error' => 'Erro ao carregar dados: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function storeRetornado(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $modelo = trim($_POST['modelo'] ?? '');
+            $usuario = trim($_POST['usuario'] ?? '');
+            $filial = trim($_POST['filial'] ?? '');
+            $codigo_cliente = trim($_POST['codigo_cliente'] ?? '');
+            $modo = trim($_POST['modo'] ?? '');
+            $peso_retornado = $_POST['peso_retornado'] ?? null;
+            $percentual_chip = $_POST['percentual_chip'] ?? null;
+            $destino = trim($_POST['destino'] ?? '');
+            $data_registro = $_POST['data_registro'] ?? date('Y-m-d');
+
+            // Validate required fields
+            if (empty($modelo) || empty($usuario) || empty($filial) || empty($codigo_cliente) || empty($modo) || empty($destino)) {
+                echo json_encode(['success' => false, 'message' => 'Todos os campos obrigatórios devem ser preenchidos']);
+                return;
+            }
+
+            // Check if modelo exists in toners table
+            $stmt = $this->db->prepare('SELECT peso_cheio, peso_vazio, gramatura, capacidade_folhas, custo_por_folha FROM toners WHERE modelo = :modelo');
+            $stmt->execute([':modelo' => $modelo]);
+            $tonerData = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $modelo_cadastrado = $tonerData ? true : false;
+            $gramatura_existente = null;
+            $percentual_restante = null;
+            $valor_calculado = 0.00;
+
+            // Calculate based on mode
+            if ($modo === 'peso' && $peso_retornado > 0 && $tonerData) {
+                $gramatura_existente = $peso_retornado - $tonerData['peso_vazio'];
+                $percentual_restante = ($gramatura_existente / $tonerData['gramatura']) * 100;
+            } elseif ($modo === 'chip' && $percentual_chip > 0) {
+                $percentual_restante = $percentual_chip;
+                if ($tonerData) {
+                    $gramatura_existente = ($percentual_chip / 100) * $tonerData['gramatura'];
+                }
+            }
+
+            // Calculate value if destino is estoque
+            if ($destino === 'estoque' && $percentual_restante > 0 && $tonerData) {
+                $folhas_restantes = ($percentual_restante / 100) * $tonerData['capacidade_folhas'];
+                $valor_calculado = $folhas_restantes * $tonerData['custo_por_folha'];
+            }
+
+            // Insert into database
+            $stmt = $this->db->prepare('
+                INSERT INTO retornados (modelo, modelo_cadastrado, usuario, filial, codigo_cliente, modo, 
+                                      peso_retornado, percentual_chip, gramatura_existente, percentual_restante, 
+                                      destino, valor_calculado, data_registro) 
+                VALUES (:modelo, :modelo_cadastrado, :usuario, :filial, :codigo_cliente, :modo, 
+                        :peso_retornado, :percentual_chip, :gramatura_existente, :percentual_restante, 
+                        :destino, :valor_calculado, :data_registro)
+            ');
+            
+            $stmt->execute([
+                ':modelo' => $modelo,
+                ':modelo_cadastrado' => $modelo_cadastrado,
+                ':usuario' => $usuario,
+                ':filial' => $filial,
+                ':codigo_cliente' => $codigo_cliente,
+                ':modo' => $modo,
+                ':peso_retornado' => $peso_retornado,
+                ':percentual_chip' => $percentual_chip,
+                ':gramatura_existente' => $gramatura_existente,
+                ':percentual_restante' => $percentual_restante,
+                ':destino' => $destino,
+                ':valor_calculado' => $valor_calculado,
+                ':data_registro' => $data_registro
+            ]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Retornado registrado com sucesso!',
+                'data' => [
+                    'percentual_restante' => $percentual_restante,
+                    'valor_calculado' => $valor_calculado,
+                    'modelo_cadastrado' => $modelo_cadastrado
+                ]
+            ]);
+
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao registrar: ' . $e->getMessage()]);
+        }
     }
 
     public function store(): void

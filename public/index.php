@@ -55,6 +55,7 @@ $router->post('/toners/cadastro/edit', [App\Controllers\TonersController::class,
 $router->post('/toners/cadastro/delete', [App\Controllers\TonersController::class, 'delete']);
 $router->get('/toners/retornados', [App\Controllers\TonersController::class, 'retornados']);
 $router->post('/toners/import', [App\Controllers\TonersController::class, 'import']);
+$router->post('/toners/retornados', [App\Controllers\TonersController::class, 'storeRetornado']);
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/amostragens', [App\Controllers\PageController::class, 'amostragens']);
 $router->get('/garantias', [App\Controllers\PageController::class, 'garantias']);

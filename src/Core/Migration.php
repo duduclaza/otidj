@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 3;
+    private const CURRENT_VERSION = 4;
 
     public function __construct()
     {
@@ -75,6 +75,12 @@ class Migration
         if ($currentVersion < 3) {
             // Version 3: Create toners table
             $this->createTonersTable();
+            $this->updateVersion(3);
+        }
+        if ($currentVersion < 4) {
+            // Version 4: Create retornados table
+            $this->createRetornadosTable();
+            $this->updateVersion(4);
         }
     }
 
@@ -226,6 +232,32 @@ class Migration
             INDEX (modelo),
             INDEX (cor),
             INDEX (tipo)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+    }
+
+    private function createRetornadosTable(): void
+    {
+        $this->db->exec('CREATE TABLE IF NOT EXISTS retornados (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            modelo VARCHAR(200) NOT NULL,
+            modelo_cadastrado BOOLEAN DEFAULT TRUE,
+            usuario VARCHAR(100) NOT NULL,
+            filial VARCHAR(150) NOT NULL,
+            codigo_cliente VARCHAR(50) NOT NULL,
+            modo ENUM("peso", "chip") NOT NULL,
+            peso_retornado DECIMAL(8,2) NULL,
+            percentual_chip DECIMAL(5,2) NULL,
+            gramatura_existente DECIMAL(8,2) NULL,
+            percentual_restante DECIMAL(5,2) NULL,
+            destino ENUM("descarte", "estoque", "uso_interno", "garantia") NOT NULL,
+            valor_calculado DECIMAL(10,2) DEFAULT 0.00,
+            data_registro DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_modelo (modelo),
+            INDEX idx_filial (filial),
+            INDEX idx_destino (destino),
+            INDEX idx_data_registro (data_registro)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
     }
 }
