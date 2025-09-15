@@ -182,7 +182,7 @@
     <div class="space-y-4">
       <div>
         <label class="block text-sm font-medium mb-2">Selecione o arquivo Excel:</label>
-        <input type="file" id="excelFileInput" accept=".xlsx,.xls" class="w-full border rounded px-3 py-2">
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="w-full border rounded px-3 py-2">
       </div>
       
       <!-- Progress Bar (hidden by default) -->

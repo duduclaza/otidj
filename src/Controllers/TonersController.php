@@ -143,10 +143,30 @@ class TonersController
             }
 
             $uploadedFile = $_FILES['excel_file']['tmp_name'];
-            $fileExtension = strtolower(pathinfo($_FILES['excel_file']['name'], PATHINFO_EXTENSION));
+            $originalFileName = $_FILES['excel_file']['name'];
             
-            if (!in_array($fileExtension, ['xlsx', 'xls'])) {
-                echo json_encode(['success' => false, 'message' => 'Formato de arquivo inválido. Use .xlsx ou .xls']);
+            // Check file type by MIME type and extension
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $uploadedFile);
+            finfo_close($finfo);
+            
+            $fileExtension = strtolower(pathinfo($originalFileName, PATHINFO_EXTENSION));
+            
+            // Accept CSV files (converted from Excel) and Excel files
+            $validExtensions = ['xlsx', 'xls', 'csv'];
+            $validMimeTypes = [
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                'application/vnd.ms-excel', // .xls
+                'text/csv', // .csv
+                'text/plain', // sometimes CSV is detected as plain text
+                'application/csv'
+            ];
+            
+            if (!in_array($fileExtension, $validExtensions) && !in_array($mimeType, $validMimeTypes)) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => "Formato de arquivo inválido. Extensão: $fileExtension, MIME: $mimeType. Use .xlsx, .xls ou .csv"
+                ]);
                 return;
             }
 
@@ -242,13 +262,29 @@ class TonersController
 
     private function readExcelFile(string $filePath): array
     {
-        // Simplified CSV reading for demonstration
-        // In production, use PhpSpreadsheet library for proper Excel support
         $data = [];
         
+        // Try to read as CSV first (most common case from our frontend conversion)
         if (($handle = fopen($filePath, "r")) !== FALSE) {
-            while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                $data[] = $row;
+            // Try different delimiters
+            $delimiters = [',', ';', '\t'];
+            $firstLine = fgets($handle);
+            rewind($handle);
+            
+            // Detect delimiter
+            $delimiter = ',';
+            foreach ($delimiters as $del) {
+                if (substr_count($firstLine, $del) > 0) {
+                    $delimiter = $del;
+                    break;
+                }
+            }
+            
+            // Read with detected delimiter
+            while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
+                // Clean up the row data
+                $cleanRow = array_map('trim', $row);
+                $data[] = $cleanRow;
             }
             fclose($handle);
         }
