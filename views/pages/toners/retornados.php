@@ -17,8 +17,8 @@
 
   <!-- Filters and Search -->
   <div class="bg-white border rounded-lg p-4">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div>
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div class="lg:col-span-2">
         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
         <input type="text" id="searchInput" placeholder="Modelo, código, usuário..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
@@ -30,14 +30,14 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
         <input type="date" id="dateTo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
-      <div class="flex items-end space-x-2">
-        <button onclick="filterData()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+      <div class="flex items-end justify-end space-x-2">
+        <button onclick="filterData()" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
           Filtrar
         </button>
-        <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+        <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
           Exportar
         </button>
-        <button onclick="openImportModal()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+        <button onclick="openImportModal()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
           Importar
         </button>
       </div>
