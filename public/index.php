@@ -30,8 +30,19 @@ if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
     ini_set('display_startup_errors', '1');
 }
 
-// Simple router bootstrap
+// Run auto-migrations
+use App\Core\Migration;
 use App\Core\Router;
+
+try {
+    $migration = new Migration();
+    $migration->runMigrations();
+} catch (\Exception $e) {
+    // Log error but don't break the app
+    if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
+        echo '<pre>Migration Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
+    }
+}
 
 $router = new Router(basePath: $basePath);
 
