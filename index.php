@@ -28,7 +28,13 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SGQ PRO - <?php echo $pageTitle; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    
+    <!-- Meta tags para controle de cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <link rel="stylesheet" href="<?php echo assetVersion('assets/css/style.css'); ?>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -116,7 +122,7 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
         </main>
     </div>
 
-    <script src="assets/js/script.js"></script>
+    <script src="<?php echo assetVersion('assets/js/script.js'); ?>"></script>
 </body>
 </html>
 

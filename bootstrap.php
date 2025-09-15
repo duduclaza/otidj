@@ -53,6 +53,19 @@ if ($environment->isProduction()) {
 // Configura o timezone
 date_default_timezone_set('America/Sao_Paulo');
 
+// Headers para prevenir cache do navegador
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+
+// Headers adicionais para garantir dados sempre atualizados
+if (!headers_sent()) {
+    header('X-Accel-Expires: 0');
+    header('Surrogate-Control: no-store');
+    header('Vary: *');
+}
+
 // Função global para obter a conexão com o banco
 function getDB() {
     return Connection::getInstance();
@@ -80,6 +93,20 @@ function debug($data, $die = false) {
         echo '</pre>';
         if ($die) die();
     }
+}
+
+// Função para gerar versão de assets (cache-busting)
+function assetVersion($file) {
+    $filePath = __DIR__ . '/' . $file;
+    if (file_exists($filePath)) {
+        return $file . '?v=' . filemtime($filePath);
+    }
+    return $file . '?v=' . time();
+}
+
+// Função para gerar timestamp único para dados dinâmicos
+function getCacheBuster() {
+    return time() . '_' . mt_rand(1000, 9999);
 }
 
 // Inicia a sessão se ainda não foi iniciada

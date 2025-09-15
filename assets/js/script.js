@@ -301,11 +301,71 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Cache-busting para requisições AJAX
+function getCacheBuster() {
+    return Date.now() + '_' + Math.floor(Math.random() * 10000);
+}
+
+// Função para fazer requisições AJAX sem cache
+function fetchWithoutCache(url, options = {}) {
+    const separator = url.includes('?') ? '&' : '?';
+    const urlWithCacheBuster = `${url}${separator}_cb=${getCacheBuster()}`;
+    
+    // Adiciona headers para prevenir cache
+    const defaultOptions = {
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            ...options.headers
+        },
+        ...options
+    };
+    
+    return fetch(urlWithCacheBuster, defaultOptions);
+}
+
+// Função para recarregar dados dinamicamente
+function refreshData(callback) {
+    // Força recarregamento de dados sem cache
+    const timestamp = getCacheBuster();
+    
+    if (typeof callback === 'function') {
+        callback(timestamp);
+    }
+    
+    // Dispara evento customizado para componentes que precisam se atualizar
+    document.dispatchEvent(new CustomEvent('dataRefresh', { 
+        detail: { timestamp } 
+    }));
+}
+
+// Auto-refresh de dados a cada 30 segundos (opcional)
+function enableAutoRefresh(intervalSeconds = 30) {
+    setInterval(() => {
+        refreshData();
+    }, intervalSeconds * 1000);
+}
+
+// Intercepta todas as requisições fetch para adicionar cache-busting
+const originalFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+    // Se não for uma URL externa, adiciona cache-busting
+    if (typeof url === 'string' && !url.startsWith('http') && !url.includes('_cb=')) {
+        return fetchWithoutCache(url, options);
+    }
+    return originalFetch(url, options);
+};
+
 // Export functions for global use
 window.SGQ = {
     showNotification,
     showLoading,
     validateForm,
     sortTable,
-    filterContent
+    filterContent,
+    fetchWithoutCache,
+    refreshData,
+    enableAutoRefresh,
+    getCacheBuster
 };
