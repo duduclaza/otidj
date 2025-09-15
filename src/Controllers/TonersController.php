@@ -72,7 +72,7 @@ class TonersController
         }
 
         try {
-            $stmt = $this->db->prepare('SELECT gramatura, preco FROM toners WHERE modelo = ?');
+            $stmt = $this->db->prepare('SELECT gramatura, peso_vazio, preco_toner as preco FROM toners WHERE modelo = ?');
             $stmt->execute([$modelo]);
             $toner = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -81,6 +81,7 @@ class TonersController
                     'success' => true,
                     'toner' => [
                         'gramatura' => (float)$toner['gramatura'],
+                        'peso_vazio' => (float)$toner['peso_vazio'],
                         'preco' => (float)$toner['preco']
                     ]
                 ]);

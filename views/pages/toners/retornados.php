@@ -210,6 +210,12 @@
         <div class="text-sm font-medium text-green-800 mb-1">Valor Calculado para Estoque:</div>
         <div class="text-lg font-bold text-green-900" id="valorDisplay">R$ 0,00</div>
       </div>
+
+      <!-- Guidance Display -->
+      <div id="guidanceDisplay" class="hidden rounded-lg p-4">
+        <div class="text-sm font-medium mb-2" id="guidanceTitle">Orientação:</div>
+        <div class="text-sm" id="guidanceText"></div>
+      </div>
     </form>
 
     <!-- Footer -->
@@ -341,7 +347,7 @@ function updateTonerData() {
     })
     .catch(() => {
       // Fallback - use default values
-      window.tonerData = { gramatura: 10, preco: 150 };
+      window.tonerData = { gramatura: 10, peso_vazio: 0, preco: 150 };
       calculatePercentage();
     });
 }
@@ -355,20 +361,65 @@ function calculatePercentage() {
   
   if (modo === 'peso') {
     const pesoRetornado = parseFloat(document.querySelector('input[name="peso_retornado"]').value) || 0;
+    const pesoVazio = window.tonerData ? window.tonerData.peso_vazio : 0;
     const gramatura = window.tonerData ? window.tonerData.gramatura : 10;
     
-    // Calculate percentage based on actual toner gramatura
-    const percentual = Math.min(100, Math.max(0, (pesoRetornado / gramatura) * 100));
+    // Calculate gramatura existente: peso_retornado - peso_vazio
+    const gramaturaExistente = Math.max(0, pesoRetornado - pesoVazio);
+    
+    // Calculate percentage: (gramatura_existente / gramatura_total) * 100
+    const percentual = Math.min(100, Math.max(0, (gramaturaExistente / gramatura) * 100));
     document.getElementById('percentualCalculado').value = percentual.toFixed(2) + '%';
     
-    // Store calculated percentage for value calculation
+    // Store calculated percentage for value calculation and guidance
     window.calculatedPercentage = percentual;
+    window.gramaturaExistente = gramaturaExistente;
   } else if (modo === 'chip') {
     const percentualChip = parseFloat(document.querySelector('input[name="percentual_chip"]').value) || 0;
     window.calculatedPercentage = percentualChip;
   }
   
   calculateValue();
+  showGuidance();
+}
+
+// Guidance system based on parameters
+function showGuidance() {
+  const percentual = window.calculatedPercentage || 0;
+  const guidanceDiv = document.getElementById('guidanceDisplay');
+  const guidanceTitle = document.getElementById('guidanceTitle');
+  const guidanceText = document.getElementById('guidanceText');
+  
+  // Default parameters - in production, fetch from configuration
+  const parameters = [
+    { nome: 'Descarte', min: 0, max: 39, orientacao: 'Se a % for <= 39%: Descarte o toner, pois não tem mais utilidade.' },
+    { nome: 'Estoque Semi Novo', min: 40, max: 89, orientacao: 'Se a % for >= 40% e <= 89%: Teste o Toner; se a qualidade estiver boa, envie para o estoque como seminovo e marque a % na caixa; se estiver ruim, solicite garantia.' },
+    { nome: 'Estoque Novo', min: 90, max: 100, orientacao: 'Se a % for >= 90%: Teste o Toner; se a qualidade estiver boa, envie para o estoque como novo e marque na caixa; se estiver ruim, solicite garantia.' }
+  ];
+  
+  // Find matching parameter
+  const matchingParam = parameters.find(param => 
+    percentual >= param.min && (param.max === null || percentual <= param.max)
+  );
+  
+  if (matchingParam && percentual > 0) {
+    guidanceTitle.textContent = `Orientação (${percentual.toFixed(2)}%):`;
+    guidanceText.textContent = matchingParam.orientacao;
+    
+    // Set color based on parameter
+    guidanceDiv.className = 'rounded-lg p-4 ';
+    if (matchingParam.nome === 'Descarte') {
+      guidanceDiv.className += 'bg-red-50 border border-red-200 text-red-800';
+    } else if (matchingParam.nome === 'Estoque Semi Novo') {
+      guidanceDiv.className += 'bg-yellow-50 border border-yellow-200 text-yellow-800';
+    } else {
+      guidanceDiv.className += 'bg-green-50 border border-green-200 text-green-800';
+    }
+    
+    guidanceDiv.classList.remove('hidden');
+  } else {
+    guidanceDiv.classList.add('hidden');
+  }
 }
 
 // Destination selection
