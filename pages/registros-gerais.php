@@ -44,12 +44,17 @@
                 <div class="list-section">
                     <h5>Filiais Cadastradas</h5>
                     <div class="items-list" id="lista-filiais">
-                        <div class="item">Jundiaí</div>
-                        <div class="item">Franca</div>
-                        <div class="item">Santos</div>
-                        <div class="item">Caçapava</div>
-                        <div class="item">Uberlândia</div>
-                        <div class="item">Uberaba</div>
+                        <?php
+                        try {
+                            $db = getDB();
+                            $filiais = $db->fetchAll("SELECT * FROM filiais ORDER BY nome");
+                            foreach ($filiais as $filial) {
+                                echo '<div class="item">' . htmlspecialchars($filial['nome']) . '</div>';
+                            }
+                        } catch (Exception $e) {
+                            echo '<div class="item error">Erro ao carregar filiais</div>';
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -73,23 +78,17 @@
                 <div class="list-section">
                     <h5>Departamentos Cadastrados</h5>
                     <div class="items-list" id="lista-departamentos">
-                        <div class="item">Financeiro</div>
-                        <div class="item">Faturamento</div>
-                        <div class="item">Logística</div>
-                        <div class="item">Compras</div>
-                        <div class="item">Área Técnica</div>
-                        <div class="item">Área Técnica ADM</div>
-                        <div class="item">Comercial</div>
-                        <div class="item">Implantação</div>
-                        <div class="item">Implantação ADM</div>
-                        <div class="item">Qualidade</div>
-                        <div class="item">RH</div>
-                        <div class="item">Licitações</div>
-                        <div class="item">Gerencia</div>
-                        <div class="item">Limpeza</div>
-                        <div class="item">Atendimento</div>
-                        <div class="item">Controladoria</div>
-                        <div class="item">Monitoramento</div>
+                        <?php
+                        try {
+                            $db = getDB();
+                            $departamentos = $db->fetchAll("SELECT * FROM departamentos ORDER BY nome");
+                            foreach ($departamentos as $depto) {
+                                echo '<div class="item">' . htmlspecialchars($depto['nome']) . '</div>';
+                            }
+                        } catch (Exception $e) {
+                            echo '<div class="item error">Erro ao carregar departamentos</div>';
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -121,7 +120,27 @@
                 <div class="list-section">
                     <h5>Fornecedores Cadastrados</h5>
                     <div class="fornecedores-list" id="lista-fornecedores">
-                        <!-- Lista será preenchida dinamicamente -->
+                        <?php
+                        try {
+                            $db = getDB();
+                            $fornecedores = $db->fetchAll("SELECT * FROM fornecedores ORDER BY nome");
+                            foreach ($fornecedores as $fornecedor) {
+                                echo '<div class="fornecedor-item">';
+                                echo '<div class="fornecedor-info">';
+                                echo '<h6>' . htmlspecialchars($fornecedor['nome']) . '</h6>';
+                                if (!empty($fornecedor['contato'])) {
+                                    echo '<p>Contato: ' . htmlspecialchars($fornecedor['contato']) . '</p>';
+                                }
+                                if (!empty($fornecedor['email'])) {
+                                    echo '<p>Email: ' . htmlspecialchars($fornecedor['email']) . '</p>';
+                                }
+                                echo '</div>';
+                                echo '</div>';
+                            }
+                        } catch (Exception $e) {
+                            echo '<div class="fornecedor-item error">Erro ao carregar fornecedores</div>';
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
