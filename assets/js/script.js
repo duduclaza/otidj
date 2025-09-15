@@ -299,6 +299,7 @@ function filterContent(container, searchTerm) {
 document.addEventListener('DOMContentLoaded', function() {
     initTableSorting();
     initSearch();
+    initTabs();
     
     // Add AJAX form submission
     const forms = document.querySelectorAll('form');
@@ -466,6 +467,40 @@ function updateList(formId, data) {
     }
 }
 
+// Tab functionality
+function initTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active', 'text-primary', 'border-primary', 'bg-blue-50');
+                btn.classList.add('text-gray-500', 'border-transparent');
+            });
+            
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active', 'text-primary', 'border-primary', 'bg-blue-50');
+            this.classList.remove('text-gray-500', 'border-transparent');
+            
+            // Show target content
+            const targetContent = document.getElementById(targetTab);
+            if (targetContent) {
+                targetContent.classList.add('active');
+                targetContent.style.display = 'block';
+            }
+        });
+    });
+}
+
 // Export functions for global use
 window.SGQ = {
     showNotification,
@@ -477,5 +512,6 @@ window.SGQ = {
     refreshData,
     enableAutoRefresh,
     getCacheBuster,
-    updateList
+    updateList,
+    initTabs
 };

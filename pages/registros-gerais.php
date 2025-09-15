@@ -5,29 +5,30 @@
     </div>
     <div class="card-content">
         <!-- Sistema de Abas -->
-        <div class="tabs-container">
-            <div class="tabs-nav">
-                <button class="tab-button active" data-tab="filiais">
+        <div class="bg-white rounded-lg shadow-sm mb-6">
+            <div class="flex flex-wrap border-b border-gray-200">
+                <button class="tab-button active px-6 py-3 text-sm font-medium text-primary border-b-2 border-primary bg-blue-50 flex items-center space-x-2 hover:bg-blue-100 transition-colors" data-tab="filiais">
                     <i class="fas fa-building"></i>
-                    Cadastro de Filiais
+                    <span>Cadastro de Filiais</span>
                 </button>
-                <button class="tab-button" data-tab="departamentos">
+                <button class="tab-button px-6 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300 flex items-center space-x-2 transition-colors" data-tab="departamentos">
                     <i class="fas fa-sitemap"></i>
-                    Cadastro de Departamentos
+                    <span>Cadastro de Departamentos</span>
                 </button>
-                <button class="tab-button" data-tab="fornecedores">
+                <button class="tab-button px-6 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300 flex items-center space-x-2 transition-colors" data-tab="fornecedores">
                     <i class="fas fa-truck"></i>
-                    Cadastro de Fornecedores
+                    <span>Cadastro de Fornecedores</span>
                 </button>
-                <button class="tab-button" data-tab="debug">
+                <button class="tab-button px-6 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300 flex items-center space-x-2 transition-colors" data-tab="debug">
                     <i class="fas fa-bug"></i>
-                    Debug & Relatório
+                    <span>Debug & Relatório</span>
                 </button>
-                <button class="tab-button" data-tab="parametros">
+                <button class="tab-button px-6 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300 flex items-center space-x-2 transition-colors" data-tab="parametros">
                     <i class="fas fa-cogs"></i>
-                    Parâmetros de Retornados
+                    <span>Parâmetros de Retornados</span>
                 </button>
             </div>
+        </div>
 
             <!-- Aba Filiais -->
             <div class="tab-content active" id="filiais">
@@ -173,26 +174,29 @@
             </div>
 
             <!-- Aba Debug -->
-            <div class="tab-content" id="debug">
-                <?php
-                // Inclui o sistema de debug
-                require_once __DIR__ . '/../debug_report.php';
-                $debugSystem = new DebugReport();
-                $debugReport = $debugSystem->generateReport();
-                echo $debugSystem->renderHTML($debugReport);
-                ?>
+            <div class="tab-content" id="debug" style="display: none;">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <?php
+                    // Inclui o sistema de debug
+                    require_once __DIR__ . '/../debug_report.php';
+                    $debugReport = new DebugReport();
+                    $report = $debugReport->generateReport();
+                    echo $debugReport->renderHTML($report);
+                    ?>
+                </div>
             </div>
 
             <!-- Aba Parâmetros -->
-            <div class="tab-content" id="parametros">
-                <div class="form-section">
-                    <h4>Parâmetros de Retornados</h4>
-                    <p class="info-text">Configure os parâmetros que definem o destino dos toners retornados baseado na porcentagem restante.</p>
-                    
-                    <div class="parametros-grid">
-                        <div class="parametro-card">
-                            <h5>Destino Descarte</h5>
-                            <div class="form-group">
+            <div class="tab-content" id="parametros" style="display: none;">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-cogs text-primary mr-2"></i>
+                        Parâmetros de Retornados
+                    </h4>
+                    <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            <p class="text-blue-700">Esta seção será implementada para configurar parâmetros específicos do sistema de retornados e qualidade.</p>
                                 <label>Porcentagem</label>
                                 <input type="text" value="≤ 5%" readonly>
                             </div>
