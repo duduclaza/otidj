@@ -102,16 +102,22 @@
 </section>
 
 <!-- Retornado Modal -->
-<div id="retornadoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] overflow-y-auto">
-  <div class="flex items-start justify-center min-h-screen p-4">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl my-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+<div id="retornadoModal" class="hidden fixed inset-0 bg-white z-[9999] overflow-y-auto">
+  <div class="min-h-screen">
+    <div class="w-full h-full">
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200">
+    <div class="px-6 py-4 border-b border-gray-200 bg-white sticky top-0 z-10 flex justify-between items-center">
       <h3 class="text-lg font-semibold text-gray-900">Registrar Novo Retornado</h3>
+      <button onclick="closeRetornadoModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
     </div>
     
     <!-- Content -->
-    <form id="retornadoForm" class="px-6 py-4 space-y-4">
+    <div class="max-w-4xl mx-auto">
+    <form id="retornadoForm" class="px-6 py-6 space-y-6">
       <!-- Mode Selection -->
       <div class="bg-gray-50 p-4 rounded-lg">
         <label class="block text-sm font-medium text-gray-700 mb-3">Modo de Registro</label>
@@ -179,18 +185,18 @@
       <!-- Destination Selection -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-3">Destino Final *</label>
-        <div class="grid grid-cols-2 gap-3">
-          <button type="button" onclick="selectDestino('descarte')" class="destino-btn p-4 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-center" data-destino="descarte">
-            <div class="text-sm font-bold">DESCARTE</div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <button type="button" onclick="selectDestino('descarte')" class="destino-btn p-6 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-center" data-destino="descarte">
+            <div class="text-lg font-bold">DESCARTE</div>
           </button>
-          <button type="button" onclick="selectDestino('estoque')" class="destino-btn p-4 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-center" data-destino="estoque">
-            <div class="text-sm font-bold">ESTOQUE</div>
+          <button type="button" onclick="selectDestino('estoque')" class="destino-btn p-6 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-center" data-destino="estoque">
+            <div class="text-lg font-bold">ESTOQUE</div>
           </button>
-          <button type="button" onclick="selectDestino('uso_interno')" class="destino-btn p-4 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center" data-destino="uso_interno">
-            <div class="text-sm font-bold">USO INTERNO</div>
+          <button type="button" onclick="selectDestino('uso_interno')" class="destino-btn p-6 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center" data-destino="uso_interno">
+            <div class="text-lg font-bold">USO INTERNO</div>
           </button>
-          <button type="button" onclick="selectDestino('garantia')" class="destino-btn p-4 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-center" data-destino="garantia">
-            <div class="text-sm font-bold">GARANTIA</div>
+          <button type="button" onclick="selectDestino('garantia')" class="destino-btn p-6 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-center" data-destino="garantia">
+            <div class="text-lg font-bold">GARANTIA</div>
           </button>
         </div>
         <input type="hidden" name="destino" id="destinoSelected">
@@ -202,17 +208,18 @@
         <div class="text-lg font-bold text-green-900" id="valorDisplay">R$ 0,00</div>
       </div>
     </form>
-    
+
     <!-- Footer -->
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-      <div class="flex justify-end space-x-3">
-        <button onclick="closeRetornadoModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+    <div class="px-6 py-6 bg-gray-50 border-t border-gray-200 sticky bottom-0 z-10">
+      <div class="max-w-4xl mx-auto flex justify-end space-x-4">
+        <button onclick="closeRetornadoModal()" class="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
           Cancelar
         </button>
-        <button onclick="submitRetornado()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
+        <button onclick="submitRetornado()" class="px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
           Registrar
         </button>
       </div>
+    </div>
     </div>
     </div>
   </div>
