@@ -60,13 +60,13 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
 <body>
     <div class="container">
         <!-- Sidebar -->
-        <nav class="sidebar">
+        <nav class="sidebar w-72 fixed h-screen left-0 top-0 text-white shadow-2xl">
             <div class="sidebar-header">
                 <div class="logo">
                     <i class="fas fa-cogs"></i>
                     <h2>SGQ PRO</h2>
                 </div>
-                <button class="sidebar-toggle" id="sidebarToggle">
+                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar menu">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -105,11 +105,11 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content ml-[18rem] min-h-screen flex flex-col">
             <!-- Header -->
-            <header class="header">
+            <header class="header sticky top-0 z-20">
                 <div class="header-left">
-                    <h1><?php echo $pageTitle; ?></h1>
+                    <h1 class="text-3xl font-bold text-slate-800"><?php echo $pageTitle; ?></h1>
                     <p class="header-subtitle">Sistema de Gestão da Qualidade</p>
                 </div>
                 <div class="header-right">
@@ -118,7 +118,7 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
                             <i class="fas fa-plus"></i>
                             Novo
                         </button>
-                        <div class="notifications">
+                        <div class="notifications" title="Notificações">
                             <i class="fas fa-bell"></i>
                             <span class="notification-badge">3</span>
                         </div>
