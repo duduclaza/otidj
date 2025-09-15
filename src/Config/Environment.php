@@ -81,7 +81,7 @@ class Environment
                     ],
                     'app' => [
                         'debug' => true,
-                        'url' => 'http://localhost/SGQ%20PRO',
+                        'url' => 'http://localhost/sgq-pro',
                         'secure' => false
                     ],
                     'session' => [
