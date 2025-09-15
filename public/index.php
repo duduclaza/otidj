@@ -59,12 +59,26 @@ $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxograma
 $router->get('/melhoria-continua', [App\Controllers\PageController::class, 'melhoriaContinua']);
 $router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
 
-// Registros Gerais (com abas e forms)
-$router->get('/registros-gerais', [App\Controllers\RegistrosController::class, 'index']);
-$router->post('/registros-gerais/filiais', [App\Controllers\RegistrosController::class, 'storeFilial']);
-$router->post('/registros-gerais/departamentos', [App\Controllers\RegistrosController::class, 'storeDepartamento']);
-$router->post('/registros-gerais/fornecedores', [App\Controllers\RegistrosController::class, 'storeFornecedor']);
-$router->post('/registros-gerais/parametros', [App\Controllers\RegistrosController::class, 'storeParametro']);
+// Registros Gerais - páginas separadas
+$router->get('/registros/filiais', [App\Controllers\RegistrosController::class, 'filiais']);
+$router->post('/registros/filiais', [App\Controllers\RegistrosController::class, 'storeFilial']);
+$router->post('/registros/filiais/edit', [App\Controllers\RegistrosController::class, 'updateFilial']);
+$router->post('/registros/filiais/delete', [App\Controllers\RegistrosController::class, 'deleteFilial']);
+
+$router->get('/registros/departamentos', [App\Controllers\RegistrosController::class, 'departamentos']);
+$router->post('/registros/departamentos', [App\Controllers\RegistrosController::class, 'storeDepartamento']);
+$router->post('/registros/departamentos/edit', [App\Controllers\RegistrosController::class, 'updateDepartamento']);
+$router->post('/registros/departamentos/delete', [App\Controllers\RegistrosController::class, 'deleteDepartamento']);
+
+$router->get('/registros/fornecedores', [App\Controllers\RegistrosController::class, 'fornecedores']);
+$router->post('/registros/fornecedores', [App\Controllers\RegistrosController::class, 'storeFornecedor']);
+$router->post('/registros/fornecedores/edit', [App\Controllers\RegistrosController::class, 'updateFornecedor']);
+$router->post('/registros/fornecedores/delete', [App\Controllers\RegistrosController::class, 'deleteFornecedor']);
+
+$router->get('/registros/parametros', [App\Controllers\RegistrosController::class, 'parametros']);
+$router->post('/registros/parametros', [App\Controllers\RegistrosController::class, 'storeParametro']);
+$router->post('/registros/parametros/edit', [App\Controllers\RegistrosController::class, 'updateParametro']);
+$router->post('/registros/parametros/delete', [App\Controllers\RegistrosController::class, 'deleteParametro']);
 
 // Configurações
 $router->get('/configuracoes', [App\Controllers\ConfigController::class, 'index']);
