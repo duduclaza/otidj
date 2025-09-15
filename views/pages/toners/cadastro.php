@@ -175,27 +175,42 @@
   </div>
 </section>
 
-<!-- Modal de Importação -->
-<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-  <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold">Importar Toners</h3>
-      <button onclick="closeImportModal()" class="text-gray-500 hover:text-gray-700">&times;</button>
-    </div>
-    
+<!-- Import Modal -->
+<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-6 w-96">
+    <h3 class="text-lg font-semibold mb-4">Importar Toners</h3>
     <div class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo Excel (.xlsx)</label>
-        <input type="file" id="importFile" accept=".xlsx,.xls" class="w-full border rounded px-3 py-2">
+        <label class="block text-sm font-medium mb-2">Selecione o arquivo Excel:</label>
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls" class="w-full border rounded px-3 py-2">
       </div>
       
-      <div class="flex gap-3">
-        <button onclick="downloadTemplate()" class="flex-1 px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">
+      <!-- Progress Bar (hidden by default) -->
+      <div id="progressContainer" class="hidden">
+        <div class="mb-2">
+          <div class="flex justify-between text-sm">
+            <span>Progresso da Importação</span>
+            <span id="progressText">0%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+        <div id="importStatus" class="text-sm text-gray-600"></div>
+      </div>
+      
+      <div class="flex justify-between">
+        <button onclick="downloadTemplate()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
           Baixar Template
         </button>
-        <button onclick="importExcel()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-          Importar
-        </button>
+        <div class="space-x-2">
+          <button id="cancelBtn" onclick="closeImportModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+            Cancelar
+          </button>
+          <button id="importBtn" onclick="importExcel()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+            Importar
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -374,7 +389,131 @@ function downloadTemplate() {
 }
 
 function importExcel() {
-  alert('Funcionalidade de importação será implementada em breve.');
+  const fileInput = document.getElementById('excelFileInput');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    alert('Por favor, selecione um arquivo Excel.');
+    return;
+  }
+  
+  // Show progress container and hide buttons
+  document.getElementById('progressContainer').classList.remove('hidden');
+  document.getElementById('importBtn').disabled = true;
+  document.getElementById('cancelBtn').disabled = true;
+  
+  // Read Excel file
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+      
+      if (jsonData.length <= 1) {
+        throw new Error('Arquivo vazio ou sem dados');
+      }
+      
+      // Process data with progress simulation
+      processImportData(jsonData);
+      
+    } catch (error) {
+      showImportError('Erro ao ler arquivo: ' + error.message);
+    }
+  };
+  
+  reader.onerror = function() {
+    showImportError('Erro ao ler o arquivo');
+  };
+  
+  reader.readAsArrayBuffer(file);
+}
+
+function processImportData(data) {
+  const totalRows = data.length - 1; // Exclude header
+  let currentRow = 0;
+  
+  // Simulate progress with actual data processing
+  const processRow = () => {
+    if (currentRow >= totalRows) {
+      // All rows processed, send to server
+      sendDataToServer(data);
+      return;
+    }
+    
+    currentRow++;
+    const progress = Math.round((currentRow / totalRows) * 50); // First 50% for reading
+    updateProgress(progress, `Processando linha ${currentRow} de ${totalRows}...`);
+    
+    setTimeout(processRow, 50); // Small delay for visual effect
+  };
+  
+  processRow();
+}
+
+function sendDataToServer(data) {
+  updateProgress(60, 'Enviando dados para o servidor...');
+  
+  const formData = new FormData();
+  
+  // Convert data to CSV format for server processing
+  const csvContent = data.map(row => row.join(',')).join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv' });
+  formData.append('excel_file', blob, 'import.csv');
+  
+  fetch('/toners/import', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      // Simulate final progress steps
+      updateProgress(80, 'Validando dados...');
+      setTimeout(() => {
+        updateProgress(90, 'Inserindo no banco de dados...');
+        setTimeout(() => {
+          updateProgress(100, `Concluído! ${result.imported} registros importados`);
+          setTimeout(() => {
+            closeImportModal();
+            showSuccessMessage(result.message);
+            location.reload(); // Refresh to show new data
+          }, 1500);
+        }, 500);
+      }, 500);
+    } else {
+      showImportError(result.message);
+    }
+  })
+  .catch(error => {
+    showImportError('Erro de conexão: ' + error.message);
+  });
+}
+
+function updateProgress(percentage, status) {
+  document.getElementById('progressBar').style.width = percentage + '%';
+  document.getElementById('progressText').textContent = percentage + '%';
+  document.getElementById('importStatus').textContent = status;
+}
+
+function showImportError(message) {
+  document.getElementById('progressContainer').classList.add('hidden');
+  document.getElementById('importBtn').disabled = false;
+  document.getElementById('cancelBtn').disabled = false;
+  alert('Erro na importação: ' + message);
+}
+
+function showSuccessMessage(message) {
+  // Create and show success notification
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.remove();
+  }, 5000);
 }
 
 function exportToExcel() {

@@ -132,6 +132,130 @@ class TonersController
         redirect('/toners/cadastro');
     }
 
+    public function import(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_FILES['excel_file']) || $_FILES['excel_file']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Erro no upload do arquivo']);
+                return;
+            }
+
+            $uploadedFile = $_FILES['excel_file']['tmp_name'];
+            $fileExtension = strtolower(pathinfo($_FILES['excel_file']['name'], PATHINFO_EXTENSION));
+            
+            if (!in_array($fileExtension, ['xlsx', 'xls'])) {
+                echo json_encode(['success' => false, 'message' => 'Formato de arquivo inválido. Use .xlsx ou .xls']);
+                return;
+            }
+
+            // Read Excel data (simulate reading - in real implementation you'd use a library like PhpSpreadsheet)
+            $excelData = $this->readExcelFile($uploadedFile);
+            
+            if (empty($excelData)) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo vazio ou formato inválido']);
+                return;
+            }
+
+            $totalRows = count($excelData);
+            $imported = 0;
+            $errors = [];
+
+            foreach ($excelData as $index => $row) {
+                try {
+                    // Skip header row
+                    if ($index === 0) continue;
+                    
+                    // Skip empty rows
+                    if (empty(array_filter($row))) continue;
+
+                    $modelo = trim($row[0] ?? '');
+                    $peso_cheio = (float)($row[1] ?? 0);
+                    $peso_vazio = (float)($row[2] ?? 0);
+                    $capacidade_folhas = (int)($row[3] ?? 0);
+                    $preco_toner = (float)($row[4] ?? 0);
+                    $cor = trim($row[5] ?? '');
+                    $tipo = trim($row[6] ?? '');
+
+                    // Validate required fields
+                    if (empty($modelo) || $peso_cheio <= 0 || $peso_vazio <= 0 || $capacidade_folhas <= 0 || $preco_toner <= 0 || empty($cor) || empty($tipo)) {
+                        $errors[] = "Linha " . ($index + 1) . ": Dados incompletos ou inválidos";
+                        continue;
+                    }
+
+                    if ($peso_cheio <= $peso_vazio) {
+                        $errors[] = "Linha " . ($index + 1) . ": Peso cheio deve ser maior que peso vazio";
+                        continue;
+                    }
+
+                    // Validate enum values
+                    if (!in_array($cor, ['Yellow', 'Magenta', 'Cyan', 'Black'])) {
+                        $errors[] = "Linha " . ($index + 1) . ": Cor inválida (use: Yellow, Magenta, Cyan, Black)";
+                        continue;
+                    }
+
+                    if (!in_array($tipo, ['Original', 'Compativel', 'Remanufaturado'])) {
+                        $errors[] = "Linha " . ($index + 1) . ": Tipo inválido (use: Original, Compativel, Remanufaturado)";
+                        continue;
+                    }
+
+                    // Insert into database
+                    $stmt = $this->db->prepare('INSERT INTO toners (modelo, peso_cheio, peso_vazio, capacidade_folhas, preco_toner, cor, tipo) VALUES (:modelo, :peso_cheio, :peso_vazio, :capacidade_folhas, :preco_toner, :cor, :tipo)');
+                    $stmt->execute([
+                        ':modelo' => $modelo,
+                        ':peso_cheio' => $peso_cheio,
+                        ':peso_vazio' => $peso_vazio,
+                        ':capacidade_folhas' => $capacidade_folhas,
+                        ':preco_toner' => $preco_toner,
+                        ':cor' => $cor,
+                        ':tipo' => $tipo
+                    ]);
+
+                    $imported++;
+
+                } catch (\PDOException $e) {
+                    $errors[] = "Linha " . ($index + 1) . ": Erro no banco - " . $e->getMessage();
+                }
+            }
+
+            $message = "Importação concluída! $imported registros importados";
+            if (!empty($errors)) {
+                $message .= ". Erros encontrados: " . implode('; ', array_slice($errors, 0, 3));
+                if (count($errors) > 3) {
+                    $message .= " (e mais " . (count($errors) - 3) . " erros)";
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => $message,
+                'imported' => $imported,
+                'total' => $totalRows - 1, // Exclude header
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+
+    private function readExcelFile(string $filePath): array
+    {
+        // Simplified CSV reading for demonstration
+        // In production, use PhpSpreadsheet library for proper Excel support
+        $data = [];
+        
+        if (($handle = fopen($filePath, "r")) !== FALSE) {
+            while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $data[] = $row;
+            }
+            fclose($handle);
+        }
+        
+        return $data;
+    }
+
     private function render(string $view, array $data = []): void
     {
         extract($data);
