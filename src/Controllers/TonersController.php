@@ -60,6 +60,38 @@ class TonersController
         }
     }
 
+    public function getTonerData(): void
+    {
+        header('Content-Type: application/json');
+        
+        $modelo = $_GET['modelo'] ?? '';
+        
+        if (empty($modelo)) {
+            echo json_encode(['success' => false, 'error' => 'Modelo não informado']);
+            return;
+        }
+
+        try {
+            $stmt = $this->db->prepare('SELECT gramatura, preco FROM toners WHERE modelo = ?');
+            $stmt->execute([$modelo]);
+            $toner = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($toner) {
+                echo json_encode([
+                    'success' => true,
+                    'toner' => [
+                        'gramatura' => (float)$toner['gramatura'],
+                        'preco' => (float)$toner['preco']
+                    ]
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Toner não encontrado']);
+            }
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'error' => 'Erro ao buscar dados do toner']);
+        }
+    }
+
     public function storeRetornado(): void
     {
         header('Content-Type: application/json');

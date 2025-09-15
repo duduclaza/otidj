@@ -140,12 +140,12 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Modelo *</label>
-          <select name="modelo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="updateTonerData()">
-            <option value="">Selecione o modelo</option>
-            <?php foreach ($toners as $toner): ?>
-              <option value="<?= e($toner) ?>"><?= e($toner) ?></option>
-            <?php endforeach; ?>
-          </select>
+          <select name="modelo" onchange="updateTonerData()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Selecione o modelo</option>
+          <?php foreach ($toners as $toner): ?>
+            <option value="<?= e($toner) ?>"><?= e($toner) ?></option>
+          <?php endforeach; ?>
+        </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Usuário *</label>
@@ -170,7 +170,7 @@
       <div id="pesoFields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Peso Retornado (g)</label>
-          <input type="number" name="peso_retornado" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="calculatePercentage()">
+          <input type="number" name="peso_retornado" step="0.01" min="0" oninput="calculatePercentage()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Percentual Restante</label>
@@ -181,25 +181,25 @@
       <div id="chipFields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Percentual do Chip (%)</label>
-          <input type="number" name="percentual_chip" step="0.01" min="0" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <input type="number" name="percentual_chip" step="0.01" min="0" max="100" oninput="calculatePercentage()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
       </div>
 
       <!-- Destination Selection -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-3">Destino Final *</label>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <button type="button" onclick="selectDestino('descarte')" class="destino-btn p-6 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-center" data-destino="descarte">
-            <div class="text-lg font-bold">DESCARTE</div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <button type="button" onclick="selectDestino('descarte')" class="destino-btn p-3 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-center" data-destino="descarte">
+            <div class="text-sm font-bold">DESCARTE</div>
           </button>
-          <button type="button" onclick="selectDestino('estoque')" class="destino-btn p-6 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-center" data-destino="estoque">
-            <div class="text-lg font-bold">ESTOQUE</div>
+          <button type="button" onclick="selectDestino('estoque')" class="destino-btn p-3 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-center" data-destino="estoque">
+            <div class="text-sm font-bold">ESTOQUE</div>
           </button>
-          <button type="button" onclick="selectDestino('uso_interno')" class="destino-btn p-6 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center" data-destino="uso_interno">
-            <div class="text-lg font-bold">USO INTERNO</div>
+          <button type="button" onclick="selectDestino('uso_interno')" class="destino-btn p-3 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center" data-destino="uso_interno">
+            <div class="text-sm font-bold">USO INTERNO</div>
           </button>
-          <button type="button" onclick="selectDestino('garantia')" class="destino-btn p-6 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-center" data-destino="garantia">
-            <div class="text-lg font-bold">GARANTIA</div>
+          <button type="button" onclick="selectDestino('garantia')" class="destino-btn p-3 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-center" data-destino="garantia">
+            <div class="text-sm font-bold">GARANTIA</div>
           </button>
         </div>
         <input type="hidden" name="destino" id="destinoSelected">
@@ -331,10 +331,17 @@ function updateTonerData() {
   if (!modelo) return;
   
   // Fetch toner data from server
-  fetch('/toners/cadastro')
-    .then(response => response.text())
-    .then(html => {
-      // This is a simplified approach - in production, create a dedicated API endpoint
+  fetch(`/api/toner?modelo=${encodeURIComponent(modelo)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        window.tonerData = data.toner;
+        calculatePercentage();
+      }
+    })
+    .catch(() => {
+      // Fallback - use default values
+      window.tonerData = { gramatura: 10, preco: 150 };
       calculatePercentage();
     });
 }
@@ -348,9 +355,17 @@ function calculatePercentage() {
   
   if (modo === 'peso') {
     const pesoRetornado = parseFloat(document.querySelector('input[name="peso_retornado"]').value) || 0;
-    // Simplified calculation - in production, fetch actual toner data
-    const percentual = Math.min(100, Math.max(0, (pesoRetornado / 10))); // Placeholder calculation
+    const gramatura = window.tonerData ? window.tonerData.gramatura : 10;
+    
+    // Calculate percentage based on actual toner gramatura
+    const percentual = Math.min(100, Math.max(0, (pesoRetornado / gramatura) * 100));
     document.getElementById('percentualCalculado').value = percentual.toFixed(2) + '%';
+    
+    // Store calculated percentage for value calculation
+    window.calculatedPercentage = percentual;
+  } else if (modo === 'chip') {
+    const percentualChip = parseFloat(document.querySelector('input[name="percentual_chip"]').value) || 0;
+    window.calculatedPercentage = percentualChip;
   }
   
   calculateValue();
@@ -385,8 +400,11 @@ function calculateValue() {
   const valorDisplay = document.getElementById('valorDisplay');
   
   if (selectedDestino === 'estoque') {
-    // Simplified calculation - in production, use actual toner data
-    const valor = 150.75; // Placeholder
+    const preco = window.tonerData ? window.tonerData.preco : 150;
+    const percentual = window.calculatedPercentage || 0;
+    
+    // Calculate value based on percentage remaining and toner price
+    const valor = (preco * percentual) / 100;
     valorDisplay.textContent = 'R$ ' + valor.toFixed(2).replace('.', ',');
     valorDiv.classList.remove('hidden');
   } else {
