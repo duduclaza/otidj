@@ -57,7 +57,7 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="theme-dark">
     <div class="container">
         <!-- Sidebar -->
         <nav class="sidebar w-72 fixed h-screen left-0 top-0 text-white shadow-2xl">
@@ -100,6 +100,10 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
                         <span class="user-name">Usuário</span>
                         <span class="user-role">Administrador</span>
                     </div>
+                </div>
+                <div class="mt-4 p-3 rounded-lg text-center text-xs bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.08)]">
+                    <div class="font-semibold text-white">Sistema SGQ v1.0</div>
+                    <div class="text-[0.70rem] text-slate-300">Gestão da Qualidade</div>
                 </div>
             </div>
         </nav>

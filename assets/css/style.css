@@ -458,6 +458,87 @@ body {
     margin-bottom: 0.25rem;
 }
 
+/* =====================
+   Dark Theme Overrides
+   ===================== */
+.theme-dark {
+    background-color: #0b1220;
+    color: #cbd5e1;
+}
+
+.theme-dark .main-content {
+    background-color: #0b1220;
+}
+
+.theme-dark .header {
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+    border-bottom-color: rgba(148, 163, 184, 0.12);
+}
+
+.theme-dark .header-left h1,
+.theme-dark .header-subtitle {
+    color: #e2e8f0;
+}
+
+.theme-dark .notifications:hover {
+    background: rgba(148,163,184,0.12);
+}
+
+.theme-dark .btn.btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+}
+
+.theme-dark .card {
+    background: #0f172a;
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.theme-dark .card-header {
+    background: linear-gradient(135deg, rgba(30,41,59,0.6) 0%, rgba(15,23,42,0.6) 100%);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.theme-dark .card-title { color: #e5e7eb; }
+.theme-dark .card-content { color: #cbd5e1; }
+
+.theme-dark .tabs-container,
+.theme-dark .bg-white { /* utility fallback blocks converted in dark */
+    background-color: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.12) !important;
+}
+
+.theme-dark .text-gray-800 { color: #e5e7eb !important; }
+.theme-dark .text-gray-700 { color: #e2e8f0 !important; }
+.theme-dark .text-gray-600 { color: #cbd5e1 !important; }
+
+.theme-dark .border-gray-200 { border-color: rgba(148, 163, 184, 0.12) !important; }
+.theme-dark .bg-gray-50 { background-color: #0b1220 !important; }
+.theme-dark .hover\:bg-gray-100:hover { background-color: #0f172a !important; }
+
+.theme-dark .tab-button {
+    color: #a5b4fc;
+}
+
+.theme-dark .tab-button.active {
+    color: #ffffff;
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+}
+
+.theme-dark .items-list .bg-gray-50 {
+    background-color: #0f172a !important;
+}
+
+.theme-dark .sidebar {
+    background: linear-gradient(180deg, #0b1220 0%, #0a1020 100%);
+    box-shadow: 6px 0 24px rgba(0,0,0,0.6);
+}
+
+.theme-dark .logo i { color: #60a5fa; }
+.theme-dark .logo h2 { color: #ffffff; }
+
 .header-subtitle {
     color: #64748b;
     font-size: 0.875rem;
