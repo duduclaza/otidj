@@ -437,6 +437,32 @@ window.fetch = function(url, options = {}) {
     return originalFetch(url, options);
 };
 
+// Função para atualizar listas após inserção
+function updateList(formId, data) {
+    let listId = '';
+    switch(formId) {
+        case 'form-filiais':
+            listId = 'lista-filiais';
+            break;
+        case 'form-departamentos':
+            listId = 'lista-departamentos';
+            break;
+        case 'form-fornecedores':
+            listId = 'lista-fornecedores';
+            break;
+    }
+    
+    if (listId && data) {
+        const list = document.getElementById(listId);
+        if (list) {
+            const newItem = document.createElement('div');
+            newItem.className = 'item';
+            newItem.textContent = data.nome;
+            list.appendChild(newItem);
+        }
+    }
+}
+
 // Export functions for global use
 window.SGQ = {
     showNotification,
@@ -447,5 +473,6 @@ window.SGQ = {
     fetchWithoutCache,
     refreshData,
     enableAutoRefresh,
-    getCacheBuster
+    getCacheBuster,
+    updateList
 };
