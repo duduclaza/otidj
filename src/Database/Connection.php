@@ -50,6 +50,8 @@ class Connection
             if ($this->environment->isProduction()) {
                 $options[PDO::ATTR_PERSISTENT] = false;
                 $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+                // Configurações específicas para Hostinger
+                $options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci, sql_mode = 'STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'";
             }
 
             $this->pdo = new PDO(
