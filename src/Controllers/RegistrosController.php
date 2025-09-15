@@ -15,11 +15,30 @@ class RegistrosController
 
     public function index(): void
     {
-        // Load current rows
-        $filiais = $this->db->query('SELECT id, nome FROM filiais ORDER BY nome')->fetchAll();
-        $departamentos = $this->db->query('SELECT id, nome FROM departamentos ORDER BY nome')->fetchAll();
-        $fornecedores = $this->db->query('SELECT id, nome, contato, rma FROM fornecedores ORDER BY nome')->fetchAll();
-        $parametros = $this->db->query('SELECT id, nome, faixa_min, faixa_max, orientacao FROM parametros_retornados ORDER BY faixa_min')->fetchAll();
+        try {
+            // Load current rows - handle case where tables don't exist yet
+            $filiais = $this->db->query('SELECT id, nome FROM filiais ORDER BY nome')->fetchAll();
+        } catch (\PDOException $e) {
+            $filiais = [];
+        }
+
+        try {
+            $departamentos = $this->db->query('SELECT id, nome FROM departamentos ORDER BY nome')->fetchAll();
+        } catch (\PDOException $e) {
+            $departamentos = [];
+        }
+
+        try {
+            $fornecedores = $this->db->query('SELECT id, nome, contato, rma FROM fornecedores ORDER BY nome')->fetchAll();
+        } catch (\PDOException $e) {
+            $fornecedores = [];
+        }
+
+        try {
+            $parametros = $this->db->query('SELECT id, nome, faixa_min, faixa_max, orientacao FROM parametros_retornados ORDER BY faixa_min')->fetchAll();
+        } catch (\PDOException $e) {
+            $parametros = [];
+        }
 
         $this->render('registros_gerais', [
             'title' => 'Registros Gerais',

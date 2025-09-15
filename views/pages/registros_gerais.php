@@ -1,8 +1,17 @@
 <?php
 // Expect: $filiais, $departamentos, $fornecedores, $parametros
+$tablesExist = !empty($filiais) || !empty($departamentos) || !empty($fornecedores) || !empty($parametros);
 ?>
 <section class="space-y-8">
   <h1 class="text-2xl font-semibold">Registros Gerais</h1>
+  
+  <?php if (!$tablesExist): ?>
+    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <p class="text-yellow-800 mb-2"><strong>⚠️ Tabelas não encontradas</strong></p>
+      <p class="text-sm text-yellow-700">Execute o setup do banco de dados primeiro:</p>
+      <a href="/configuracoes" class="inline-block mt-2 px-3 py-1 bg-primary-600 text-white text-sm rounded hover:bg-primary-700">Ir para Configurações</a>
+    </div>
+  <?php endif; ?>
 
   <div class="bg-white border rounded-lg">
     <div class="border-b px-4 py-2">
