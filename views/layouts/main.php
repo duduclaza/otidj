@@ -68,14 +68,14 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
-  <div class="flex h-screen bg-gray-100 relative">
+  <div class="flex h-screen bg-gray-100">
     <!-- Sidebar -->
     <?php include __DIR__ . '/../partials/sidebar.php'; ?>
     
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden relative z-0">
+    <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Content -->
-      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 relative z-0">
+      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
         <?php if ($msg = flash('success')): ?>
           <div class="mb-4 rounded-md border border-green-200 bg-green-50 text-green-800 px-4 py-2 text-sm"><?= e($msg) ?></div>
         <?php endif; ?>
