@@ -93,6 +93,23 @@ class TonersController
         }
     }
 
+    public function getParameters(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->query('SELECT nome, percentual_min, percentual_max, orientacao FROM parametros ORDER BY percentual_min');
+            $parameters = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'parameters' => $parameters
+            ]);
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'error' => 'Erro ao buscar parâmetros']);
+        }
+    }
+
     public function storeRetornado(): void
     {
         header('Content-Type: application/json');
