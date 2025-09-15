@@ -96,11 +96,31 @@ function validateForm(form) {
     let isValid = true;
     
     requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('error');
-            isValid = false;
+        const value = field.value ? field.value.trim() : '';
+        
+        // Verifica diferentes tipos de campo
+        if (field.type === 'checkbox' || field.type === 'radio') {
+            if (!field.checked) {
+                field.classList.add('error');
+                isValid = false;
+            } else {
+                field.classList.remove('error');
+            }
+        } else if (field.tagName.toLowerCase() === 'select') {
+            if (!value || value === '' || value === '0') {
+                field.classList.add('error');
+                isValid = false;
+            } else {
+                field.classList.remove('error');
+            }
         } else {
-            field.classList.remove('error');
+            // Campos de texto, email, etc.
+            if (!value || value.length < 1) {
+                field.classList.add('error');
+                isValid = false;
+            } else {
+                field.classList.remove('error');
+            }
         }
     });
     
@@ -284,12 +304,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
+            // Debug: log form data
+            console.log('Form submission attempt:', form.id || 'unnamed form');
+            const formData = new FormData(form);
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}: "${value}"`);
+            }
+            
             if (!validateForm(form)) {
                 e.preventDefault();
+                console.log('Form validation failed');
                 showNotification('Por favor, preencha todos os campos obrigatórios.', 'error');
+                
+                // Highlight first invalid field
+                const firstError = form.querySelector('.error');
+                if (firstError) {
+                    firstError.focus();
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return;
             }
             
+            console.log('Form validation passed');
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
                 const hideLoading = showLoading(submitBtn);
