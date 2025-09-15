@@ -33,7 +33,7 @@ class RegistrosController
     public function storeFilial(): void
     {
         $nome = trim($_POST['nome'] ?? '');
-        if ($nome === '') { flash('error', 'Informe o nome da filial.'); return redirect('/registros-gerais#filiais'); }
+        if ($nome === '') { flash('error', 'Informe o nome da filial.'); redirect('/registros-gerais#filiais'); return; }
         $stmt = $this->db->prepare('INSERT INTO filiais (nome) VALUES (:nome)');
         $stmt->execute([':nome' => $nome]);
         flash('success', 'Filial cadastrada com sucesso.');
@@ -43,7 +43,7 @@ class RegistrosController
     public function storeDepartamento(): void
     {
         $nome = trim($_POST['nome'] ?? '');
-        if ($nome === '') { flash('error', 'Informe o nome do departamento.'); return redirect('/registros-gerais#departamentos'); }
+        if ($nome === '') { flash('error', 'Informe o nome do departamento.'); redirect('/registros-gerais#departamentos'); return; }
         $stmt = $this->db->prepare('INSERT INTO departamentos (nome) VALUES (:nome)');
         $stmt->execute([':nome' => $nome]);
         flash('success', 'Departamento cadastrado com sucesso.');
@@ -55,7 +55,7 @@ class RegistrosController
         $nome = trim($_POST['nome'] ?? '');
         $contato = trim($_POST['contato'] ?? '');
         $rma = trim($_POST['rma'] ?? '');
-        if ($nome === '') { flash('error', 'O nome do fornecedor é obrigatório.'); return redirect('/registros-gerais#fornecedores'); }
+        if ($nome === '') { flash('error', 'O nome do fornecedor é obrigatório.'); redirect('/registros-gerais#fornecedores'); return; }
         $stmt = $this->db->prepare('INSERT INTO fornecedores (nome, contato, rma) VALUES (:n, :c, :r)');
         $stmt->execute([':n' => $nome, ':c' => $contato, ':r' => $rma]);
         flash('success', 'Fornecedor cadastrado com sucesso.');
@@ -68,7 +68,7 @@ class RegistrosController
         $faixa_min = (int)($_POST['faixa_min'] ?? 0);
         $faixa_max = isset($_POST['faixa_max']) && $_POST['faixa_max'] !== '' ? (int)$_POST['faixa_max'] : null;
         $orientacao = trim($_POST['orientacao'] ?? '');
-        if ($nome === '' || $orientacao === '') { flash('error', 'Preencha nome e orientação.'); return redirect('/registros-gerais#parametros'); }
+        if ($nome === '' || $orientacao === '') { flash('error', 'Preencha nome e orientação.'); redirect('/registros-gerais#parametros'); return; }
         $stmt = $this->db->prepare('INSERT INTO parametros_retornados (nome, faixa_min, faixa_max, orientacao) VALUES (:n, :min, :max, :o)');
         $stmt->bindValue(':n', $nome);
         $stmt->bindValue(':min', $faixa_min, \PDO::PARAM_INT);

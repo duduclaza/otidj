@@ -11,6 +11,7 @@ $menu = [
   ['label' => 'Melhoria Continua', 'href' => '/melhoria-continua', 'icon' => '⚙️'],
   ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️'],
   ['label' => 'Registros Gerais', 'href' => '/registros-gerais', 'icon' => '📄'],
+  ['label' => 'Configurações', 'href' => '/configuracoes', 'icon' => '⚙️'],
 ];
 $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/') ?: '/';
 ?>
