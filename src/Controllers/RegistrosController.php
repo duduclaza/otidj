@@ -82,10 +82,25 @@ class RegistrosController
         $nome = trim($_POST['nome'] ?? '');
         $contato = trim($_POST['contato'] ?? '');
         $rma = trim($_POST['rma'] ?? '');
-        if ($nome === '') { flash('error', 'O nome do fornecedor é obrigatório.'); redirect('/registros/fornecedores'); return; }
-        $stmt = $this->db->prepare('INSERT INTO fornecedores (nome, contato, rma) VALUES (:n, :c, :r)');
-        $stmt->execute([':n' => $nome, ':c' => $contato, ':r' => $rma]);
-        flash('success', 'Fornecedor cadastrado com sucesso.');
+        
+        if ($nome === '') { 
+            flash('error', 'O nome do fornecedor é obrigatório.'); 
+            redirect('/registros/fornecedores'); 
+            return; 
+        }
+        
+        try {
+            $stmt = $this->db->prepare('INSERT INTO fornecedores (nome, contato, rma) VALUES (:nome, :contato, :rma)');
+            $stmt->execute([
+                ':nome' => $nome, 
+                ':contato' => $contato ?: null, 
+                ':rma' => $rma ?: null
+            ]);
+            flash('success', 'Fornecedor cadastrado com sucesso.');
+        } catch (\PDOException $e) {
+            flash('error', 'Erro ao cadastrar fornecedor: ' . $e->getMessage());
+        }
+        
         redirect('/registros/fornecedores');
     }
 
@@ -155,10 +170,26 @@ class RegistrosController
         $nome = trim($_POST['nome'] ?? '');
         $contato = trim($_POST['contato'] ?? '');
         $rma = trim($_POST['rma'] ?? '');
-        if ($id <= 0 || $nome === '') { flash('error', 'Dados inválidos.'); redirect('/registros/fornecedores'); return; }
-        $stmt = $this->db->prepare('UPDATE fornecedores SET nome = :nome, contato = :contato, rma = :rma WHERE id = :id');
-        $stmt->execute([':nome' => $nome, ':contato' => $contato, ':rma' => $rma, ':id' => $id]);
-        flash('success', 'Fornecedor atualizado com sucesso.');
+        
+        if ($id <= 0 || $nome === '') { 
+            flash('error', 'Dados inválidos.'); 
+            redirect('/registros/fornecedores'); 
+            return; 
+        }
+        
+        try {
+            $stmt = $this->db->prepare('UPDATE fornecedores SET nome = :nome, contato = :contato, rma = :rma WHERE id = :id');
+            $stmt->execute([
+                ':nome' => $nome, 
+                ':contato' => $contato ?: null, 
+                ':rma' => $rma ?: null, 
+                ':id' => $id
+            ]);
+            flash('success', 'Fornecedor atualizado com sucesso.');
+        } catch (\PDOException $e) {
+            flash('error', 'Erro ao atualizar fornecedor: ' . $e->getMessage());
+        }
+        
         redirect('/registros/fornecedores');
     }
 
