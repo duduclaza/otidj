@@ -34,7 +34,7 @@ class Environment
         elseif (strpos($host, 'localhost') !== false || 
                 strpos($host, '127.0.0.1') !== false || 
                 strpos($host, '::1') !== false) {
-            $this->environment = 'local';
+            $this->environment = 'production';  // Forçar produção para testes
         }
         // Detecta ambientes de desenvolvimento online (GitHub Pages, Netlify, Vercel, etc.)
         elseif (strpos($host, 'github.io') !== false ||
