@@ -102,8 +102,8 @@
 </section>
 
 <!-- Retornado Modal -->
-<div id="retornadoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+<div id="retornadoModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl my-8 relative">
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">Registrar Novo Retornado</h3>
@@ -217,7 +217,7 @@
 </div>
 
 <!-- Import Modal -->
-<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
   <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-200">
