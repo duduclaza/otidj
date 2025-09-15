@@ -296,6 +296,8 @@ let selectedDestino = '';
 // Modal functions
 function openRetornadoModal() {
   document.getElementById('retornadoModal').classList.remove('hidden');
+  // Load parameters when modal opens to ensure fresh data
+  loadParameters();
 }
 
 function closeRetornadoModal() {
