@@ -300,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initTableSorting();
     initSearch();
     initTabs();
+    initSidebar();
     
     // Add AJAX form submission
     const forms = document.querySelectorAll('form');
@@ -501,6 +502,34 @@ function initTabs() {
     });
 }
 
+// Sidebar functionality
+function initSidebar() {
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+        });
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(e.target) && sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 1024) {
+                sidebar.classList.remove('open');
+            }
+        });
+    }
+}
+
 // Export functions for global use
 window.SGQ = {
     showNotification,
@@ -513,5 +542,6 @@ window.SGQ = {
     enableAutoRefresh,
     getCacheBuster,
     updateList,
-    initTabs
+    initTabs,
+    initSidebar
 };
