@@ -34,8 +34,27 @@ $pageTitle = isset($menuItems[$currentPage]) ? $menuItems[$currentPage] : 'Dashb
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <link rel="stylesheet" href="<?php echo assetVersion('assets/css/style.css'); ?>">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4e73df',
+                        secondary: '#858796',
+                        success: '#1cc88a',
+                        info: '#36b9cc',
+                        warning: '#f6c23e',
+                        danger: '#e74a3b',
+                        light: '#f8f9fc',
+                        dark: '#5a5c69'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="assets/css/style.css<?= assetVersion('assets/css/style.css') ?>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>

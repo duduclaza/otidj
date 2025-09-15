@@ -31,32 +31,39 @@
 
             <!-- Aba Filiais -->
             <div class="tab-content active" id="filiais">
-                <div class="form-section">
-                    <h4>Cadastro de Filiais</h4>
-                    <form id="form-filiais">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-building text-primary mr-2"></i>
+                        Cadastro de Filiais
+                    </h4>
+                    <form id="form-filiais" class="space-y-4">
                         <div class="form-group">
-                            <label for="nome-filial">Nome da Filial</label>
-                            <input type="text" id="nome-filial" name="nome_filial" required>
+                            <label for="nome-filial" class="block text-sm font-medium text-gray-700 mb-2">Nome da Filial</label>
+                            <input type="text" id="nome-filial" name="nome_filial" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
+                        <button type="submit" class="bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
+                            <i class="fas fa-plus mr-2"></i>
                             Adicionar Filial
                         </button>
                     </form>
                 </div>
                 
-                <div class="list-section">
-                    <h5>Filiais Cadastradas</h5>
-                    <div class="items-list" id="lista-filiais">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h5 class="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-list text-info mr-2"></i>
+                        Filiais Cadastradas
+                    </h5>
+                    <div class="grid gap-2" id="lista-filiais">
                         <?php
                         try {
                             $db = getDB();
                             $filiais = $db->fetchAll("SELECT * FROM filiais ORDER BY nome");
                             foreach ($filiais as $filial) {
-                                echo '<div class="item">' . htmlspecialchars($filial['nome']) . '</div>';
+                                echo '<div class="bg-gray-50 border border-gray-200 rounded-md p-3 hover:bg-gray-100 transition duration-200">' . htmlspecialchars($filial['nome']) . '</div>';
                             }
                         } catch (Exception $e) {
-                            echo '<div class="item error">Erro ao carregar filiais</div>';
+                            echo '<div class="bg-red-50 border border-red-200 text-red-700 rounded-md p-3">Erro ao carregar filiais</div>';
                         }
                         ?>
                     </div>
@@ -65,32 +72,39 @@
 
             <!-- Aba Departamentos -->
             <div class="tab-content" id="departamentos">
-                <div class="form-section">
-                    <h4>Cadastro de Departamentos</h4>
-                    <form id="form-departamentos">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-sitemap text-primary mr-2"></i>
+                        Cadastro de Departamentos
+                    </h4>
+                    <form id="form-departamentos" class="space-y-4">
                         <div class="form-group">
-                            <label for="nome-departamento">Nome do Departamento</label>
-                            <input type="text" id="nome-departamento" name="nome_departamento" required>
+                            <label for="nome-departamento" class="block text-sm font-medium text-gray-700 mb-2">Nome do Departamento</label>
+                            <input type="text" id="nome-departamento" name="nome_departamento" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
+                        <button type="submit" class="bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
+                            <i class="fas fa-plus mr-2"></i>
                             Adicionar Departamento
                         </button>
                     </form>
                 </div>
                 
-                <div class="list-section">
-                    <h5>Departamentos Cadastrados</h5>
-                    <div class="items-list" id="lista-departamentos">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h5 class="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-list text-info mr-2"></i>
+                        Departamentos Cadastrados
+                    </h5>
+                    <div class="grid gap-2" id="lista-departamentos">
                         <?php
                         try {
                             $db = getDB();
                             $departamentos = $db->fetchAll("SELECT * FROM departamentos ORDER BY nome");
-                            foreach ($departamentos as $depto) {
-                                echo '<div class="item">' . htmlspecialchars($depto['nome']) . '</div>';
+                            foreach ($departamentos as $departamento) {
+                                echo '<div class="bg-gray-50 border border-gray-200 rounded-md p-3 hover:bg-gray-100 transition duration-200">' . htmlspecialchars($departamento['nome']) . '</div>';
                             }
                         } catch (Exception $e) {
-                            echo '<div class="item error">Erro ao carregar departamentos</div>';
+                            echo '<div class="bg-red-50 border border-red-200 text-red-700 rounded-md p-3">Erro ao carregar departamentos</div>';
                         }
                         ?>
                     </div>
@@ -99,50 +113,59 @@
 
             <!-- Aba Fornecedores -->
             <div class="tab-content" id="fornecedores">
-                <div class="form-section">
-                    <h4>Cadastro de Fornecedores</h4>
-                    <form id="form-fornecedores">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-truck text-primary mr-2"></i>
+                        Cadastro de Fornecedores
+                    </h4>
+                    <form id="form-fornecedores" class="space-y-4">
                         <div class="form-group">
-                            <label for="nome-fornecedor">Nome do Fornecedor *</label>
-                            <input type="text" id="nome-fornecedor" name="nome_fornecedor" required>
+                            <label for="nome-fornecedor" class="block text-sm font-medium text-gray-700 mb-2">Nome do Fornecedor</label>
+                            <input type="text" id="nome-fornecedor" name="nome_fornecedor" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                         </div>
-                        <div class="form-group">
-                            <label for="contato-fornecedor">Contato</label>
-                            <input type="text" id="contato-fornecedor" name="contato" placeholder="Telefone, email ou outro contato">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label for="contato-fornecedor" class="block text-sm font-medium text-gray-700 mb-2">Contato</label>
+                                <input type="text" id="contato-fornecedor" name="contato" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            <div class="form-group">
+                                <label for="email-fornecedor" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input type="email" id="email-fornecedor" name="email" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="rma-fornecedor">RMA (Link, Email ou Telefone)</label>
-                            <input type="text" id="rma-fornecedor" name="rma" placeholder="Link, email ou telefone para RMA">
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i>
+                        <button type="submit" class="bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center">
+                            <i class="fas fa-plus mr-2"></i>
                             Adicionar Fornecedor
                         </button>
                     </form>
                 </div>
                 
-                <div class="list-section">
-                    <h5>Fornecedores Cadastrados</h5>
-                    <div class="fornecedores-list" id="lista-fornecedores">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h5 class="text-md font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-list text-info mr-2"></i>
+                        Fornecedores Cadastrados
+                    </h5>
+                    <div class="grid gap-3" id="lista-fornecedores">
                         <?php
                         try {
                             $db = getDB();
                             $fornecedores = $db->fetchAll("SELECT * FROM fornecedores ORDER BY nome");
                             foreach ($fornecedores as $fornecedor) {
-                                echo '<div class="fornecedor-item">';
-                                echo '<div class="fornecedor-info">';
-                                echo '<h6>' . htmlspecialchars($fornecedor['nome']) . '</h6>';
+                                echo '<div class="bg-gray-50 border border-gray-200 rounded-md p-4 hover:bg-gray-100 transition duration-200">';
+                                echo '<h6 class="font-semibold text-gray-800 mb-2">' . htmlspecialchars($fornecedor['nome']) . '</h6>';
                                 if (!empty($fornecedor['contato'])) {
-                                    echo '<p>Contato: ' . htmlspecialchars($fornecedor['contato']) . '</p>';
+                                    echo '<p class="text-sm text-gray-600 mb-1"><i class="fas fa-phone mr-1"></i>Contato: ' . htmlspecialchars($fornecedor['contato']) . '</p>';
                                 }
                                 if (!empty($fornecedor['email'])) {
-                                    echo '<p>Email: ' . htmlspecialchars($fornecedor['email']) . '</p>';
+                                    echo '<p class="text-sm text-gray-600"><i class="fas fa-envelope mr-1"></i>Email: ' . htmlspecialchars($fornecedor['email']) . '</p>';
                                 }
-                                echo '</div>';
                                 echo '</div>';
                             }
                         } catch (Exception $e) {
-                            echo '<div class="fornecedor-item error">Erro ao carregar fornecedores</div>';
+                            echo '<div class="bg-red-50 border border-red-200 text-red-700 rounded-md p-3">Erro ao carregar fornecedores</div>';
                         }
                         ?>
                     </div>

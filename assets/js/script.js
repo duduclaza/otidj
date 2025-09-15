@@ -354,7 +354,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Envia via AJAX
             fetch('api/process_form.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => response.json())
             .then(data => {
@@ -456,8 +459,8 @@ function updateList(formId, data) {
         const list = document.getElementById(listId);
         if (list) {
             const newItem = document.createElement('div');
-            newItem.className = 'item';
-            newItem.textContent = data.nome;
+            newItem.className = 'bg-gray-50 border border-gray-200 rounded-md p-3 hover:bg-gray-100 transition duration-200';
+            newItem.textContent = data.nome || data.nome_filial || data.nome_departamento;
             list.appendChild(newItem);
         }
     }
