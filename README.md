@@ -4,22 +4,24 @@
 
 Este sistema foi configurado para detectar automaticamente se está rodando em:
 
-- **Localhost** (desenvolvimento): `localhost`, `127.0.0.1`, `::1`
-- **Produção**: `djbr.sgqoti.com.br`
+- **Produção**: `djbr.sgqoti.com.br` (Hostinger)
+- **Desenvolvimento local**: `localhost`, `127.0.0.1`, `::1`
 
 ## 📋 Configurações por Ambiente
 
-### Ambiente Local (Desenvolvimento)
-- **Banco de dados**: `srv1890.hstgr.io` (mesmo banco remoto da produção)
-- **Debug**: Habilitado
-- **Sessões**: Menos restritivas
-- **Logs**: Detalhados
-
-### Ambiente de Produção
-- **Banco de dados**: `srv1890.hstgr.io` (mesmo banco remoto)
+### Ambiente de Produção (Hostinger)
+- **URL**: `https://djbr.sgqoti.com.br`
+- **Banco de dados**: `srv1890.hstgr.io` (Hostinger MySQL)
 - **Debug**: Desabilitado
 - **Sessões**: Configurações de segurança máxima
 - **Logs**: Apenas erros críticos
+
+### Ambiente Local (Desenvolvimento)
+- **URL**: `http://localhost/sgq-pro`
+- **Banco de dados**: `srv1890.hstgr.io` (mesmo banco remoto)
+- **Debug**: Habilitado
+- **Sessões**: Menos restritivas
+- **Logs**: Detalhados
 
 ## 🔧 Instalação
 
@@ -111,14 +113,15 @@ Execute o arquivo `example_usage.php` para testar:
 - Conexão com banco
 - Configurações automáticas
 
-## 🚀 Deploy
+## 🚀 Deploy no Servidor Hostinger
 
 Para fazer deploy em produção:
 
-1. **Suba os arquivos** para `djbr.sgqoti.com.br`
-2. **Execute** `composer install --no-dev`
-3. **O sistema detectará automaticamente** que está em produção
-4. **Configurações de produção** serão aplicadas automaticamente
+1. **Suba os arquivos** para o servidor da Hostinger (`djbr.sgqoti.com.br`)
+2. **Execute** `composer install --no-dev` no servidor
+3. **Execute** `https://djbr.sgqoti.com.br/setup_database.php` para criar as tabelas
+4. **O sistema detectará automaticamente** que está em produção
+5. **Todas as configurações** serão aplicadas automaticamente para o ambiente Hostinger
 
 ## 📞 Suporte
 

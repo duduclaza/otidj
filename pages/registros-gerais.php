@@ -19,6 +19,10 @@
                     <i class="fas fa-truck"></i>
                     Cadastro de Fornecedores
                 </button>
+                <button class="tab-button" data-tab="debug">
+                    <i class="fas fa-bug"></i>
+                    Debug & Relatório
+                </button>
                 <button class="tab-button" data-tab="parametros">
                     <i class="fas fa-cogs"></i>
                     Parâmetros de Retornados
@@ -143,6 +147,17 @@
                         ?>
                     </div>
                 </div>
+            </div>
+
+            <!-- Aba Debug -->
+            <div class="tab-content" id="debug">
+                <?php
+                // Inclui o sistema de debug
+                require_once __DIR__ . '/../debug_report.php';
+                $debugSystem = new DebugReport();
+                $debugReport = $debugSystem->generateReport();
+                echo $debugSystem->renderHTML($debugReport);
+                ?>
             </div>
 
             <!-- Aba Parâmetros -->

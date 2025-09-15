@@ -26,17 +26,17 @@ class Environment
     {
         $host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
         
-        // Detecta se está no ambiente de produção oficial
+        // Detecta se está no ambiente de produção oficial (Hostinger)
         if (strpos($host, 'djbr.sgqoti.com.br') !== false) {
             $this->environment = 'production';
-        } 
-        // Detecta se está no localhost (XAMPP, WAMP, etc.)
+        }
+        // Detecta se está no localhost (apenas para desenvolvimento local)
         elseif (strpos($host, 'localhost') !== false || 
                 strpos($host, '127.0.0.1') !== false || 
                 strpos($host, '::1') !== false) {
             $this->environment = 'local';
         }
-        // Detecta ambientes de desenvolvimento online (GitHub Pages, Netlify, Vercel, etc.)
+        // Detecta ambientes de desenvolvimento online
         elseif (strpos($host, 'github.io') !== false ||
                 strpos($host, 'netlify.app') !== false ||
                 strpos($host, 'vercel.app') !== false ||
@@ -44,9 +44,9 @@ class Environment
                 strpos($host, 'surge.sh') !== false) {
             $this->environment = 'development';
         }
-        // Fallback para desenvolvimento
+        // Fallback: se não reconhecer o host, assume produção (para Hostinger)
         else {
-            $this->environment = 'development';
+            $this->environment = 'production';
         }
     }
 
@@ -89,12 +89,12 @@ class Environment
                     ],
                     'app' => [
                         'debug' => true,
-                        'url' => 'http://localhost/sgq-pro',
-                        'secure' => false
+                        'url' => 'https://djbr.sgqoti.com.br',
+                        'secure' => true
                     ],
                     'session' => [
                         'lifetime' => 1440,
-                        'secure' => false,
+                        'secure' => true,
                         'httponly' => true,
                         'samesite' => 'Lax'
                     ]
