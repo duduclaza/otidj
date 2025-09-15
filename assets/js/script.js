@@ -300,10 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
     initTableSorting();
     initSearch();
     
-    // Add loading states to forms
+    // Add AJAX form submission
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Sempre previne submit padrão
+            
             // Debug: log form data
             console.log('Form submission attempt:', form.id || 'unnamed form');
             const formData = new FormData(form);
@@ -312,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (!validateForm(form)) {
-                e.preventDefault();
                 console.log('Form validation failed');
                 showNotification('Por favor, preencha todos os campos obrigatórios.', 'error');
                 
@@ -325,14 +326,57 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            console.log('Form validation passed');
+            console.log('Form validation passed - submitting via AJAX');
             const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                const hideLoading = showLoading(submitBtn);
-                
-                // Hide loading after 3 seconds (adjust based on your needs)
-                setTimeout(hideLoading, 3000);
+            const hideLoading = submitBtn ? showLoading(submitBtn) : null;
+            
+            // Determina a ação baseada no ID do form
+            let action = '';
+            switch(form.id) {
+                case 'form-filiais':
+                    action = 'add_filial';
+                    break;
+                case 'form-departamentos':
+                    action = 'add_departamento';
+                    break;
+                case 'form-fornecedores':
+                    action = 'add_fornecedor';
+                    break;
+                default:
+                    console.error('Form ID não reconhecido:', form.id);
+                    if (hideLoading) hideLoading();
+                    return;
             }
+            
+            // Adiciona a ação ao FormData
+            formData.append('action', action);
+            
+            // Envia via AJAX
+            fetch('api/process_form.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server response:', data);
+                
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    form.reset(); // Limpa o formulário
+                    
+                    // Atualiza a lista correspondente
+                    updateList(form.id, data.data);
+                } else {
+                    showNotification(data.message || 'Erro ao processar solicitação', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erro na requisição:', error);
+                showNotification('Erro de conexão. Tente novamente.', 'error');
+            })
+            .finally(() => {
+                if (hideLoading) hideLoading();
+            });
         });
     });
 });
