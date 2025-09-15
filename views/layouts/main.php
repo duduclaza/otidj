@@ -13,6 +13,7 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
   <meta http-equiv="Expires" content="0">
   <title><?= e($title) ?></title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
     // Tailwind config with dark theme
     tailwind.config = {

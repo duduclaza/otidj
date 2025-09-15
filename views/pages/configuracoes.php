@@ -23,5 +23,17 @@
       <li><strong>Inclui:</strong> Criação de tabelas + inserção de dados padrão (se vazio)</li>
       <li><strong>Push & Deploy:</strong> Quando você faz push, o sistema se atualiza automaticamente</li>
     </ul>
+    
+    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+      <h3 class="font-medium text-blue-800 mb-2">Tabelas Criadas Automaticamente:</h3>
+      <ul class="text-sm text-blue-700 space-y-1">
+        <li>• <strong>filiais</strong> - Cadastro de filiais da empresa</li>
+        <li>• <strong>departamentos</strong> - Departamentos organizacionais</li>
+        <li>• <strong>fornecedores</strong> - Cadastro de fornecedores</li>
+        <li>• <strong>parametros_retornados</strong> - Parâmetros para análise de retornados</li>
+        <li>• <strong>toners</strong> - Cadastro completo de toners com cálculos automáticos</li>
+        <li>• <strong>migrations</strong> - Controle de versões do banco</li>
+      </ul>
+    </div>
   </div>
 </section>

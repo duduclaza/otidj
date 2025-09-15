@@ -315,17 +315,62 @@ function closeImportModal() {
 }
 
 function downloadTemplate() {
-  // Create template data
-  const headers = ['modelo', 'peso_cheio', 'peso_vazio', 'capacidade_folhas', 'preco_toner', 'cor', 'tipo'];
-  const csvContent = headers.join(',') + '\n' + 'HP CF280A,850.50,120.30,2700,89.90,Black,Original';
+  // Create Excel template with proper structure
+  const data = [
+    ['Modelo', 'Peso Cheio (g)', 'Peso Vazio (g)', 'Capacidade de Folhas', 'Preço do Toner (R$)', 'Cor', 'Tipo'],
+    ['HP CF280A', '850.50', '120.30', '2700', '89.90', 'Black', 'Original'],
+    ['HP CE285A', '720.00', '110.50', '1600', '65.00', 'Black', 'Compativel'],
+    ['', '', '', '', '', '', '']
+  ];
   
-  const blob = new Blob([csvContent], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'template_toners.csv';
-  a.click();
-  window.URL.revokeObjectURL(url);
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  
+  // Set column widths
+  ws['!cols'] = [
+    {wch: 15}, // Modelo
+    {wch: 15}, // Peso Cheio
+    {wch: 15}, // Peso Vazio
+    {wch: 18}, // Capacidade
+    {wch: 18}, // Preço
+    {wch: 12}, // Cor
+    {wch: 15}  // Tipo
+  ];
+  
+  // Style header row
+  const headerStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "4F46E5" } },
+    alignment: { horizontal: "center" }
+  };
+  
+  // Apply header styling
+  for (let col = 0; col < 7; col++) {
+    const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!ws[cellRef]) ws[cellRef] = {};
+    ws[cellRef].s = headerStyle;
+  }
+  
+  // Add data validation for Cor column (F)
+  ws['!dataValidation'] = {
+    F2: { type: 'list', formula1: '"Yellow,Magenta,Cyan,Black"' },
+    F3: { type: 'list', formula1: '"Yellow,Magenta,Cyan,Black"' },
+    F4: { type: 'list', formula1: '"Yellow,Magenta,Cyan,Black"' }
+  };
+  
+  // Add data validation for Tipo column (G)
+  ws['!dataValidation'] = {
+    ...ws['!dataValidation'],
+    G2: { type: 'list', formula1: '"Original,Compativel,Remanufaturado"' },
+    G3: { type: 'list', formula1: '"Original,Compativel,Remanufaturado"' },
+    G4: { type: 'list', formula1: '"Original,Compativel,Remanufaturado"' }
+  };
+  
+  XLSX.utils.book_append_sheet(wb, ws, "Template Toners");
+  
+  // Download file
+  XLSX.writeFile(wb, 'template_toners.xlsx');
 }
 
 function importExcel() {
