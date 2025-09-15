@@ -16,6 +16,11 @@ class Router
         $this->routes['GET'][$this->normalize($path)] = $handler;
     }
 
+    public function post(string $path, callable|array $handler): void
+    {
+        $this->routes['POST'][$this->normalize($path)] = $handler;
+    }
+
     public function dispatch(): void
     {
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -24,6 +29,15 @@ class Router
 
         $handler = $this->routes[$method][$normalized] ?? null;
         if (!$handler) {
+            // If route exists for other method, return 405
+            foreach ($this->routes as $m => $set) {
+                if (isset($set[$normalized])) {
+                    http_response_code(405);
+                    header('Allow: ' . implode(', ', array_keys($this->routes)));
+                    echo '405 Method Not Allowed';
+                    return;
+                }
+            }
             http_response_code(404);
             echo '404 Not Found';
             return;

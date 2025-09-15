@@ -33,6 +33,12 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
     <?php include $sidebar; ?>
     <main class="flex-1 p-6 lg:p-8">
       <div class="max-w-6xl mx-auto">
+        <?php if ($msg = flash('success')): ?>
+          <div class="mb-4 rounded-md border border-green-200 bg-green-50 text-green-800 px-4 py-2 text-sm"><?= e($msg) ?></div>
+        <?php endif; ?>
+        <?php if ($msg = flash('error')): ?>
+          <div class="mb-4 rounded-md border border-red-200 bg-red-50 text-red-800 px-4 py-2 text-sm"><?= e($msg) ?></div>
+        <?php endif; ?>
         <?php include $viewFile; ?>
       </div>
     </main>

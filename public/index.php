@@ -13,6 +13,11 @@ error_reporting(E_ALL);
 // Project base path
 $basePath = dirname(__DIR__);
 
+// Start session for flash messages
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Composer autoload
 require $basePath . '/vendor/autoload.php';
 
@@ -42,7 +47,17 @@ $router->get('/pops-e-its', [App\Controllers\PageController::class, 'popsEIts'])
 $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
 $router->get('/melhoria-continua', [App\Controllers\PageController::class, 'melhoriaContinua']);
 $router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
-$router->get('/registros-gerais', [App\Controllers\PageController::class, 'registrosGerais']);
+
+// Registros Gerais (com abas e forms)
+$router->get('/registros-gerais', [App\Controllers\RegistrosController::class, 'index']);
+$router->post('/registros-gerais/filiais', [App\Controllers\RegistrosController::class, 'storeFilial']);
+$router->post('/registros-gerais/departamentos', [App\Controllers\RegistrosController::class, 'storeDepartamento']);
+$router->post('/registros-gerais/fornecedores', [App\Controllers\RegistrosController::class, 'storeFornecedor']);
+$router->post('/registros-gerais/parametros', [App\Controllers\RegistrosController::class, 'storeParametro']);
+
+// Configurações
+$router->get('/configuracoes', [App\Controllers\ConfigController::class, 'index']);
+$router->post('/configuracoes/setup-banco', [App\Controllers\ConfigController::class, 'setupBanco']);
 
 // Dispatch request
 $router->dispatch();
