@@ -1,0 +1,26 @@
+{
+  "name": "duduclaza/otidj",
+  "description": "SGQ-OTI DJ - Sistema em PHP puro com roteamento simples",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "vlucas/phpdotenv": "^5.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    },
+    "files": [
+      "src/Support/helpers.php"
+    ]
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ]
+  }
+}

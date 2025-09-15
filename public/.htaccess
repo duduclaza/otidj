@@ -1,0 +1,20 @@
+# Use Apache rewriting to route everything to public/index.php
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Serve existing files and directories as is
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Otherwise route to index.php
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+# No cache headers for static as well
+<IfModule mod_headers.c>
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  Header set Pragma "no-cache"
+  Header set Expires "0"
+</IfModule>
