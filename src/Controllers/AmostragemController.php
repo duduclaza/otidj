@@ -33,10 +33,16 @@ class AmostragemController
         header('Content-Type: application/json');
         
         try {
+            // Debug incoming POST data
+            error_log("POST data received: " . print_r($_POST, true));
+            error_log("FILES data received: " . print_r($_FILES, true));
+            
             $numero_nf = $_POST['numero_nf'] ?? '';
             $status = $_POST['status'] ?? 'pendente';
             $observacao = $_POST['observacao'] ?? '';
             $responsaveis = $_POST['responsaveis'] ?? [];
+            
+            error_log("Parsed values - numero_nf: '$numero_nf', status: '$status'");
             
             if (empty($numero_nf) || empty($status)) {
                 echo json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);

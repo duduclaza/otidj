@@ -402,6 +402,12 @@ function submitAmostragem() {
     return;
   }
   
+  // Add debug logs for form data
+  console.log('FormData contents:');
+  for (let [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+  
   fetch('/toners/amostragens', {
     method: 'POST',
     body: formData
