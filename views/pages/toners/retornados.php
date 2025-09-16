@@ -7,7 +7,7 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-gray-900">Registro de Retornados</h1>
-    <button onclick="openRetornadoModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+    <button type="button" onclick="openRetornadoModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
       </svg>
@@ -426,6 +426,15 @@
 let tonerData = {};
 let selectedDestino = '';
 
+// Debug: Check if modal exists when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('retornadoModal');
+  console.log('Modal found:', modal ? 'Yes' : 'No');
+  if (!modal) {
+    console.error('retornadoModal element not found in DOM');
+  }
+});
+
 // Global variables for debug
 let debugLogs = [];
 let importResults = [];
@@ -561,22 +570,40 @@ function downloadImportCSV(report) {
 
 // Modal functions
 function openRetornadoModal() {
+  console.log('openRetornadoModal called');
   const modal = document.getElementById('retornadoModal');
+  console.log('Modal element:', modal);
+  
   if (modal) {
+    console.log('Removing hidden class from modal');
     modal.classList.remove('hidden');
+    
     // Load parameters when modal opens to ensure fresh data
     loadParameters();
+    
     // Reset form
-    document.getElementById('retornadoForm').reset();
+    const form = document.getElementById('retornadoForm');
+    if (form) {
+      form.reset();
+    }
+    
     selectedDestino = '';
-    updateDestinoButtons();
+    
+    // Try to update destino buttons if function exists
+    if (typeof updateDestinoButtons === 'function') {
+      updateDestinoButtons();
+    }
+    
     // Hide observacao container initially
     const observacaoContainer = document.getElementById('observacao-container');
     if (observacaoContainer) {
       observacaoContainer.classList.add('hidden');
     }
+    
+    console.log('Modal should be visible now');
   } else {
-    console.error('Modal retornadoModal não encontrado');
+    console.error('Modal retornadoModal não encontrado no DOM');
+    alert('Erro: Modal não encontrado. Recarregue a página.');
   }
 }
 
