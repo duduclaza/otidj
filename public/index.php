@@ -65,6 +65,13 @@ $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class
 $router->post('/toners/amostragens', [App\Controllers\AmostragemController::class, 'store']);
 $router->delete('/toners/amostragens/{id}', [App\Controllers\AmostragemController::class, 'delete']);
 $router->get('/api/users', [App\Controllers\UsersController::class, 'getUsers']);
+
+// Profile routes
+$router->get('/profile', [App\Controllers\ProfileController::class, 'index']);
+$router->get('/api/profile', [App\Controllers\ProfileController::class, 'getProfile']);
+$router->post('/api/profile/photo', [App\Controllers\ProfileController::class, 'updatePhoto']);
+$router->post('/api/profile/password', [App\Controllers\ProfileController::class, 'updatePassword']);
+$router->get('/api/profile/photo/{id}', [App\Controllers\ProfileController::class, 'getPhoto']);
 $router->get('/garantias', [App\Controllers\PageController::class, 'garantias']);
 $router->get('/controle-de-descartes', [App\Controllers\PageController::class, 'controleDeDescartes']);
 $router->get('/femea', [App\Controllers\PageController::class, 'femea']);

@@ -98,21 +98,30 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
   <div class="p-3 border-t border-slate-700">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-          <span class="text-white text-sm font-medium">
-            <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
-          </span>
-        </div>
-        <div class="text-sm">
-          <div class="text-white font-medium"><?= $_SESSION['user_name'] ?? 'Usuário' ?></div>
-          <div class="text-slate-400 text-xs"><?= $_SESSION['user_role'] ?? 'user' ?></div>
-        </div>
+        <a href="/profile" class="flex items-center gap-3 hover:bg-slate-700 rounded-lg p-1 transition-colors">
+          <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+            <span class="text-white text-sm font-medium">
+              <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
+            </span>
+          </div>
+          <div class="text-sm">
+            <div class="text-white font-medium"><?= $_SESSION['user_name'] ?? 'Usuário' ?></div>
+            <div class="text-slate-400 text-xs"><?= $_SESSION['user_role'] ?? 'user' ?></div>
+          </div>
+        </a>
       </div>
-      <a href="/logout" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" title="Logout">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-        </svg>
-      </a>
+      <div class="flex items-center gap-1">
+        <a href="/profile" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" title="Perfil">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+        </a>
+        <a href="/logout" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" title="Logout">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+        </a>
+      </div>
     </div>
   </div>
 </aside>

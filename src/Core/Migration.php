@@ -335,6 +335,11 @@ class Migration
             INDEX idx_status (status),
             INDEX idx_role (role)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+        
+        // Add profile_photo column to users table
+        $this->db->exec('ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS profile_photo LONGBLOB NULL AFTER email,
+            ADD COLUMN IF NOT EXISTS profile_photo_type VARCHAR(50) NULL AFTER profile_photo');
 
         // Create user_permissions table
         $this->db->exec('CREATE TABLE IF NOT EXISTS user_permissions (
