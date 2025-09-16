@@ -177,6 +177,9 @@ class TonersController
         header('Content-Type: application/json');
         
         try {
+            // Log dos dados recebidos para debug
+            error_log('POST data received: ' . print_r($_POST, true));
+            
             $modelo = trim($_POST['modelo'] ?? '');
             $usuario = trim($_POST['usuario'] ?? '');
             $filial = trim($_POST['filial'] ?? '');
@@ -187,9 +190,21 @@ class TonersController
             $destino = trim($_POST['destino'] ?? '');
             $data_registro = $_POST['data_registro'] ?? date('Y-m-d');
 
+            // Debug dos campos
+            error_log("Validação - modelo: '$modelo', usuario: '$usuario', filial: '$filial', codigo_cliente: '$codigo_cliente', modo: '$modo', destino: '$destino'");
+
             // Validate required fields
             if (empty($modelo) || empty($usuario) || empty($filial) || empty($codigo_cliente) || empty($modo) || empty($destino)) {
-                echo json_encode(['success' => false, 'message' => 'Todos os campos obrigatórios devem ser preenchidos']);
+                $missing = [];
+                if (empty($modelo)) $missing[] = 'modelo';
+                if (empty($usuario)) $missing[] = 'usuario';
+                if (empty($filial)) $missing[] = 'filial';
+                if (empty($codigo_cliente)) $missing[] = 'codigo_cliente';
+                if (empty($modo)) $missing[] = 'modo';
+                if (empty($destino)) $missing[] = 'destino';
+                
+                error_log('Campos faltando: ' . implode(', ', $missing));
+                echo json_encode(['success' => false, 'message' => 'Campos obrigatórios faltando: ' . implode(', ', $missing)]);
                 return;
             }
 

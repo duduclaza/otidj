@@ -527,20 +527,33 @@ function submitRetornado(e) {
     method: 'POST',
     body: formData
   })
-  .then(response => response.json())
-  .then(result => {
-    if (result.success) {
-      alert('Retornado registrado com sucesso!');
-      cancelRetornadoForm();
-      // Recarregar lista se existir
-      if (typeof loadRetornados === 'function') {
-        loadRetornados();
+  .then(response => {
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers.get('content-type'));
+    return response.text();
+  })
+  .then(text => {
+    console.log('Raw response:', text);
+    try {
+      const result = JSON.parse(text);
+      if (result.success) {
+        alert('Retornado registrado com sucesso!');
+        cancelRetornadoForm();
+        // Recarregar lista se existir
+        if (typeof loadRetornados === 'function') {
+          loadRetornados();
+        }
+      } else {
+        alert('Erro: ' + result.message);
       }
-    } else {
-      alert('Erro: ' + result.message);
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      console.error('Response text:', text);
+      alert('Erro no servidor: Resposta inválida recebida');
     }
   })
   .catch(error => {
+    console.error('Fetch error:', error);
     alert('Erro de conexão: ' + error.message);
   });
 }
