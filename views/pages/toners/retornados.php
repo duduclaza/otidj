@@ -23,20 +23,29 @@
             e.preventDefault();
             if (typeof window.openRetornadoModal === 'function') {
               window.openRetornadoModal();
-            } else if (typeof openRetornadoModal === 'function') {
+              return;
+            }
+            if (typeof openRetornadoModal === 'function') {
               openRetornadoModal();
-            } else {
-              // Retry shortly in case scripts at the bottom haven't loaded yet
-              setTimeout(function(){
-                if (typeof window.openRetornadoModal === 'function') {
-                  window.openRetornadoModal();
-                } else if (typeof openRetornadoModal === 'function') {
-                  openRetornadoModal();
-                } else {
-                  console.error('openRetornadoModal is not defined after retry');
-                  alert('Erro ao abrir o formulário. Tente recarregar a página.');
-                }
-              }, 50);
+              return;
+            }
+            // Fallback: abrir o modal diretamente sem depender da função
+            try {
+              var modal = document.getElementById('retornadoModal');
+              if (modal) {
+                modal.classList.remove('hidden');
+              }
+              var form = document.getElementById('retornadoForm');
+              if (form) { form.reset(); }
+              // Variáveis e funções opcionais
+              try { window.selectedDestino = ''; } catch(_){}
+              if (typeof window.updateDestinoButtons === 'function') { window.updateDestinoButtons(); }
+              var obs = document.getElementById('observacao-container');
+              if (obs) { obs.classList.add('hidden'); }
+              if (typeof window.loadParameters === 'function') { window.loadParameters(); }
+            } catch (err) {
+              console.error('Falha ao abrir o modal via fallback:', err);
+              alert('Erro ao abrir o formulário. Recarregue a página.');
             }
           });
         }
