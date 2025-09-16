@@ -400,6 +400,85 @@ function downloadDebugReport() {
   URL.revokeObjectURL(url);
 }
 
+function downloadImportReport() {
+  const timestamp = new Date();
+  const dateStr = timestamp.toLocaleDateString('pt-BR');
+  const timeStr = timestamp.toLocaleTimeString('pt-BR');
+  
+  // Create detailed report
+  const report = {
+    titulo: 'Relatório de Importação - Retornados',
+    data_importacao: `${dateStr} às ${timeStr}`,
+    resumo: {
+      total_linhas_processadas: importResults.length,
+      sucessos: importResults.filter(r => r.success).length,
+      erros: importResults.filter(r => !r.success).length,
+      taxa_sucesso: `${((importResults.filter(r => r.success).length / importResults.length) * 100).toFixed(1)}%`
+    },
+    detalhes_por_linha: importResults.map(result => ({
+      linha: result.row,
+      status: result.success ? 'SUCESSO' : 'ERRO',
+      dados_enviados: result.data,
+      resposta_servidor: result.response,
+      observacoes: result.success ? 'Importado com sucesso' : result.response.message
+    })),
+    logs_debug: debugLogs,
+    estatisticas: {
+      modelos_importados: [...new Set(importResults.filter(r => r.success).map(r => r.data.modelo))],
+      filiais_envolvidas: [...new Set(importResults.filter(r => r.success).map(r => r.data.filial))],
+      destinos_utilizados: [...new Set(importResults.filter(r => r.success).map(r => r.data.destino))]
+    }
+  };
+  
+  // Generate filename with timestamp
+  const filename = `relatorio-importacao-${timestamp.getFullYear()}-${String(timestamp.getMonth()+1).padStart(2,'0')}-${String(timestamp.getDate()).padStart(2,'0')}_${String(timestamp.getHours()).padStart(2,'0')}-${String(timestamp.getMinutes()).padStart(2,'0')}.json`;
+  
+  // Download the report
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  // Also create a simplified CSV version
+  downloadImportCSV(report);
+}
+
+function downloadImportCSV(report) {
+  const csvData = [
+    ['Linha', 'Status', 'Modelo', 'Código Cliente', 'Usuário', 'Filial', 'Destino', 'Valor', 'Data', 'Observações'],
+    ...report.detalhes_por_linha.map(linha => [
+      linha.linha,
+      linha.status,
+      linha.dados_enviados.modelo || '',
+      linha.dados_enviados.codigo_cliente || '',
+      linha.dados_enviados.usuario || '',
+      linha.dados_enviados.filial || '',
+      linha.dados_enviados.destino || '',
+      linha.dados_enviados.valor_calculado || 0,
+      linha.dados_enviados.data_registro || '',
+      linha.observacoes || ''
+    ])
+  ];
+  
+  const csvContent = csvData.map(row => 
+    row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  
+  const timestamp = new Date();
+  const filename = `relatorio-importacao-${timestamp.getFullYear()}-${String(timestamp.getMonth()+1).padStart(2,'0')}-${String(timestamp.getDate()).padStart(2,'0')}_${String(timestamp.getHours()).padStart(2,'0')}-${String(timestamp.getMinutes()).padStart(2,'0')}.csv`;
+  
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // Modal functions
 function openRetornadoModal() {
   document.getElementById('retornadoModal').classList.remove('hidden');
@@ -806,7 +885,10 @@ function processImportRows(rows) {
           message += `${errors} registros com erro.`;
         }
         
-        alert(message);
+        // Auto-download debug report
+        downloadImportReport();
+        
+        alert(message + '\n\nRelatório de importação baixado automaticamente.');
         closeImportModal();
         location.reload();
       }, 2000);
