@@ -20,7 +20,9 @@ class AmostragemController
             $stmt->execute();
             $amostragens = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            echo view('pages/toners/amostragens', ['amostragens' => $amostragens]);
+            $title = 'Amostragens - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/toners/amostragens.php';
+            include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Exception $e) {
             echo view('pages/toners/amostragens', ['error' => 'Erro ao carregar amostragens: ' . $e->getMessage()]);
         }
