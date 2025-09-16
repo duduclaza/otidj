@@ -241,6 +241,7 @@ function openAmostragemModal() {
   
   // Set default status to 'pendente'
   document.querySelector('input[name="status"][value="pendente"]').checked = true;
+  selectedStatus = 'pendente';
   
   // Load users for responsáveis dropdown
   loadUsers();
@@ -277,16 +278,22 @@ function loadUsers() {
       const select = document.getElementById('responsaveisSelect');
       select.innerHTML = '';
       
-      users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.name;
-        option.textContent = `${user.name} (${user.email})`;
-        select.appendChild(option);
-      });
+      if (Array.isArray(users)) {
+        users.forEach(user => {
+          const option = document.createElement('option');
+          option.value = user.name;
+          option.textContent = `${user.name} (${user.email})`;
+          select.appendChild(option);
+        });
+        console.log('Usuários carregados:', users.length);
+      } else {
+        console.error('Resposta da API não é um array:', users);
+        alert('Erro: Formato de dados inválido da API de usuários');
+      }
     })
     .catch(error => {
       console.error('Erro ao carregar usuários:', error);
-      alert('Erro ao carregar lista de usuários');
+      alert('Erro ao carregar lista de usuários: ' + error.message);
     });
 }
 
@@ -296,13 +303,22 @@ function submitAmostragem() {
   const formData = new FormData(form);
   
   // Validate responsáveis selection
-  const responsaveis = Array.from(document.getElementById('responsaveisSelect').selectedOptions).map(option => option.value);
+  const responsaveisSelect = document.getElementById('responsaveisSelect');
+  const responsaveis = Array.from(responsaveisSelect.selectedOptions).map(option => option.value);
+  
+  console.log('Responsáveis selecionados:', responsaveis);
+  console.log('Número de responsáveis:', responsaveis.length);
+  
   if (responsaveis.length === 0) {
     alert('Por favor, selecione pelo menos um responsável.');
     return;
   }
   
-  if (!selectedStatus) {
+  // Get selected status
+  const statusSelected = document.querySelector('input[name="status"]:checked')?.value;
+  console.log('Status selecionado:', statusSelected);
+  
+  if (!statusSelected) {
     alert('Por favor, selecione um status.');
     return;
   }
