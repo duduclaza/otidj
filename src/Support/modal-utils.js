@@ -252,10 +252,23 @@ const observer = new MutationObserver(function(mutations) {
   });
 });
 
-observer.observe(document.body, {
-  childList: true,
-  subtree: true
-});
+// Verificar se document.body existe antes de observar
+if (document.body) {
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+} else {
+  // Se document.body ainda não existe, aguardar o DOM
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.body) {
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    }
+  });
+}
 
 // Exportar para uso em módulos
 if (typeof module !== 'undefined' && module.exports) {
