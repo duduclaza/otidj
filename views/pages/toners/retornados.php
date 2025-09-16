@@ -93,7 +93,7 @@
             <span>Peso Físico</span>
           </label>
           <label class="flex items-center">
-            <input type="radio" name="tipoMedicao" value="percentual" class="mr-2" onchange="toggleMedicaoType()">
+            <input type="radio" name="tipoMedicao" value="chip" class="mr-2" onchange="toggleMedicaoType()">
             <span>% do Chip</span>
           </label>
         </div>
