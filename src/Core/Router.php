@@ -65,7 +65,7 @@ class Router
             $instance = new $class();
             
             // Extract parameters from URL for dynamic routes
-            $params = $this->extractParams($normalized);
+            $params = $this->extractParams($normalized, $route);
             
             if (!empty($params)) {
                 $instance->$methodName(...$params);
@@ -87,9 +87,18 @@ class Router
         return preg_match($regex, $uri);
     }
 
-    private function extractParams(string $uri): array
+    private function extractParams(string $uri, string $pattern): array
     {
-        // For now, return empty array - can be enhanced later for dynamic routes
+        // Convert pattern to regex and extract parameters
+        $regex = preg_replace('/\{[^}]+\}/', '([^/]+)', $pattern);
+        $regex = '#^' . $regex . '$#';
+        
+        if (preg_match($regex, $uri, $matches)) {
+            // Remove the full match, keep only captured groups
+            array_shift($matches);
+            return $matches;
+        }
+        
         return [];
     }
 
