@@ -7,7 +7,7 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-gray-900">Registro de Retornados</h1>
-    <button type="button" onclick="openRetornadoModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+    <button id="openRetornadoBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
       </svg>
@@ -432,6 +432,21 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('Modal found:', modal ? 'Yes' : 'No');
   if (!modal) {
     console.error('retornadoModal element not found in DOM');
+  }
+  // Ensure the open button triggers the modal even if inline handler is blocked
+  const openBtn = document.getElementById('openRetornadoBtn');
+  if (openBtn) {
+    openBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (typeof window.openRetornadoModal === 'function') {
+        window.openRetornadoModal();
+      } else if (typeof openRetornadoModal === 'function') {
+        openRetornadoModal();
+      } else {
+        console.error('openRetornadoModal is not defined');
+        alert('Erro ao abrir o formulário. Recarregue a página.');
+      }
+    });
   }
 });
 
