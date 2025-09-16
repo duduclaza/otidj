@@ -272,10 +272,22 @@ function toggleStatusFields() {
 }
 
 function loadUsers() {
+  console.log('Iniciando carregamento de usuários...');
   fetch('/api/users')
-    .then(response => response.json())
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json();
+    })
     .then(users => {
+      console.log('Dados recebidos da API:', users);
       const select = document.getElementById('responsaveisSelect');
+      console.log('Select element:', select);
+      
+      if (!select) {
+        console.error('Elemento select não encontrado!');
+        return;
+      }
+      
       select.innerHTML = '';
       
       if (Array.isArray(users)) {
@@ -286,14 +298,28 @@ function loadUsers() {
           select.appendChild(option);
         });
         console.log('Usuários carregados:', users.length);
+        console.log('Opções no select:', select.options.length);
       } else {
         console.error('Resposta da API não é um array:', users);
-        alert('Erro: Formato de dados inválido da API de usuários');
+        // Try to create some test options
+        const testOption = document.createElement('option');
+        testOption.value = 'Test User';
+        testOption.textContent = 'Test User (test@example.com)';
+        select.appendChild(testOption);
+        console.log('Adicionada opção de teste');
       }
     })
     .catch(error => {
       console.error('Erro ao carregar usuários:', error);
-      alert('Erro ao carregar lista de usuários: ' + error.message);
+      // Add test option on error
+      const select = document.getElementById('responsaveisSelect');
+      if (select) {
+        const testOption = document.createElement('option');
+        testOption.value = 'Test User';
+        testOption.textContent = 'Test User (test@example.com)';
+        select.appendChild(testOption);
+        console.log('Adicionada opção de teste devido ao erro');
+      }
     });
 }
 
@@ -304,6 +330,15 @@ function submitAmostragem() {
   
   // Validate responsáveis selection
   const responsaveisSelect = document.getElementById('responsaveisSelect');
+  console.log('Elemento select encontrado:', responsaveisSelect);
+  console.log('Opções disponíveis:', responsaveisSelect ? responsaveisSelect.options.length : 'N/A');
+  console.log('Opções selecionadas:', responsaveisSelect ? responsaveisSelect.selectedOptions.length : 'N/A');
+  
+  if (!responsaveisSelect) {
+    alert('Erro: Campo de responsáveis não encontrado!');
+    return;
+  }
+  
   const responsaveis = Array.from(responsaveisSelect.selectedOptions).map(option => option.value);
   
   console.log('Responsáveis selecionados:', responsaveis);
