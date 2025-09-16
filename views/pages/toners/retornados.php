@@ -88,12 +88,19 @@
                     <?= ucfirst(str_replace('_', ' ', $retornado['destino'])) ?>
                   </span>
                 </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <?php if (isset($retornado['valor_calculado']) && $retornado['valor_calculado'] > 0): ?>
+                    <span class="font-semibold text-green-600">R$ <?= number_format($retornado['valor_calculado'], 2, ',', '.') ?></span>
+                  <?php else: ?>
+                    <span class="text-gray-400">-</span>
+                  <?php endif; ?>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= date('d/m/Y', strtotime($retornado['data_registro'])) ?></td>
               </tr>
             <?php endforeach; ?>
           <?php else: ?>
             <tr>
-              <td colspan="6" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td>
+              <td colspan="7" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td>
             </tr>
           <?php endif; ?>
         </tbody>
