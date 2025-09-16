@@ -368,42 +368,73 @@ function loadUsers() {
 
 function submitAmostragem() {
   logActivity('form', 'Submit Amostragem');
-  const form = document.getElementById('amostragemForm');
-  const formData = new FormData(form);
   
-  // Validate responsáveis selection
-  const responsaveisCheckboxes = document.querySelectorAll('input[name="responsaveis[]"]');
+  // Get form values manually instead of using FormData
+  const numeroNf = document.querySelector('input[name="numero_nf"]')?.value || '';
+  const statusSelected = document.querySelector('input[name="status"]:checked')?.value || '';
+  const observacao = document.querySelector('textarea[name="observacao"]')?.value || '';
+  
+  // Get selected responsaveis
   const responsaveisChecked = document.querySelectorAll('input[name="responsaveis[]"]:checked');
-  
-  console.log('Checkboxes encontrados:', responsaveisCheckboxes.length);
-  console.log('Checkboxes selecionados:', responsaveisChecked.length);
-  
-  if (responsaveisCheckboxes.length === 0) {
-    alert('Erro: Campo de responsáveis não encontrado!');
-    return;
-  }
-  
   const responsaveis = Array.from(responsaveisChecked).map(checkbox => checkbox.value);
   
-  console.log('Responsáveis selecionados:', responsaveis);
-  console.log('Número de responsáveis:', responsaveis.length);
+  // Get files
+  const arquivoNf = document.querySelector('input[name="arquivo_nf"]')?.files[0];
+  const fotos = document.querySelector('input[name="fotos[]"]')?.files;
   
-  if (responsaveis.length === 0) {
-    alert('Por favor, selecione pelo menos um responsável.');
+  console.log('Valores capturados:');
+  console.log('numero_nf:', numeroNf);
+  console.log('status:', statusSelected);
+  console.log('observacao:', observacao);
+  console.log('responsaveis:', responsaveis);
+  console.log('arquivo_nf:', arquivoNf);
+  console.log('fotos:', fotos);
+  
+  // Validate required fields
+  if (!numeroNf) {
+    alert('Por favor, preencha o número da NF.');
     return;
   }
-  
-  // Get selected status
-  const statusSelected = document.querySelector('input[name="status"]:checked')?.value;
-  console.log('Status selecionado:', statusSelected);
   
   if (!statusSelected) {
     alert('Por favor, selecione um status.');
     return;
   }
   
-  // Add debug logs for form data
-  console.log('FormData contents:');
+  if (responsaveis.length === 0) {
+    alert('Por favor, selecione pelo menos um responsável.');
+    return;
+  }
+  
+  if (!arquivoNf) {
+    alert('Por favor, anexe o PDF da NF.');
+    return;
+  }
+  
+  // Create FormData manually
+  const formData = new FormData();
+  formData.append('numero_nf', numeroNf);
+  formData.append('status', statusSelected);
+  formData.append('observacao', observacao);
+  
+  // Add responsaveis
+  responsaveis.forEach(responsavel => {
+    formData.append('responsaveis[]', responsavel);
+  });
+  
+  // Add files
+  if (arquivoNf) {
+    formData.append('arquivo_nf', arquivoNf);
+  }
+  
+  if (fotos && fotos.length > 0) {
+    for (let i = 0; i < fotos.length; i++) {
+      formData.append('fotos[]', fotos[i]);
+    }
+  }
+  
+  // Debug FormData
+  console.log('FormData final:');
   for (let [key, value] of formData.entries()) {
     console.log(key, value);
   }
