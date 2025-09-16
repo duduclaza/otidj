@@ -7,12 +7,88 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-gray-900">Gerenciar Usuários</h1>
-    <button onclick="openCreateUserModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+    <button onclick="toggleUserForm()" id="toggleFormBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
       </svg>
       <span>Novo Usuário</span>
     </button>
+  </div>
+
+  <!-- User Form -->
+  <div id="userFormContainer" class="hidden bg-white rounded-lg shadow-lg border border-gray-200 p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h3 id="formTitle" class="text-lg font-semibold text-gray-900">Criar Novo Usuário</h3>
+      <button onclick="cancelUserForm()" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form id="userForm" class="space-y-6">
+      <input type="hidden" id="userId" name="id">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nome *</label>
+          <input type="text" id="userName" name="name" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+          <input type="email" id="userEmail" name="email" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        </div>
+      </div>
+
+      <div id="passwordField">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Senha *</label>
+        <input type="password" id="userPassword" name="password" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Setor</label>
+          <select id="userSetor" name="setor" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            <option value="">Selecione um setor</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Filial</label>
+          <select id="userFilial" name="filial" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            <option value="">Selecione uma filial</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Função</label>
+          <select id="userRole" name="role" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            <option value="user">Usuário</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <select id="userStatus" name="status" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            <option value="active">Ativo</option>
+            <option value="inactive">Inativo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+        <button type="button" onclick="cancelUserForm()" class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          Cancelar
+        </button>
+        <button type="button" onclick="submitUser()" id="submitBtn" class="px-6 py-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
+          Criar Usuário
+        </button>
+      </div>
+    </form>
   </div>
 
   <!-- Users Table -->
@@ -40,81 +116,6 @@
   </div>
 </section>
 
-<!-- Create/Edit User Modal -->
-<div id="userModal" class="modal-overlay">
-  <div class="modal-container w-full max-w-md">
-    <div class="modal-header">
-      <h3 id="modalTitle" class="modal-title">Criar Novo Usuário</h3>
-      <button class="modal-close" data-modal-close>
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-    
-    <div class="modal-body">
-      <form id="userForm" class="space-y-4">
-      <input type="hidden" id="userId" name="id">
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
-        <input type="text" id="userName" name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-        <input type="email" id="userEmail" name="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      </div>
-
-      <div id="passwordField">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Senha *</label>
-        <input type="password" id="userPassword" name="password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Setor</label>
-          <select id="userSetor" name="setor" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Selecione um setor</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Filial</label>
-          <select id="userFilial" name="filial" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Selecione uma filial</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Função</label>
-        <select id="userRole" name="role" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <option value="user">Usuário</option>
-          <option value="admin">Administrador</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-        <select id="userStatus" name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <option value="active">Ativo</option>
-          <option value="inactive">Inativo</option>
-        </select>
-      </div>
-      </form>
-    </div>
-
-    <div class="modal-footer">
-      <button onclick="closeUserModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-        Cancelar
-      </button>
-      <button onclick="submitUser()" id="submitBtn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">
-        Criar Usuário
-      </button>
-    </div>
-  </div>
-</div>
 
 <!-- Permissions Modal -->
 <div id="permissionsModal" class="modal-overlay">
@@ -246,14 +247,35 @@ function displayUsers(users) {
   });
 }
 
-function openCreateUserModal() {
-  document.getElementById('modalTitle').textContent = 'Criar Novo Usuário';
-  document.getElementById('submitBtn').textContent = 'Criar Usuário';
-  document.getElementById('userForm').reset();
-  document.getElementById('userId').value = '';
-  document.getElementById('passwordField').style.display = 'block';
-  document.getElementById('userPassword').required = true;
-  openModal('userModal');
+function toggleUserForm() {
+  const container = document.getElementById('userFormContainer');
+  const btn = document.getElementById('toggleFormBtn');
+  
+  if (container.classList.contains('hidden')) {
+    // Show form for creating new user
+    container.classList.remove('hidden');
+    document.getElementById('formTitle').textContent = 'Criar Novo Usuário';
+    document.getElementById('submitBtn').textContent = 'Criar Usuário';
+    document.getElementById('userForm').reset();
+    document.getElementById('userId').value = '';
+    document.getElementById('passwordField').style.display = 'block';
+    document.getElementById('userPassword').required = true;
+    btn.innerHTML = `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+      <span>Cancelar</span>
+    `;
+  } else {
+    // Hide form
+    container.classList.add('hidden');
+    btn.innerHTML = `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      <span>Novo Usuário</span>
+    `;
+  }
 }
 
 function editUser(userId) {
@@ -269,7 +291,11 @@ function editUser(userId) {
     if (result.success) {
       const user = result.users.find(u => u.id == userId);
       if (user) {
-        document.getElementById('modalTitle').textContent = 'Editar Usuário';
+        // Show form and populate with user data
+        const container = document.getElementById('userFormContainer');
+        container.classList.remove('hidden');
+        
+        document.getElementById('formTitle').textContent = 'Editar Usuário';
         document.getElementById('submitBtn').textContent = 'Salvar Alterações';
         document.getElementById('userId').value = user.id;
         document.getElementById('userName').value = user.name;
@@ -280,15 +306,33 @@ function editUser(userId) {
         document.getElementById('userStatus').value = user.status;
         document.getElementById('passwordField').style.display = 'none';
         document.getElementById('userPassword').required = false;
-        openModal('userModal');
+        
+        // Update toggle button
+        const btn = document.getElementById('toggleFormBtn');
+        btn.innerHTML = `
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span>Cancelar</span>
+        `;
       }
     }
   });
 }
 
-function closeUserModal() {
-  closeModal('userModal');
+function cancelUserForm() {
+  const container = document.getElementById('userFormContainer');
+  container.classList.add('hidden');
   document.getElementById('userForm').reset();
+  
+  // Reset toggle button
+  const btn = document.getElementById('toggleFormBtn');
+  btn.innerHTML = `
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+    </svg>
+    <span>Novo Usuário</span>
+  `;
 }
 
 function submitUser() {
@@ -306,7 +350,7 @@ function submitUser() {
   .then(result => {
     if (result.success) {
       alert(result.message);
-      closeUserModal();
+      cancelUserForm();
       loadUsers();
     } else {
       alert('Erro: ' + result.message);
