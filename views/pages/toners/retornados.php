@@ -368,7 +368,7 @@ function toggleMedicaoType() {
   if (tipo === 'peso') {
     document.getElementById('camposPeso').classList.remove('hidden');
     validarModeloParaPeso();
-  } else if (tipo === 'percentual') {
+  } else if (tipo === 'chip') {
     document.getElementById('camposPercentual').classList.remove('hidden');
   }
 }
@@ -539,10 +539,8 @@ function submitRetornado(e) {
       if (result.success) {
         alert('Retornado registrado com sucesso!');
         cancelRetornadoForm();
-        // Recarregar lista se existir
-        if (typeof loadRetornados === 'function') {
-          loadRetornados();
-        }
+        // Recarregar a página para mostrar o novo registro
+        window.location.reload();
       } else {
         alert('Erro: ' + result.message);
       }
