@@ -376,19 +376,9 @@ function calculatePercentage() {
     // Store calculated percentage for value calculation and guidance
     window.calculatedPercentage = percentual;
     window.gramaturaExistente = gramaturaExistente;
-    
-    // Auto-detect discard condition: weight equals empty weight (0% remaining)
-    if (pesoRetornado > 0 && pesoRetornado <= pesoVazio) {
-      autoSelectDiscard('Peso igual ao peso vazio - Toner sem tinta restante');
-    }
   } else if (modo === 'chip') {
     const percentualChip = parseFloat(document.querySelector('input[name="percentual_chip"]').value) || 0;
     window.calculatedPercentage = percentualChip;
-    
-    // Auto-detect discard condition: 0% chip
-    if (percentualChip === 0) {
-      autoSelectDiscard('Percentual do chip é 0% - Toner vazio');
-    }
   }
   
   calculateValue();
@@ -453,62 +443,12 @@ function loadParameters() {
     });
 }
 
-// Auto-select discard with notification
-function autoSelectDiscard(reason) {
-  selectedDestino = 'descarte';
-  document.getElementById('destinoSelected').value = 'descarte';
-  updateDestinoButtons();
-  calculateValue();
-  
-  // Show notification about automatic discard selection
-  showDiscardNotification(reason);
-}
-
-// Show discard notification
-function showDiscardNotification(reason) {
-  // Remove any existing notification
-  const existingNotification = document.getElementById('discardNotification');
-  if (existingNotification) {
-    existingNotification.remove();
-  }
-  
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.id = 'discardNotification';
-  notification.className = 'bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4 animate-pulse';
-  notification.innerHTML = `
-    <div class="flex items-center">
-      <svg class="w-6 h-6 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.876c1.17 0 2.25-.16 2.25-1.729 0-.329-.314-.729-.314-1.271L18 7.5c0-.621-.504-1.125-1.125-1.125H7.125C6.504 6.375 6 6.879 6 7.5l-.686 8.5c0 .542-.314.942-.314 1.271 0 1.569 1.08 1.729 2.25 1.729z"></path>
-      </svg>
-      <div>
-        <div class="text-red-800 font-bold text-lg">DESCARTE AUTOMÁTICO DETECTADO</div>
-        <div class="text-red-700 text-sm mt-1">${reason}</div>
-        <div class="text-red-600 text-xs mt-2">O destino foi automaticamente definido como DESCARTE.</div>
-      </div>
-    </div>
-  `;
-  
-  // Insert notification before the destination selection
-  const destinoSection = document.querySelector('label[for="destino"]')?.parentElement || 
-                         document.querySelector('.destino-btn')?.parentElement?.parentElement;
-  if (destinoSection) {
-    destinoSection.parentNode.insertBefore(notification, destinoSection);
-  }
-}
-
 // Destination selection
 function selectDestino(destino) {
   selectedDestino = destino;
   document.getElementById('destinoSelected').value = destino;
   updateDestinoButtons();
   calculateValue();
-  
-  // Remove discard notification if user manually selects different destination
-  const notification = document.getElementById('discardNotification');
-  if (notification && destino !== 'descarte') {
-    notification.remove();
-  }
 }
 
 function updateDestinoButtons() {
