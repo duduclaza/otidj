@@ -34,20 +34,42 @@ class TonersController
             $stmt = $this->db->query('SELECT nome FROM filiais ORDER BY nome');
             $filiais = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-            // Get all retornados for grid
-            $stmt = $this->db->query('
+            // Get pagination parameters
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $perPage = 100;
+            $offset = ($page - 1) * $perPage;
+            
+            // Get total count for pagination
+            $countStmt = $this->db->query('SELECT COUNT(*) FROM retornados');
+            $totalRecords = $countStmt->fetchColumn();
+            $totalPages = ceil($totalRecords / $perPage);
+            
+            // Get paginated retornados for grid
+            $stmt = $this->db->prepare('
                 SELECT id, modelo, codigo_cliente, usuario, filial, destino, 
                        data_registro, modelo_cadastrado, valor_calculado
                 FROM retornados 
                 ORDER BY created_at DESC
+                LIMIT :limit OFFSET :offset
             ');
+            $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
             $retornados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $this->render('toners/retornados', [
                 'title' => 'Registro de Retornados',
                 'toners' => $toners,
                 'filiais' => $filiais,
-                'retornados' => $retornados
+                'retornados' => $retornados,
+                'pagination' => [
+                    'current_page' => $page,
+                    'total_pages' => $totalPages,
+                    'total_records' => $totalRecords,
+                    'per_page' => $perPage,
+                    'has_prev' => $page > 1,
+                    'has_next' => $page < $totalPages
+                ]
             ]);
         } catch (\PDOException $e) {
             $this->render('toners/retornados', [
@@ -55,6 +77,14 @@ class TonersController
                 'toners' => [],
                 'filiais' => [],
                 'retornados' => [],
+                'pagination' => [
+                    'current_page' => 1,
+                    'total_pages' => 1,
+                    'total_records' => 0,
+                    'per_page' => 100,
+                    'has_prev' => false,
+                    'has_next' => false
+                ],
                 'error' => 'Erro ao carregar dados: ' . $e->getMessage()
             ]);
         }

@@ -116,6 +116,70 @@
         </tbody>
       </table>
     </div>
+    
+    <!-- Pagination -->
+    <?php if (isset($pagination) && $pagination['total_pages'] > 1): ?>
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+        <div class="flex items-center text-sm text-gray-700">
+          <span>Mostrando <?= ($pagination['current_page'] - 1) * $pagination['per_page'] + 1 ?> a <?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total_records']) ?> de <?= $pagination['total_records'] ?> registros</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <!-- Previous Button -->
+          <?php if ($pagination['has_prev']): ?>
+            <a href="?page=<?= $pagination['current_page'] - 1 ?>" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">
+              Anterior
+            </a>
+          <?php else: ?>
+            <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed">
+              Anterior
+            </span>
+          <?php endif; ?>
+          
+          <!-- Page Numbers -->
+          <?php
+          $start = max(1, $pagination['current_page'] - 2);
+          $end = min($pagination['total_pages'], $pagination['current_page'] + 2);
+          ?>
+          
+          <?php if ($start > 1): ?>
+            <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">1</a>
+            <?php if ($start > 2): ?>
+              <span class="px-3 py-2 text-sm font-medium text-gray-400">...</span>
+            <?php endif; ?>
+          <?php endif; ?>
+          
+          <?php for ($i = $start; $i <= $end; $i++): ?>
+            <?php if ($i == $pagination['current_page']): ?>
+              <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
+                <?= $i ?>
+              </span>
+            <?php else: ?>
+              <a href="?page=<?= $i ?>" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                <?= $i ?>
+              </a>
+            <?php endif; ?>
+          <?php endfor; ?>
+          
+          <?php if ($end < $pagination['total_pages']): ?>
+            <?php if ($end < $pagination['total_pages'] - 1): ?>
+              <span class="px-3 py-2 text-sm font-medium text-gray-400">...</span>
+            <?php endif; ?>
+            <a href="?page=<?= $pagination['total_pages'] ?>" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors"><?= $pagination['total_pages'] ?></a>
+          <?php endif; ?>
+          
+          <!-- Next Button -->
+          <?php if ($pagination['has_next']): ?>
+            <a href="?page=<?= $pagination['current_page'] + 1 ?>" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">
+              Próximo
+            </a>
+          <?php else: ?>
+            <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed">
+              Próximo
+            </span>
+          <?php endif; ?>
+        </div>
+      </div>
+    <?php endif; ?>
   </div>
 </section>
 
