@@ -571,8 +571,8 @@ function submitRetornado() {
 function downloadRetornadosTemplate() {
   const data = [
     ['Modelo', 'Código Cliente', 'Usuário', 'Filial', 'Destino', 'Valor Recuperado', 'Data'],
-    ['HP CF280A', 'CLI001', 'João Silva', 'Matriz', 'estoque', '125.50', '2024-01-15'],
-    ['HP CE285A', 'CLI002', 'Maria Santos', 'Filial 1', 'uso_interno', '0.00', '2024-01-16'],
+    ['HP CF280A', 'CLI001', 'João Silva', 'Matriz', 'estoque', '125.50', '15/01/2024'],
+    ['HP CE285A', 'CLI002', 'Maria Santos', 'Filial 1', 'uso_interno', '0.00', '16/01/2024'],
     ['', '', '', '', '', '', '']
   ];
   
@@ -672,7 +672,7 @@ function processImportRows(rows) {
       filial: row[3] || '',
       destino: row[4] || '',
       valor_calculado: parseFloat(row[5]) || 0,
-      data_registro: row[6] || new Date().toISOString().split('T')[0]
+      data_registro: row[6] || ''
     };
     
     // Send row to server

@@ -530,14 +530,17 @@ class TonersController
             $stmt->execute([':modelo' => $input['modelo']]);
             $modeloCadastrado = $stmt->fetchColumn() > 0;
             
-            // Parse and validate date
+            // Parse and validate date - prioritize DD/MM/YYYY format
             $dataRegistro = $input['data_registro'] ?? date('Y-m-d');
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataRegistro)) {
-                // Try to parse different date formats
-                $date = DateTime::createFromFormat('d/m/Y', $dataRegistro);
-                if ($date) {
-                    $dataRegistro = $date->format('Y-m-d');
-                } else {
+            
+            // First try DD/MM/YYYY format (Brazilian standard)
+            $date = DateTime::createFromFormat('d/m/Y', $dataRegistro);
+            if ($date) {
+                $dataRegistro = $date->format('Y-m-d');
+            } else {
+                // Try YYYY-MM-DD format as fallback
+                if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataRegistro)) {
+                    // If neither format works, use current date
                     $dataRegistro = date('Y-m-d');
                 }
             }
