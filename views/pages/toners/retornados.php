@@ -175,6 +175,7 @@ let selectedDestino = '';
 
 // Carregar dados iniciais
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, iniciando carregamento...');
   carregarModelos();
   carregarParametrosGerais();
   
@@ -189,6 +190,22 @@ document.addEventListener('DOMContentLoaded', function() {
   if (form) {
     form.addEventListener('submit', submitRetornado);
   }
+  
+  // Teste direto da API
+  setTimeout(() => {
+    console.log('Testando API diretamente...');
+    fetch('/api/toner')
+      .then(response => {
+        console.log('Teste direto - Status:', response.status);
+        return response.text();
+      })
+      .then(text => {
+        console.log('Teste direto - Response:', text);
+      })
+      .catch(error => {
+        console.error('Teste direto - Erro:', error);
+      });
+  }, 1000);
 });
 
 // Toggle do formulário inline
@@ -206,6 +223,8 @@ function toggleRetornadoForm() {
       <span>Cancelar</span>
     `;
     resetForm();
+    // Recarregar modelos quando abrir o formulário
+    carregarModelos();
   } else {
     // Ocultar formulário
     cancelRetornadoForm();

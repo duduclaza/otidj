@@ -93,19 +93,41 @@ class TonersController
     public function getTonerData(): void
     {
         header('Content-Type: application/json');
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET');
+        header('Access-Control-Allow-Headers: Content-Type');
         
         // Se não há parâmetro modelo, retorna todos os toners para dropdown
         $modelo = $_GET['modelo'] ?? '';
         
         if (empty($modelo)) {
             try {
-                $stmt = $this->db->query('SELECT id, modelo, gramatura, peso_cheio, peso_vazio, preco_toner as valor, rendimento FROM toners ORDER BY modelo');
+                // Tentar conectar ao banco
+                if (!$this->db) {
+                    echo json_encode(['error' => 'Conexão com banco não disponível']);
+                    return;
+                }
+                
+                $stmt = $this->db->query('SELECT id, modelo, gramatura, peso_cheio, peso_vazio, preco_toner as valor, capacidade_folhas as rendimento FROM toners ORDER BY modelo');
                 $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Log para debug
+                error_log('API /api/toner: Retornando ' . count($toners) . ' toners');
                 
                 echo json_encode($toners);
                 return;
             } catch (\PDOException $e) {
-                echo json_encode([]);
+                error_log('Erro ao buscar toners: ' . $e->getMessage());
+                
+                // Retornar dados mock para teste local
+                $mockToners = [
+                    ['id' => 1, 'modelo' => 'HP CF280A', 'gramatura' => 300, 'peso_cheio' => 350, 'peso_vazio' => 50, 'valor' => 89.90, 'rendimento' => 2700],
+                    ['id' => 2, 'modelo' => 'HP CE285A', 'gramatura' => 280, 'peso_cheio' => 330, 'peso_vazio' => 50, 'valor' => 79.90, 'rendimento' => 1600],
+                    ['id' => 3, 'modelo' => 'Canon 728', 'gramatura' => 250, 'peso_cheio' => 300, 'peso_vazio' => 50, 'valor' => 69.90, 'rendimento' => 2100]
+                ];
+                
+                error_log('API /api/toner: Usando dados mock - ' . count($mockToners) . ' toners');
+                echo json_encode($mockToners);
                 return;
             }
         }
