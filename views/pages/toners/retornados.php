@@ -38,12 +38,12 @@
       <!-- Usuário e Filial -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label for="nomeUsuario" class="block text-sm font-medium text-gray-700 mb-2">Nome do Usuário *</label>
-          <input type="text" id="nomeUsuario" name="usuario" value="Administrador" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <label for="nomeUsuario" class="block text-sm font-medium text-gray-700 mb-2">Nome do Usuário</label>
+          <input type="text" id="nomeUsuario" name="usuario" value="Administrador" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed">
         </div>
         <div>
-          <label for="filialUsuario" class="block text-sm font-medium text-gray-700 mb-2">Filial *</label>
-          <input type="text" id="filialUsuario" name="filial" value="Jundiaí - TI" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <label for="filialUsuario" class="block text-sm font-medium text-gray-700 mb-2">Filial</label>
+          <input type="text" id="filialUsuario" name="filial" value="Jundiaí" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed">
         </div>
       </div>
 
@@ -56,8 +56,8 @@
           </select>
         </div>
         <div>
-          <label for="serialToner" class="block text-sm font-medium text-gray-700 mb-2">Serial/Código</label>
-          <input type="text" id="serialToner" name="serial" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <label for="codigoCliente" class="block text-sm font-medium text-gray-700 mb-2">Código Cliente *</label>
+          <input type="text" id="codigoCliente" name="codigo_cliente" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
       </div>
 
@@ -262,7 +262,7 @@ function resetForm() {
   
   // Restaurar valores padrão dos campos de usuário e filial
   document.getElementById('nomeUsuario').value = 'Administrador';
-  document.getElementById('filialUsuario').value = 'Jundiaí - TI';
+  document.getElementById('filialUsuario').value = 'Jundiaí';
   
   document.getElementById('dadosModelo').classList.add('hidden');
   document.getElementById('camposPeso').classList.add('hidden');
