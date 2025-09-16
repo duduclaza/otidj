@@ -60,6 +60,7 @@ $router->post('/toners/cadastro/edit', [App\Controllers\TonersController::class,
 $router->post('/toners/cadastro/delete', [App\Controllers\TonersController::class, 'delete']);
 $router->get('/toners/retornados', [App\Controllers\TonersController::class, 'retornados']);
 $router->post('/toners/retornados', [App\Controllers\TonersController::class, 'storeRetornado']);
+$router->delete('/toners/retornados/delete/{id}', [App\Controllers\TonersController::class, 'deleteRetornado']);
 $router->get('/api/toner', [App\Controllers\TonersController::class, 'getTonerData']);
 $router->get('/api/parameters', [App\Controllers\TonersController::class, 'getParameters']);
 $router->post('/toners/import', [App\Controllers\TonersController::class, 'import']);

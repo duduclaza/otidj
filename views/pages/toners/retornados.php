@@ -57,6 +57,7 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destino</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Recuperado</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
           </tr>
         </thead>
         <tbody id="retornadosTable" class="bg-white divide-y divide-gray-200">
@@ -96,11 +97,20 @@
                   <?php endif; ?>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= date('d/m/Y', strtotime($retornado['data_registro'])) ?></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <button onclick="confirmDelete(<?= $retornado['id'] ?>, '<?= e($retornado['modelo']) ?>')" 
+                          class="text-red-600 hover:text-red-900 transition-colors" 
+                          title="Excluir registro">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </td>
               </tr>
             <?php endforeach; ?>
           <?php else: ?>
             <tr>
-              <td colspan="7" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td>
+              <td colspan="8" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td>
             </tr>
           <?php endif; ?>
         </tbody>
@@ -291,6 +301,42 @@
         </button>
         <button id="importSubmitBtn" onclick="importRetornados()" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-lg hover:bg-orange-700 transition-colors">
           Importar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900">Confirmar Exclusão</h3>
+    </div>
+    
+    <!-- Content -->
+    <div class="px-6 py-4">
+      <div class="flex items-center mb-4">
+        <svg class="w-12 h-12 text-red-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.876c1.17 0 2.25-.16 2.25-1.729 0-.329-.314-.729-.314-1.271L18 7.5c0-.621-.504-1.125-1.125-1.125H7.125C6.504 6.375 6 6.879 6 7.5l-.686 8.5c0 .542-.314.942-.314 1.271 0 1.569 1.08 1.729 2.25 1.729z"></path>
+        </svg>
+        <div>
+          <p class="text-gray-900 font-medium">Tem certeza que deseja excluir este registro?</p>
+          <p class="text-gray-600 text-sm mt-1">Modelo: <span id="deleteModeloName" class="font-semibold"></span></p>
+          <p class="text-red-600 text-sm mt-2">Esta ação não pode ser desfeita.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+      <div class="flex space-x-3 justify-end">
+        <button onclick="closeDeleteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+          Cancelar
+        </button>
+        <button onclick="deleteRetornado()" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition-colors">
+          Excluir
         </button>
       </div>
     </div>
@@ -597,5 +643,43 @@ function exportData() {
     alert(`Exportando dados de ${dateFrom} até ${dateTo}...`);
     // Implement actual export logic
   }
+}
+
+// Delete functions
+let deleteId = null;
+
+function confirmDelete(id, modelo) {
+  deleteId = id;
+  document.getElementById('deleteModeloName').textContent = modelo;
+  document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.add('hidden');
+  deleteId = null;
+}
+
+function deleteRetornado() {
+  if (!deleteId) return;
+  
+  fetch(`/toners/retornados/delete/${deleteId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      alert('Registro excluído com sucesso!');
+      closeDeleteModal();
+      location.reload();
+    } else {
+      alert('Erro ao excluir registro: ' + result.message);
+    }
+  })
+  .catch(error => {
+    alert('Erro de conexão: ' + error.message);
+  });
 }
 </script>

@@ -463,6 +463,41 @@ class TonersController
         return $data;
     }
 
+    public function deleteRetornado(): void
+    {
+        header('Content-Type: application/json');
+        
+        // Get ID from URL path
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $pathParts = explode('/', trim($path, '/'));
+        $id = end($pathParts);
+        
+        if (!$id || !is_numeric($id)) {
+            echo json_encode(['success' => false, 'message' => 'ID inválido']);
+            return;
+        }
+        
+        try {
+            // Check if record exists
+            $stmt = $this->db->prepare('SELECT id FROM retornados WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
+                return;
+            }
+            
+            // Delete the record
+            $stmt = $this->db->prepare('DELETE FROM retornados WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Registro excluído com sucesso']);
+            
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir registro: ' . $e->getMessage()]);
+        }
+    }
+
     private function render(string $view, array $data = []): void
     {
         extract($data);
