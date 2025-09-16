@@ -869,7 +869,7 @@ function processImportRows(rows) {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Continue with next row
-    processNextRow();
+    await processNextRow();
   }
   
   // Start processing
