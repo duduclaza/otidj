@@ -257,7 +257,7 @@
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-200 bg-white rounded-t-xl sticky top-0 z-10 flex justify-between items-center">
       <h3 class="text-lg font-semibold text-gray-900">Registrar Novo Retornado</h3>
-      <button onclick="closeRetornadoModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+      <button onclick="window.closeRetornadoModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -372,10 +372,10 @@
     <!-- Footer -->
     <div class="px-6 py-6 bg-gray-50 border-t border-gray-200 rounded-b-xl sticky bottom-0 z-10">
       <div class="flex justify-end space-x-4">
-        <button onclick="closeRetornadoModal()" class="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+        <button onclick="window.closeRetornadoModal()" class="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
           Cancelar
         </button>
-        <button onclick="submitRetornado()" class="px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
+        <button onclick="window.submitRetornado()" class="px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
           Registrar
         </button>
       </div>
@@ -506,7 +506,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Global variables for debug and activity logging
 let debugMode = false;
 let importResults = [];
-let selectedDestino = '';
 let activityLog = [];
 
 // Activity logging system
@@ -1334,6 +1333,7 @@ window.showGuidance = showGuidance;
 window.checkAutoDiscard = checkAutoDiscard;
 window.loadParameters = loadParameters;
 window.downloadActivityLog = downloadActivityLog;
+window.submitRetornado = submitRetornado;
 
 // Activity log download function
 function downloadActivityLog() {
