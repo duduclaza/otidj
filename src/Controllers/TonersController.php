@@ -491,8 +491,21 @@ class TonersController
                 echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
                 return;
             }
+            
+            // Delete the record
+            $stmt = $this->db->prepare('DELETE FROM retornados WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Registro excluído com sucesso']);
+            
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir registro: ' . $e->getMessage()]);
+        }
+    }
 
-    foreach ($excelData as $index => $row) {
+    public function importRow(): void
+    {
+        header('Content-Type: application/json');
         
         // Get JSON input
         $input = json_decode(file_get_contents('php://input'), true);
