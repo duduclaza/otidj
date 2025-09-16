@@ -271,11 +271,11 @@
         <label class="block text-sm font-medium text-gray-700 mb-3">Modo de Registro</label>
         <div class="flex space-x-4">
           <label class="flex items-center">
-            <input type="radio" name="modo" value="peso" checked class="mr-2" onchange="toggleMode()">
+            <input type="radio" name="modo" value="peso" class="mr-2" checked onchange="window.toggleMode()">
             <span class="text-sm font-medium">Modo Peso</span>
           </label>
           <label class="flex items-center">
-            <input type="radio" name="modo" value="chip" class="mr-2" onchange="toggleMode()">
+            <input type="radio" name="modo" value="chip" class="mr-2" onchange="window.toggleMode()">
             <span class="text-sm font-medium">Modo % Chip</span>
           </label>
         </div>
@@ -285,7 +285,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Modelo *</label>
-          <select name="modelo" onchange="updateTonerData()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <select name="modelo" onchange="window.updateTonerData()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           <option value="">Selecione o modelo</option>
           <?php foreach ($toners as $toner): ?>
             <option value="<?= e($toner) ?>"><?= e($toner) ?></option>
@@ -315,7 +315,7 @@
       <div id="pesoFields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Peso Retornado (g)</label>
-          <input type="number" name="peso_retornado" step="0.01" min="0" oninput="calculatePercentage(); calculateValue(); showGuidance(); checkAutoDiscard();" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <input type="number" name="peso_retornado" step="0.01" min="0" oninput="window.calculatePercentage(); window.calculateValue(); window.showGuidance(); window.checkAutoDiscard();" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Percentual Restante</label>
@@ -326,7 +326,7 @@
       <div id="chipFields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Percentual do Chip (%)</label>
-          <input type="number" name="percentual_chip" step="0.01" min="0" max="100" oninput="calculatePercentage(); calculateValue(); showGuidance(); checkAutoDiscard();" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <input type="number" name="percentual_chip" step="0.01" min="0" max="100" oninput="window.calculatePercentage(); window.calculateValue(); window.showGuidance(); window.checkAutoDiscard();" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
       </div>
 
@@ -334,16 +334,16 @@
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-3">Destino Final *</label>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <button type="button" onclick="selectDestino('descarte')" class="destino-btn p-3 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-center" data-destino="descarte">
+          <button type="button" onclick="window.selectDestino('descarte')" class="destino-btn p-3 border-2 border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-center" data-destino="descarte">
             <div class="text-sm font-bold">DESCARTE</div>
           </button>
-          <button type="button" onclick="selectDestino('estoque')" class="destino-btn p-3 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-center" data-destino="estoque">
+          <button type="button" onclick="window.selectDestino('estoque')" class="destino-btn p-3 border-2 border-green-300 text-green-700 rounded-lg hover:bg-green-50 transition-colors text-center" data-destino="estoque">
             <div class="text-sm font-bold">ESTOQUE</div>
           </button>
-          <button type="button" onclick="selectDestino('uso_interno')" class="destino-btn p-3 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center" data-destino="uso_interno">
+          <button type="button" onclick="window.selectDestino('uso_interno')" class="destino-btn p-3 border-2 border-blue-300 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors text-center" data-destino="uso_interno">
             <div class="text-sm font-bold">USO INTERNO</div>
           </button>
-          <button type="button" onclick="selectDestino('garantia')" class="destino-btn p-3 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-center" data-destino="garantia">
+          <button type="button" onclick="window.selectDestino('garantia')" class="destino-btn p-3 border-2 border-purple-300 text-purple-700 rounded-lg hover:bg-purple-50 transition-colors text-center" data-destino="garantia">
             <div class="text-sm font-bold">GARANTIA</div>
           </button>
         </div>
