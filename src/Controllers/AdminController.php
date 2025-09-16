@@ -329,7 +329,7 @@ class AdminController
             $stmt->execute([$_SESSION['user_id'], $invitationId]);
             
             // Send welcome email
-            $this->sendWelcomeEmail($invitation['email'], $invitation['name'], $password);
+            $this->sendWelcomeEmail($invitation['name'], $invitation['email'], $password);
             
             echo json_encode(['success' => true, 'message' => 'Usuário aprovado e criado com sucesso!']);
         } catch (\Exception $e) {
@@ -519,23 +519,4 @@ class AdminController
         }
     }
     
-    private function sendWelcomeEmail(string $email, string $name, string $password): void
-    {
-        try {
-            $subject = "Bem-vindo ao SGQ OTI DJ - Sua conta foi aprovada!";
-            $body = "
-            <h2>Bem-vindo ao SGQ OTI DJ!</h2>
-            <p>Olá {$name},</p>
-            <p>Sua solicitação de acesso foi aprovada! Agora você pode acessar o sistema com as seguintes credenciais:</p>
-            <p><strong>Email:</strong> {$email}</p>
-            <p><strong>Senha:</strong> {$password}</p>
-            <p><strong>Importante:</strong> Recomendamos que você altere sua senha após o primeiro login.</p>
-            <p><a href='" . ($_ENV['APP_URL'] ?? '') . "/login'>Fazer Login</a></p>
-            ";
-            
-            sendEmail($email, $subject, $body);
-        } catch (\Exception $e) {
-            error_log("Error sending welcome email: " . $e->getMessage());
-        }
-    }
 }
