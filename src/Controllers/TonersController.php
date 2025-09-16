@@ -232,6 +232,11 @@ class TonersController
                 ':cor' => $cor,
                 ':tipo' => $tipo
             ]);
+            
+            // Update existing retornados records that have this model as "não cadastrado"
+            $updateStmt = $this->db->prepare('UPDATE retornados SET modelo_cadastrado = 1 WHERE modelo = :modelo AND modelo_cadastrado = 0');
+            $updateStmt->execute([':modelo' => $modelo]);
+            
             flash('success', 'Toner cadastrado com sucesso.');
         } catch (\PDOException $e) {
             flash('error', 'Erro ao cadastrar toner: ' . $e->getMessage());
@@ -486,15 +491,79 @@ class TonersController
                 echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
                 return;
             }
+
+    foreach ($excelData as $index => $row) {
+        
+        // Get JSON input
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Dados inválidos']);
+            return;
+        }
+        
+        try {
+            // Validate required fields
+            $required = ['modelo', 'codigo_cliente', 'usuario', 'filial', 'destino'];
+            foreach ($required as $field) {
+                if (empty($input[$field])) {
+                    echo json_encode(['success' => false, 'message' => "Campo obrigatório: $field"]);
+                    return;
+                }
+            }
             
-            // Delete the record
-            $stmt = $this->db->prepare('DELETE FROM retornados WHERE id = :id');
-            $stmt->execute([':id' => $id]);
+            // Check if modelo exists in toners table
+            $stmt = $this->db->prepare('SELECT COUNT(*) FROM toners WHERE modelo = :modelo');
+            $stmt->execute([':modelo' => $input['modelo']]);
+            $modeloCadastrado = $stmt->fetchColumn() > 0;
             
-            echo json_encode(['success' => true, 'message' => 'Registro excluído com sucesso']);
+            // Parse and validate date
+            $dataRegistro = $input['data_registro'] ?? date('Y-m-d');
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataRegistro)) {
+                // Try to parse different date formats
+                $date = DateTime::createFromFormat('d/m/Y', $dataRegistro);
+                if ($date) {
+                    $dataRegistro = $date->format('Y-m-d');
+                } else {
+                    $dataRegistro = date('Y-m-d');
+                }
+            }
+            
+            // Insert record
+            $stmt = $this->db->prepare('
+                INSERT INTO retornados (modelo, modelo_cadastrado, usuario, filial, codigo_cliente, 
+                                      destino, valor_calculado, data_registro, modo, peso_retornado, 
+                                      percentual_chip, gramatura_existente, percentual_restante) 
+                VALUES (:modelo, :modelo_cadastrado, :usuario, :filial, :codigo_cliente, 
+                        :destino, :valor_calculado, :data_registro, :modo, :peso_retornado, 
+                        :percentual_chip, :gramatura_existente, :percentual_restante)
+            ');
+            
+            $stmt->execute([
+                ':modelo' => $input['modelo'],
+                ':modelo_cadastrado' => $modeloCadastrado ? 1 : 0,
+                ':usuario' => $input['usuario'],
+                ':filial' => $input['filial'],
+                ':codigo_cliente' => $input['codigo_cliente'],
+                ':destino' => $input['destino'],
+                ':valor_calculado' => $input['valor_calculado'] ?? 0,
+                ':data_registro' => $dataRegistro,
+                ':modo' => 'importacao',
+                ':peso_retornado' => null,
+                ':percentual_chip' => null,
+                ':gramatura_existente' => null,
+                ':percentual_restante' => null
+            ]);
+            
+            $message = 'Registro importado com sucesso';
+            if (!$modeloCadastrado) {
+                $message .= ' (modelo não cadastrado)';
+            }
+            
+            echo json_encode(['success' => true, 'message' => $message]);
             
         } catch (\PDOException $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao excluir registro: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao importar: ' . $e->getMessage()]);
         }
     }
 

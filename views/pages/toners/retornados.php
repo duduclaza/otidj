@@ -570,17 +570,17 @@ function submitRetornado() {
 // Import functions
 function downloadRetornadosTemplate() {
   const data = [
-    ['Modelo', 'Código Cliente', 'Usuário', 'Filial', 'Modo', 'Peso Retornado', 'Percentual Chip', 'Destino', 'Data Registro'],
-    ['HP CF280A', 'CLI001', 'João Silva', 'Matriz', 'peso', '450.50', '', 'estoque', '2024-01-15'],
-    ['HP CE285A', 'CLI002', 'Maria Santos', 'Filial 1', 'chip', '', '75.5', 'uso_interno', '2024-01-16'],
-    ['', '', '', '', '', '', '', '', '']
+    ['Modelo', 'Código Cliente', 'Usuário', 'Filial', 'Destino', 'Valor Recuperado', 'Data'],
+    ['HP CF280A', 'CLI001', 'João Silva', 'Matriz', 'estoque', '125.50', '2024-01-15'],
+    ['HP CE285A', 'CLI002', 'Maria Santos', 'Filial 1', 'uso_interno', '0.00', '2024-01-16'],
+    ['', '', '', '', '', '', '']
   ];
   
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
   
   ws['!cols'] = [
-    {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 12}
+    {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 15}, {wch: 12}
   ];
   
   XLSX.utils.book_append_sheet(wb, ws, "Template Retornados");
@@ -596,28 +596,117 @@ function importRetornados() {
     return;
   }
   
-  // Show progress and simulate import
+  // Show progress container
   document.getElementById('importProgressContainer').classList.remove('hidden');
   document.getElementById('importSubmitBtn').disabled = true;
+  document.getElementById('importCancelBtn').disabled = true;
   
-  let progress = 0;
-  const interval = setInterval(() => {
-    progress += Math.random() * 20;
-    if (progress > 100) progress = 100;
-    
-    document.getElementById('importProgressBar').style.width = progress + '%';
-    document.getElementById('importProgressText').textContent = Math.round(progress) + '%';
-    document.getElementById('importStatus').textContent = `Importando linha ${Math.round(progress/10)}...`;
-    
-    if (progress >= 100) {
-      clearInterval(interval);
+  // Read and process Excel file
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, {type: 'array'});
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+      
+      // Remove header row and empty rows
+      const rows = jsonData.slice(1).filter(row => row.some(cell => cell !== undefined && cell !== ''));
+      
+      if (rows.length === 0) {
+        alert('Nenhum dado encontrado na planilha.');
+        resetImportModal();
+        return;
+      }
+      
+      // Process rows with real progress tracking
+      processImportRows(rows);
+      
+    } catch (error) {
+      alert('Erro ao ler arquivo: ' + error.message);
+      resetImportModal();
+    }
+  };
+  
+  reader.readAsArrayBuffer(file);
+}
+
+function processImportRows(rows) {
+  let processed = 0;
+  const total = rows.length;
+  const results = [];
+  
+  function processNextRow() {
+    if (processed >= total) {
+      // Import completed
       setTimeout(() => {
-        alert('Importação concluída!');
+        const successCount = results.filter(r => r.success).length;
+        const errorCount = results.filter(r => !r.success).length;
+        
+        let message = `Importação concluída!\n`;
+        message += `${successCount} registros importados com sucesso.\n`;
+        if (errorCount > 0) {
+          message += `${errorCount} registros com erro.`;
+        }
+        
+        alert(message);
         closeImportModal();
         location.reload();
       }, 500);
+      return;
     }
-  }, 200);
+    
+    const row = rows[processed];
+    const progress = Math.round(((processed + 1) / total) * 100);
+    
+    // Update progress bar with smooth animation
+    document.getElementById('importProgressBar').style.width = progress + '%';
+    document.getElementById('importProgressText').textContent = progress + '%';
+    document.getElementById('importStatus').textContent = `Processando linha ${processed + 1} de ${total}...`;
+    
+    // Prepare row data - expected format: [Modelo, Código Cliente, Usuário, Filial, Destino, Valor Recuperado, Data]
+    const rowData = {
+      modelo: row[0] || '',
+      codigo_cliente: row[1] || '',
+      usuario: row[2] || '',
+      filial: row[3] || '',
+      destino: row[4] || '',
+      valor_calculado: parseFloat(row[5]) || 0,
+      data_registro: row[6] || new Date().toISOString().split('T')[0]
+    };
+    
+    // Send row to server
+    fetch('/toners/retornados/import-row', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(rowData)
+    })
+    .then(response => response.json())
+    .then(result => {
+      results.push(result);
+      processed++;
+      // Process next row after short delay for animation
+      setTimeout(processNextRow, 100);
+    })
+    .catch(error => {
+      results.push({success: false, message: error.message});
+      processed++;
+      setTimeout(processNextRow, 100);
+    });
+  }
+  
+  // Start processing
+  processNextRow();
+}
+
+function resetImportModal() {
+  document.getElementById('importProgressContainer').classList.add('hidden');
+  document.getElementById('importSubmitBtn').disabled = false;
+  document.getElementById('importCancelBtn').disabled = false;
+  document.getElementById('importProgressBar').style.width = '0%';
+  document.getElementById('importProgressText').textContent = '0%';
 }
 
 // Filter and export functions
