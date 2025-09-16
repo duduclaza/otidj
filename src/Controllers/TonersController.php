@@ -516,13 +516,22 @@ class TonersController
         }
         
         try {
+            // Debug: Log received data
+            error_log('Import data received: ' . json_encode($input));
+            
             // Validate only essential fields - allow empty values for historical records
-            $required = ['modelo', 'destino'];
+            $required = ['modelo'];
             foreach ($required as $field) {
                 if (empty($input[$field])) {
-                    echo json_encode(['success' => false, 'message' => "Campo obrigatório: $field"]);
+                    echo json_encode(['success' => false, 'message' => "Campo obrigatório: $field. Dados recebidos: " . json_encode($input)]);
                     return;
                 }
+            }
+            
+            // Validate destino field separately with more flexible check
+            if (empty($input['destino'])) {
+                echo json_encode(['success' => false, 'message' => "Campo destino é obrigatório. Valor recebido: '" . ($input['destino'] ?? 'null') . "'"]);
+                return;
             }
             
             // Check if modelo exists in toners table
