@@ -146,10 +146,46 @@ function initializeModals() {
 }
 
 // Funções globais de conveniência
-window.openModal = function(modalId) {
+window.openModal = function openModal(modalId) {
   const modal = document.getElementById(modalId);
-  if (modal && modal.sgqModal) {
-    modal.sgqModal.open();
+  if (modal) {
+    // Try to append modal to document body to break out of iframe
+    if (window.parent && window.parent.document && window.parent.document.body) {
+      try {
+        // Clone modal to parent document
+        const parentModal = modal.cloneNode(true);
+        parentModal.id = modalId + '_parent';
+        window.parent.document.body.appendChild(parentModal);
+        
+        // Add event listeners to parent modal
+        const closeBtn = parentModal.querySelector('[data-modal-close]');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', () => {
+            parentModal.remove();
+            window.parent.document.body.style.overflow = '';
+          });
+        }
+        
+        // Close on overlay click
+        parentModal.addEventListener('click', (e) => {
+          if (e.target === parentModal) {
+            parentModal.remove();
+            window.parent.document.body.style.overflow = '';
+          }
+        });
+        
+        // Show parent modal
+        parentModal.classList.add('active');
+        window.parent.document.body.style.overflow = 'hidden';
+        return;
+      } catch (e) {
+        console.log('Could not open modal in parent window, using iframe modal');
+      }
+    }
+    
+    // Fallback to iframe modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
   } else {
     // Fallback para modais não inicializados
     const newModal = new SGQModal(modalId);
@@ -158,9 +194,26 @@ window.openModal = function(modalId) {
 };
 
 window.closeModal = function(modalId) {
+  // Try to close parent modal first
+  const parentModal = window.parent && window.parent.document ? 
+    window.parent.document.getElementById(modalId + '_parent') : null;
+  
+  if (parentModal) {
+    parentModal.remove();
+    window.parent.document.body.style.overflow = '';
+    return;
+  }
+  
+  // Fallback to iframe modal
   const modal = document.getElementById(modalId);
   if (modal && modal.sgqModal) {
     modal.sgqModal.close();
+  } else {
+    // Fallback manual close
+    if (modal) {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
   }
 };
 
