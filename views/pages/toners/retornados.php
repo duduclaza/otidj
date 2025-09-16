@@ -7,12 +7,20 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-gray-900">Registro de Retornados</h1>
-    <button id="openRetornadoBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-      </svg>
-      <span>Registrar Novo Retornado</span>
-    </button>
+    <div class="flex space-x-3">
+      <button onclick="downloadActivityLog()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span>Download Log</span>
+      </button>
+      <button id="openRetornadoBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        <span>Registrar Novo Retornado</span>
+      </button>
+    </div>
     <script>
       // Immediate binding near the button as a fallback
       (function(){
@@ -495,24 +503,63 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Global variables for debug
-let debugLogs = [];
-let importResults = [];
+// Global variables for debug and activity logging
 let debugMode = false;
+let importResults = [];
+let selectedDestino = '';
+let activityLog = [];
 
-// Debug functions
+// Activity logging system
+function logActivity(type, action, details = {}) {
+  const timestamp = new Date().toISOString();
+  const logEntry = {
+    timestamp,
+    type, // 'user_action', 'calculation', 'error', 'validation', 'modal', 'form'
+    action,
+    details,
+    url: window.location.href,
+    userAgent: navigator.userAgent
+  };
+  
+  activityLog.push(logEntry);
+  console.log(`[${type.toUpperCase()}] ${action}:`, details);
+  
+  // Keep only last 1000 entries to prevent memory issues
+  if (activityLog.length > 1000) {
+    activityLog = activityLog.slice(-1000);
+  }
+}
+
+// Enhanced error handling
+window.addEventListener('error', function(e) {
+  logActivity('error', 'JavaScript Error', {
+    message: e.message,
+    filename: e.filename,
+    lineno: e.lineno,
+    colno: e.colno,
+    stack: e.error ? e.error.stack : null
+  });
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  logActivity('error', 'Unhandled Promise Rejection', {
+    reason: e.reason,
+    stack: e.reason && e.reason.stack ? e.reason.stack : null
+  });
+});
+
 function toggleDebug() {
   debugMode = !debugMode;
   const console = document.getElementById('debugConsole');
   const btn = document.getElementById('debugToggleBtn');
-  
   if (debugMode) {
     console.style.display = 'block';
     btn.textContent = 'Ocultar Debug';
-    addDebugLog('🔧 Debug mode ativado');
+    logActivity('user_action', 'Debug Console Opened');
   } else {
     console.style.display = 'none';
     btn.textContent = 'Mostrar Debug';
+    logActivity('user_action', 'Debug Console Closed');
   }
 }
 
@@ -630,6 +677,7 @@ function downloadImportCSV(report) {
 
 // Modal functions
 function openRetornadoModal() {
+  logActivity('modal', 'Open Retornado Modal', { modalId: 'retornadoModal' });
   console.log('openRetornadoModal called');
   const modal = document.getElementById('retornadoModal');
   console.log('Modal element:', modal);
@@ -717,6 +765,8 @@ function closeImportModal() {
 // Mode toggle
 function toggleMode() {
   const modo = document.querySelector('input[name="modo"]:checked').value;
+  logActivity('user_action', 'Mode Changed', { mode: modo });
+  
   const pesoFields = document.getElementById('pesoFields');
   const chipFields = document.getElementById('chipFields');
   
@@ -907,6 +957,8 @@ function hideAutoDiscardNotification() {
 
 // Destination selection
 function selectDestino(destino) {
+  logActivity('user_action', 'Destination Selected', { destination: destino, previousDestination: selectedDestino });
+  
   selectedDestino = destino;
   document.getElementById('destinoSelected').value = destino;
   updateDestinoButtons();
@@ -1281,4 +1333,76 @@ window.calculateValue = calculateValue;
 window.showGuidance = showGuidance;
 window.checkAutoDiscard = checkAutoDiscard;
 window.loadParameters = loadParameters;
+window.downloadActivityLog = downloadActivityLog;
+
+// Activity log download function
+function downloadActivityLog() {
+  logActivity('user_action', 'Download Activity Log Requested');
+  
+  const report = {
+    generated_at: new Date().toISOString(),
+    page_url: window.location.href,
+    user_agent: navigator.userAgent,
+    session_duration: Date.now() - (window.sessionStartTime || Date.now()),
+    total_activities: activityLog.length,
+    
+    // Summary statistics
+    summary: {
+      errors: activityLog.filter(log => log.type === 'error').length,
+      user_actions: activityLog.filter(log => log.type === 'user_action').length,
+      calculations: activityLog.filter(log => log.type === 'calculation').length,
+      validations: activityLog.filter(log => log.type === 'validation').length,
+      modal_actions: activityLog.filter(log => log.type === 'modal').length,
+      form_actions: activityLog.filter(log => log.type === 'form').length
+    },
+    
+    // Current form state
+    current_state: {
+      selected_destination: selectedDestino,
+      modal_open: !document.getElementById('retornadoModal')?.classList.contains('hidden'),
+      debug_mode: debugMode,
+      toner_data_loaded: !!window.tonerData,
+      parameters_loaded: !!window.parameters
+    },
+    
+    // Browser info
+    browser_info: {
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      screen: {
+        width: screen.width,
+        height: screen.height
+      },
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      language: navigator.language
+    },
+    
+    // All activity logs
+    activities: activityLog,
+    
+    // Import results if any
+    import_results: importResults.length > 0 ? importResults : null
+  };
+  
+  // Create filename with timestamp
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  const filename = `retornados-activity-log-${timestamp}.json`;
+  
+  // Download JSON file
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  logActivity('user_action', 'Activity Log Downloaded', { filename, total_entries: activityLog.length });
+}
+
+// Initialize session start time
+window.sessionStartTime = Date.now();
+logActivity('system', 'Page Loaded', { timestamp: new Date().toISOString() });
 </script>
