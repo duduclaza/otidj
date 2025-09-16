@@ -188,6 +188,7 @@ class TonersController
             $peso_retornado = $_POST['peso_retornado'] ?? null;
             $percentual_chip = $_POST['percentual_chip'] ?? null;
             $destino = trim($_POST['destino'] ?? '');
+            $observacao = trim($_POST['observacao'] ?? '');
             $data_registro = $_POST['data_registro'] ?? date('Y-m-d');
 
             // Debug dos campos
@@ -209,11 +210,11 @@ class TonersController
             }
 
             // Check if modelo exists in toners table
-            $stmt = $this->db->prepare('SELECT peso_cheio, peso_vazio, gramatura, capacidade_folhas, custo_por_folha FROM toners WHERE modelo = :modelo');
+            $stmt = $this->db->prepare('SELECT peso_cheio, peso_vazio, gramatura, capacidade_folhas, custo_por_folha FROM toners WHERE id = :modelo');
             $stmt->execute([':modelo' => $modelo]);
             $tonerData = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            $modelo_cadastrado = $tonerData ? true : false;
+            $modelo_cadastrado = $tonerData ? 1 : 0;
             $gramatura_existente = null;
             $percentual_restante = null;
             $valor_calculado = 0.00;
@@ -247,7 +248,7 @@ class TonersController
             
             $stmt->execute([
                 ':modelo' => $modelo,
-                ':modelo_cadastrado' => $modelo_cadastrado,
+                ':modelo_cadastrado' => (int)$modelo_cadastrado,
                 ':usuario' => $usuario,
                 ':filial' => $filial,
                 ':codigo_cliente' => $codigo_cliente,
