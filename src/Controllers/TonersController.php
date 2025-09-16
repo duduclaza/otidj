@@ -10,7 +10,7 @@ class TonersController
 
     public function __construct()
     {
-        $this->db = Database::connection();
+        $this->db = Database::getInstance();
     }
 
     public function cadastro(): void

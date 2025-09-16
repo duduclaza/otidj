@@ -10,7 +10,7 @@ class ConfigController
 
     public function __construct()
     {
-        $this->db = Database::connection();
+        $this->db = Database::getInstance();
     }
 
     public function index(): void
