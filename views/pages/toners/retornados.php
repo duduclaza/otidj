@@ -35,7 +35,19 @@
     </div>
 
     <form id="retornadoForm" class="space-y-6">
-      <!-- Seleção do Modelo -->
+      <!-- Usuário e Filial -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="nomeUsuario" class="block text-sm font-medium text-gray-700 mb-2">Nome do Usuário *</label>
+          <input type="text" id="nomeUsuario" name="usuario" value="Administrador" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label for="filialUsuario" class="block text-sm font-medium text-gray-700 mb-2">Filial *</label>
+          <input type="text" id="filialUsuario" name="filial" value="Jundiaí - TI" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+      </div>
+
+      <!-- Modelo e Serial -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label for="modeloToner" class="block text-sm font-medium text-gray-700 mb-2">Modelo do Toner *</label>
@@ -247,6 +259,11 @@ function cancelRetornadoForm() {
 
 function resetForm() {
   document.getElementById('retornadoForm').reset();
+  
+  // Restaurar valores padrão dos campos de usuário e filial
+  document.getElementById('nomeUsuario').value = 'Administrador';
+  document.getElementById('filialUsuario').value = 'Jundiaí - TI';
+  
   document.getElementById('dadosModelo').classList.add('hidden');
   document.getElementById('camposPeso').classList.add('hidden');
   document.getElementById('camposPercentual').classList.add('hidden');
