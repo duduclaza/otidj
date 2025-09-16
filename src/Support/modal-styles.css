@@ -13,10 +13,11 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 1rem !important;
+  padding: 2rem !important;
   opacity: 0 !important;
   visibility: hidden !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow-y: auto !important;
 }
 
 .modal-overlay.active {
@@ -29,11 +30,12 @@
   border-radius: 1rem !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   max-width: 90vw !important;
-  max-height: 90vh !important;
+  max-height: 85vh !important;
   overflow: hidden !important;
-  transform: scale(0.95) translateY(20px) !important;
+  transform: scale(0.95) translateY(0) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   position: relative !important;
+  margin: auto !important;
 }
 
 .modal-overlay.active .modal-container {

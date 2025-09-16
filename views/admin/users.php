@@ -74,12 +74,16 @@
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Setor</label>
-          <input type="text" id="userSetor" name="setor" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <select id="userSetor" name="setor" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Selecione um setor</option>
+          </select>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Filial</label>
-          <input type="text" id="userFilial" name="filial" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <select id="userFilial" name="filial" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Selecione uma filial</option>
+          </select>
         </div>
       </div>
 
@@ -146,6 +150,8 @@
 
 <script>
 let currentUserId = null;
+let setoresList = [];
+let filiaisList = [];
 
 // Load users on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -163,6 +169,9 @@ function loadUsers() {
   .then(result => {
     if (result.success) {
       displayUsers(result.users);
+      setoresList = result.setores || [];
+      filiaisList = result.filiais || [];
+      populateDropdowns();
     } else {
       alert('Erro ao carregar usuários: ' + result.message);
     }
@@ -170,6 +179,28 @@ function loadUsers() {
   .catch(error => {
     console.error('Error:', error);
     alert('Erro de conexão');
+  });
+}
+
+function populateDropdowns() {
+  // Populate setores dropdown
+  const setorSelect = document.getElementById('userSetor');
+  setorSelect.innerHTML = '<option value="">Selecione um setor</option>';
+  setoresList.forEach(setor => {
+    const option = document.createElement('option');
+    option.value = setor;
+    option.textContent = setor;
+    setorSelect.appendChild(option);
+  });
+  
+  // Populate filiais dropdown
+  const filialSelect = document.getElementById('userFilial');
+  filialSelect.innerHTML = '<option value="">Selecione uma filial</option>';
+  filiaisList.forEach(filial => {
+    const option = document.createElement('option');
+    option.value = filial;
+    option.textContent = filial;
+    filialSelect.appendChild(option);
   });
 }
 

@@ -43,11 +43,42 @@ class AdminController
     {
         AuthController::requireAdmin();
         
+        // Check if it's an AJAX request
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+            try {
+                $stmt = $this->db->prepare("SELECT id, name, email, setor, filial, role, status, created_at FROM users ORDER BY created_at DESC");
+                $stmt->execute();
+                $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                
+                // Get unique setores and filiais
+                $setoresStmt = $this->db->prepare("SELECT DISTINCT setor FROM users WHERE setor IS NOT NULL AND setor != '' ORDER BY setor");
+                $setoresStmt->execute();
+                $setores = $setoresStmt->fetchAll(\PDO::FETCH_COLUMN);
+                
+                $filiaisStmt = $this->db->prepare("SELECT DISTINCT filial FROM users WHERE filial IS NOT NULL AND filial != '' ORDER BY filial");
+                $filiaisStmt->execute();
+                $filiais = $filiaisStmt->fetchAll(\PDO::FETCH_COLUMN);
+                
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'users' => $users,
+                    'setores' => $setores,
+                    'filiais' => $filiais
+                ]);
+                return;
+            } catch (\Exception $e) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+                return;
+            }
+        }
+        
+        // Regular page load
         try {
-            $stmt = $this->db->prepare("SELECT * FROM users ORDER BY created_at DESC");
-            $stmt->execute();
-            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            
             $title = 'Gerenciar Usuários - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/admin/users.php';
             include __DIR__ . '/../../views/layouts/main.php';
