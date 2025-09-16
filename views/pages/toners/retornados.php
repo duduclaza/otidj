@@ -42,7 +42,14 @@
               if (typeof window.updateDestinoButtons === 'function') { window.updateDestinoButtons(); }
               var obs = document.getElementById('observacao-container');
               if (obs) { obs.classList.add('hidden'); }
-              if (typeof window.loadParameters === 'function') { window.loadParameters(); }
+              if (typeof window.loadParameters === 'function') {
+                Promise.resolve(window.loadParameters()).then(function(){
+                  if (typeof window.toggleMode === 'function') { try { window.toggleMode(); } catch(_){} }
+                  if (typeof window.showGuidance === 'function') { try { window.showGuidance(window.selectedDestino || ''); } catch(_){} }
+                  if (typeof window.calculateValue === 'function') { try { window.calculateValue(); } catch(_){} }
+                  if (typeof window.checkAutoDiscard === 'function') { try { window.checkAutoDiscard(); } catch(_){} }
+                });
+              }
             } catch (err) {
               console.error('Falha ao abrir o modal via fallback:', err);
               alert('Erro ao abrir o formulário. Recarregue a página.');
