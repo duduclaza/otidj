@@ -545,7 +545,7 @@ class TonersController
                 }
             }
             
-            // Insert record
+            // Insert record - modo is required by table schema
             $stmt = $this->db->prepare('
                 INSERT INTO retornados (modelo, modelo_cadastrado, usuario, filial, codigo_cliente, 
                                       destino, valor_calculado, data_registro, modo, peso_retornado, 
@@ -555,7 +555,7 @@ class TonersController
                         :percentual_chip, :gramatura_existente, :percentual_restante)
             ');
             
-            $stmt->execute([
+            $result = $stmt->execute([
                 ':modelo' => $input['modelo'],
                 ':modelo_cadastrado' => $modeloCadastrado ? 1 : 0,
                 ':usuario' => $input['usuario'],
@@ -564,12 +564,17 @@ class TonersController
                 ':destino' => $input['destino'],
                 ':valor_calculado' => $input['valor_calculado'] ?? 0,
                 ':data_registro' => $dataRegistro,
-                ':modo' => 'importacao',
+                ':modo' => 'peso',
                 ':peso_retornado' => null,
                 ':percentual_chip' => null,
                 ':gramatura_existente' => null,
                 ':percentual_restante' => null
             ]);
+            
+            if (!$result) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao inserir registro no banco de dados']);
+                return;
+            }
             
             $message = 'Registro importado com sucesso';
             if (!$modeloCadastrado) {
