@@ -1272,4 +1272,13 @@ window.closeImportModal = closeImportModal;
 window.confirmDelete = confirmDelete;
 window.closeDeleteModal = closeDeleteModal;
 window.deleteRetornado = deleteRetornado;
+window.toggleMode = toggleMode;
+window.updateTonerData = updateTonerData;
+window.calculatePercentage = calculatePercentage;
+window.selectDestino = selectDestino;
+window.updateDestinoButtons = updateDestinoButtons;
+window.calculateValue = calculateValue;
+window.showGuidance = showGuidance;
+window.checkAutoDiscard = checkAutoDiscard;
+window.loadParameters = loadParameters;
 </script>
