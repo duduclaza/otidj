@@ -5,16 +5,10 @@ header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 header('Expires: 0');
 
-// Display errors only if APP_DEBUG=true
-if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
-    error_reporting(E_ALL);
-} else {
-    ini_set('display_errors', '0');
-    ini_set('display_startup_errors', '0');
-    error_reporting(0);
-}
+// Always show errors for debugging
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 
 // Project base path
 $basePath = dirname(__DIR__);
@@ -44,9 +38,8 @@ try {
 } catch (\Exception $e) {
     // Skip migrations if connection limit exceeded, but don't break the app
     if (strpos($e->getMessage(), 'max_connections_per_hour') === false) {
-        if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
-            echo '<pre>Migration Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
-        }
+        echo '<pre>Migration Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
+        echo '<pre>Stack trace: ' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
     }
 }
 
@@ -69,10 +62,6 @@ $router->post('/toners/import', [App\Controllers\TonersController::class, 'impor
 
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
-$router->post('/toners/amostragens', [App\Controllers\AmostragemController::class, 'store']);
-$router->put('/toners/amostragens/{id}', [App\Controllers\AmostragemController::class, 'update']);
-$router->delete('/toners/amostragens/{id}', [App\Controllers\AmostragemController::class, 'delete']);
-$router->get('/toners/amostragens/{id}', [App\Controllers\AmostragemController::class, 'show']);
 $router->get('/garantias', [App\Controllers\PageController::class, 'garantias']);
 $router->get('/controle-de-descartes', [App\Controllers\PageController::class, 'controleDeDescartes']);
 $router->get('/femea', [App\Controllers\PageController::class, 'femea']);
@@ -107,4 +96,10 @@ $router->get('/configuracoes', [App\Controllers\ConfigController::class, 'index'
 $router->post('/configuracoes/setup-banco', [App\Controllers\ConfigController::class, 'setupBanco']);
 
 // Dispatch request
-$router->dispatch();
+try {
+    $router->dispatch();
+} catch (\Exception $e) {
+    echo '<pre>Router Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
+    echo '<pre>Stack trace: ' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+    http_response_code(500);
+}

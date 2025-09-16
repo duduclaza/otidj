@@ -63,7 +63,15 @@ class Router
         if (is_array($handler)) {
             [$class, $methodName] = $handler;
             $instance = new $class();
-            $instance->$methodName();
+            
+            // Extract parameters from URL for dynamic routes
+            $params = $this->extractParams($normalized);
+            
+            if (!empty($params)) {
+                $instance->$methodName(...$params);
+            } else {
+                $instance->$methodName();
+            }
             return;
         }
 
@@ -77,6 +85,12 @@ class Router
         $regex = '#^' . $regex . '$#';
         
         return preg_match($regex, $uri);
+    }
+
+    private function extractParams(string $uri): array
+    {
+        // For now, return empty array - can be enhanced later for dynamic routes
+        return [];
     }
 
     private function normalize(string $path): string

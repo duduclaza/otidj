@@ -287,4 +287,21 @@ class Migration
             // Column might already exist or table doesn't exist
         }
     }
+
+    private function migration6(): void
+    {
+        $this->db->exec('CREATE TABLE IF NOT EXISTS amostragens (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            numero_nf VARCHAR(100) NOT NULL,
+            status ENUM("aprovado", "reprovado") NOT NULL,
+            observacao TEXT NULL,
+            arquivo_nf VARCHAR(255) NULL,
+            evidencias JSON NULL,
+            data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_numero_nf (numero_nf),
+            INDEX idx_status (status),
+            INDEX idx_data_registro (data_registro)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+    }
 }
