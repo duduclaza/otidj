@@ -41,9 +41,11 @@ try {
     $migration = new Migration();
     $migration->runMigrations();
 } catch (\Exception $e) {
-    // Log error but don't break the app
-    if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
-        echo '<pre>Migration Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
+    // Skip migrations if connection limit exceeded, but don't break the app
+    if (strpos($e->getMessage(), 'max_connections_per_hour') === false) {
+        if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
+            echo '<pre>Migration Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
+        }
     }
 }
 

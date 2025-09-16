@@ -53,37 +53,6 @@ class Migration
         $stmt->execute([':version' => $version]);
     }
 
-    private function migrate(): void
-    {
-        $currentVersion = $this->getCurrentVersion();
-        
-        if ($currentVersion < 1) {
-            // Version 1: Create initial tables
-            $this->createFilialTable();
-            $this->createDepartamentosTable();
-            $this->createFornecedoresTable();
-            $this->createParametrosRetornadosTable();
-            $this->seedDefaults();
-        }
-        
-        if ($currentVersion < 2) {
-            // Version 2: Ensure fornecedores table exists with correct structure
-            $this->createFornecedoresTable();
-            $this->fixFornecedoresTable();
-        }
-        
-        if ($currentVersion < 3) {
-            // Version 3: Create toners table
-            $this->createTonersTable();
-            $this->updateVersion(3);
-        }
-        if ($currentVersion < 4) {
-            // Version 4: Create retornados table
-            $this->createRetornadosTable();
-            $this->updateVersion(4);
-        }
-    }
-
     private function createFilialTable(): void
     {
         $this->db->exec('CREATE TABLE IF NOT EXISTS filiais (
