@@ -175,10 +175,10 @@ class TonersController
                 ':filial' => $filial,
                 ':codigo_cliente' => $codigo_cliente,
                 ':modo' => $modo,
-                ':peso_retornado' => $peso_retornado,
-                ':percentual_chip' => $percentual_chip,
-                ':gramatura_existente' => $gramatura_existente,
-                ':percentual_restante' => $percentual_restante,
+                ':peso_retornado' => $peso_retornado ?: null,
+                ':percentual_chip' => $percentual_chip ?: null,
+                ':gramatura_existente' => $gramatura_existente ?: null,
+                ':percentual_restante' => $percentual_restante ?: null,
                 ':destino' => $destino,
                 ':valor_calculado' => $valor_calculado,
                 ':data_registro' => $data_registro
@@ -541,11 +541,29 @@ class TonersController
                 return;
             }
             
-            // Validate destino field separately with more flexible check
-            if (empty(trim($input['destino'] ?? ''))) {
+            // Validate and normalize destino field
+            $destino = trim($input['destino'] ?? '');
+            if (empty($destino)) {
                 echo json_encode(['success' => false, 'message' => "Campo destino é obrigatório. Valor recebido: '" . ($input['destino'] ?? 'null') . "'"]);
                 return;
             }
+            
+            // Normalize destino values to match database format
+            $destinoNormalized = strtolower($destino);
+            $destinoMap = [
+                'uso interno' => 'uso_interno',
+                'uso_interno' => 'uso_interno',
+                'descarte' => 'descarte',
+                'estoque' => 'estoque',
+                'garantia' => 'garantia'
+            ];
+            
+            if (!isset($destinoMap[$destinoNormalized])) {
+                echo json_encode(['success' => false, 'message' => "Destino inválido: '$destino'. Use: descarte, estoque, uso interno ou garantia"]);
+                return;
+            }
+            
+            $destino = $destinoMap[$destinoNormalized];
             
             // Check if modelo exists in toners table
             $stmt = $this->db->prepare('SELECT COUNT(*) FROM toners WHERE modelo = :modelo');

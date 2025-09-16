@@ -795,7 +795,9 @@ function downloadRetornadosTemplate() {
   const data = [
     ['Modelo', 'Código Cliente', 'Usuário', 'Filial', 'Destino', 'Valor Recuperado', 'Data'],
     ['HP CF280A', 'CLI001', 'João Silva', 'Matriz', 'estoque', '125.50', '15/01/2024'],
-    ['HP CE285A', 'CLI002', 'Maria Santos', 'Filial 1', 'uso_interno', '0.00', '16/01/2024'],
+    ['HP CE285A', 'CLI002', 'Maria Santos', 'Filial 1', 'uso interno', '0.00', '16/01/2024'],
+    ['HP CB435A', 'CLI003', 'Pedro Costa', 'Filial 2', 'descarte', '0.00', '17/01/2024'],
+    ['HP Q2612A', 'CLI004', 'Ana Oliveira', 'Filial 3', 'garantia', '0.00', '18/01/2024'],
     ['', '', '', '', '', '', '']
   ];
   
