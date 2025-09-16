@@ -13,6 +13,35 @@
       </svg>
       <span>Registrar Novo Retornado</span>
     </button>
+    <script>
+      // Immediate binding near the button as a fallback
+      (function(){
+        var btn = document.getElementById('openRetornadoBtn');
+        if (btn && !btn.__retornadoBound) {
+          btn.__retornadoBound = true;
+          btn.addEventListener('click', function(e){
+            e.preventDefault();
+            if (typeof window.openRetornadoModal === 'function') {
+              window.openRetornadoModal();
+            } else if (typeof openRetornadoModal === 'function') {
+              openRetornadoModal();
+            } else {
+              // Retry shortly in case scripts at the bottom haven't loaded yet
+              setTimeout(function(){
+                if (typeof window.openRetornadoModal === 'function') {
+                  window.openRetornadoModal();
+                } else if (typeof openRetornadoModal === 'function') {
+                  openRetornadoModal();
+                } else {
+                  console.error('openRetornadoModal is not defined after retry');
+                  alert('Erro ao abrir o formulário. Tente recarregar a página.');
+                }
+              }, 50);
+            }
+          });
+        }
+      })();
+    </script>
   </div>
 
   <!-- Filters and Search -->
