@@ -260,6 +260,10 @@ function toggleUserForm() {
     document.getElementById('userId').value = '';
     document.getElementById('passwordField').style.display = 'block';
     document.getElementById('userPassword').required = true;
+    
+    // Repopulate dropdowns after form reset
+    populateDropdowns();
+    
     btn.innerHTML = `
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -295,17 +299,23 @@ function editUser(userId) {
         const container = document.getElementById('userFormContainer');
         container.classList.remove('hidden');
         
-        document.getElementById('formTitle').textContent = 'Editar Usuário';
-        document.getElementById('submitBtn').textContent = 'Salvar Alterações';
-        document.getElementById('userId').value = user.id;
-        document.getElementById('userName').value = user.name;
-        document.getElementById('userEmail').value = user.email;
-        document.getElementById('userSetor').value = user.setor || '';
-        document.getElementById('userFilial').value = user.filial || '';
-        document.getElementById('userRole').value = user.role;
-        document.getElementById('userStatus').value = user.status;
-        document.getElementById('passwordField').style.display = 'none';
-        document.getElementById('userPassword').required = false;
+        // First populate dropdowns, then set values
+        populateDropdowns();
+        
+        // Use setTimeout to ensure dropdowns are populated before setting values
+        setTimeout(() => {
+          document.getElementById('formTitle').textContent = 'Editar Usuário';
+          document.getElementById('submitBtn').textContent = 'Salvar Alterações';
+          document.getElementById('userId').value = user.id;
+          document.getElementById('userName').value = user.name;
+          document.getElementById('userEmail').value = user.email;
+          document.getElementById('userSetor').value = user.setor || '';
+          document.getElementById('userFilial').value = user.filial || '';
+          document.getElementById('userRole').value = user.role;
+          document.getElementById('userStatus').value = user.status;
+          document.getElementById('passwordField').style.display = 'none';
+          document.getElementById('userPassword').required = false;
+        }, 100);
         
         // Update toggle button
         const btn = document.getElementById('toggleFormBtn');
@@ -324,6 +334,9 @@ function cancelUserForm() {
   const container = document.getElementById('userFormContainer');
   container.classList.add('hidden');
   document.getElementById('userForm').reset();
+  
+  // Repopulate dropdowns after reset
+  populateDropdowns();
   
   // Reset toggle button
   const btn = document.getElementById('toggleFormBtn');
