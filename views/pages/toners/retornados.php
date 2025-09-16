@@ -755,7 +755,21 @@ function importRetornados() {
       const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
       
       // Remove header row and empty rows
-      const rows = jsonData.slice(1).filter(row => row.some(cell => cell !== undefined && cell !== ''));
+      const rows = jsonData.slice(1).filter(row => {
+        // Check if row has at least one non-empty cell
+        return row.some(cell => cell !== undefined && cell !== null && String(cell).trim() !== '');
+      });
+      
+      // Debug: Always log rows for troubleshooting (temporarily)
+      addDebugLog(`📊 Total de linhas na planilha: ${jsonData.length}`);
+      addDebugLog(`📊 Linhas após filtro: ${rows.length}`);
+      jsonData.forEach((row, index) => {
+        if (index === 0) {
+          addDebugLog(`📋 HEADER: ${JSON.stringify(row)}`);
+        } else {
+          addDebugLog(`📋 Linha ${index}: ${JSON.stringify(row)} - Filtrada: ${rows.includes(row) ? 'NÃO' : 'SIM'}`);
+        }
+      });
       
       if (rows.length === 0) {
         alert('Nenhum dado encontrado na planilha.');
@@ -816,6 +830,15 @@ function processImportRows(rows) {
     };
     
     addDebugLog(`📤 Enviando linha ${processed + 1}: ${JSON.stringify(rowData)}`);
+    
+    // Skip completely empty rows
+    if (!rowData.modelo && !rowData.codigo_cliente && !rowData.usuario && !rowData.filial && !rowData.destino) {
+      addDebugLog(`⏭️ Pulando linha ${processed + 1} - completamente vazia`);
+      processed++;
+      await new Promise(resolve => setTimeout(resolve, 50));
+      await processNextRow();
+      return;
+    }
     
     try {
       // Send row to server
