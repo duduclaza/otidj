@@ -865,10 +865,7 @@ function checkAutoDiscard() {
   }
   
   if (autoDiscardReason) {
-    // Auto-select descarte
-    selectDestino('descarte');
-    
-    // Show notification
+    // Suggest descarte (manual 100%): apenas exibe a notificação, não seleciona automaticamente
     showAutoDiscardNotification(autoDiscardReason);
   } else {
     // Hide notification if no auto discard
