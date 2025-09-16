@@ -1153,4 +1153,13 @@ function deleteRetornado() {
     alert('Erro de conexão: ' + error.message);
   });
 }
+
+// Ensure functions are available globally
+window.openRetornadoModal = openRetornadoModal;
+window.closeRetornadoModal = closeRetornadoModal;
+window.openImportModal = openImportModal;
+window.closeImportModal = closeImportModal;
+window.confirmDelete = confirmDelete;
+window.closeDeleteModal = closeDeleteModal;
+window.deleteRetornado = deleteRetornado;
 </script>
