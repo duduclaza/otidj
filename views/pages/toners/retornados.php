@@ -252,33 +252,31 @@
 
 <!-- Import Modal -->
 <div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl">
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">Importar Retornados</h3>
     </div>
     
     <!-- Content -->
-    <div class="px-6 py-4 space-y-4">
-      <!-- File Input -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Selecione o arquivo Excel:</label>
-        <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        <p class="text-xs text-gray-500 mt-1">Formatos aceitos: .xlsx, .xls, .csv</p>
+    <div class="px-6 py-4">
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo Excel (.xlsx)</label>
+        <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" class="w-full border border-gray-300 rounded-md px-3 py-2">
       </div>
       
-      <!-- Progress Bar -->
-      <div id="importProgressContainer" class="hidden">
-        <div class="mb-3">
-          <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
-            <span>Progresso da Importação</span>
-            <span id="importProgressText">0%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-3">
-            <div id="importProgressBar" class="bg-gradient-to-r from-orange-500 to-orange-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
-          </div>
+      <div id="importProgress" class="mb-4" style="display: none;">
+        <div class="bg-gray-200 rounded-full h-2 mb-2">
+          <div id="importProgressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
         </div>
-        <div id="importStatus" class="text-sm text-gray-600 bg-gray-50 rounded-lg p-2"></div>
+        <p id="importStatus" class="text-sm text-gray-600">Preparando importação...</p>
+      </div>
+      
+      <!-- Debug Console -->
+      <div id="debugConsole" class="mb-4" style="display: none;">
+        <h4 class="text-sm font-semibold text-gray-700 mb-2">Debug Console:</h4>
+        <div id="debugOutput" class="bg-gray-900 text-green-400 p-3 rounded-md h-64 overflow-y-auto text-xs font-mono"></div>
+        <button onclick="downloadDebugReport()" id="downloadDebugBtn" class="mt-2 px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700">Baixar Relatório Debug</button>
       </div>
     </div>
     
@@ -299,6 +297,7 @@
         <button id="importCancelBtn" onclick="closeImportModal()" class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
           Cancelar
         </button>
+        <button onclick="toggleDebug()" id="debugToggleBtn" class="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700">Mostrar Debug</button>
         <button id="importSubmitBtn" onclick="importRetornados()" class="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-lg hover:bg-orange-700 transition-colors">
           Importar
         </button>
@@ -346,6 +345,60 @@
 <script>
 let tonerData = {};
 let selectedDestino = '';
+
+// Global variables for debug
+let debugLogs = [];
+let importResults = [];
+let debugMode = false;
+
+// Debug functions
+function toggleDebug() {
+  debugMode = !debugMode;
+  const console = document.getElementById('debugConsole');
+  const btn = document.getElementById('debugToggleBtn');
+  
+  if (debugMode) {
+    console.style.display = 'block';
+    btn.textContent = 'Ocultar Debug';
+    addDebugLog('🔧 Debug mode ativado');
+  } else {
+    console.style.display = 'none';
+    btn.textContent = 'Mostrar Debug';
+  }
+}
+
+function addDebugLog(message) {
+  const timestamp = new Date().toLocaleTimeString();
+  const logEntry = `[${timestamp}] ${message}`;
+  debugLogs.push(logEntry);
+  
+  if (debugMode) {
+    const output = document.getElementById('debugOutput');
+    output.innerHTML += logEntry + '\n';
+    output.scrollTop = output.scrollHeight;
+  }
+}
+
+function downloadDebugReport() {
+  const report = {
+    timestamp: new Date().toISOString(),
+    logs: debugLogs,
+    results: importResults,
+    summary: {
+      totalRows: importResults.length,
+      successful: importResults.filter(r => r.success).length,
+      failed: importResults.filter(r => !r.success).length
+    }
+  };
+  
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `debug-report-${new Date().toISOString().slice(0,19)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // Modal functions
 function openRetornadoModal() {
@@ -652,16 +705,6 @@ function processImportRows(rows) {
         alert(message);
         closeImportModal();
         location.reload();
-      }, 500);
-      return;
-    }
-    
-    const row = rows[processed];
-    const progress = Math.round(((processed + 1) / total) * 100);
-    
-    // Update progress bar with smooth animation
-    document.getElementById('importProgressBar').style.width = progress + '%';
-    document.getElementById('importProgressText').textContent = progress + '%';
     document.getElementById('importStatus').textContent = `Processando linha ${processed + 1} de ${total}...`;
     
     // Prepare row data - expected format: [Modelo, Código Cliente, Usuário, Filial, Destino, Valor Recuperado, Data]
@@ -675,30 +718,69 @@ function processImportRows(rows) {
       data_registro: row[6] || ''
     };
     
-    // Send row to server
-    fetch('/toners/retornados/import-row', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(rowData)
-    })
-    .then(response => response.json())
-    .then(result => {
-      results.push(result);
-      processed++;
-      // Process next row after short delay for animation
-      setTimeout(processNextRow, 100);
-    })
-    .catch(error => {
-      results.push({success: false, message: error.message});
-      processed++;
-      setTimeout(processNextRow, 100);
-    });
+    addDebugLog(`📤 Enviando linha ${processed + 1}: ${JSON.stringify(rowData)}`);
+    
+    try {
+      // Send row to server
+      const response = await fetch('/toners/retornados/import-row', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(rowData)
+      });
+      
+      const data = await response.json();
+      
+      addDebugLog(`📥 Resposta linha ${processed + 1}: ${JSON.stringify(data)}`);
+      
+      const result = {
+        row: processed + 1,
+        data: rowData,
+        response: data,
+        success: data.success
+      };
+      
+      importResults.push(result);
+      
+      if (data.success) {
+        successful++;
+        addDebugLog(`✅ Linha ${processed + 1} importada com sucesso`);
+      } else {
+        errors++;
+        addDebugLog(`❌ Erro linha ${processed + 1}: ${data.message}`);
+      }
+    } catch (error) {
+      errors++;
+      const errorMsg = `Erro de rede linha ${processed + 1}: ${error.message}`;
+      addDebugLog(`🚨 ${errorMsg}`);
+      
+      importResults.push({
+        row: processed + 1,
+        data: rowData,
+        response: { success: false, message: errorMsg },
+        success: false
+      });
+    }
+    
+    processed++;
+    
+    // Small delay for animation
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
   
-  // Start processing
-  processNextRow();
+  // Final status
+  document.getElementById('importProgressBar').style.width = '100%';
+  document.getElementById('importStatus').textContent = `Importação concluída! ${successful} sucessos, ${errors} erros.`;
+  
+  addDebugLog(`🏁 Importação finalizada: ${successful} sucessos, ${errors} erros`);
+  
+  // Re-enable buttons after a delay
+  setTimeout(() => {
+    document.getElementById('importSubmitBtn').disabled = false;
+    document.getElementById('importCancelBtn').disabled = false;
+    document.getElementById('importSubmitBtn').textContent = 'Importar';
+  }, 2000);
 }
 
 function resetImportModal() {
