@@ -94,13 +94,23 @@ class TonersController
     {
         header('Content-Type: application/json');
         
+        // Se não há parâmetro modelo, retorna todos os toners para dropdown
         $modelo = $_GET['modelo'] ?? '';
         
         if (empty($modelo)) {
-            echo json_encode(['success' => false, 'error' => 'Modelo não informado']);
-            return;
+            try {
+                $stmt = $this->db->query('SELECT id, modelo, gramatura, peso_cheio, peso_vazio, preco_toner as valor, rendimento FROM toners ORDER BY modelo');
+                $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                echo json_encode($toners);
+                return;
+            } catch (\PDOException $e) {
+                echo json_encode([]);
+                return;
+            }
         }
 
+        // Se há parâmetro modelo, retorna dados específicos do toner
         try {
             $stmt = $this->db->prepare('SELECT gramatura, peso_vazio, preco_toner as preco FROM toners WHERE modelo = ?');
             $stmt->execute([$modelo]);

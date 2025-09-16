@@ -240,19 +240,45 @@ function resetForm() {
 
 // Carregar modelos de toner
 function carregarModelos() {
-  fetch('/api/toner')
-    .then(response => response.json())
-    .then(data => {
-      modelosData = data;
-      const select = document.getElementById('modeloToner');
-      select.innerHTML = '<option value="">Selecione um modelo</option>';
-      
-      data.forEach(modelo => {
-        const option = document.createElement('option');
-        option.value = modelo.id;
-        option.textContent = modelo.modelo;
-        select.appendChild(option);
-      });
+  console.log('Carregando modelos de toner...');
+  fetch('/api/toner', {
+    method: 'GET',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => {
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers.get('content-type'));
+      return response.text();
+    })
+    .then(text => {
+      console.log('Raw response:', text);
+      try {
+        const data = JSON.parse(text);
+        console.log('Parsed data:', data);
+        
+        if (Array.isArray(data)) {
+          modelosData = data;
+          const select = document.getElementById('modeloToner');
+          select.innerHTML = '<option value="">Selecione um modelo</option>';
+          
+          data.forEach(modelo => {
+            const option = document.createElement('option');
+            option.value = modelo.id;
+            option.textContent = modelo.modelo;
+            select.appendChild(option);
+          });
+          
+          console.log(`${data.length} modelos carregados`);
+        } else {
+          console.error('Resposta não é um array:', data);
+        }
+      } catch (e) {
+        console.error('JSON parse error:', e);
+        console.error('Response text:', text);
+      }
     })
     .catch(error => {
       console.error('Erro ao carregar modelos:', error);
