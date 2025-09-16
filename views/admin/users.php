@@ -427,17 +427,35 @@ function managePermissions(userId, userName) {
   currentUserId = userId;
   document.getElementById('permissionsUserName').textContent = userName;
   
-  fetch(`/admin/users/${userId}/permissions`)
-  .then(response => response.json())
-  .then(result => {
-    if (result.success) {
-      displayPermissions(result.permissions);
-      openModal('permissionsModal');
-    } else {
-      alert('Erro ao carregar permissões: ' + result.message);
+  fetch(`/admin/users/${userId}/permissions`, {
+    method: 'GET',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => {
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers.get('content-type'));
+    return response.text();
+  })
+  .then(text => {
+    console.log('Raw response:', text);
+    try {
+      const result = JSON.parse(text);
+      if (result.success) {
+        displayPermissions(result.permissions);
+        openModal('permissionsModal');
+      } else {
+        alert('Erro ao carregar permissões: ' + result.message);
+      }
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      alert('Erro: Resposta inválida do servidor');
     }
   })
   .catch(error => {
+    console.error('Fetch error:', error);
     alert('Erro de conexão: ' + error.message);
   });
 }
