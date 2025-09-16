@@ -307,7 +307,7 @@
       <div id="pesoFields" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Peso Retornado (g)</label>
-          <input type="number" name="peso_retornado" step="0.01" min="0" oninput="calculatePercentage()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <input type="number" name="peso_retornado" step="0.01" min="0" oninput="calculatePercentage(); calculateValue(); showGuidance(); checkAutoDiscard();" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Percentual Restante</label>
@@ -318,7 +318,7 @@
       <div id="chipFields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Percentual do Chip (%)</label>
-          <input type="number" name="percentual_chip" step="0.01" min="0" max="100" oninput="calculatePercentage()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <input type="number" name="percentual_chip" step="0.01" min="0" max="100" oninput="calculatePercentage(); calculateValue(); showGuidance(); checkAutoDiscard();" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
         </div>
       </div>
 
@@ -948,12 +948,26 @@ function calculateValue() {
   const valorDisplay = document.getElementById('valorDisplay');
   
   if (selectedDestino === 'estoque') {
-    const preco = window.tonerData ? window.tonerData.preco : 150;
-    const percentual = window.calculatedPercentage || 0;
+    const modo = document.querySelector('input[name="modo"]:checked')?.value || 'peso';
+    const custoFolha = window.tonerData ? window.tonerData.custo_por_folha : 0.10;
+    const capacidadeFolhas = window.tonerData ? window.tonerData.capacidade_folhas : 1500;
     
-    // Calculate value based on percentage remaining and toner price
-    const valor = (preco * percentual) / 100;
-    valorDisplay.textContent = 'R$ ' + valor.toFixed(2).replace('.', ',');
+    let folhasRestantes = 0;
+    
+    if (modo === 'peso') {
+      // Modo Peso: usar gramatura existente para calcular folhas
+      const gramaturaExistente = window.gramaturaExistente || 0;
+      const gramaturaPorFolha = window.tonerData ? (window.tonerData.gramatura / capacidadeFolhas) : 0.007;
+      folhasRestantes = gramaturaExistente / gramaturaPorFolha;
+    } else if (modo === 'chip') {
+      // Modo Chip: usar percentual do chip para calcular folhas
+      const percentualChip = window.calculatedPercentage || 0;
+      folhasRestantes = (capacidadeFolhas * percentualChip) / 100;
+    }
+    
+    // Calcular valor em dinheiro: folhas restantes × custo por folha
+    const valor = folhasRestantes * custoFolha;
+    valorDisplay.textContent = 'R$ ' + valor.toFixed(2).replace('.', ',') + ' (' + Math.round(folhasRestantes) + ' folhas)';
     valorDiv.classList.remove('hidden');
   } else {
     valorDiv.classList.add('hidden');
