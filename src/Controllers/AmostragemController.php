@@ -34,11 +34,17 @@ class AmostragemController
         
         try {
             $numero_nf = $_POST['numero_nf'] ?? '';
-            $status = $_POST['status'] ?? '';
+            $status = $_POST['status'] ?? 'pendente';
             $observacao = $_POST['observacao'] ?? '';
+            $responsaveis = $_POST['responsaveis'] ?? [];
             
             if (empty($numero_nf) || empty($status)) {
                 echo json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
+                return;
+            }
+            
+            if (empty($responsaveis)) {
+                echo json_encode(['success' => false, 'message' => 'Pelo menos um responsável deve ser selecionado']);
                 return;
             }
 
@@ -77,10 +83,30 @@ class AmostragemController
                     }
                 }
             }
+            
+            // Handle fotos upload
+            $fotos = [];
+            if (isset($_FILES['fotos'])) {
+                $uploadDir = 'uploads/fotos/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+                
+                foreach ($_FILES['fotos']['tmp_name'] as $key => $tmpName) {
+                    if ($_FILES['fotos']['error'][$key] === UPLOAD_ERR_OK) {
+                        $fileName = uniqid() . '_' . $_FILES['fotos']['name'][$key];
+                        $uploadPath = $uploadDir . $fileName;
+                        
+                        if (move_uploaded_file($tmpName, $uploadPath)) {
+                            $fotos[] = 'fotos/' . $fileName;
+                        }
+                    }
+                }
+            }
 
             $stmt = $this->db->prepare("
-                INSERT INTO amostragens (numero_nf, status, observacao, arquivo_nf, evidencias, data_registro) 
-                VALUES (:numero_nf, :status, :observacao, :arquivo_nf, :evidencias, NOW())
+                INSERT INTO amostragens (numero_nf, status, observacao, arquivo_nf, evidencias, responsaveis, fotos, data_registro) 
+                VALUES (:numero_nf, :status, :observacao, :arquivo_nf, :evidencias, :responsaveis, :fotos, NOW())
             ");
 
             $stmt->execute([
@@ -88,13 +114,73 @@ class AmostragemController
                 ':status' => $status,
                 ':observacao' => $observacao,
                 ':arquivo_nf' => $arquivo_nf,
-                ':evidencias' => json_encode($evidencias)
+                ':evidencias' => json_encode($evidencias),
+                ':responsaveis' => json_encode($responsaveis),
+                ':fotos' => json_encode($fotos)
             ]);
 
+            // Send email to responsaveis
+            $this->sendEmailToResponsaveis($responsaveis, $numero_nf, $status, $arquivo_nf, $fotos);
+            
             echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!']);
 
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()]);
+        }
+    }
+
+    private function sendEmailToResponsaveis($responsaveis, $numero_nf, $status, $arquivo_nf, $fotos)
+    {
+        try {
+            // Get user emails from database
+            $placeholders = str_repeat('?,', count($responsaveis) - 1) . '?';
+            $stmt = $this->db->prepare("SELECT name, email FROM users WHERE name IN ($placeholders) AND status = 'active'");
+            $stmt->execute($responsaveis);
+            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (empty($users)) {
+                return;
+            }
+
+            $subject = "Nova Amostragem Registrada - NF: $numero_nf";
+            
+            $message = "
+                <h2>Nova Amostragem Registrada</h2>
+                <p><strong>Número da NF:</strong> $numero_nf</p>
+                <p><strong>Status:</strong> " . ucfirst($status) . "</p>
+                <p><strong>Responsáveis:</strong> " . implode(', ', $responsaveis) . "</p>
+                <p><strong>Data de Registro:</strong> " . date('d/m/Y H:i') . "</p>
+            ";
+
+            if (!empty($arquivo_nf)) {
+                $message .= "<p><strong>Anexo PDF:</strong> Disponível no sistema</p>";
+            }
+
+            if (!empty($fotos)) {
+                $message .= "<p><strong>Fotos:</strong> " . count($fotos) . " foto(s) anexada(s)</p>";
+            }
+
+            $message .= "
+                <br>
+                <p>Acesse o sistema para visualizar todos os detalhes e anexos.</p>
+                <p><em>Este é um e-mail automático do Sistema SGQ-OTI DJ</em></p>
+            ";
+
+            // Use EmailService if available
+            if (class_exists('\App\Services\EmailService')) {
+                $emailService = new \App\Services\EmailService();
+                
+                foreach ($users as $user) {
+                    $emailService->send(
+                        $user['email'],
+                        $user['name'],
+                        $subject,
+                        $message
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("Erro ao enviar email para responsáveis: " . $e->getMessage());
         }
     }
 

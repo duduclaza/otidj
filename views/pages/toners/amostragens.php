@@ -43,6 +43,7 @@
         <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
         <select id="statusFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           <option value="">Todos</option>
+          <option value="pendente">Pendente</option>
           <option value="aprovado">Aprovado</option>
           <option value="reprovado">Reprovado</option>
         </select>
@@ -65,6 +66,7 @@
         <thead class="bg-gray-50">
           <tr>
             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número NF</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsáveis</th>
             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observação</th>
@@ -76,9 +78,22 @@
             <?php foreach ($amostragens as $amostragem): ?>
               <tr>
                 <td class="px-4 py-2 text-sm text-gray-900"><?= e($amostragem['numero_nf']) ?></td>
+                <td class="px-4 py-2 text-sm text-gray-500">
+                  <?php 
+                  $responsaveis = !empty($amostragem['responsaveis']) ? json_decode($amostragem['responsaveis'], true) : [];
+                  if (!empty($responsaveis)) {
+                    echo implode(', ', array_slice($responsaveis, 0, 2));
+                    if (count($responsaveis) > 2) echo ' +' . (count($responsaveis) - 2);
+                  } else {
+                    echo '-';
+                  }
+                  ?>
+                </td>
                 <td class="px-4 py-2">
                   <?php if ($amostragem['status'] === 'aprovado'): ?>
                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Aprovado</span>
+                  <?php elseif ($amostragem['status'] === 'pendente'): ?>
+                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendente</span>
                   <?php else: ?>
                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Reprovado</span>
                   <?php endif; ?>
@@ -102,7 +117,7 @@
             <?php endforeach; ?>
           <?php else: ?>
             <tr>
-              <td colspan="5" class="px-4 py-8 text-center text-gray-500">Nenhuma amostragem encontrada</td>
+              <td colspan="6" class="px-4 py-8 text-center text-gray-500">Nenhuma amostragem encontrada</td>
             </tr>
           <?php endif; ?>
         </tbody>
@@ -140,10 +155,30 @@
         <p class="text-xs text-gray-500 mt-1">Apenas arquivos PDF são aceitos</p>
       </div>
 
+      <!-- Fotos -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Fotos</label>
+        <input type="file" name="fotos[]" accept="image/*" multiple class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <p class="text-xs text-gray-500 mt-1">Selecione uma ou mais fotos (JPG, PNG, etc.)</p>
+      </div>
+
+      <!-- Responsáveis -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Responsáveis *</label>
+        <select name="responsaveis[]" multiple required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="responsaveisSelect" style="min-height: 120px;">
+          <!-- Options will be loaded dynamically -->
+        </select>
+        <p class="text-xs text-gray-500 mt-1">Selecione um ou mais responsáveis. Use Ctrl+clique para seleção múltipla</p>
+      </div>
+
       <!-- Status -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-3">Status *</label>
         <div class="flex space-x-4">
+          <label class="flex items-center">
+            <input type="radio" name="status" value="pendente" class="mr-2" onchange="window.toggleStatusFields()" checked>
+            <span class="text-sm font-medium text-yellow-700">Pendente</span>
+          </label>
           <label class="flex items-center">
             <input type="radio" name="status" value="aprovado" class="mr-2" onchange="window.toggleStatusFields()">
             <span class="text-sm font-medium text-green-700">Aprovado</span>
@@ -203,6 +238,13 @@ function openAmostragemModal() {
   document.getElementById('modalTitle').textContent = 'Adicionar Nova Amostragem';
   document.getElementById('amostragemForm').reset();
   document.getElementById('amostragemId').value = '';
+  
+  // Set default status to 'pendente'
+  document.querySelector('input[name="status"][value="pendente"]').checked = true;
+  
+  // Load users for responsáveis dropdown
+  loadUsers();
+  
   logActivity('modal', 'Abrir modal de amostragem');
 }
 
@@ -228,10 +270,37 @@ function toggleStatusFields() {
   }
 }
 
+function loadUsers() {
+  fetch('/api/users')
+    .then(response => response.json())
+    .then(users => {
+      const select = document.getElementById('responsaveisSelect');
+      select.innerHTML = '';
+      
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.name;
+        option.textContent = `${user.name} (${user.email})`;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error('Erro ao carregar usuários:', error);
+      alert('Erro ao carregar lista de usuários');
+    });
+}
+
 function submitAmostragem() {
   logActivity('form', 'Submit Amostragem');
   const form = document.getElementById('amostragemForm');
   const formData = new FormData(form);
+  
+  // Validate responsáveis selection
+  const responsaveis = Array.from(document.getElementById('responsaveisSelect').selectedOptions).map(option => option.value);
+  if (responsaveis.length === 0) {
+    alert('Por favor, selecione pelo menos um responsável.');
+    return;
+  }
   
   if (!selectedStatus) {
     alert('Por favor, selecione um status.');
@@ -308,6 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
 window.openAmostragemModal = openAmostragemModal;
 window.closeAmostragemModal = closeAmostragemModal;
 window.toggleStatusFields = toggleStatusFields;
+window.loadUsers = loadUsers;
 window.submitAmostragem = submitAmostragem;
 window.editAmostragem = editAmostragem;
 window.deleteAmostragem = deleteAmostragem;

@@ -308,6 +308,12 @@ class Migration
             INDEX idx_status (status),
             INDEX idx_data_registro (data_registro)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+        
+        // Update amostragens table to include responsaveis and fotos fields
+        $this->db->exec('ALTER TABLE amostragens 
+            ADD COLUMN IF NOT EXISTS responsaveis JSON NULL AFTER observacao,
+            ADD COLUMN IF NOT EXISTS fotos JSON NULL AFTER responsaveis,
+            MODIFY COLUMN status ENUM("pendente", "aprovado", "reprovado") DEFAULT "pendente"');
     }
 
     private function migration7(): void
