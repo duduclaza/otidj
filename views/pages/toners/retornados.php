@@ -632,7 +632,19 @@ function openRetornadoModal() {
     modal.classList.remove('hidden');
     
     // Load parameters when modal opens to ensure fresh data
-    loadParameters();
+    if (typeof loadParameters === 'function') {
+      Promise.resolve(loadParameters()).then(() => {
+        if (typeof showGuidance === 'function') {
+          try { showGuidance(window.selectedDestino || ''); } catch(_) {}
+        }
+        if (typeof calculateValue === 'function') {
+          try { calculateValue(); } catch(_) {}
+        }
+        if (typeof checkAutoDiscard === 'function') {
+          try { checkAutoDiscard(); } catch(_) {}
+        }
+      });
+    }
     
     // Reset form
     const form = document.getElementById('retornadoForm');
