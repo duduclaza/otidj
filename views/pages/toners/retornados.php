@@ -494,9 +494,31 @@ function submitRetornado(e) {
   
   const formData = new FormData(e.target);
   
+  // Adicionar campo modo baseado no tipo de medição selecionado
+  const tipoMedicao = document.querySelector('input[name="tipoMedicao"]:checked');
+  if (tipoMedicao) {
+    formData.append('modo', tipoMedicao.value);
+  }
+  
+  // Adicionar destino selecionado
+  if (selectedDestino) {
+    formData.append('destino', selectedDestino);
+  }
+  
+  // Debug: mostrar todos os dados que serão enviados
+  console.log('Dados do formulário:');
+  for (let [key, value] of formData.entries()) {
+    console.log(key + ': ' + value);
+  }
+  
   // Validações
   if (!selectedDestino) {
     alert('Selecione um destino para o toner');
+    return;
+  }
+  
+  if (!tipoMedicao) {
+    alert('Selecione o tipo de medição (Peso Físico ou % do Chip)');
     return;
   }
   
