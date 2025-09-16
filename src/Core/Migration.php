@@ -11,19 +11,53 @@ class Migration
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        try {
+            $this->db = Database::getInstance();
+        } catch (\PDOException $e) {
+            // Skip migrations if connection limit exceeded
+            if (strpos($e->getMessage(), 'max_connections_per_hour') !== false) {
+                throw new \Exception('Database connection limit exceeded');
+            }
+            throw $e;
+        }
     }
 
     public function runMigrations(): void
     {
-        // Create migrations table if not exists
-        $this->createMigrationsTable();
-        
-        $currentVersion = $this->getCurrentVersion();
-        
-        if ($currentVersion < self::CURRENT_VERSION) {
-            $this->migrate();
-            $this->updateVersion(self::CURRENT_VERSION);
+        try {
+            $this->createMigrationsTable();
+            $currentVersion = $this->getCurrentVersion();
+
+            if ($currentVersion < 1) {
+                // Version 1: Create initial tables and seed defaults
+                $this->createFilialTable();
+                $this->createDepartamentosTable();
+                $this->createFornecedoresTable();
+                $this->createParametrosRetornadosTable();
+                $this->seedDefaults();
+                $this->updateVersion(1);
+            }
+            if ($currentVersion < 2) {
+                // Version 2: Fix fornecedores table
+                $this->fixFornecedoresTable();
+                $this->updateVersion(2);
+            }
+            if ($currentVersion < 3) {
+                // Version 3: Create toners table
+                $this->createTonersTable();
+                $this->updateVersion(3);
+            }
+            if ($currentVersion < 4) {
+                // Version 4: Create retornados table
+                $this->createRetornadosTable();
+                $this->updateVersion(4);
+            }
+        } catch (\PDOException $e) {
+            // Skip migrations if connection limit exceeded
+            if (strpos($e->getMessage(), 'max_connections_per_hour') !== false) {
+                return;
+            }
+            throw $e;
         }
     }
 

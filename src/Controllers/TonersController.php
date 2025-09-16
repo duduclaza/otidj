@@ -98,7 +98,7 @@ class TonersController
         header('Content-Type: application/json');
         
         try {
-            $stmt = $this->db->query('SELECT nome, percentual_min, percentual_max, orientacao FROM parametros ORDER BY percentual_min');
+            $stmt = $this->db->query('SELECT nome, faixa_min as percentual_min, faixa_max as percentual_max, orientacao FROM parametros_retornados ORDER BY faixa_min');
             $parameters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode([
