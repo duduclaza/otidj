@@ -11,7 +11,7 @@ class Migration
 
     public function __construct()
     {
-        $this->db = Database::connection();
+        $this->db = Database::getInstance();
     }
 
     public function runMigrations(): void
