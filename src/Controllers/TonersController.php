@@ -519,17 +519,28 @@ class TonersController
             // Debug: Log received data
             error_log('Import data received: ' . json_encode($input));
             
-            // Validate only essential fields - allow empty values for historical records
-            $required = ['modelo'];
-            foreach ($required as $field) {
-                if (empty($input[$field])) {
-                    echo json_encode(['success' => false, 'message' => "Campo obrigatório: $field. Dados recebidos: " . json_encode($input)]);
-                    return;
+            // Skip empty rows (all fields empty or just empty strings)
+            $hasData = false;
+            foreach ($input as $key => $value) {
+                if (!empty(trim($value))) {
+                    $hasData = true;
+                    break;
                 }
             }
             
+            if (!$hasData) {
+                echo json_encode(['success' => true, 'message' => 'Linha vazia ignorada']);
+                return;
+            }
+            
+            // Validate only essential fields - allow empty values for historical records
+            if (empty(trim($input['modelo'] ?? ''))) {
+                echo json_encode(['success' => false, 'message' => "Campo modelo é obrigatório. Dados recebidos: " . json_encode($input)]);
+                return;
+            }
+            
             // Validate destino field separately with more flexible check
-            if (empty($input['destino'])) {
+            if (empty(trim($input['destino'] ?? ''))) {
                 echo json_encode(['success' => false, 'message' => "Campo destino é obrigatório. Valor recebido: '" . ($input['destino'] ?? 'null') . "'"]);
                 return;
             }
