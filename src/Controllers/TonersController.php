@@ -516,8 +516,8 @@ class TonersController
         }
         
         try {
-            // Validate required fields
-            $required = ['modelo', 'codigo_cliente', 'usuario', 'filial', 'destino'];
+            // Validate only essential fields - allow empty values for historical records
+            $required = ['modelo', 'destino'];
             foreach ($required as $field) {
                 if (empty($input[$field])) {
                     echo json_encode(['success' => false, 'message' => "Campo obrigatório: $field"]);
@@ -558,9 +558,9 @@ class TonersController
             $result = $stmt->execute([
                 ':modelo' => $input['modelo'],
                 ':modelo_cadastrado' => $modeloCadastrado ? 1 : 0,
-                ':usuario' => $input['usuario'],
-                ':filial' => $input['filial'],
-                ':codigo_cliente' => $input['codigo_cliente'],
+                ':usuario' => $input['usuario'] ?: 'N/A',
+                ':filial' => $input['filial'] ?: 'N/A',
+                ':codigo_cliente' => $input['codigo_cliente'] ?: 'N/A',
                 ':destino' => $input['destino'],
                 ':valor_calculado' => $input['valor_calculado'] ?? 0,
                 ':data_registro' => $dataRegistro,
