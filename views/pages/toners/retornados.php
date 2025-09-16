@@ -286,7 +286,7 @@
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Usuário *</label>
-          <input type="text" name="usuario" value="<?= e($_SESSION['user'] ?? 'Usuário Sistema') ?>" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <input type="text" name="usuario" value="Sistema" required readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 text-gray-700 focus:ring-0 focus:border-gray-300">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Filial *</label>
