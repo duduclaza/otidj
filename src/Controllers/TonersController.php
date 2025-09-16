@@ -443,7 +443,7 @@ class TonersController
         // Try to read as CSV first (most common case from our frontend conversion)
         if (($handle = fopen($filePath, "r")) !== FALSE) {
             // Try different delimiters
-            $delimiters = [',', ';', '\t'];
+            $delimiters = [',', ';', "\t"];
             $firstLine = fgets($handle);
             rewind($handle);
             
@@ -516,8 +516,10 @@ class TonersController
         }
         
         try {
-            // Debug: Log received data
-            error_log('Import data received: ' . json_encode($input));
+            // Debug: Log received data (only in debug mode)
+            if (filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN)) {
+                error_log('Import data received: ' . json_encode($input));
+            }
             
             // Skip empty rows (all fields empty or just empty strings)
             $hasData = false;
@@ -554,7 +556,7 @@ class TonersController
             $dataRegistro = $input['data_registro'] ?? date('Y-m-d');
             
             // First try DD/MM/YYYY format (Brazilian standard)
-            $date = DateTime::createFromFormat('d/m/Y', $dataRegistro);
+            $date = \DateTime::createFromFormat('d/m/Y', $dataRegistro);
             if ($date) {
                 $dataRegistro = $date->format('Y-m-d');
             } else {

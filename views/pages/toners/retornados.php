@@ -509,6 +509,7 @@ function calculatePercentage() {
   
   calculateValue();
   showGuidance();
+  checkAutoDiscard();
 }
 
 // Guidance system based on parameters
@@ -569,12 +570,83 @@ function loadParameters() {
     });
 }
 
+// Auto discard detection
+function checkAutoDiscard() {
+  const modo = document.querySelector('input[name="modo"]:checked').value;
+  const percentual = window.calculatedPercentage || 0;
+  const pesoRetornado = parseFloat(document.querySelector('input[name="peso_retornado"]').value) || 0;
+  const pesoVazio = window.tonerData ? window.tonerData.peso_vazio : 0;
+  
+  let autoDiscardReason = '';
+  
+  // Check for weight-based discard (peso igual ao peso vazio)
+  if (modo === 'peso' && pesoRetornado > 0 && pesoVazio > 0 && pesoRetornado <= pesoVazio) {
+    autoDiscardReason = 'Peso igual ao peso vazio - Toner sem tinta restante';
+  }
+  // Check for chip percentage discard (0%)
+  else if (modo === 'chip' && percentual === 0) {
+    autoDiscardReason = 'Percentual do chip é 0% - Toner vazio';
+  }
+  // Check for calculated percentage discard (0% remaining)
+  else if (percentual === 0) {
+    autoDiscardReason = 'Percentual restante é 0% - Toner vazio';
+  }
+  
+  if (autoDiscardReason) {
+    // Auto-select descarte
+    selectDestino('descarte');
+    
+    // Show notification
+    showAutoDiscardNotification(autoDiscardReason);
+  } else {
+    // Hide notification if no auto discard
+    hideAutoDiscardNotification();
+  }
+}
+
+function showAutoDiscardNotification(reason) {
+  // Remove existing notification
+  const existing = document.getElementById('autoDiscardNotification');
+  if (existing) existing.remove();
+  
+  // Create notification
+  const notification = document.createElement('div');
+  notification.id = 'autoDiscardNotification';
+  notification.className = 'bg-red-50 border border-red-200 rounded-lg p-4 mb-4';
+  notification.innerHTML = `
+    <div class="flex items-center">
+      <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.876c1.17 0 2.25-.16 2.25-1.729 0-.329-.314-.729-.314-1.271L18 7.5c0-.621-.504-1.125-1.125-1.125H7.125C6.504 6.375 6 6.879 6 7.5l-.686 8.5c0 .542-.314.942-.314 1.271 0 1.569 1.08 1.729 2.25 1.729z"></path>
+      </svg>
+      <div>
+        <div class="text-sm font-medium text-red-800">Descarte Automático Detectado</div>
+        <div class="text-sm text-red-700 mt-1">${reason}</div>
+        <div class="text-xs text-red-600 mt-1">DESCARTE foi selecionado automaticamente. Você pode alterar se necessário.</div>
+      </div>
+    </div>
+  `;
+  
+  // Insert before destination selection
+  const destinoSection = document.querySelector('label[for="destinoSelected"]').parentElement;
+  destinoSection.parentElement.insertBefore(notification, destinoSection);
+}
+
+function hideAutoDiscardNotification() {
+  const notification = document.getElementById('autoDiscardNotification');
+  if (notification) notification.remove();
+}
+
 // Destination selection
 function selectDestino(destino) {
   selectedDestino = destino;
   document.getElementById('destinoSelected').value = destino;
   updateDestinoButtons();
   calculateValue();
+  
+  // Hide auto discard notification when user manually selects destination
+  if (destino !== 'descarte') {
+    hideAutoDiscardNotification();
+  }
 }
 
 function updateDestinoButtons() {
@@ -669,7 +741,7 @@ function importRetornados() {
   }
   
   // Show progress container
-  document.getElementById('importProgressContainer').classList.remove('hidden');
+  document.getElementById('importProgress').style.display = 'block';
   document.getElementById('importSubmitBtn').disabled = true;
   document.getElementById('importCancelBtn').disabled = true;
   
@@ -707,8 +779,10 @@ function processImportRows(rows) {
   let processed = 0;
   const total = rows.length;
   const results = [];
+  let successful = 0;
+  let errors = 0;
   
-  function processNextRow() {
+  async function processNextRow() {
     if (processed >= total) {
       // Import completed
       setTimeout(() => {
@@ -724,6 +798,13 @@ function processImportRows(rows) {
         alert(message);
         closeImportModal();
         location.reload();
+      }, 2000);
+      return;
+    }
+    
+    const row = rows[processed];
+    const progress = ((processed + 1) / total) * 100;
+    document.getElementById('importProgressBar').style.width = progress + '%';
     document.getElementById('importStatus').textContent = `Processando linha ${processed + 1} de ${total}...`;
     
     // Prepare row data - expected format: [Modelo, Código Cliente, Usuário, Filial, Destino, Valor Recuperado, Data]
@@ -786,28 +867,21 @@ function processImportRows(rows) {
     
     // Small delay for animation
     await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Continue with next row
+    processNextRow();
   }
   
-  // Final status
-  document.getElementById('importProgressBar').style.width = '100%';
-  document.getElementById('importStatus').textContent = `Importação concluída! ${successful} sucessos, ${errors} erros.`;
-  
-  addDebugLog(`🏁 Importação finalizada: ${successful} sucessos, ${errors} erros`);
-  
-  // Re-enable buttons after a delay
-  setTimeout(() => {
-    document.getElementById('importSubmitBtn').disabled = false;
-    document.getElementById('importCancelBtn').disabled = false;
-    document.getElementById('importSubmitBtn').textContent = 'Importar';
-  }, 2000);
+  // Start processing
+  processNextRow();
 }
 
 function resetImportModal() {
-  document.getElementById('importProgressContainer').classList.add('hidden');
+  document.getElementById('importProgress').style.display = 'none';
   document.getElementById('importSubmitBtn').disabled = false;
   document.getElementById('importCancelBtn').disabled = false;
   document.getElementById('importProgressBar').style.width = '0%';
-  document.getElementById('importProgressText').textContent = '0%';
+  document.getElementById('importStatus').textContent = 'Preparando importação...';
 }
 
 // Filter and export functions
