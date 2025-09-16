@@ -786,13 +786,10 @@ function processImportRows(rows) {
     if (processed >= total) {
       // Import completed
       setTimeout(() => {
-        const successCount = results.filter(r => r.success).length;
-        const errorCount = results.filter(r => !r.success).length;
-        
         let message = `Importação concluída!\n`;
-        message += `${successCount} registros importados com sucesso.\n`;
-        if (errorCount > 0) {
-          message += `${errorCount} registros com erro.`;
+        message += `${successful} registros importados com sucesso.\n`;
+        if (errors > 0) {
+          message += `${errors} registros com erro.`;
         }
         
         alert(message);
