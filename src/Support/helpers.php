@@ -44,3 +44,19 @@ if (!function_exists('redirect')) {
         exit;
     }
 }
+
+if (!function_exists('view')) {
+    function view(string $path, array $data = []): string {
+        $basePath = dirname(__DIR__, 2);
+        $viewPath = $basePath . '/views/' . $path . '.php';
+        
+        if (!file_exists($viewPath)) {
+            throw new \Exception("View not found: {$viewPath}");
+        }
+        
+        extract($data);
+        ob_start();
+        include $viewPath;
+        return ob_get_clean();
+    }
+}

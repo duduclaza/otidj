@@ -20,21 +20,24 @@ class AmostragemController
             $stmt->execute();
             $amostragens = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            return view('pages/toners/amostragens', ['amostragens' => $amostragens]);
+            echo view('pages/toners/amostragens', ['amostragens' => $amostragens]);
         } catch (\Exception $e) {
-            return view('pages/toners/amostragens', ['error' => 'Erro ao carregar amostragens: ' . $e->getMessage()]);
+            echo view('pages/toners/amostragens', ['error' => 'Erro ao carregar amostragens: ' . $e->getMessage()]);
         }
     }
 
     public function store()
     {
+        header('Content-Type: application/json');
+        
         try {
             $numero_nf = $_POST['numero_nf'] ?? '';
             $status = $_POST['status'] ?? '';
             $observacao = $_POST['observacao'] ?? '';
             
             if (empty($numero_nf) || empty($status)) {
-                return json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
+                echo json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
+                return;
             }
 
             // Handle file upload for NF PDF
@@ -86,22 +89,25 @@ class AmostragemController
                 ':evidencias' => json_encode($evidencias)
             ]);
 
-            return json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!']);
 
         } catch (\Exception $e) {
-            return json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()]);
         }
     }
 
     public function update($id)
     {
+        header('Content-Type: application/json');
+        
         try {
             $numero_nf = $_POST['numero_nf'] ?? '';
             $status = $_POST['status'] ?? '';
             $observacao = $_POST['observacao'] ?? '';
             
             if (empty($numero_nf) || empty($status)) {
-                return json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
+                echo json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
+                return;
             }
 
             $stmt = $this->db->prepare("
@@ -117,15 +123,17 @@ class AmostragemController
                 ':id' => $id
             ]);
 
-            return json_encode(['success' => true, 'message' => 'Amostragem atualizada com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Amostragem atualizada com sucesso!']);
 
         } catch (\Exception $e) {
-            return json_encode(['success' => false, 'message' => 'Erro ao atualizar amostragem: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar amostragem: ' . $e->getMessage()]);
         }
     }
 
     public function delete($id)
     {
+        header('Content-Type: application/json');
+        
         try {
             // Get file paths before deletion
             $stmt = $this->db->prepare("SELECT arquivo_nf, evidencias FROM amostragens WHERE id = :id");
@@ -134,15 +142,17 @@ class AmostragemController
 
             if ($amostragem) {
                 // Delete files
-                if (!empty($amostragem['arquivo_nf']) && file_exists('uploads/' . $amostragem['arquivo_nf'])) {
-                    unlink('uploads/' . $amostragem['arquivo_nf']);
+                if (!empty($amostragem['arquivo_nf']) && file_exists($amostragem['arquivo_nf'])) {
+                    unlink($amostragem['arquivo_nf']);
                 }
 
                 if (!empty($amostragem['evidencias'])) {
                     $evidencias = json_decode($amostragem['evidencias'], true);
-                    foreach ($evidencias as $evidencia) {
-                        if (file_exists('uploads/' . $evidencia)) {
-                            unlink('uploads/' . $evidencia);
+                    if (is_array($evidencias)) {
+                        foreach ($evidencias as $evidencia) {
+                            if (file_exists($evidencia)) {
+                                unlink($evidencia);
+                            }
                         }
                     }
                 }
@@ -152,28 +162,39 @@ class AmostragemController
             $stmt = $this->db->prepare("DELETE FROM amostragens WHERE id = :id");
             $stmt->execute([':id' => $id]);
 
-            return json_encode(['success' => true, 'message' => 'Amostragem excluída com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Amostragem excluída com sucesso!']);
 
         } catch (\Exception $e) {
-            return json_encode(['success' => false, 'message' => 'Erro ao excluir amostragem: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir amostragem: ' . $e->getMessage()]);
         }
     }
 
     public function show($id)
     {
+        header('Content-Type: application/json');
+        
         try {
             $stmt = $this->db->prepare("SELECT * FROM amostragens WHERE id = :id");
             $stmt->execute([':id' => $id]);
             $amostragem = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$amostragem) {
-                return json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
+                echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
+                return;
             }
 
-            return json_encode(['success' => true, 'data' => $amostragem]);
+            // Serve PDF file
+            if (!empty($amostragem['arquivo_nf']) && file_exists($amostragem['arquivo_nf'])) {
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: attachment; filename="NF_' . $amostragem['numero_nf'] . '.pdf"');
+                readfile($amostragem['arquivo_nf']);
+                exit;
+            }
+
+            echo json_encode(['success' => false, 'message' => 'Arquivo PDF não encontrado']);
 
         } catch (\Exception $e) {
-            return json_encode(['success' => false, 'message' => 'Erro ao buscar amostragem: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao buscar amostragem: ' . $e->getMessage()]);
         }
     }
 }
