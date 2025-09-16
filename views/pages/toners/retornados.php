@@ -97,6 +97,15 @@
                     <span class="text-gray-400">-</span>
                   <?php endif; ?>
                 </td>
+                <td class="px-3 py-2 text-sm text-gray-900 max-w-xs">
+                  <?php if (!empty($retornado['observacao'])): ?>
+                    <span class="truncate block" title="<?= htmlspecialchars($retornado['observacao']) ?>">
+                      <?= htmlspecialchars(substr($retornado['observacao'], 0, 50)) ?><?= strlen($retornado['observacao']) > 50 ? '...' : '' ?>
+                    </span>
+                  <?php else: ?>
+                    <span class="text-gray-400">-</span>
+                  <?php endif; ?>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= date('d/m/Y', strtotime($retornado['data_registro'])) ?></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <button onclick="confirmDelete(<?= $retornado['id'] ?>, '<?= e($retornado['modelo']) ?>')" 
@@ -111,7 +120,7 @@
             <?php endforeach; ?>
           <?php else: ?>
             <tr>
-              <td colspan="8" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td>
+              <td colspan="9" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td>
             </tr>
           <?php endif; ?>
         </tbody>
