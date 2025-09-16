@@ -5,7 +5,7 @@ $menu = [
     ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋'],
   ]],
   ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅'],
-  ['label' => 'Amostragens', 'href' => '/amostragens', 'icon' => '🧪'],
+  ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪'],
   ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️'],
   ['label' => 'Controle de Descartes', 'href' => '/controle-de-descartes', 'icon' => '♻️'],
   ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈'],
