@@ -50,7 +50,8 @@ class AdminController
                 $stmt->execute();
                 $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 
-                // Get unique setores and filiais
+                // Get unique setores and filiais from multiple sources
+                // First try users table
                 $setoresStmt = $this->db->prepare("SELECT DISTINCT setor FROM users WHERE setor IS NOT NULL AND setor != '' ORDER BY setor");
                 $setoresStmt->execute();
                 $setores = $setoresStmt->fetchAll(\PDO::FETCH_COLUMN);
@@ -58,6 +59,33 @@ class AdminController
                 $filiaisStmt = $this->db->prepare("SELECT DISTINCT filial FROM users WHERE filial IS NOT NULL AND filial != '' ORDER BY filial");
                 $filiaisStmt->execute();
                 $filiais = $filiaisStmt->fetchAll(\PDO::FETCH_COLUMN);
+                
+                // Also try user_invitations table for additional data
+                try {
+                    $setoresInvStmt = $this->db->prepare("SELECT DISTINCT setor FROM user_invitations WHERE setor IS NOT NULL AND setor != '' ORDER BY setor");
+                    $setoresInvStmt->execute();
+                    $setoresInv = $setoresInvStmt->fetchAll(\PDO::FETCH_COLUMN);
+                    $setores = array_unique(array_merge($setores, $setoresInv));
+                    
+                    $filiaisInvStmt = $this->db->prepare("SELECT DISTINCT filial FROM user_invitations WHERE filial IS NOT NULL AND filial != '' ORDER BY filial");
+                    $filiaisInvStmt->execute();
+                    $filiaisInv = $filiaisInvStmt->fetchAll(\PDO::FETCH_COLUMN);
+                    $filiais = array_unique(array_merge($filiais, $filiaisInv));
+                } catch (\Exception $e) {
+                    // If user_invitations table doesn't exist, continue with users table data only
+                }
+                
+                // Add some default options if no data exists
+                if (empty($setores)) {
+                    $setores = ['TI', 'Administrativo', 'Financeiro', 'Comercial', 'Operacional'];
+                }
+                
+                if (empty($filiais)) {
+                    $filiais = ['Matriz', 'Filial 1', 'Filial 2'];
+                }
+                
+                sort($setores);
+                sort($filiais);
                 
                 header('Content-Type: application/json');
                 echo json_encode([
