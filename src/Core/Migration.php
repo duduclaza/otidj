@@ -63,6 +63,11 @@ class Migration
                 $this->migration6();
                 $this->updateVersion(6);
             }
+            if ($currentVersion < 7) {
+                // Version 7: Create authentication tables
+                $this->migration7();
+                $this->updateVersion(7);
+            }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
             if (strpos($e->getMessage(), 'max_connections_per_hour') !== false) {
@@ -303,5 +308,82 @@ class Migration
             INDEX idx_status (status),
             INDEX idx_data_registro (data_registro)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+    }
+
+    private function migration7(): void
+    {
+        // Create users table
+        $this->db->exec('CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            setor VARCHAR(100) NULL,
+            filial VARCHAR(150) NULL,
+            role ENUM("admin", "user") DEFAULT "user",
+            status ENUM("active", "pending", "rejected", "suspended") DEFAULT "pending",
+            email_verified_at TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_email (email),
+            INDEX idx_status (status),
+            INDEX idx_role (role)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+
+        // Create user_permissions table
+        $this->db->exec('CREATE TABLE IF NOT EXISTS user_permissions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            module VARCHAR(100) NOT NULL,
+            can_view BOOLEAN DEFAULT FALSE,
+            can_edit BOOLEAN DEFAULT FALSE,
+            can_delete BOOLEAN DEFAULT FALSE,
+            can_import BOOLEAN DEFAULT FALSE,
+            can_export BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_user_module (user_id, module),
+            INDEX idx_user_id (user_id),
+            INDEX idx_module (module)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+
+        // Create user_invitations table
+        $this->db->exec('CREATE TABLE IF NOT EXISTS user_invitations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            setor VARCHAR(100) NULL,
+            filial VARCHAR(150) NULL,
+            message TEXT NULL,
+            status ENUM("pending", "approved", "rejected") DEFAULT "pending",
+            approved_by INT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+            INDEX idx_email (email),
+            INDEX idx_status (status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+
+        // Create default admin user
+        $adminEmail = "djsgqoti@sgqoti.com.br";
+        $adminPassword = password_hash("Pandora@1989", PASSWORD_DEFAULT);
+        
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+        $stmt->execute([$adminEmail]);
+        
+        if ($stmt->fetchColumn() == 0) {
+            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, NOW())");
+            $stmt->execute(["Administrador", $adminEmail, $adminPassword, "admin", "active"]);
+            
+            $adminId = $this->db->lastInsertId();
+            
+            // Grant all permissions to admin for all modules
+            $modules = ["toners", "amostragens", "retornados", "registros", "configuracoes"];
+            foreach ($modules as $module) {
+                $stmt = $this->db->prepare("INSERT INTO user_permissions (user_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 1, 1, 1, 1)");
+                $stmt->execute([$adminId, $module]);
+            }
+        }
     }
 }

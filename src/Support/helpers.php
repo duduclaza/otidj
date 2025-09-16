@@ -60,3 +60,53 @@ if (!function_exists('view')) {
         return ob_get_clean();
     }
 }
+
+if (!function_exists('sendEmail')) {
+    function sendEmail($to, string $subject, string $body, ?string $altBody = null, array $attachments = []): bool {
+        try {
+            $emailService = new \App\Services\EmailService();
+            return $emailService->send($to, $subject, $body, $altBody, $attachments);
+        } catch (\Exception $e) {
+            error_log("Email helper error: " . $e->getMessage());
+            return false;
+        }
+    }
+}
+
+if (!function_exists('sendAmostragemNotification')) {
+    function sendAmostragemNotification(array $amostragem, string $recipientEmail): bool {
+        try {
+            $emailService = new \App\Services\EmailService();
+            return $emailService->sendAmostragemNotification($amostragem, $recipientEmail);
+        } catch (\Exception $e) {
+            error_log("Amostragem notification error: " . $e->getMessage());
+            return false;
+        }
+    }
+}
+
+if (!function_exists('sendRetornadoNotification')) {
+    function sendRetornadoNotification(array $retornado, string $recipientEmail): bool {
+        try {
+            $emailService = new \App\Services\EmailService();
+            return $emailService->sendRetornadoNotification($retornado, $recipientEmail);
+        } catch (\Exception $e) {
+            error_log("Retornado notification error: " . $e->getMessage());
+            return false;
+        }
+    }
+}
+
+if (!function_exists('testEmailConnection')) {
+    function testEmailConnection(): array {
+        try {
+            $emailService = new \App\Services\EmailService();
+            return $emailService->testConnection();
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Erro ao testar conexão: ' . $e->getMessage()
+            ];
+        }
+    }
+}

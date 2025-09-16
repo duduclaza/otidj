@@ -95,6 +95,29 @@ $router->post('/registros/parametros/delete', [App\Controllers\RegistrosControll
 $router->get('/configuracoes', [App\Controllers\ConfigController::class, 'index']);
 $router->post('/configuracoes/setup-banco', [App\Controllers\ConfigController::class, 'setupBanco']);
 
+// Email routes
+$router->get('/email/test-connection', [App\Controllers\EmailController::class, 'testConnection']);
+$router->post('/email/send-test', [App\Controllers\EmailController::class, 'sendTest']);
+
+// Auth routes
+$router->get('/login', [App\Controllers\AuthController::class, 'login']);
+$router->post('/auth/login', [App\Controllers\AuthController::class, 'authenticate']);
+$router->get('/register', [App\Controllers\AuthController::class, 'register']);
+$router->post('/auth/register', [App\Controllers\AuthController::class, 'requestInvitation']);
+$router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
+
+// Admin routes
+$router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
+$router->get('/admin/users', [App\Controllers\AdminController::class, 'users']);
+$router->get('/admin/invitations', [App\Controllers\AdminController::class, 'invitations']);
+$router->post('/admin/users/create', [App\Controllers\AdminController::class, 'createUser']);
+$router->post('/admin/users/update', [App\Controllers\AdminController::class, 'updateUser']);
+$router->post('/admin/users/delete', [App\Controllers\AdminController::class, 'deleteUser']);
+$router->get('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'userPermissions']);
+$router->post('/admin/permissions/update', [App\Controllers\AdminController::class, 'updatePermissions']);
+$router->post('/admin/invitations/approve', [App\Controllers\AdminController::class, 'approveInvitation']);
+$router->post('/admin/invitations/reject', [App\Controllers\AdminController::class, 'rejectInvitation']);
+
 // Dispatch request
 try {
     $router->dispatch();
