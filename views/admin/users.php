@@ -160,18 +160,25 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadUsers() {
+  console.log('Carregando usuários...');
   fetch('/admin/users', {
     method: 'GET',
     headers: {
       'X-Requested-With': 'XMLHttpRequest'
     }
   })
-  .then(response => response.json())
+  .then(response => {
+    console.log('Response status:', response.status);
+    return response.json();
+  })
   .then(result => {
+    console.log('Response data:', result);
     if (result.success) {
       displayUsers(result.users);
       setoresList = result.setores || [];
       filiaisList = result.filiais || [];
+      console.log('Setores recebidos:', setoresList);
+      console.log('Filiais recebidas:', filiaisList);
       populateDropdowns();
     } else {
       alert('Erro ao carregar usuários: ' + result.message);
@@ -184,25 +191,43 @@ function loadUsers() {
 }
 
 function populateDropdowns() {
+  console.log('Populando dropdowns...', { setoresList, filiaisList });
+  
   // Populate setores dropdown
   const setorSelect = document.getElementById('userSetor');
-  setorSelect.innerHTML = '<option value="">Selecione um setor</option>';
-  setoresList.forEach(setor => {
-    const option = document.createElement('option');
-    option.value = setor;
-    option.textContent = setor;
-    setorSelect.appendChild(option);
-  });
+  if (setorSelect) {
+    setorSelect.innerHTML = '<option value="">Selecione um setor</option>';
+    if (setoresList && setoresList.length > 0) {
+      setoresList.forEach(setor => {
+        const option = document.createElement('option');
+        option.value = setor;
+        option.textContent = setor;
+        setorSelect.appendChild(option);
+      });
+    } else {
+      console.log('Nenhum setor encontrado');
+    }
+  } else {
+    console.error('Elemento userSetor não encontrado');
+  }
   
   // Populate filiais dropdown
   const filialSelect = document.getElementById('userFilial');
-  filialSelect.innerHTML = '<option value="">Selecione uma filial</option>';
-  filiaisList.forEach(filial => {
-    const option = document.createElement('option');
-    option.value = filial;
-    option.textContent = filial;
-    filialSelect.appendChild(option);
-  });
+  if (filialSelect) {
+    filialSelect.innerHTML = '<option value="">Selecione uma filial</option>';
+    if (filiaisList && filiaisList.length > 0) {
+      filiaisList.forEach(filial => {
+        const option = document.createElement('option');
+        option.value = filial;
+        option.textContent = filial;
+        filialSelect.appendChild(option);
+      });
+    } else {
+      console.log('Nenhuma filial encontrada');
+    }
+  } else {
+    console.error('Elemento userFilial não encontrado');
+  }
 }
 
 function displayUsers(users) {
