@@ -165,10 +165,12 @@
       <!-- Responsáveis -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Responsáveis *</label>
-        <select name="responsaveis[]" multiple required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="responsaveisSelect" style="min-height: 120px;">
-          <!-- Options will be loaded dynamically -->
-        </select>
-        <p class="text-xs text-gray-500 mt-1">Selecione um ou mais responsáveis. Use Ctrl+clique para seleção múltipla</p>
+        <div class="border border-gray-300 rounded-lg p-2 bg-white" style="min-height: 120px; max-height: 200px; overflow-y: auto;">
+          <div id="responsaveisCheckboxes">
+            <!-- Checkboxes will be loaded dynamically -->
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Selecione um ou mais responsáveis</p>
       </div>
 
       <!-- Status -->
@@ -280,45 +282,86 @@ function loadUsers() {
     })
     .then(users => {
       console.log('Dados recebidos da API:', users);
-      const select = document.getElementById('responsaveisSelect');
-      console.log('Select element:', select);
+      const container = document.getElementById('responsaveisCheckboxes');
+      console.log('Container element:', container);
       
-      if (!select) {
-        console.error('Elemento select não encontrado!');
+      if (!container) {
+        console.error('Container de checkboxes não encontrado!');
         return;
       }
       
-      select.innerHTML = '';
+      container.innerHTML = '';
       
       if (Array.isArray(users)) {
-        users.forEach(user => {
-          const option = document.createElement('option');
-          option.value = user.name;
-          option.textContent = `${user.name} (${user.email})`;
-          select.appendChild(option);
+        users.forEach((user, index) => {
+          const checkboxDiv = document.createElement('div');
+          checkboxDiv.className = 'flex items-center mb-2';
+          
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.name = 'responsaveis[]';
+          checkbox.value = user.name;
+          checkbox.id = `responsavel_${index}`;
+          checkbox.className = 'mr-2';
+          
+          const label = document.createElement('label');
+          label.htmlFor = `responsavel_${index}`;
+          label.textContent = `${user.name} (${user.email})`;
+          label.className = 'text-sm cursor-pointer';
+          
+          checkboxDiv.appendChild(checkbox);
+          checkboxDiv.appendChild(label);
+          container.appendChild(checkboxDiv);
         });
         console.log('Usuários carregados:', users.length);
-        console.log('Opções no select:', select.options.length);
       } else {
         console.error('Resposta da API não é um array:', users);
-        // Try to create some test options
-        const testOption = document.createElement('option');
-        testOption.value = 'Test User';
-        testOption.textContent = 'Test User (test@example.com)';
-        select.appendChild(testOption);
-        console.log('Adicionada opção de teste');
+        // Add test checkbox
+        const checkboxDiv = document.createElement('div');
+        checkboxDiv.className = 'flex items-center mb-2';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'responsaveis[]';
+        checkbox.value = 'Test User';
+        checkbox.id = 'responsavel_test';
+        checkbox.className = 'mr-2';
+        
+        const label = document.createElement('label');
+        label.htmlFor = 'responsavel_test';
+        label.textContent = 'Test User (test@example.com)';
+        label.className = 'text-sm cursor-pointer';
+        
+        checkboxDiv.appendChild(checkbox);
+        checkboxDiv.appendChild(label);
+        container.appendChild(checkboxDiv);
+        console.log('Adicionado checkbox de teste');
       }
     })
     .catch(error => {
       console.error('Erro ao carregar usuários:', error);
-      // Add test option on error
-      const select = document.getElementById('responsaveisSelect');
-      if (select) {
-        const testOption = document.createElement('option');
-        testOption.value = 'Test User';
-        testOption.textContent = 'Test User (test@example.com)';
-        select.appendChild(testOption);
-        console.log('Adicionada opção de teste devido ao erro');
+      // Add test checkbox on error
+      const container = document.getElementById('responsaveisCheckboxes');
+      if (container) {
+        const checkboxDiv = document.createElement('div');
+        checkboxDiv.className = 'flex items-center mb-2';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'responsaveis[]';
+        checkbox.value = 'Test User';
+        checkbox.id = 'responsavel_test';
+        checkbox.className = 'mr-2';
+        
+        const label = document.createElement('label');
+        label.htmlFor = 'responsavel_test';
+        label.textContent = 'Test User (test@example.com)';
+        label.className = 'text-sm cursor-pointer';
+        
+        checkboxDiv.appendChild(checkbox);
+        checkboxDiv.appendChild(label);
+        container.appendChild(checkboxDiv);
+        console.log('Adicionado checkbox de teste devido ao erro');
       }
     });
 }
@@ -329,17 +372,18 @@ function submitAmostragem() {
   const formData = new FormData(form);
   
   // Validate responsáveis selection
-  const responsaveisSelect = document.getElementById('responsaveisSelect');
-  console.log('Elemento select encontrado:', responsaveisSelect);
-  console.log('Opções disponíveis:', responsaveisSelect ? responsaveisSelect.options.length : 'N/A');
-  console.log('Opções selecionadas:', responsaveisSelect ? responsaveisSelect.selectedOptions.length : 'N/A');
+  const responsaveisCheckboxes = document.querySelectorAll('input[name="responsaveis[]"]');
+  const responsaveisChecked = document.querySelectorAll('input[name="responsaveis[]"]:checked');
   
-  if (!responsaveisSelect) {
+  console.log('Checkboxes encontrados:', responsaveisCheckboxes.length);
+  console.log('Checkboxes selecionados:', responsaveisChecked.length);
+  
+  if (responsaveisCheckboxes.length === 0) {
     alert('Erro: Campo de responsáveis não encontrado!');
     return;
   }
   
-  const responsaveis = Array.from(responsaveisSelect.selectedOptions).map(option => option.value);
+  const responsaveis = Array.from(responsaveisChecked).map(checkbox => checkbox.value);
   
   console.log('Responsáveis selecionados:', responsaveis);
   console.log('Número de responsáveis:', responsaveis.length);
