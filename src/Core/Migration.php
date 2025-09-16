@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 4;
+    private const CURRENT_VERSION = 5;
 
     public function __construct()
     {
@@ -51,6 +51,11 @@ class Migration
                 // Version 4: Create retornados table
                 $this->createRetornadosTable();
                 $this->updateVersion(4);
+            }
+            if ($currentVersion < 5) {
+                // Version 5: Add observacao column to retornados table
+                $this->addObservacaoColumn();
+                $this->updateVersion(5);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -262,5 +267,18 @@ class Migration
             INDEX idx_destino (destino),
             INDEX idx_data_registro (data_registro)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+    }
+
+    private function addObservacaoColumn(): void
+    {
+        try {
+            // Check if column already exists
+            $stmt = $this->db->query("SHOW COLUMNS FROM retornados LIKE 'observacao'");
+            if (!$stmt->fetch()) {
+                $this->db->exec('ALTER TABLE retornados ADD COLUMN observacao TEXT NULL AFTER valor_calculado');
+            }
+        } catch (\PDOException $e) {
+            // Column might already exist or table doesn't exist
+        }
     }
 }

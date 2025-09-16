@@ -55,9 +55,10 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filial</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destino</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Recuperado</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observação</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
           </tr>
         </thead>
         <tbody id="retornadosTable" class="bg-white divide-y divide-gray-200">
@@ -297,6 +298,12 @@
       <div id="guidanceDisplay" class="hidden rounded-lg p-4">
         <div class="text-sm font-medium mb-2" id="guidanceTitle">Orientação:</div>
         <div class="text-sm" id="guidanceText"></div>
+      </div>
+
+      <!-- Campo de Observação (aparece apenas quando destino é descarte) -->
+      <div id="observacao-container" class="hidden">
+        <label for="retornado-observacao" class="block text-sm font-medium text-gray-700 mb-2">Observação (opcional)</label>
+        <textarea id="retornado-observacao" name="observacao" rows="3" placeholder="Digite uma observação sobre o descarte..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"></textarea>
       </div>
     </form>
 
@@ -787,9 +794,18 @@ function selectDestino(destino) {
   calculateValue();
   
   // Hide auto discard notification when user manually selects destination
-  if (destino !== 'descarte') {
-    hideAutoDiscardNotification();
   }
+
+  // Show/hide value calculation for estoque
+  const valorDiv = document.getElementById('valorCalculado');
+  if (destino === 'estoque') {
+    valorDiv.classList.remove('hidden');
+  } else {
+    valorDiv.classList.add('hidden');
+  }
+
+  // Show guidance
+  showGuidance(destino);
 }
 
 function updateDestinoButtons() {

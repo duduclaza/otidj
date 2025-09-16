@@ -47,7 +47,7 @@ class TonersController
             // Get paginated retornados for grid
             $stmt = $this->db->prepare('
                 SELECT id, modelo, codigo_cliente, usuario, filial, destino, 
-                       data_registro, modelo_cadastrado, valor_calculado
+                       data_registro, modelo_cadastrado, valor_calculado, observacao
                 FROM retornados 
                 ORDER BY created_at DESC
                 LIMIT :limit OFFSET :offset
@@ -192,10 +192,10 @@ class TonersController
             $stmt = $this->db->prepare('
                 INSERT INTO retornados (modelo, modelo_cadastrado, usuario, filial, codigo_cliente, modo, 
                                       peso_retornado, percentual_chip, gramatura_existente, percentual_restante, 
-                                      destino, valor_calculado, data_registro) 
+                                      destino, valor_calculado, observacao, data_registro) 
                 VALUES (:modelo, :modelo_cadastrado, :usuario, :filial, :codigo_cliente, :modo, 
                         :peso_retornado, :percentual_chip, :gramatura_existente, :percentual_restante, 
-                        :destino, :valor_calculado, :data_registro)
+                        :destino, :valor_calculado, :observacao, :data_registro)
             ');
             
             $stmt->execute([
@@ -211,6 +211,7 @@ class TonersController
                 ':percentual_restante' => $percentual_restante ?: null,
                 ':destino' => $destino,
                 ':valor_calculado' => $valor_calculado,
+                ':observacao' => $observacao,
                 ':data_registro' => $data_registro
             ]);
 
