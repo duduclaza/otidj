@@ -61,13 +61,18 @@
 </section>
 
 <!-- Approval Modal -->
-<div id="approvalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Aprovar Solicitação</h3>
+<div id="approvalModal" class="modal-overlay">
+  <div class="modal-container w-full max-w-md">
+    <div class="modal-header">
+      <h3 class="modal-title">Aprovar Solicitação</h3>
+      <button class="modal-close" data-modal-close>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
     </div>
     
-    <div class="px-6 py-6 space-y-4">
+    <div class="modal-body space-y-4">
       <div>
         <p class="text-sm text-gray-600 mb-4">
           Você está prestes a aprovar a solicitação de acesso para:
@@ -95,7 +100,7 @@
       </div>
     </div>
 
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex justify-end space-x-3">
+    <div class="modal-footer">
       <button onclick="closeApprovalModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
         Cancelar
       </button>
@@ -219,11 +224,11 @@ function openApprovalModal(id, name, email, setor, filial) {
   const password = generatePassword();
   document.getElementById('approvalPassword').value = password;
   
-  document.getElementById('approvalModal').classList.remove('hidden');
+  openModal('approvalModal');
 }
 
 function closeApprovalModal() {
-  document.getElementById('approvalModal').classList.add('hidden');
+  closeModal('approvalModal');
   currentInvitationId = null;
 }
 

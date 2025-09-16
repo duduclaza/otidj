@@ -41,13 +41,19 @@
 </section>
 
 <!-- Create/Edit User Modal -->
-<div id="userModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Criar Novo Usuário</h3>
+<div id="userModal" class="modal-overlay">
+  <div class="modal-container w-full max-w-md">
+    <div class="modal-header">
+      <h3 id="modalTitle" class="modal-title">Criar Novo Usuário</h3>
+      <button class="modal-close" data-modal-close>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
     </div>
     
-    <form id="userForm" class="px-6 py-6 space-y-4">
+    <div class="modal-body">
+      <form id="userForm" class="space-y-4">
       <input type="hidden" id="userId" name="id">
       
       <div>
@@ -92,9 +98,10 @@
           <option value="inactive">Inativo</option>
         </select>
       </div>
-    </form>
+      </form>
+    </div>
 
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex justify-end space-x-3">
+    <div class="modal-footer">
       <button onclick="closeUserModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
         Cancelar
       </button>
@@ -106,20 +113,27 @@
 </div>
 
 <!-- Permissions Modal -->
-<div id="permissionsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Gerenciar Permissões</h3>
-      <p class="text-sm text-gray-600 mt-1">Usuário: <span id="permissionsUserName"></span></p>
+<div id="permissionsModal" class="modal-overlay">
+  <div class="modal-container w-full max-w-2xl">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Gerenciar Permissões</h3>
+        <p class="text-sm text-gray-600 mt-1">Usuário: <span id="permissionsUserName"></span></p>
+      </div>
+      <button class="modal-close" data-modal-close>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
     </div>
     
-    <div class="px-6 py-6">
+    <div class="modal-body">
       <div id="permissionsContent" class="space-y-4">
         <!-- Permissions will be loaded here -->
       </div>
     </div>
 
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex justify-end space-x-3">
+    <div class="modal-footer">
       <button onclick="closePermissionsModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
         Cancelar
       </button>
@@ -208,7 +222,7 @@ function openCreateUserModal() {
   document.getElementById('userId').value = '';
   document.getElementById('passwordField').style.display = 'block';
   document.getElementById('userPassword').required = true;
-  document.getElementById('userModal').classList.remove('hidden');
+  openModal('userModal');
 }
 
 function editUser(userId) {
@@ -235,14 +249,14 @@ function editUser(userId) {
         document.getElementById('userStatus').value = user.status;
         document.getElementById('passwordField').style.display = 'none';
         document.getElementById('userPassword').required = false;
-        document.getElementById('userModal').classList.remove('hidden');
+        openModal('userModal');
       }
     }
   });
 }
 
 function closeUserModal() {
-  document.getElementById('userModal').classList.add('hidden');
+  closeModal('userModal');
   document.getElementById('userForm').reset();
 }
 
@@ -305,7 +319,7 @@ function managePermissions(userId, userName) {
   .then(result => {
     if (result.success) {
       displayPermissions(result.permissions);
-      document.getElementById('permissionsModal').classList.remove('hidden');
+      openModal('permissionsModal');
     } else {
       alert('Erro ao carregar permissões: ' + result.message);
     }
@@ -363,7 +377,7 @@ function displayPermissions(permissions) {
 }
 
 function closePermissionsModal() {
-  document.getElementById('permissionsModal').classList.add('hidden');
+  closeModal('permissionsModal');
   currentUserId = null;
 }
 

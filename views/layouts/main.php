@@ -14,6 +14,8 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
   <title><?= e($title) ?></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="/src/Support/modal-styles.css">
+  <script src="/src/Support/modal-utils.js"></script>
   <script>
     // Tailwind config with dark theme
     tailwind.config = {
