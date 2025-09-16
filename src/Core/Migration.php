@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 5;
+    private const CURRENT_VERSION = 6;
 
     public function __construct()
     {
@@ -50,12 +50,18 @@ class Migration
             if ($currentVersion < 4) {
                 // Version 4: Create retornados table
                 $this->createRetornadosTable();
+                $this->migration6();
                 $this->updateVersion(4);
             }
             if ($currentVersion < 5) {
                 // Version 5: Add observacao column to retornados table
                 $this->addObservacaoColumn();
                 $this->updateVersion(5);
+            }
+            if ($currentVersion < 6) {
+                // Version 6: Create amostragens table
+                $this->migration6();
+                $this->updateVersion(6);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded

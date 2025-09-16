@@ -1315,25 +1315,25 @@ function deleteRetornado() {
   });
 }
 
-// Ensure functions are available globally
-window.openRetornadoModal = openRetornadoModal;
-window.closeRetornadoModal = closeRetornadoModal;
-window.openImportModal = openImportModal;
-window.closeImportModal = closeImportModal;
-window.confirmDelete = confirmDelete;
-window.closeDeleteModal = closeDeleteModal;
-window.deleteRetornado = deleteRetornado;
-window.toggleMode = toggleMode;
-window.updateTonerData = updateTonerData;
-window.calculatePercentage = calculatePercentage;
-window.selectDestino = selectDestino;
-window.updateDestinoButtons = updateDestinoButtons;
-window.calculateValue = calculateValue;
-window.showGuidance = showGuidance;
-window.checkAutoDiscard = checkAutoDiscard;
-window.loadParameters = loadParameters;
-window.downloadActivityLog = downloadActivityLog;
-window.submitRetornado = submitRetornado;
+// Ensure functions are available globally - moved to end of script after all functions are defined
+if (typeof openRetornadoModal === 'function') window.openRetornadoModal = openRetornadoModal;
+if (typeof closeRetornadoModal === 'function') window.closeRetornadoModal = closeRetornadoModal;
+if (typeof openImportModal === 'function') window.openImportModal = openImportModal;
+if (typeof closeImportModal === 'function') window.closeImportModal = closeImportModal;
+if (typeof confirmDelete === 'function') window.confirmDelete = confirmDelete;
+if (typeof closeDeleteModal === 'function') window.closeDeleteModal = closeDeleteModal;
+if (typeof deleteRetornado === 'function') window.deleteRetornado = deleteRetornado;
+if (typeof toggleMode === 'function') window.toggleMode = toggleMode;
+if (typeof updateTonerData === 'function') window.updateTonerData = updateTonerData;
+if (typeof calculatePercentage === 'function') window.calculatePercentage = calculatePercentage;
+if (typeof selectDestino === 'function') window.selectDestino = selectDestino;
+if (typeof updateDestinoButtons === 'function') window.updateDestinoButtons = updateDestinoButtons;
+if (typeof calculateValue === 'function') window.calculateValue = calculateValue;
+if (typeof showGuidance === 'function') window.showGuidance = showGuidance;
+if (typeof checkAutoDiscard === 'function') window.checkAutoDiscard = checkAutoDiscard;
+if (typeof loadParameters === 'function') window.loadParameters = loadParameters;
+if (typeof downloadActivityLog === 'function') window.downloadActivityLog = downloadActivityLog;
+if (typeof submitRetornado === 'function') window.submitRetornado = submitRetornado;
 
 // Activity log download function
 function downloadActivityLog() {
