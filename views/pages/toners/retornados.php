@@ -1850,13 +1850,14 @@ function deleteRetornado() {
 }
 
 // Ensure functions are available globally - moved to end of script after all functions are defined
-if (typeof openRetornadoModal === 'function') window.openRetornadoModal = openRetornadoModal;
-if (typeof closeRetornadoModal === 'function') window.closeRetornadoModal = closeRetornadoModal;
-if (typeof openImportModal === 'function') window.openImportModal = openImportModal;
-if (typeof closeImportModal === 'function') window.closeImportModal = closeImportModal;
-if (typeof confirmDelete === 'function') window.confirmDelete = confirmDelete;
-if (typeof closeDeleteModal === 'function') window.closeDeleteModal = closeDeleteModal;
-if (typeof deleteRetornado === 'function') window.deleteRetornado = deleteRetornado;
+window.openRetornadoModal = openRetornadoModal;
+window.closeRetornadoModal = closeRetornadoModal;
+window.openImportModal = openImportModal;
+window.closeImportModal = closeImportModal;
+window.confirmDelete = confirmDelete;
+window.closeDeleteModal = closeDeleteModal;
+window.deleteRetornado = deleteRetornado;
+window.filterData = filterData;
 if (typeof toggleMode === 'function') window.toggleMode = toggleMode;
 if (typeof updateTonerData === 'function') window.updateTonerData = updateTonerData;
 if (typeof calculatePercentage === 'function') window.calculatePercentage = calculatePercentage;
