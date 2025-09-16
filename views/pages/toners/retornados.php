@@ -561,9 +561,23 @@ function downloadImportCSV(report) {
 
 // Modal functions
 function openRetornadoModal() {
-  document.getElementById('retornadoModal').classList.remove('hidden');
-  // Load parameters when modal opens to ensure fresh data
-  loadParameters();
+  const modal = document.getElementById('retornadoModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    // Load parameters when modal opens to ensure fresh data
+    loadParameters();
+    // Reset form
+    document.getElementById('retornadoForm').reset();
+    selectedDestino = '';
+    updateDestinoButtons();
+    // Hide observacao container initially
+    const observacaoContainer = document.getElementById('observacao-container');
+    if (observacaoContainer) {
+      observacaoContainer.classList.add('hidden');
+    }
+  } else {
+    console.error('Modal retornadoModal não encontrado');
+  }
 }
 
 function closeRetornadoModal() {
