@@ -309,8 +309,60 @@ class AdminController
     {
         AuthController::requireAdmin();
         
+        // Check if it's an AJAX request
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
+            header('Content-Type: application/json');
+            
+            try {
+                // Get user
+                $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+                
+                if (!$user) {
+                    echo json_encode(['success' => false, 'message' => 'Usuário não encontrado']);
+                    return;
+                }
+                
+                // Get permissions (or create default structure if table doesn't exist)
+                $permissions = [];
+                try {
+                    $stmt = $this->db->prepare("SELECT * FROM user_permissions WHERE user_id = ?");
+                    $stmt->execute([$userId]);
+                    $dbPermissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                    
+                    foreach ($dbPermissions as $perm) {
+                        $permissions[$perm['module']] = $perm;
+                    }
+                } catch (\Exception $e) {
+                    // If table doesn't exist, return default permissions structure
+                    $modules = ['toners', 'amostragens', 'retornados', 'registros', 'configuracoes'];
+                    foreach ($modules as $module) {
+                        $permissions[$module] = [
+                            'module' => $module,
+                            'can_view' => 1,
+                            'can_edit' => 0,
+                            'can_delete' => 0,
+                            'can_import' => 0,
+                            'can_export' => 0
+                        ];
+                    }
+                }
+                
+                echo json_encode([
+                    'success' => true,
+                    'user' => $user,
+                    'permissions' => $permissions
+                ]);
+                return;
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+                return;
+            }
+        }
+        
+        // Regular page load (fallback)
         try {
-            // Get user
             $stmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -318,16 +370,6 @@ class AdminController
             if (!$user) {
                 redirect('/admin/users');
                 return;
-            }
-            
-            // Get permissions
-            $stmt = $this->db->prepare("SELECT * FROM user_permissions WHERE user_id = ?");
-            $stmt->execute([$userId]);
-            $permissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            
-            $userPermissions = [];
-            foreach ($permissions as $perm) {
-                $userPermissions[$perm['module']] = $perm;
             }
             
             $title = 'Permissões do Usuário - SGQ OTI DJ';
