@@ -415,12 +415,31 @@ function closeRetornadoModal() {
 }
 
 function openImportModal() {
-  document.getElementById('importModal').classList.remove('hidden');
+  console.log('Opening import modal...');
+  const modal = document.getElementById('importModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    console.log('Modal opened successfully');
+  } else {
+    console.error('Import modal not found!');
+  }
 }
 
 function closeImportModal() {
   document.getElementById('importModal').classList.add('hidden');
-  document.getElementById('importProgressContainer').classList.add('hidden');
+  const progressDiv = document.getElementById('importProgress');
+  if (progressDiv) {
+    progressDiv.style.display = 'none';
+  }
+  const debugConsole = document.getElementById('debugConsole');
+  if (debugConsole) {
+    debugConsole.style.display = 'none';
+  }
+  debugMode = false;
+  const debugBtn = document.getElementById('debugToggleBtn');
+  if (debugBtn) {
+    debugBtn.textContent = 'Mostrar Debug';
+  }
 }
 
 // Mode toggle
