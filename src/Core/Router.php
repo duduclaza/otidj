@@ -34,12 +34,14 @@ class Router
 
         // First try exact match
         $handler = $this->routes[$method][$normalized] ?? null;
+        $route = $normalized;
         
         // If no exact match, try pattern matching for dynamic routes
         if (!$handler && isset($this->routes[$method])) {
             foreach ($this->routes[$method] as $pattern => $routeHandler) {
                 if ($this->matchRoute($pattern, $normalized)) {
                     $handler = $routeHandler;
+                    $route = $pattern;
                     break;
                 }
             }
