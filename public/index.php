@@ -67,7 +67,11 @@ $router->get('/api/parameters', [App\Controllers\TonersController::class, 'getPa
 $router->post('/toners/import', [App\Controllers\TonersController::class, 'import']);
 
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
-$router->get('/amostragens', [App\Controllers\PageController::class, 'amostragens']);
+$router->get('/amostragens', [App\Controllers\AmostragemController::class, 'index']);
+$router->post('/amostragens', [App\Controllers\AmostragemController::class, 'store']);
+$router->put('/amostragens/{id}', [App\Controllers\AmostragemController::class, 'update']);
+$router->delete('/amostragens/{id}', [App\Controllers\AmostragemController::class, 'delete']);
+$router->get('/amostragens/{id}', [App\Controllers\AmostragemController::class, 'show']);
 $router->get('/garantias', [App\Controllers\PageController::class, 'garantias']);
 $router->get('/controle-de-descartes', [App\Controllers\PageController::class, 'controleDeDescartes']);
 $router->get('/femea', [App\Controllers\PageController::class, 'femea']);
