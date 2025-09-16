@@ -14,15 +14,454 @@
         </svg>
         <span>Download Log</span>
       </button>
-      <button id="openRetornadoBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+      <button id="toggleRetornadoFormBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
         </svg>
         <span>Registrar Novo Retornado</span>
       </button>
     </div>
+  </div>
+
+  <!-- Formulário Inline de Registro de Retornados -->
+  <div id="retornadoFormContainer" class="hidden bg-white rounded-lg shadow-lg border border-gray-200 p-6 mb-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 id="retornadoFormTitle" class="text-xl font-semibold text-gray-900">Registrar Novo Retornado</h2>
+      <button onclick="cancelRetornadoForm()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <form id="retornadoForm" class="space-y-6">
+      <!-- Seleção do Modelo -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="modeloToner" class="block text-sm font-medium text-gray-700 mb-2">Modelo do Toner *</label>
+          <select id="modeloToner" name="modelo" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Selecione um modelo</option>
+          </select>
+        </div>
+        <div>
+          <label for="serialToner" class="block text-sm font-medium text-gray-700 mb-2">Serial/Código</label>
+          <input type="text" id="serialToner" name="serial" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+      </div>
+
+      <!-- Dados do Modelo (Exibição) -->
+      <div id="dadosModelo" class="hidden bg-gray-50 rounded-lg p-4">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Dados do Modelo</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <span class="text-gray-600">Peso Cheio:</span>
+            <span id="pesoCheio" class="font-medium ml-2">-</span>
+          </div>
+          <div>
+            <span class="text-gray-600">Peso Vazio:</span>
+            <span id="pesoVazio" class="font-medium ml-2">-</span>
+          </div>
+          <div>
+            <span class="text-gray-600">Gramatura:</span>
+            <span id="gramatura" class="font-medium ml-2">-</span>
+          </div>
+          <div>
+            <span class="text-gray-600">Rendimento:</span>
+            <span id="rendimento" class="font-medium ml-2">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tipo de Medição -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-3">Tipo de Medição *</label>
+        <div class="flex space-x-4">
+          <label class="flex items-center">
+            <input type="radio" name="tipoMedicao" value="peso" class="mr-2" onchange="toggleMedicaoType()">
+            <span>Peso Físico</span>
+          </label>
+          <label class="flex items-center">
+            <input type="radio" name="tipoMedicao" value="percentual" class="mr-2" onchange="toggleMedicaoType()">
+            <span>% do Chip</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Campo de Peso -->
+      <div id="camposPeso" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="pesoRetornado" class="block text-sm font-medium text-gray-700 mb-2">Peso do Retornado (g) *</label>
+          <input type="number" id="pesoRetornado" name="peso_retornado" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="calcularGramatura()">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Gramatura Restante</label>
+          <div id="gramaturaRestante" class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">-</div>
+        </div>
+      </div>
+
+      <!-- Campo de Percentual -->
+      <div id="camposPercentual" class="hidden">
+        <div>
+          <label for="percentualChip" class="block text-sm font-medium text-gray-700 mb-2">% do Chip *</label>
+          <input type="number" id="percentualChip" name="percentual_chip" min="0" max="100" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="calcularPercentual()">
+        </div>
+      </div>
+
+      <!-- Resultado dos Cálculos -->
+      <div id="resultadoCalculo" class="hidden bg-blue-50 rounded-lg p-4">
+        <h3 class="text-lg font-medium text-blue-900 mb-3">Resultado da Análise</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <span class="text-blue-700">% Restante:</span>
+            <span id="percentualRestante" class="font-bold ml-2">-</span>
+          </div>
+          <div>
+            <span class="text-blue-700">Folhas Estimadas:</span>
+            <span id="folhasEstimadas" class="font-bold ml-2">-</span>
+          </div>
+          <div>
+            <span class="text-blue-700">Valor Estimado:</span>
+            <span id="valorEstimado" class="font-bold ml-2">-</span>
+          </div>
+        </div>
+        <div id="orientacaoSistema" class="bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded">
+          <p class="text-yellow-800 font-medium">Orientação do Sistema:</p>
+          <p id="textoOrientacao" class="text-yellow-700 mt-1">-</p>
+        </div>
+      </div>
+
+      <!-- Seleção de Destino -->
+      <div id="selecaoDestino" class="hidden">
+        <label class="block text-sm font-medium text-gray-700 mb-3">Destino do Toner *</label>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button type="button" onclick="selecionarDestino('descarte')" class="destino-btn border-2 border-gray-300 rounded-lg p-3 text-center hover:border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors">
+            <div class="text-red-600 font-medium">Descarte</div>
+          </button>
+          <button type="button" onclick="selecionarDestino('uso_interno')" class="destino-btn border-2 border-gray-300 rounded-lg p-3 text-center hover:border-blue-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
+            <div class="text-blue-600 font-medium">Uso Interno</div>
+          </button>
+          <button type="button" onclick="selecionarDestino('estoque')" class="destino-btn border-2 border-gray-300 rounded-lg p-3 text-center hover:border-green-500 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-colors">
+            <div class="text-green-600 font-medium">Estoque</div>
+          </button>
+          <button type="button" onclick="selecionarDestino('garantia')" class="destino-btn border-2 border-gray-300 rounded-lg p-3 text-center hover:border-purple-500 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-colors">
+            <div class="text-purple-600 font-medium">Garantia</div>
+          </button>
+        </div>
+        <input type="hidden" id="destinoSelecionado" name="destino" required>
+      </div>
+
+      <!-- Campo de Observação (para Descarte) -->
+      <div id="campoObservacao" class="hidden">
+        <label for="observacaoDescarte" class="block text-sm font-medium text-gray-700 mb-2">Observação</label>
+        <textarea id="observacaoDescarte" name="observacao" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Motivo do descarte ou observações adicionais..."></textarea>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <button type="button" onclick="cancelRetornadoForm()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          Cancelar
+        </button>
+        <button type="submit" id="submitRetornadoBtn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          Registrar Retornado
+        </button>
+      </div>
+    </form>
+  </div>
     <script>
-      // Immediate binding near the button as a fallback
+// Variáveis globais
+let modelosData = [];
+let parametrosGerais = {};
+let selectedDestino = '';
+
+// Carregar dados iniciais
+document.addEventListener('DOMContentLoaded', function() {
+  carregarModelos();
+  carregarParametrosGerais();
+  
+  // Bind do botão toggle
+  const toggleBtn = document.getElementById('toggleRetornadoFormBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleRetornadoForm);
+  }
+  
+  // Bind do formulário
+  const form = document.getElementById('retornadoForm');
+  if (form) {
+    form.addEventListener('submit', submitRetornado);
+  }
+});
+
+// Toggle do formulário inline
+function toggleRetornadoForm() {
+  const container = document.getElementById('retornadoFormContainer');
+  const btn = document.getElementById('toggleRetornadoFormBtn');
+  
+  if (container.classList.contains('hidden')) {
+    // Mostrar formulário
+    container.classList.remove('hidden');
+    btn.innerHTML = `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+      <span>Cancelar</span>
+    `;
+    resetForm();
+  } else {
+    // Ocultar formulário
+    cancelRetornadoForm();
+  }
+}
+
+function cancelRetornadoForm() {
+  const container = document.getElementById('retornadoFormContainer');
+  const btn = document.getElementById('toggleRetornadoFormBtn');
+  
+  container.classList.add('hidden');
+  btn.innerHTML = `
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    <span>Registrar Novo Retornado</span>
+  `;
+  resetForm();
+}
+
+function resetForm() {
+  document.getElementById('retornadoForm').reset();
+  document.getElementById('dadosModelo').classList.add('hidden');
+  document.getElementById('camposPeso').classList.add('hidden');
+  document.getElementById('camposPercentual').classList.add('hidden');
+  document.getElementById('resultadoCalculo').classList.add('hidden');
+  document.getElementById('selecaoDestino').classList.add('hidden');
+  document.getElementById('campoObservacao').classList.add('hidden');
+  selectedDestino = '';
+  updateDestinoButtons();
+}
+
+// Carregar modelos de toner
+function carregarModelos() {
+  fetch('/api/toner')
+    .then(response => response.json())
+    .then(data => {
+      modelosData = data;
+      const select = document.getElementById('modeloToner');
+      select.innerHTML = '<option value="">Selecione um modelo</option>';
+      
+      data.forEach(modelo => {
+        const option = document.createElement('option');
+        option.value = modelo.id;
+        option.textContent = modelo.modelo;
+        select.appendChild(option);
+      });
+    })
+    .catch(error => {
+      console.error('Erro ao carregar modelos:', error);
+    });
+}
+
+// Carregar parâmetros gerais
+function carregarParametrosGerais() {
+  // Simulação - implementar endpoint real
+  parametrosGerais = {
+    descarte_minimo: 10,
+    estoque_minimo: 20,
+    uso_interno_minimo: 15,
+    garantia_minimo: 30
+  };
+}
+
+// Ao selecionar modelo
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'modeloToner') {
+    const modeloId = e.target.value;
+    if (modeloId) {
+      const modelo = modelosData.find(m => m.id == modeloId);
+      if (modelo) {
+        exibirDadosModelo(modelo);
+      }
+    } else {
+      document.getElementById('dadosModelo').classList.add('hidden');
+    }
+  }
+});
+
+function exibirDadosModelo(modelo) {
+  document.getElementById('pesoCheio').textContent = modelo.peso_cheio ? modelo.peso_cheio + 'g' : '-';
+  document.getElementById('pesoVazio').textContent = modelo.peso_vazio ? modelo.peso_vazio + 'g' : '-';
+  document.getElementById('gramatura').textContent = modelo.gramatura ? modelo.gramatura + 'g' : '-';
+  document.getElementById('rendimento').textContent = modelo.rendimento ? modelo.rendimento + ' folhas' : '-';
+  
+  document.getElementById('dadosModelo').classList.remove('hidden');
+}
+
+// Toggle tipo de medição
+function toggleMedicaoType() {
+  const tipo = document.querySelector('input[name="tipoMedicao"]:checked')?.value;
+  
+  document.getElementById('camposPeso').classList.add('hidden');
+  document.getElementById('camposPercentual').classList.add('hidden');
+  document.getElementById('resultadoCalculo').classList.add('hidden');
+  document.getElementById('selecaoDestino').classList.add('hidden');
+  
+  if (tipo === 'peso') {
+    document.getElementById('camposPeso').classList.remove('hidden');
+    validarModeloParaPeso();
+  } else if (tipo === 'percentual') {
+    document.getElementById('camposPercentual').classList.remove('hidden');
+  }
+}
+
+function validarModeloParaPeso() {
+  const modeloId = document.getElementById('modeloToner').value;
+  if (!modeloId) {
+    alert('Selecione um modelo primeiro');
+    return false;
+  }
+  
+  const modelo = modelosData.find(m => m.id == modeloId);
+  if (!modelo || !modelo.peso_cheio || !modelo.peso_vazio) {
+    alert('Para usar peso físico, o modelo deve ter peso cheio e vazio cadastrados');
+    return false;
+  }
+  
+  return true;
+}
+
+// Calcular gramatura a partir do peso
+function calcularGramatura() {
+  const modeloId = document.getElementById('modeloToner').value;
+  const pesoRetornado = parseFloat(document.getElementById('pesoRetornado').value);
+  
+  if (!modeloId || !pesoRetornado) return;
+  
+  const modelo = modelosData.find(m => m.id == modeloId);
+  if (!modelo || !modelo.peso_vazio || !modelo.gramatura) return;
+  
+  const gramaturaRestante = pesoRetornado - modelo.peso_vazio;
+  const percentualRestante = (gramaturaRestante / modelo.gramatura) * 100;
+  
+  document.getElementById('gramaturaRestante').textContent = gramaturaRestante.toFixed(1) + 'g';
+  
+  mostrarResultados(percentualRestante, modelo);
+}
+
+// Calcular a partir do percentual
+function calcularPercentual() {
+  const modeloId = document.getElementById('modeloToner').value;
+  const percentual = parseFloat(document.getElementById('percentualChip').value);
+  
+  if (!modeloId || !percentual) return;
+  
+  const modelo = modelosData.find(m => m.id == modeloId);
+  if (!modelo) return;
+  
+  mostrarResultados(percentual, modelo);
+}
+
+function mostrarResultados(percentualRestante, modelo) {
+  // Calcular folhas estimadas
+  const folhasEstimadas = modelo.rendimento ? Math.round((percentualRestante / 100) * modelo.rendimento) : 0;
+  
+  // Calcular valor estimado (simulação)
+  const valorEstimado = modelo.valor ? (percentualRestante / 100) * modelo.valor : 0;
+  
+  // Atualizar display
+  document.getElementById('percentualRestante').textContent = percentualRestante.toFixed(1) + '%';
+  document.getElementById('folhasEstimadas').textContent = folhasEstimadas + ' folhas';
+  document.getElementById('valorEstimado').textContent = 'R$ ' + valorEstimado.toFixed(2);
+  
+  // Gerar orientação
+  const orientacao = gerarOrientacao(percentualRestante);
+  document.getElementById('textoOrientacao').textContent = orientacao;
+  
+  // Mostrar resultados e seleção de destino
+  document.getElementById('resultadoCalculo').classList.remove('hidden');
+  document.getElementById('selecaoDestino').classList.remove('hidden');
+}
+
+function gerarOrientacao(percentual) {
+  if (percentual <= parametrosGerais.descarte_minimo) {
+    return 'Recomendado DESCARTE - Toner com baixo percentual de tinta restante.';
+  } else if (percentual <= parametrosGerais.uso_interno_minimo) {
+    return 'Recomendado USO INTERNO - Toner adequado para impressões internas.';
+  } else if (percentual <= parametrosGerais.estoque_minimo) {
+    return 'Recomendado ESTOQUE - Toner com boa quantidade de tinta para revenda.';
+  } else {
+    return 'Recomendado GARANTIA - Toner com alto percentual, verificar se está em garantia.';
+  }
+}
+
+function selecionarDestino(destino) {
+  selectedDestino = destino;
+  document.getElementById('destinoSelecionado').value = destino;
+  updateDestinoButtons();
+  
+  // Mostrar campo de observação apenas para descarte
+  if (destino === 'descarte') {
+    document.getElementById('campoObservacao').classList.remove('hidden');
+  } else {
+    document.getElementById('campoObservacao').classList.add('hidden');
+  }
+}
+
+function updateDestinoButtons() {
+  const buttons = document.querySelectorAll('.destino-btn');
+  buttons.forEach(btn => {
+    btn.classList.remove('border-red-500', 'border-blue-500', 'border-green-500', 'border-purple-500');
+    btn.classList.add('border-gray-300');
+  });
+  
+  if (selectedDestino) {
+    const colors = {
+      'descarte': 'border-red-500',
+      'uso_interno': 'border-blue-500',
+      'estoque': 'border-green-500',
+      'garantia': 'border-purple-500'
+    };
+    
+    const selectedBtn = document.querySelector(`[onclick="selecionarDestino('${selectedDestino}')"]`);
+    if (selectedBtn) {
+      selectedBtn.classList.remove('border-gray-300');
+      selectedBtn.classList.add(colors[selectedDestino]);
+    }
+  }
+}
+
+function submitRetornado(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  
+  // Validações
+  if (!selectedDestino) {
+    alert('Selecione um destino para o toner');
+    return;
+  }
+  
+  // Enviar dados
+  fetch('/toners/retornados', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      alert('Retornado registrado com sucesso!');
+      cancelRetornadoForm();
+      // Recarregar lista se existir
+      if (typeof loadRetornados === 'function') {
+        loadRetornados();
+      }
+    } else {
+      alert('Erro: ' + result.message);
+    }
+  })
+  .catch(error => {
+    alert('Erro de conexão: ' + error.message);
+  });
+}
+
+      // Código legado mantido para compatibilidade
       (function(){
         var btn = document.getElementById('openRetornadoBtn');
         if (btn && !btn.__retornadoBound) {
