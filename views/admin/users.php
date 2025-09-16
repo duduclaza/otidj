@@ -444,49 +444,60 @@ function managePermissions(userId, userName) {
 
 function displayPermissions(permissions) {
   const content = document.getElementById('permissionsContent');
-  const modules = ['toners', 'amostragens', 'retornados', 'registros', 'configuracoes'];
-  const actions = ['view', 'edit', 'delete', 'import', 'export'];
+  const modules = [
+    { key: 'dashboard', name: 'Dashboard' },
+    { key: 'toners', name: 'Controle de Toners' },
+    { key: 'homologacoes', name: 'Homologações' },
+    { key: 'amostragens', name: 'Amostragens' },
+    { key: 'auditorias', name: 'Auditorias' },
+    { key: 'garantias', name: 'Garantias' }
+  ];
   
-  content.innerHTML = '';
+  let html = `
+    <div class="bg-gray-50 p-6 rounded-lg">
+      <div class="grid grid-cols-4 gap-4 mb-4">
+        <div class="font-semibold text-gray-700">Módulo</div>
+        <div class="font-semibold text-gray-700 text-center">Visualizar</div>
+        <div class="font-semibold text-gray-700 text-center">Editar</div>
+        <div class="font-semibold text-gray-700 text-center">Excluir</div>
+      </div>
+  `;
   
   modules.forEach(module => {
-    const moduleDiv = document.createElement('div');
-    moduleDiv.className = 'border border-gray-200 rounded-lg p-4';
-    
-    const moduleTitle = document.createElement('h4');
-    moduleTitle.className = 'font-medium text-gray-900 mb-3 capitalize';
-    moduleTitle.textContent = module;
-    moduleDiv.appendChild(moduleTitle);
-    
-    const actionsGrid = document.createElement('div');
-    actionsGrid.className = 'grid grid-cols-5 gap-2';
-    
-    actions.forEach(action => {
-      const label = document.createElement('label');
-      label.className = 'flex items-center space-x-2 text-sm';
-      
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.name = `permissions[${module}][${action}]`;
-      checkbox.value = '1';
-      checkbox.className = 'rounded border-gray-300 text-blue-600 focus:ring-blue-500';
-      
-      // Check if user has this permission
-      const hasPermission = permissions.some(p => p.module === module && p.action === action);
-      checkbox.checked = hasPermission;
-      
-      const span = document.createElement('span');
-      span.textContent = action;
-      span.className = 'capitalize';
-      
-      label.appendChild(checkbox);
-      label.appendChild(span);
-      actionsGrid.appendChild(label);
-    });
-    
-    moduleDiv.appendChild(actionsGrid);
-    content.appendChild(moduleDiv);
+    const perm = permissions[module.key] || {};
+    html += `
+      <div class="grid grid-cols-4 gap-4 py-3 border-b border-gray-200 items-center">
+        <div class="font-medium text-gray-900">${module.name}</div>
+        <div class="text-center">
+          <label class="inline-flex items-center">
+            <input type="checkbox" 
+                   name="permissions[${module.key}][view]" 
+                   ${perm.can_view ? 'checked' : ''} 
+                   class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          </label>
+        </div>
+        <div class="text-center">
+          <label class="inline-flex items-center">
+            <input type="checkbox" 
+                   name="permissions[${module.key}][edit]" 
+                   ${perm.can_edit ? 'checked' : ''} 
+                   class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          </label>
+        </div>
+        <div class="text-center">
+          <label class="inline-flex items-center">
+            <input type="checkbox" 
+                   name="permissions[${module.key}][delete]" 
+                   ${perm.can_delete ? 'checked' : ''} 
+                   class="form-checkbox h-5 w-5 text-blue-600 rounded">
+          </label>
+        </div>
+      </div>
+    `;
   });
+  
+  html += '</div>';
+  content.innerHTML = html;
 }
 
 function closePermissionsModal() {

@@ -150,17 +150,77 @@ class AdminController
             
             // Create user
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, 'active', NOW())");
+            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, status) VALUES (?, ?, ?, ?, ?, ?, 'active')");
             $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role]);
             
-            $userId = $this->db->lastInsertId();
+            // Send welcome email
+            $this->sendWelcomeEmail($name, $email, $password);
             
-            // Set default permissions
-            $this->setDefaultPermissions($userId, $role);
-            
-            echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso e email de boas-vindas enviado']);
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao criar usuário']);
+            echo json_encode(['success' => false, 'message' => 'Erro ao criar usuário: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * Send welcome email to new user
+     */
+    private function sendWelcomeEmail($name, $email, $password)
+    {
+        try {
+            $emailService = new \App\Services\EmailService();
+            
+            $subject = 'Bem-vindo ao SGQ-OTI DJ - Seus dados de acesso';
+            $loginUrl = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/login';
+            
+            $body = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;'>
+                        <h1 style='color: white; margin: 0; font-size: 28px;'>Bem-vindo ao SGQ-OTI DJ!</h1>
+                    </div>
+                    
+                    <div style='padding: 30px; background: #f8f9fa;'>
+                        <h2 style='color: #333; margin-bottom: 20px;'>Olá, {$name}!</h2>
+                        
+                        <p style='color: #666; font-size: 16px; line-height: 1.6;'>
+                            Sua conta foi criada com sucesso no sistema SGQ-OTI DJ. Abaixo estão seus dados de acesso:
+                        </p>
+                        
+                        <div style='background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;'>
+                            <h3 style='color: #333; margin-top: 0;'>Dados de Acesso:</h3>
+                            <p style='margin: 10px 0;'><strong>Email:</strong> {$email}</p>
+                            <p style='margin: 10px 0;'><strong>Senha Temporária:</strong> {$password}</p>
+                        </div>
+                        
+                        <div style='text-align: center; margin: 30px 0;'>
+                            <a href='{$loginUrl}' style='background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;'>
+                                Acessar Sistema
+                            </a>
+                        </div>
+                        
+                        <div style='background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107;'>
+                            <p style='margin: 0; color: #856404;'>
+                                <strong>Importante:</strong> Por segurança, recomendamos que você altere sua senha no primeiro acesso.
+                            </p>
+                        </div>
+                        
+                        <p style='color: #666; font-size: 14px; margin-top: 30px;'>
+                            Se você tiver alguma dúvida, entre em contato com o administrador do sistema.
+                        </p>
+                    </div>
+                    
+                    <div style='background: #333; padding: 20px; text-align: center;'>
+                        <p style='color: #ccc; margin: 0; font-size: 12px;'>
+                            SGQ-OTI DJ - Sistema de Gestão da Qualidade
+                        </p>
+                    </div>
+                </div>
+            ";
+            
+            $emailService->send($email, $subject, $body);
+        } catch (\Exception $e) {
+            // Log error but don't fail user creation
+            error_log('Failed to send welcome email: ' . $e->getMessage());
         }
     }
     
@@ -336,15 +396,13 @@ class AdminController
                     }
                 } catch (\Exception $e) {
                     // If table doesn't exist, return default permissions structure
-                    $modules = ['toners', 'amostragens', 'retornados', 'registros', 'configuracoes'];
+                    $modules = ['dashboard', 'toners', 'homologacoes', 'amostragens', 'auditorias', 'garantias'];
                     foreach ($modules as $module) {
                         $permissions[$module] = [
                             'module' => $module,
                             'can_view' => 1,
                             'can_edit' => 0,
-                            'can_delete' => 0,
-                            'can_import' => 0,
-                            'can_export' => 0
+                            'can_delete' => 0
                         ];
                     }
                 }
