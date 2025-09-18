@@ -112,15 +112,28 @@
 let currentProfileId = null;
 const modules = [
   { key: 'dashboard', name: 'Dashboard' },
-  { key: 'toners', name: 'Controle de Toners' },
+  { key: 'toners_cadastro', name: 'Cadastro de Toners' },
+  { key: 'toners_retornados', name: 'Registro de Retornados' },
   { key: 'homologacoes', name: 'Homologações' },
   { key: 'amostragens', name: 'Amostragens' },
-  { key: 'auditorias', name: 'Auditorias' },
   { key: 'garantias', name: 'Garantias' },
-  { key: 'registros', name: 'Registros Gerais' },
-  { key: 'configuracoes', name: 'Configurações' },
-  { key: 'usuarios', name: 'Gerenciar Usuários' },
-  { key: 'perfis', name: 'Gerenciar Perfis' }
+  { key: 'controle_descartes', name: 'Controle de Descartes' },
+  { key: 'femea', name: 'FEMEA' },
+  { key: 'pops_its', name: 'POPs e ITs' },
+  { key: 'fluxogramas', name: 'Fluxogramas' },
+  { key: 'melhoria_continua', name: 'Melhoria Contínua' },
+  { key: 'controle_rc', name: 'Controle de RC' },
+  { key: 'registros_filiais', name: 'Filiais' },
+  { key: 'registros_departamentos', name: 'Departamentos' },
+  { key: 'registros_fornecedores', name: 'Fornecedores' },
+  { key: 'registros_parametros', name: 'Parâmetros de Retornados' },
+  { key: 'configuracoes_gerais', name: 'Configurações Gerais' },
+  { key: 'admin_usuarios', name: 'Gerenciar Usuários' },
+  { key: 'admin_perfis', name: 'Gerenciar Perfis' },
+  { key: 'admin_convites', name: 'Solicitações de Acesso' },
+  { key: 'admin_painel', name: 'Painel Administrativo' },
+  { key: 'profile', name: 'Perfil do Usuário' },
+  { key: 'email_config', name: 'Configurações de Email' }
 ];
 
 // Load profiles on page load

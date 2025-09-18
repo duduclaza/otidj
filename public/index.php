@@ -150,6 +150,13 @@ $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getPr
 
 // Dispatch request
 try {
+    // Verificar permissões antes de executar a rota
+    $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    
+    // Aplicar middleware de permissões
+    \App\Middleware\PermissionMiddleware::handle($currentRoute, $method);
+    
     $router->dispatch();
 } catch (\Exception $e) {
     echo '<pre>Router Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';

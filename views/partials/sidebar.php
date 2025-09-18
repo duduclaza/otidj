@@ -1,31 +1,69 @@
 <?php
+// Function to check if user has permission
+function hasPermission($module, $action = 'view') {
+    if (!isset($_SESSION['user_id'])) {
+        return false;
+    }
+    
+    $userId = $_SESSION['user_id'];
+    return \App\Services\PermissionService::hasPermission($userId, $module, $action);
+}
+
+// Function to check if user has any permission for a list of modules
+function hasAnyPermission($modules) {
+    foreach ($modules as $module) {
+        if (hasPermission($module)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 $menu = [
-  ['label' => 'Controle de Toners', 'href' => '#', 'icon' => '🖨️', 'submenu' => [
-    ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '🖨️'],
-    ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋'],
-  ]],
-  ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅'],
-  ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪'],
-  ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️'],
-  ['label' => 'Controle de Descartes', 'href' => '/controle-de-descartes', 'icon' => '♻️'],
-  ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈'],
-  ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚'],
-  ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀'],
-  ['label' => 'Melhoria Continua', 'href' => '/melhoria-continua', 'icon' => '⚙️'],
-  ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️'],
-  ['label' => 'Registros Gerais', 'href' => '#', 'icon' => '📄', 'submenu' => [
-    ['label' => 'Filiais', 'href' => '/registros/filiais', 'icon' => '🏢'],
-    ['label' => 'Departamentos', 'href' => '/registros/departamentos', 'icon' => '🏛️'],
-    ['label' => 'Fornecedores', 'href' => '/registros/fornecedores', 'icon' => '🏭'],
-    ['label' => 'Parâmetros de Retornados', 'href' => '/registros/parametros', 'icon' => '📊'],
-  ]],
-  ['label' => 'Configurações', 'href' => '#', 'icon' => '⚙️', 'submenu' => [
-    ['label' => 'Configurações Gerais', 'href' => '/configuracoes', 'icon' => '⚙️'],
-    ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥'],
-    ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭'],
-    ['label' => 'Solicitações de Acesso', 'href' => '/admin/invitations', 'icon' => '📧'],
-    ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧'],
-  ]],
+  [
+    'label' => 'Controle de Toners', 
+    'href' => '#', 
+    'icon' => '🖨️', 
+    'modules' => ['toners_cadastro', 'toners_retornados'],
+    'submenu' => [
+      ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '🖨️', 'module' => 'toners_cadastro'],
+      ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
+    ]
+  ],
+  ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
+  ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪', 'module' => 'amostragens'],
+  ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️', 'module' => 'garantias'],
+  ['label' => 'Controle de Descartes', 'href' => '/controle-de-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
+  ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈', 'module' => 'femea'],
+  ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
+  ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
+  ['label' => 'Melhoria Continua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
+  ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
+  [
+    'label' => 'Registros Gerais', 
+    'href' => '#', 
+    'icon' => '📄', 
+    'modules' => ['registros_filiais', 'registros_departamentos', 'registros_fornecedores', 'registros_parametros'],
+    'submenu' => [
+      ['label' => 'Filiais', 'href' => '/registros/filiais', 'icon' => '🏢', 'module' => 'registros_filiais'],
+      ['label' => 'Departamentos', 'href' => '/registros/departamentos', 'icon' => '🏛️', 'module' => 'registros_departamentos'],
+      ['label' => 'Fornecedores', 'href' => '/registros/fornecedores', 'icon' => '🏭', 'module' => 'registros_fornecedores'],
+      ['label' => 'Parâmetros de Retornados', 'href' => '/registros/parametros', 'icon' => '📊', 'module' => 'registros_parametros'],
+    ]
+  ],
+  [
+    'label' => 'Configurações', 
+    'href' => '#', 
+    'icon' => '⚙️', 
+    'modules' => ['configuracoes_gerais', 'admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel'],
+    'submenu' => [
+      ['label' => 'Configurações Gerais', 'href' => '/configuracoes', 'icon' => '⚙️', 'module' => 'configuracoes_gerais'],
+      ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥', 'module' => 'admin_usuarios'],
+      ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
+      ['label' => 'Solicitações de Acesso', 'href' => '/admin/invitations', 'icon' => '📧', 'module' => 'admin_convites'],
+      ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
+    ]
+  ],
 ];
 $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/') ?: '/';
 ?>
@@ -38,24 +76,42 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
   </div>
   <nav class="flex-1 overflow-y-auto py-4">
     <ul class="space-y-1 px-3">
+      <!-- Dashboard sempre visível -->
+      <?php if (hasPermission('dashboard')): ?>
       <li>
         <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
           <span class="text-lg">🏠</span>
           <span>Dashboard</span>
         </a>
       </li>
+      <?php endif; ?>
+      
       <?php foreach ($menu as $item):
         $active = rtrim($item['href'], '/') === $current;
         $hasSubmenu = isset($item['submenu']);
         $submenuActive = false;
+        
+        // Verificar se o usuário tem permissão para este item
+        $hasPermissionForItem = false;
         if ($hasSubmenu) {
+          // Para submenus, verificar se tem permissão para pelo menos um submenu
+          $visibleSubmenus = [];
           foreach ($item['submenu'] as $sub) {
-            if (rtrim($sub['href'], '/') === $current) {
-              $submenuActive = true;
-              break;
+            if (hasPermission($sub['module'])) {
+              $visibleSubmenus[] = $sub;
+              if (rtrim($sub['href'], '/') === $current) {
+                $submenuActive = true;
+              }
             }
           }
+          $hasPermissionForItem = !empty($visibleSubmenus);
+        } else {
+          // Para itens simples, verificar permissão direta
+          $hasPermissionForItem = hasPermission($item['module']);
         }
+        
+        // Só mostrar o item se o usuário tiver permissão
+        if (!$hasPermissionForItem) continue;
       ?>
         <li>
           <?php if ($hasSubmenu): ?>
@@ -73,6 +129,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
               </button>
               <ul class="submenu ml-6 mt-2 space-y-1 hidden">
                 <?php foreach ($item['submenu'] as $sub):
+                  // Só mostrar submenu se o usuário tiver permissão
+                  if (!hasPermission($sub['module'])) continue;
                   $subActive = rtrim($sub['href'], '/') === $current;
                 ?>
                   <li>
@@ -146,9 +204,41 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       <div class="text-white font-semibold">Menu</div>
     </div>
     <nav class="p-3 space-y-1">
+      <?php if (hasPermission('dashboard')): ?>
       <a href="/" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200">Dashboard</a>
-      <?php foreach ($menu as $item): ?>
-        <a href="<?= e($item['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"><?= e($item['label']) ?></a>
+      <?php endif; ?>
+      
+      <?php foreach ($menu as $item): 
+        // Verificar permissões para mobile também
+        $hasSubmenu = isset($item['submenu']);
+        $hasPermissionForItem = false;
+        
+        if ($hasSubmenu) {
+          // Para submenus, verificar se tem permissão para pelo menos um submenu
+          foreach ($item['submenu'] as $sub) {
+            if (hasPermission($sub['module'])) {
+              $hasPermissionForItem = true;
+              break;
+            }
+          }
+        } else {
+          // Para itens simples, verificar permissão direta
+          $hasPermissionForItem = hasPermission($item['module']);
+        }
+        
+        // Só mostrar se tiver permissão
+        if (!$hasPermissionForItem) continue;
+      ?>
+        <?php if ($hasSubmenu): ?>
+          <!-- Para mobile, mostrar todos os subitens que o usuário tem permissão -->
+          <?php foreach ($item['submenu'] as $sub): ?>
+            <?php if (hasPermission($sub['module'])): ?>
+              <a href="<?= e($sub['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"><?= e($sub['label']) ?></a>
+            <?php endif; ?>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <a href="<?= e($item['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"><?= e($item['label']) ?></a>
+        <?php endif; ?>
       <?php endforeach; ?>
     </nav>
   </div>

@@ -464,18 +464,39 @@ class Migration
         $stmt->execute(['Supervisor', 'Perfil para supervisores com permissões intermediárias', false, false]);
         $supervisorProfileId = $this->db->lastInsertId() ?: $this->getProfileIdByName('Supervisor');
 
-        // Define modules
+        // Create Operador de Toners profile
+        $stmt->execute(['Operador de Toners', 'Perfil para operadores que trabalham especificamente com toners', false, false]);
+        $operadorProfileId = $this->db->lastInsertId() ?: $this->getProfileIdByName('Operador de Toners');
+
+        // Create Analista de Qualidade profile
+        $stmt->execute(['Analista de Qualidade', 'Perfil para analistas responsáveis por controle de qualidade', false, false]);
+        $analistaProfileId = $this->db->lastInsertId() ?: $this->getProfileIdByName('Analista de Qualidade');
+
+        // Define modules (todos os módulos do sistema)
         $modules = [
             'dashboard' => 'Dashboard',
-            'toners' => 'Controle de Toners', 
+            'toners_cadastro' => 'Cadastro de Toners',
+            'toners_retornados' => 'Registro de Retornados',
             'homologacoes' => 'Homologações',
             'amostragens' => 'Amostragens',
-            'auditorias' => 'Auditorias',
             'garantias' => 'Garantias',
-            'registros' => 'Registros Gerais',
-            'configuracoes' => 'Configurações',
-            'usuarios' => 'Gerenciar Usuários',
-            'perfis' => 'Gerenciar Perfis'
+            'controle_descartes' => 'Controle de Descartes',
+            'femea' => 'FEMEA',
+            'pops_its' => 'POPs e ITs',
+            'fluxogramas' => 'Fluxogramas',
+            'melhoria_continua' => 'Melhoria Contínua',
+            'controle_rc' => 'Controle de RC',
+            'registros_filiais' => 'Filiais',
+            'registros_departamentos' => 'Departamentos',
+            'registros_fornecedores' => 'Fornecedores',
+            'registros_parametros' => 'Parâmetros de Retornados',
+            'configuracoes_gerais' => 'Configurações Gerais',
+            'admin_usuarios' => 'Gerenciar Usuários',
+            'admin_perfis' => 'Gerenciar Perfis',
+            'admin_convites' => 'Solicitações de Acesso',
+            'admin_painel' => 'Painel Administrativo',
+            'profile' => 'Perfil do Usuário',
+            'email_config' => 'Configurações de Email'
         ];
 
         // Administrator permissions (full access)
@@ -484,20 +505,64 @@ class Migration
             $stmt->execute([$adminProfileId, $module]);
         }
 
-        // Common user permissions (view only for most modules)
-        $userModules = ['dashboard', 'toners', 'amostragens'];
+        // Common user permissions (view only for basic modules)
+        $userModules = [
+            'dashboard', 'toners_cadastro', 'toners_retornados', 'amostragens', 
+            'homologacoes', 'garantias', 'profile'
+        ];
         foreach ($userModules as $module) {
-            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 0, 0, 0, 0)");
-            $stmt->execute([$userProfileId, $module]);
+            $canEdit = ($module === 'profile') ? 1 : 0; // Usuários podem editar próprio perfil
+            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, ?, 0, 0, 0)");
+            $stmt->execute([$userProfileId, $module, $canEdit]);
         }
 
-        // Supervisor permissions (view and edit for most modules)
-        $supervisorModules = ['dashboard', 'toners', 'homologacoes', 'amostragens', 'auditorias', 'garantias'];
+        // Supervisor permissions (view and edit for operational modules)
+        $supervisorModules = [
+            'dashboard', 'toners_cadastro', 'toners_retornados', 'amostragens', 
+            'homologacoes', 'garantias', 'controle_descartes', 'femea', 
+            'pops_its', 'fluxogramas', 'registros_filiais', 'registros_departamentos', 
+            'registros_fornecedores', 'profile'
+        ];
         foreach ($supervisorModules as $module) {
-            $canEdit = in_array($module, ['toners', 'amostragens']) ? 1 : 0;
-            $canDelete = in_array($module, ['amostragens']) ? 1 : 0;
-            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, ?, ?, 0, 1)");
-            $stmt->execute([$supervisorProfileId, $module, $canEdit, $canDelete]);
+            $canEdit = in_array($module, [
+                'toners_cadastro', 'toners_retornados', 'amostragens', 
+                'registros_filiais', 'registros_departamentos', 'registros_fornecedores', 'profile'
+            ]) ? 1 : 0;
+            $canDelete = in_array($module, ['amostragens', 'toners_retornados']) ? 1 : 0;
+            $canExport = 1; // Supervisores podem exportar dados
+            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, ?, ?, 0, ?)");
+            $stmt->execute([$supervisorProfileId, $module, $canEdit, $canDelete, $canExport]);
+        }
+
+        // Operador de Toners permissions (foco em toners e operações relacionadas)
+        $operadorModules = [
+            'dashboard', 'toners_cadastro', 'toners_retornados', 'amostragens', 
+            'controle_descartes', 'registros_parametros', 'profile'
+        ];
+        foreach ($operadorModules as $module) {
+            $canEdit = in_array($module, ['toners_cadastro', 'toners_retornados', 'amostragens', 'profile']) ? 1 : 0;
+            $canDelete = in_array($module, ['toners_retornados', 'amostragens']) ? 1 : 0;
+            $canImport = in_array($module, ['toners_cadastro', 'toners_retornados']) ? 1 : 0;
+            $canExport = in_array($module, ['toners_cadastro', 'toners_retornados', 'amostragens']) ? 1 : 0;
+            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, ?, ?, ?, ?)");
+            $stmt->execute([$operadorProfileId, $module, $canEdit, $canDelete, $canImport, $canExport]);
+        }
+
+        // Analista de Qualidade permissions (foco em qualidade e análises)
+        $analistaModules = [
+            'dashboard', 'homologacoes', 'amostragens', 'garantias', 'femea', 
+            'pops_its', 'fluxogramas', 'melhoria_continua', 'controle_rc', 
+            'toners_cadastro', 'toners_retornados', 'profile'
+        ];
+        foreach ($analistaModules as $module) {
+            $canEdit = in_array($module, [
+                'homologacoes', 'amostragens', 'femea', 'pops_its', 'fluxogramas', 
+                'melhoria_continua', 'controle_rc', 'profile'
+            ]) ? 1 : 0;
+            $canDelete = in_array($module, ['amostragens', 'homologacoes']) ? 1 : 0;
+            $canExport = 1; // Analistas podem exportar dados para análise
+            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, ?, ?, 0, ?)");
+            $stmt->execute([$analistaProfileId, $module, $canEdit, $canDelete, $canExport]);
         }
     }
 
