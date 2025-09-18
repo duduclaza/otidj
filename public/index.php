@@ -149,7 +149,7 @@ $router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesContro
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 
 // Solicitações de Melhorias routes (test version)
-$router->get('/melhoria-continua/solicitacoes', function() {
+$router->get('/solicitacoes', function() {
     // Start session
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
@@ -165,10 +165,50 @@ $router->get('/melhoria-continua/solicitacoes', function() {
         ['id' => 2, 'name' => 'User', 'email' => 'user@test.com']
     ];
     
-    // Include the view directly
+    // Include with layout
+    ob_start();
     include __DIR__ . '/../views/melhoria-continua/solicitacoes.php';
+    $content = ob_get_clean();
+    
+    // Simple layout with CSS
+    echo '<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitação de Melhorias - SGQ OTI DJ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .submenu { transition: all 0.3s ease; }
+        .submenu.hidden { max-height: 0; opacity: 0; }
+        .submenu:not(.hidden) { max-height: 500px; opacity: 1; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <nav class="w-64 bg-slate-800 text-white overflow-y-auto">
+            <div class="p-4">
+                <h2 class="text-xl font-bold text-white mb-6">SGQ OTI DJ</h2>
+                <ul class="space-y-2">
+                    <li><a href="/" class="block px-3 py-2 rounded hover:bg-slate-700">🏠 Dashboard</a></li>
+                    <li><a href="/solicitacoes" class="block px-3 py-2 rounded bg-blue-600 text-white">💡 Solicitação de Melhorias</a></li>
+                    <li><a href="/configuracoes" class="block px-3 py-2 rounded hover:bg-slate-700">⚙️ Configurações</a></li>
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="p-6">
+                ' . $content . '
+            </div>
+        </main>
+    </div>
+</body>
+</html>';
 });
-$router->post('/melhoria-continua/solicitacoes/create', function() {
+$router->post('/solicitacoes/create', function() {
     // Simulate successful creation for now (development)
     header('Content-Type: application/json');
     echo json_encode([
@@ -176,7 +216,7 @@ $router->post('/melhoria-continua/solicitacoes/create', function() {
         'message' => 'Solicitação criada com sucesso! (Modo desenvolvimento - execute o setup do banco para funcionalidade completa)'
     ]);
 });
-$router->get('/melhoria-continua/solicitacoes/list', function() {
+$router->get('/solicitacoes/list', function() {
     // Return empty list for now (development)
     header('Content-Type: application/json');
     echo json_encode([
@@ -185,9 +225,9 @@ $router->get('/melhoria-continua/solicitacoes/list', function() {
         'message' => 'Sistema em desenvolvimento - Nenhuma solicitação encontrada'
     ]);
 });
-$router->get('/melhoria-continua/solicitacoes/{id}/details', [App\Controllers\SolicitacoesMelhoriasController::class, 'getDetails']);
-$router->get('/melhoria-continua/solicitacoes/{id}/print', [App\Controllers\SolicitacoesMelhoriasController::class, 'printSolicitacao']);
-$router->post('/melhoria-continua/solicitacoes/update-status', [App\Controllers\SolicitacoesMelhoriasController::class, 'updateStatus']);
+$router->get('/solicitacoes/{id}/details', [App\Controllers\SolicitacoesMelhoriasController::class, 'getDetails']);
+$router->get('/solicitacoes/{id}/print', [App\Controllers\SolicitacoesMelhoriasController::class, 'printSolicitacao']);
+$router->post('/solicitacoes/update-status', [App\Controllers\SolicitacoesMelhoriasController::class, 'updateStatus']);
 
 // Dispatch request
 try {

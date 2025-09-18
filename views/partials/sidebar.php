@@ -45,7 +45,7 @@ $menu = [
       ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈', 'module' => 'femea'],
       ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
       ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
-      ['label' => 'Solicitação de Melhorias', 'href' => '/melhoria-continua/solicitacoes', 'icon' => '💡', 'module' => 'solicitacao_melhorias'],
+      ['label' => 'Solicitação de Melhorias', 'href' => '/solicitacoes', 'icon' => '💡', 'module' => 'solicitacao_melhorias'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
     ]
   ],

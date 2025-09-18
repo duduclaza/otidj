@@ -247,8 +247,7 @@ function submitSolicitacao() {
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
   submitBtn.textContent = 'Enviando...';
-  
-  fetch('/melhoria-continua/solicitacoes/create', {
+  const response = await fetch('/solicitacoes/create', {
     method: 'POST',
     body: formData
   })
@@ -273,7 +272,7 @@ function submitSolicitacao() {
 }
 
 function loadSolicitacoes() {
-  fetch('/melhoria-continua/solicitacoes/list', {
+  fetch('/solicitacoes/list', {
     method: 'GET',
     headers: {
       'X-Requested-With': 'XMLHttpRequest'
