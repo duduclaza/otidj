@@ -69,7 +69,8 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     loading.classList.add('hidden');
     
     if (result.success) {
-      window.location.href = '/';
+      // Usar a URL de redirecionamento retornada pelo servidor
+      window.location.href = result.redirect || '/';
     } else {
       alert(result.message || 'Erro ao fazer login');
     }

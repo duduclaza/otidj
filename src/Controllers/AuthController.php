@@ -61,7 +61,18 @@ class AuthController
                 $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
                 $_SESSION['user_profile'] = $profileInfo;
                 
-                echo json_encode(['success' => true, 'message' => 'Login realizado com sucesso!']);
+                // Determinar URL de redirecionamento baseado nas permissões
+                $redirectUrl = '/';
+                if (!\App\Services\PermissionService::hasPermission($user['id'], 'dashboard', 'view')) {
+                    // Se não tem permissão para dashboard, encontrar primeiro módulo permitido
+                    $redirectUrl = $this->findFirstAllowedModule($user['id']) ?: '/profile';
+                }
+                
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Login realizado com sucesso!',
+                    'redirect' => $redirectUrl
+                ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Email ou senha incorretos']);
             }
@@ -217,6 +228,41 @@ class AuthController
                 exit;
             }
         }
+    }
+    
+    /**
+     * Encontrar o primeiro módulo que o usuário tem permissão
+     */
+    private function findFirstAllowedModule(int $userId): ?string
+    {
+        // Lista de módulos em ordem de prioridade
+        $moduleUrls = [
+            'toners_cadastro' => '/toners/cadastro',
+            'toners_retornados' => '/toners/retornados',
+            'amostragens' => '/toners/amostragens',
+            'homologacoes' => '/homologacoes',
+            'garantias' => '/garantias',
+            'controle_descartes' => '/controle-de-descartes',
+            'femea' => '/femea',
+            'pops_its' => '/pops-e-its',
+            'fluxogramas' => '/fluxogramas',
+            'melhoria_continua' => '/melhoria-continua',
+            'controle_rc' => '/controle-de-rc',
+            'registros_filiais' => '/registros/filiais',
+            'registros_departamentos' => '/registros/departamentos',
+            'registros_fornecedores' => '/registros/fornecedores',
+            'registros_parametros' => '/registros/parametros',
+            'configuracoes_gerais' => '/configuracoes',
+            'profile' => '/profile',
+        ];
+        
+        foreach ($moduleUrls as $module => $url) {
+            if (\App\Services\PermissionService::hasPermission($userId, $module, 'view')) {
+                return $url;
+            }
+        }
+        
+        return null;
     }
     
     private function notifyAdminsNewInvitation(string $name, string $email): void

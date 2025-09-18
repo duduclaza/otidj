@@ -586,4 +586,88 @@ class Migration
         $stmt = $this->db->prepare("UPDATE users SET profile_id = ? WHERE role = 'user' AND profile_id IS NULL");
         $stmt->execute([$userProfileId]);
     }
+
+    private function migration9(): void
+    {
+        // Create solicitacoes_melhorias table
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS solicitacoes_melhorias (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                usuario_id INT NOT NULL,
+                usuario_nome VARCHAR(255) NOT NULL,
+                data_solicitacao DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                setor VARCHAR(255) NOT NULL,
+                processo TEXT NOT NULL,
+                descricao_melhoria TEXT NOT NULL,
+                status ENUM('pendente', 'em_analise', 'aprovado', 'rejeitado', 'implementado') NOT NULL DEFAULT 'pendente',
+                observacoes TEXT,
+                resultado_esperado TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        ");
+
+        // Create solicitacoes_melhorias_responsaveis table (many-to-many)
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS solicitacoes_melhorias_responsaveis (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                solicitacao_id INT NOT NULL,
+                usuario_id INT NOT NULL,
+                usuario_nome VARCHAR(255) NOT NULL,
+                usuario_email VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes_melhorias(id) ON DELETE CASCADE,
+                FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE KEY unique_solicitacao_responsavel (solicitacao_id, usuario_id)
+            )
+        ");
+
+        // Create solicitacoes_melhorias_anexos table
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS solicitacoes_melhorias_anexos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                solicitacao_id INT NOT NULL,
+                nome_arquivo VARCHAR(255) NOT NULL,
+                nome_original VARCHAR(255) NOT NULL,
+                tipo_arquivo VARCHAR(100) NOT NULL,
+                tamanho_arquivo INT NOT NULL,
+                caminho_arquivo VARCHAR(500) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (solicitacao_id) REFERENCES solicitacoes_melhorias(id) ON DELETE CASCADE
+            )
+        ");
+
+        // Add solicitacao_melhorias module to existing profiles
+        $this->addModuleToProfiles();
+    }
+
+    private function addModuleToProfiles(): void
+    {
+        // Get all profiles
+        $stmt = $this->db->prepare("SELECT id, name FROM profiles");
+        $stmt->execute();
+        $profiles = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        foreach ($profiles as $profile) {
+            // Add solicitacao_melhorias permissions based on profile type
+            $canEdit = 0;
+            $canDelete = 0;
+            $canView = 1;
+
+            if ($profile['name'] === 'Administrador') {
+                $canEdit = 1;
+                $canDelete = 1;
+            } elseif (in_array($profile['name'], ['Supervisor', 'Analista de Qualidade'])) {
+                $canEdit = 1;
+            }
+
+            $stmt = $this->db->prepare("
+                INSERT IGNORE INTO profile_permissions 
+                (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, 'solicitacao_melhorias', ?, ?, ?, 0, 1)
+            ");
+            $stmt->execute([$profile['id'], $canView, $canEdit, $canDelete]);
+        }
+    }
 }

@@ -21,28 +21,42 @@ function hasAnyPermission($modules) {
 
 $menu = [
   [
-    'label' => 'Controle de Toners', 
+    'label' => 'Operacionais', 
     'href' => '#', 
-    'icon' => '🖨️', 
-    'modules' => ['toners_cadastro', 'toners_retornados'],
+    'icon' => '🏭', 
+    'category' => true,
+    'modules' => ['toners_cadastro', 'toners_retornados', 'amostragens', 'garantias', 'controle_descartes'],
     'submenu' => [
       ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '🖨️', 'module' => 'toners_cadastro'],
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
+      ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪', 'module' => 'amostragens'],
+      ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️', 'module' => 'garantias'],
+      ['label' => 'Controle de Descartes', 'href' => '/controle-de-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
     ]
   ],
-  ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
-  ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪', 'module' => 'amostragens'],
-  ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️', 'module' => 'garantias'],
-  ['label' => 'Controle de Descartes', 'href' => '/controle-de-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
-  ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈', 'module' => 'femea'],
-  ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
-  ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
-  ['label' => 'Melhoria Continua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
-  ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
   [
-    'label' => 'Registros Gerais', 
+    'label' => 'Gestão da Qualidade', 
+    'href' => '#', 
+    'icon' => '📊', 
+    'category' => true,
+    'modules' => ['homologacoes', 'femea', 'pops_its', 'fluxogramas', 'melhoria_continua', 'controle_rc'],
+    'submenu' => [
+      ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
+      ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈', 'module' => 'femea'],
+      ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
+      ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
+      ['label' => 'Melhoria Contínua', 'href' => '#', 'icon' => '⚙️', 'modules' => ['melhoria_continua', 'solicitacao_melhorias'], 'submenu' => [
+        ['label' => 'Dashboard Melhoria', 'href' => '/melhoria-continua', 'icon' => '📊', 'module' => 'melhoria_continua'],
+        ['label' => 'Solicitação de Melhorias', 'href' => '/melhoria-continua/solicitacoes', 'icon' => '💡', 'module' => 'solicitacao_melhorias'],
+      ]],
+      ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
+    ]
+  ],
+  [
+    'label' => 'Registros', 
     'href' => '#', 
     'icon' => '📄', 
+    'category' => true,
     'modules' => ['registros_filiais', 'registros_departamentos', 'registros_fornecedores', 'registros_parametros'],
     'submenu' => [
       ['label' => 'Filiais', 'href' => '/registros/filiais', 'icon' => '🏢', 'module' => 'registros_filiais'],
@@ -52,9 +66,10 @@ $menu = [
     ]
   ],
   [
-    'label' => 'Configurações', 
+    'label' => 'Administrativo', 
     'href' => '#', 
     'icon' => '⚙️', 
+    'category' => true,
     'modules' => ['configuracoes_gerais', 'admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel'],
     'submenu' => [
       ['label' => 'Configurações Gerais', 'href' => '/configuracoes', 'icon' => '⚙️', 'module' => 'configuracoes_gerais'],
@@ -76,7 +91,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
   </div>
   <nav class="flex-1 overflow-y-auto py-4">
     <ul class="space-y-1 px-3">
-      <!-- Dashboard sempre visível -->
+      <!-- Dashboard só visível se tiver permissão -->
       <?php if (hasPermission('dashboard')): ?>
       <li>
         <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
@@ -115,11 +130,12 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       ?>
         <li>
           <?php if ($hasSubmenu): ?>
+            <?php $isCategory = isset($item['category']) && $item['category']; ?>
             <div class="submenu-container">
-              <button onclick="toggleSubmenu(this)" class="flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $submenuActive?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
+              <button onclick="toggleSubmenu(this)" class="flex items-center justify-between w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $submenuActive?'bg-blue-600 text-white shadow-lg':($isCategory ? 'text-slate-200 hover:text-white bg-slate-700/50' : 'text-slate-300 hover:text-white'); ?>">
                 <div class="flex items-center gap-3">
                   <span class="text-lg"><?= e($item['icon']) ?></span>
-                  <span><?= e($item['label']) ?></span>
+                  <span class="<?php echo $isCategory ? 'font-semibold' : ''; ?>"><?= e($item['label']) ?></span>
                 </div>
                 <span class="submenu-arrow transition-transform duration-200 text-slate-400">
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -230,10 +246,19 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         if (!$hasPermissionForItem) continue;
       ?>
         <?php if ($hasSubmenu): ?>
+          <?php $isCategory = isset($item['category']) && $item['category']; ?>
+          <?php if ($isCategory): ?>
+            <!-- Mostrar categoria como separador no mobile -->
+            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 py-2 mt-4 first:mt-0">
+              <?= e($item['label']) ?>
+            </div>
+          <?php endif; ?>
           <!-- Para mobile, mostrar todos os subitens que o usuário tem permissão -->
           <?php foreach ($item['submenu'] as $sub): ?>
             <?php if (hasPermission($sub['module'])): ?>
-              <a href="<?= e($sub['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"><?= e($sub['label']) ?></a>
+              <a href="<?= e($sub['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200 ml-2">
+                <span class="text-sm"><?= e($sub['icon']) ?></span> <?= e($sub['label']) ?>
+              </a>
             <?php endif; ?>
           <?php endforeach; ?>
         <?php else: ?>

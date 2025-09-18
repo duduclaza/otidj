@@ -177,8 +177,23 @@ class PermissionMiddleware
                 exit;
             }
             
+            // Se está tentando acessar a raiz (/) e não tem permissão para dashboard,
+            // redirecionar para o primeiro módulo que tem permissão
+            if ($route === '/' || $route === '') {
+                $redirectUrl = self::findFirstAllowedModule($_SESSION['user_id']);
+                if ($redirectUrl) {
+                    header('Location: ' . $redirectUrl);
+                    exit;
+                }
+            }
+            
             // Se está logado mas não tem permissão, mostrar erro 403
             http_response_code(403);
+            $firstAllowedUrl = self::findFirstAllowedModule($_SESSION['user_id']);
+            $dashboardButton = $firstAllowedUrl ? 
+                '<a href="' . $firstAllowedUrl . '" class="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Ir para Módulos Permitidos</a>' :
+                '<a href="/logout" class="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Fazer Logout</a>';
+            
             echo '
             <!DOCTYPE html>
             <html lang="pt-br">
@@ -194,9 +209,7 @@ class PermissionMiddleware
                     <h1 class="text-2xl font-bold text-gray-900 mb-2">Acesso Negado</h1>
                     <p class="text-gray-600 mb-6">Você não tem permissão para acessar esta funcionalidade.</p>
                     <div class="space-y-2">
-                        <a href="/" class="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                            Voltar ao Dashboard
-                        </a>
+                        ' . $dashboardButton . '
                         <a href="/logout" class="block w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors">
                             Fazer Logout
                         </a>
@@ -206,5 +219,40 @@ class PermissionMiddleware
             </html>';
             exit;
         }
+    }
+    
+    /**
+     * Encontrar o primeiro módulo que o usuário tem permissão
+     */
+    private static function findFirstAllowedModule(int $userId): ?string
+    {
+        // Lista de módulos em ordem de prioridade
+        $moduleUrls = [
+            'toners_cadastro' => '/toners/cadastro',
+            'toners_retornados' => '/toners/retornados',
+            'amostragens' => '/toners/amostragens',
+            'homologacoes' => '/homologacoes',
+            'garantias' => '/garantias',
+            'controle_descartes' => '/controle-de-descartes',
+            'femea' => '/femea',
+            'pops_its' => '/pops-e-its',
+            'fluxogramas' => '/fluxogramas',
+            'melhoria_continua' => '/melhoria-continua',
+            'controle_rc' => '/controle-de-rc',
+            'registros_filiais' => '/registros/filiais',
+            'registros_departamentos' => '/registros/departamentos',
+            'registros_fornecedores' => '/registros/fornecedores',
+            'registros_parametros' => '/registros/parametros',
+            'configuracoes_gerais' => '/configuracoes',
+            'profile' => '/profile',
+        ];
+        
+        foreach ($moduleUrls as $module => $url) {
+            if (PermissionService::hasPermission($userId, $module, 'view')) {
+                return $url;
+            }
+        }
+        
+        return null;
     }
 }
