@@ -39,17 +39,14 @@ $menu = [
     'href' => '#', 
     'icon' => '📊', 
     'category' => true,
-    'modules' => ['homologacoes', 'femea', 'pops_its', 'fluxogramas', 'melhoria_continua', 'solicitacao_melhorias', 'melhorias_pendentes', 'historico_melhorias', 'controle_rc'],
+    'modules' => ['homologacoes', 'femea', 'pops_its', 'fluxogramas', 'melhoria_continua', 'controle_rc'],
     'submenu' => [
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
       ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈', 'module' => 'femea'],
       ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
       ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
-      // Grupo Melhoria Contínua
+      // Melhoria Contínua (com abas internas)
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
-      ['label' => 'Solicitação de Melhorias', 'href' => '/melhoria-continua/solicitacoes', 'icon' => '💡', 'module' => 'solicitacao_melhorias'],
-      ['label' => 'Melhorias Pendentes', 'href' => '/melhoria-continua/pendentes', 'icon' => '⏳', 'module' => 'melhorias_pendentes'],
-      ['label' => 'Histórico de Melhorias', 'href' => '/melhoria-continua/historico', 'icon' => '🕘', 'module' => 'historico_melhorias'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
     ]
   ],

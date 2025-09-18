@@ -20,6 +20,14 @@ class MelhoriaContinuaController
         include $layout;
     }
 
+    // Página com ABAS
+    public function index(): void
+    {
+        $setores = $this->getSetores();
+        $usuarios = $this->getUsuarios();
+        $this->render('index', compact('setores','usuarios'));
+    }
+
     // Páginas
     public function solicitacoes(): void
     {
