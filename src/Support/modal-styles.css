@@ -100,6 +100,7 @@
 @media (max-width: 640px) {
   .modal-container {
     max-width: 95vw !important;
+    max-height: 95vh !important;
     margin: 0.5rem !important;
   }
   
@@ -107,6 +108,37 @@
   .modal-body,
   .modal-footer {
     padding: 1rem !important;
+  }
+  
+  .modal-body {
+    max-height: calc(95vh - 120px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-container {
+    max-width: 98vw !important;
+    max-height: 98vh !important;
+    margin: 0.25rem !important;
+  }
+  
+  .modal-header,
+  .modal-footer {
+    padding: 0.75rem !important;
+  }
+  
+  .modal-body {
+    padding: 0.75rem !important;
+    max-height: calc(98vh - 100px) !important;
+  }
+  
+  .modal-footer {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  
+  .modal-footer button {
+    width: 100% !important;
   }
 }
 

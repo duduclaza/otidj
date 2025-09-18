@@ -42,8 +42,9 @@
       </div>
 
       <div id="passwordField">
-        <label class="block text-sm font-medium text-gray-700 mb-2">Senha *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Senha <span id="passwordRequired">*</span></label>
         <input type="password" id="userPassword" name="password" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        <p id="passwordHelp" class="text-xs text-gray-500 mt-1 hidden">Deixe em branco para manter a senha atual</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -119,7 +120,7 @@
 
 <!-- Permissions Modal -->
 <div id="permissionsModal" class="modal-overlay">
-  <div class="modal-container w-full max-w-2xl">
+  <div class="modal-container w-full max-w-4xl mx-4">
     <div class="modal-header">
       <div>
         <h3 class="modal-title">Gerenciar Permissões</h3>
@@ -132,17 +133,17 @@
       </button>
     </div>
     
-    <div class="modal-body">
+    <div class="modal-body max-h-96 overflow-y-auto">
       <div id="permissionsContent" class="space-y-4">
         <!-- Permissions will be loaded here -->
       </div>
     </div>
 
-    <div class="modal-footer">
-      <button onclick="closePermissionsModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+    <div class="modal-footer flex-col sm:flex-row gap-2 sm:gap-4">
+      <button onclick="closePermissionsModal()" class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
         Cancelar
       </button>
-      <button onclick="savePermissions()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">
+      <button onclick="savePermissions()" class="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
         Salvar Permissões
       </button>
     </div>
@@ -285,6 +286,8 @@ function toggleUserForm() {
     document.getElementById('userId').value = '';
     document.getElementById('passwordField').style.display = 'block';
     document.getElementById('userPassword').required = true;
+    document.getElementById('passwordRequired').style.display = 'inline';
+    document.getElementById('passwordHelp').classList.add('hidden');
     
     // Repopulate dropdowns after form reset
     populateDropdowns();
@@ -338,8 +341,13 @@ function editUser(userId) {
           document.getElementById('userFilial').value = user.filial || '';
           document.getElementById('userRole').value = user.role;
           document.getElementById('userStatus').value = user.status;
-          document.getElementById('passwordField').style.display = 'none';
+          
+          // Show password field but make it optional for editing
+          document.getElementById('passwordField').style.display = 'block';
           document.getElementById('userPassword').required = false;
+          document.getElementById('userPassword').value = '';
+          document.getElementById('passwordRequired').style.display = 'none';
+          document.getElementById('passwordHelp').classList.remove('hidden');
         }, 100);
         
         // Update toggle button
@@ -472,49 +480,55 @@ function displayPermissions(permissions) {
   ];
   
   let html = `
-    <div class="bg-gray-50 p-6 rounded-lg">
-      <div class="grid grid-cols-4 gap-4 mb-4">
-        <div class="font-semibold text-gray-700">Módulo</div>
-        <div class="font-semibold text-gray-700 text-center">Visualizar</div>
-        <div class="font-semibold text-gray-700 text-center">Editar</div>
-        <div class="font-semibold text-gray-700 text-center">Excluir</div>
-      </div>
+    <div class="bg-gray-50 p-4 sm:p-6 rounded-lg">
+      <div class="overflow-x-auto">
+        <div class="min-w-full">
+          <div class="grid grid-cols-4 gap-2 sm:gap-4 mb-4 min-w-max">
+            <div class="font-semibold text-gray-700 text-sm sm:text-base">Módulo</div>
+            <div class="font-semibold text-gray-700 text-center text-sm sm:text-base">Visualizar</div>
+            <div class="font-semibold text-gray-700 text-center text-sm sm:text-base">Editar</div>
+            <div class="font-semibold text-gray-700 text-center text-sm sm:text-base">Excluir</div>
+          </div>
   `;
   
   modules.forEach(module => {
     const perm = permissions[module.key] || {};
     html += `
-      <div class="grid grid-cols-4 gap-4 py-3 border-b border-gray-200 items-center">
-        <div class="font-medium text-gray-900">${module.name}</div>
+      <div class="grid grid-cols-4 gap-2 sm:gap-4 py-3 border-b border-gray-200 items-center min-w-max">
+        <div class="font-medium text-gray-900 text-sm sm:text-base pr-2">${module.name}</div>
         <div class="text-center">
-          <label class="inline-flex items-center">
+          <label class="inline-flex items-center justify-center">
             <input type="checkbox" 
                    name="permissions[${module.key}][view]" 
                    ${perm.can_view ? 'checked' : ''} 
-                   class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                   class="form-checkbox h-4 w-4 sm:h-5 sm:w-5 text-blue-600 rounded">
           </label>
         </div>
         <div class="text-center">
-          <label class="inline-flex items-center">
+          <label class="inline-flex items-center justify-center">
             <input type="checkbox" 
                    name="permissions[${module.key}][edit]" 
                    ${perm.can_edit ? 'checked' : ''} 
-                   class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                   class="form-checkbox h-4 w-4 sm:h-5 sm:w-5 text-blue-600 rounded">
           </label>
         </div>
         <div class="text-center">
-          <label class="inline-flex items-center">
+          <label class="inline-flex items-center justify-center">
             <input type="checkbox" 
                    name="permissions[${module.key}][delete]" 
                    ${perm.can_delete ? 'checked' : ''} 
-                   class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                   class="form-checkbox h-4 w-4 sm:h-5 sm:w-5 text-blue-600 rounded">
           </label>
         </div>
       </div>
     `;
   });
   
-  html += '</div>';
+  html += `
+        </div>
+      </div>
+    </div>
+  `;
   content.innerHTML = html;
 }
 
@@ -551,4 +565,49 @@ function savePermissions() {
     alert('Erro de conexão: ' + error.message);
   });
 }
+
+// Modal functions
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-overlay')) {
+    const modalId = e.target.id;
+    closeModal(modalId);
+  }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const activeModal = document.querySelector('.modal-overlay.active');
+    if (activeModal) {
+      closeModal(activeModal.id);
+    }
+  }
+});
+
+// Close modal buttons
+document.addEventListener('click', function(e) {
+  if (e.target.matches('[data-modal-close]') || e.target.closest('[data-modal-close]')) {
+    const modal = e.target.closest('.modal-overlay');
+    if (modal) {
+      closeModal(modal.id);
+    }
+  }
+});
 </script>
