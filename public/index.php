@@ -5,18 +5,8 @@ header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 header('Expires: 0');
 
-// Always show errors for debugging
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
-// Project base path
+// Load environment first
 $basePath = dirname(__DIR__);
-
-// Start session for flash messages
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 // Composer autoload
 require $basePath . '/vendor/autoload.php';
@@ -24,6 +14,28 @@ require $basePath . '/vendor/autoload.php';
 // Load environment
 $dotenv = Dotenv\Dotenv::createImmutable($basePath);
 $dotenv->safeLoad();
+
+// Error reporting configuration
+$isDebug = $_ENV['APP_DEBUG'] ?? 'false';
+$isProduction = ($_ENV['APP_ENV'] ?? 'production') === 'production';
+
+if ($isDebug === 'true' && !$isProduction) {
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
+} else {
+    ini_set('display_errors', '0');
+    ini_set('display_startup_errors', '0');
+    error_reporting(E_ALL);
+    // Log errors instead of displaying them
+    ini_set('log_errors', '1');
+    ini_set('error_log', $basePath . '/storage/logs/php_errors.log');
+}
+
+// Start session for flash messages
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Load helpers
 require_once $basePath . '/src/Support/helpers.php';

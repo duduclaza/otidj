@@ -119,33 +119,41 @@ class AdminController
      */
     public function createUser()
     {
+        // Clean output buffer to prevent HTML mixing with JSON
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         AuthController::requireAdmin();
+        
+        // Set JSON headers
         header('Content-Type: application/json');
-        
-        $name = $_POST['name'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $setor = $_POST['setor'] ?? '';
-        $filial = $_POST['filial'] ?? '';
-        $role = $_POST['role'] ?? 'user';
-        
-        if (empty($name) || empty($email) || empty($password)) {
-            echo json_encode(['success' => false, 'message' => 'Nome, email e senha são obrigatórios']);
-            return;
-        }
-        
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo json_encode(['success' => false, 'message' => 'Email inválido']);
-            return;
-        }
+        header('Cache-Control: no-cache, must-revalidate');
         
         try {
+            $name = trim($_POST['name'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $setor = $_POST['setor'] ?? '';
+            $filial = $_POST['filial'] ?? '';
+            $role = $_POST['role'] ?? 'user';
+            
+            if (empty($name) || empty($email) || empty($password)) {
+                echo json_encode(['success' => false, 'message' => 'Nome, email e senha são obrigatórios']);
+                exit;
+            }
+            
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo json_encode(['success' => false, 'message' => 'Email inválido']);
+                exit;
+            }
+            
             // Check if user already exists
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
             $stmt->execute([$email]);
             if ($stmt->fetchColumn() > 0) {
                 echo json_encode(['success' => false, 'message' => 'Este email já está cadastrado']);
-                return;
+                exit;
             }
             
             // Create user
@@ -153,13 +161,20 @@ class AdminController
             $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, status) VALUES (?, ?, ?, ?, ?, ?, 'active')");
             $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role]);
             
-            // Send welcome email
-            $this->sendWelcomeEmail($name, $email, $password);
+            // Send welcome email (don't let email errors break user creation)
+            try {
+                $this->sendWelcomeEmail($name, $email, $password);
+                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso e email de boas-vindas enviado']);
+            } catch (\Exception $emailError) {
+                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! (Erro ao enviar email: verifique configurações)']);
+            }
             
-            echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso e email de boas-vindas enviado']);
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao criar usuário: ' . $e->getMessage()]);
+            error_log('Error creating user: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor. Tente novamente.']);
         }
+        
+        exit; // Ensure no additional output
     }
     
     /**
@@ -291,36 +306,45 @@ class AdminController
      */
     public function updateUser()
     {
+        // Clean output buffer to prevent HTML mixing with JSON
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         AuthController::requireAdmin();
+        
+        // Set JSON headers
         header('Content-Type: application/json');
-        
-        // Accept both 'id' and 'user_id' for compatibility
-        $userId = $_POST['id'] ?? $_POST['user_id'] ?? '';
-        $name = $_POST['name'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $setor = $_POST['setor'] ?? '';
-        $filial = $_POST['filial'] ?? '';
-        $role = $_POST['role'] ?? 'user';
-        $status = $_POST['status'] ?? 'active';
-        
-        if (empty($userId) || empty($name) || empty($email)) {
-            echo json_encode(['success' => false, 'message' => 'Dados obrigatórios não informados']);
-            return;
-        }
-        
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            echo json_encode(['success' => false, 'message' => 'Email inválido']);
-            return;
-        }
+        header('Cache-Control: no-cache, must-revalidate');
         
         try {
+            // Accept both 'id' and 'user_id' for compatibility
+            $userId = $_POST['id'] ?? $_POST['user_id'] ?? '';
+            $name = trim($_POST['name'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $password = $_POST['password'] ?? '';
+            $setor = $_POST['setor'] ?? '';
+            $filial = $_POST['filial'] ?? '';
+            $role = $_POST['role'] ?? 'user';
+            $status = $_POST['status'] ?? 'active';
+            
+            // Validation
+            if (empty($userId) || empty($name) || empty($email)) {
+                echo json_encode(['success' => false, 'message' => 'Dados obrigatórios não informados']);
+                exit;
+            }
+            
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo json_encode(['success' => false, 'message' => 'Email inválido']);
+                exit;
+            }
+            
             // Check if email is already used by another user
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ? AND id != ?");
             $stmt->execute([$email, $userId]);
             if ($stmt->fetchColumn() > 0) {
                 echo json_encode(['success' => false, 'message' => 'Este email já está sendo usado por outro usuário']);
-                return;
+                exit;
             }
             
             // Update user with or without password
@@ -329,19 +353,26 @@ class AdminController
                 $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, status = ? WHERE id = ?");
                 $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $status, $userId]);
                 
-                // Send password change notification
-                $this->sendPasswordChangeNotification($name, $email, $password);
-                
-                echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! Nova senha enviada por email.']);
+                // Send password change notification (don't let email errors break the update)
+                try {
+                    $this->sendPasswordChangeNotification($name, $email, $password);
+                    echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! Nova senha enviada por email.']);
+                } catch (\Exception $emailError) {
+                    echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! (Erro ao enviar email: verifique configurações)']);
+                }
             } else {
                 $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, status = ? WHERE id = ?");
                 $stmt->execute([$name, $email, $setor, $filial, $role, $status, $userId]);
                 
                 echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso!']);
             }
+            
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar usuário: ' . $e->getMessage()]);
+            error_log('Error updating user: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor. Tente novamente.']);
         }
+        
+        exit; // Ensure no additional output
     }
     
     /**
@@ -349,30 +380,42 @@ class AdminController
      */
     public function deleteUser()
     {
+        // Clean output buffer to prevent HTML mixing with JSON
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         AuthController::requireAdmin();
+        
+        // Set JSON headers
         header('Content-Type: application/json');
-        
-        $userId = $_POST['user_id'] ?? '';
-        
-        if (empty($userId)) {
-            echo json_encode(['success' => false, 'message' => 'ID do usuário não informado']);
-            return;
-        }
-        
-        // Prevent deleting self
-        if ($userId == $_SESSION['user_id']) {
-            echo json_encode(['success' => false, 'message' => 'Você não pode excluir sua própria conta']);
-            return;
-        }
+        header('Cache-Control: no-cache, must-revalidate');
         
         try {
+            $userId = $_POST['user_id'] ?? '';
+            
+            if (empty($userId)) {
+                echo json_encode(['success' => false, 'message' => 'ID do usuário não informado']);
+                exit;
+            }
+            
+            // Prevent deleting self
+            if ($userId == $_SESSION['user_id']) {
+                echo json_encode(['success' => false, 'message' => 'Você não pode excluir sua própria conta']);
+                exit;
+            }
+            
             $stmt = $this->db->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             
             echo json_encode(['success' => true, 'message' => 'Usuário excluído com sucesso!']);
+            
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao excluir usuário']);
+            error_log('Error deleting user: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor. Tente novamente.']);
         }
+        
+        exit; // Ensure no additional output
     }
     
     /**
