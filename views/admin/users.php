@@ -402,7 +402,7 @@ function submitUser() {
 function deleteUser(userId, userName) {
   if (confirm(`Tem certeza que deseja excluir o usuário "${userName}"?`)) {
     const formData = new FormData();
-    formData.append('id', userId);
+    formData.append('user_id', userId);
     
     fetch('/admin/users/delete', {
       method: 'POST',
