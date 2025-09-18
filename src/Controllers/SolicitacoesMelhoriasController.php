@@ -12,7 +12,21 @@ class SolicitacoesMelhoriasController
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        // Initialize database connection only when needed
+        $this->db = null;
+    }
+    
+    private function getDb()
+    {
+        if ($this->db === null) {
+            try {
+                $this->db = Database::getInstance();
+            } catch (Exception $e) {
+                error_log("Database connection failed: " . $e->getMessage());
+                return null;
+            }
+        }
+        return $this->db;
     }
 
     /**

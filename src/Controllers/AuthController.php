@@ -246,7 +246,6 @@ class AuthController
             'femea' => '/femea',
             'pops_its' => '/pops-e-its',
             'fluxogramas' => '/fluxogramas',
-            'melhoria_continua' => '/melhoria-continua',
             'solicitacao_melhorias' => '/melhoria-continua/solicitacoes',
             'controle_rc' => '/controle-de-rc',
             'registros_filiais' => '/registros/filiais',

@@ -25,7 +25,6 @@ class PermissionMiddleware
         '/femea' => 'femea',
         '/pops-e-its' => 'pops_its',
         '/fluxogramas' => 'fluxogramas',
-        '/melhoria-continua' => 'melhoria_continua',
         '/melhoria-continua/solicitacoes' => 'solicitacao_melhorias',
         '/controle-de-rc' => 'controle_rc',
         
@@ -238,7 +237,6 @@ class PermissionMiddleware
             'femea' => '/femea',
             'pops_its' => '/pops-e-its',
             'fluxogramas' => '/fluxogramas',
-            'melhoria_continua' => '/melhoria-continua',
             'solicitacao_melhorias' => '/melhoria-continua/solicitacoes',
             'controle_rc' => '/controle-de-rc',
             'registros_filiais' => '/registros/filiais',
