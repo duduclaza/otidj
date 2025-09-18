@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 6;
+    private const CURRENT_VERSION = 7;
 
     public function __construct()
     {

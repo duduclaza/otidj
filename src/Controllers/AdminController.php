@@ -311,13 +311,31 @@ class AdminController
             ob_clean();
         }
         
-        AuthController::requireAdmin();
-        
-        // Set JSON headers
+        // Set JSON headers first
         header('Content-Type: application/json');
         header('Cache-Control: no-cache, must-revalidate');
         
         try {
+            // Log start of method
+            error_log("=== UpdateUser method started ===");
+            error_log("Session data: " . json_encode([
+                'user_id' => $_SESSION['user_id'] ?? 'not set',
+                'user_role' => $_SESSION['user_role'] ?? 'not set'
+            ]));
+            
+            // Check authentication first
+            if (!isset($_SESSION['user_id'])) {
+                error_log("Authentication failed: user_id not in session");
+                echo json_encode(['success' => false, 'message' => 'Não autenticado', 'redirect' => '/login']);
+                exit;
+            }
+            
+            if ($_SESSION['user_role'] !== 'admin') {
+                error_log("Authorization failed: user role is " . ($_SESSION['user_role'] ?? 'undefined'));
+                echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
+                exit;
+            }
+            
             // Accept both 'id' and 'user_id' for compatibility
             $userId = $_POST['id'] ?? $_POST['user_id'] ?? '';
             $name = trim($_POST['name'] ?? '');
@@ -327,6 +345,31 @@ class AdminController
             $filial = $_POST['filial'] ?? '';
             $role = $_POST['role'] ?? 'user';
             $status = $_POST['status'] ?? 'active';
+            
+            // Debug log
+            error_log("UpdateUser - UserID: $userId, Name: $name, Email: $email");
+            
+            // Test database connection and table structure
+            try {
+                $testStmt = $this->db->query("DESCRIBE users");
+                $columns = $testStmt->fetchAll(\PDO::FETCH_COLUMN);
+                error_log("Users table columns: " . implode(', ', $columns));
+                
+                // Test if user exists
+                $checkStmt = $this->db->prepare("SELECT id, name, email FROM users WHERE id = ?");
+                $checkStmt->execute([$userId]);
+                $existingUser = $checkStmt->fetch(\PDO::FETCH_ASSOC);
+                if (!$existingUser) {
+                    echo json_encode(['success' => false, 'message' => 'Usuário não encontrado']);
+                    exit;
+                }
+                error_log("Existing user found: " . json_encode($existingUser));
+                
+            } catch (\Exception $e) {
+                error_log("Error checking users table: " . $e->getMessage());
+                echo json_encode(['success' => false, 'message' => 'Erro na estrutura da tabela users: ' . $e->getMessage()]);
+                exit;
+            }
             
             // Validation
             if (empty($userId) || empty($name) || empty($email)) {
@@ -339,37 +382,63 @@ class AdminController
                 exit;
             }
             
+            // Check database connection
+            if (!$this->db) {
+                echo json_encode(['success' => false, 'message' => 'Erro de conexão com banco de dados']);
+                exit;
+            }
+            
             // Check if email is already used by another user
+            error_log("Checking email duplication...");
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ? AND id != ?");
             $stmt->execute([$email, $userId]);
-            if ($stmt->fetchColumn() > 0) {
+            $emailCount = $stmt->fetchColumn();
+            error_log("Email count for other users: $emailCount");
+            
+            if ($emailCount > 0) {
                 echo json_encode(['success' => false, 'message' => 'Este email já está sendo usado por outro usuário']);
                 exit;
             }
             
             // Update user with or without password
+            error_log("Starting user update...");
+            
             if (!empty($password)) {
+                error_log("Updating user with new password");
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                 $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, status = ? WHERE id = ?");
-                $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $status, $userId]);
+                $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $status, $userId]);
                 
-                // Send password change notification (don't let email errors break the update)
-                try {
-                    $this->sendPasswordChangeNotification($name, $email, $password);
-                    echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! Nova senha enviada por email.']);
-                } catch (\Exception $emailError) {
-                    echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! (Erro ao enviar email: verifique configurações)']);
+                error_log("Update result with password: " . ($result ? 'success' : 'failed'));
+                
+                if (!$result) {
+                    $errorInfo = $stmt->errorInfo();
+                    error_log("SQL Error: " . implode(' - ', $errorInfo));
+                    echo json_encode(['success' => false, 'message' => 'Erro ao atualizar usuário no banco de dados: ' . $errorInfo[2]]);
+                    exit;
                 }
+                
+                echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! (Nova senha definida)']);
             } else {
+                error_log("Updating user without password change");
                 $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, status = ? WHERE id = ?");
-                $stmt->execute([$name, $email, $setor, $filial, $role, $status, $userId]);
+                $result = $stmt->execute([$name, $email, $setor, $filial, $role, $status, $userId]);
+                
+                error_log("Update result without password: " . ($result ? 'success' : 'failed'));
+                
+                if (!$result) {
+                    $errorInfo = $stmt->errorInfo();
+                    error_log("SQL Error: " . implode(' - ', $errorInfo));
+                    echo json_encode(['success' => false, 'message' => 'Erro ao atualizar usuário no banco de dados: ' . $errorInfo[2]]);
+                    exit;
+                }
                 
                 echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso!']);
             }
             
         } catch (\Exception $e) {
-            error_log('Error updating user: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor. Tente novamente.']);
+            error_log('Error updating user: ' . $e->getMessage() . ' - Line: ' . $e->getLine() . ' - File: ' . $e->getFile());
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
         }
         
         exit; // Ensure no additional output
