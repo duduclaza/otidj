@@ -134,36 +134,59 @@ function updateFileList(){
 }
 
 async function createSolicitacao(e){
+  // Evita que o handler global de submit deixe o overlay preso
   e.preventDefault();
+  e.stopPropagation();
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.add('active');
+
   const form = document.getElementById('solicitacaoForm');
+  const submitBtn = document.getElementById('submitBtn');
   const fd = new FormData(form);
-  const resp = await fetch('/melhoria-continua/solicitacoes/create', { method:'POST', body: fd });
-  const json = await resp.json().catch(()=>({success:false,message:'Erro no servidor'}));
-  alert(json.message || (json.success?'Sucesso':'Erro'));
-  if (json.success){ cancelSolicitacaoForm(); loadGrid(); }
+  try {
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Enviando...'; }
+    const resp = await fetch('/melhoria-continua/solicitacoes/create', { method:'POST', body: fd });
+    const json = await resp.json().catch(()=>({success:false,message:'Erro no servidor'}));
+    alert(json.message || (json.success?'Sucesso':'Erro'));
+    if (json.success){
+      cancelSolicitacaoForm();
+      await loadGrid();
+    }
+  } catch(err){
+    console.error(err);
+    alert('Falha ao enviar solicitação.');
+  } finally {
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar'; }
+    if (overlay) overlay.classList.remove('active');
+  }
 }
 
 async function loadGrid(){
-  const resp = await fetch('/melhoria-continua/solicitacoes/list');
-  const json = await resp.json().catch(()=>({success:false,data:[]}));
-  const body = document.getElementById('gridBody');
-  body.innerHTML = '';
-  if (!json.data || json.data.length === 0){
-    body.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Sem registros</td></tr>';
-    return;
+  let overlay = document.getElementById('loadingOverlay');
+  try {
+    const resp = await fetch('/melhoria-continua/solicitacoes/list');
+    const json = await resp.json().catch(()=>({success:false,data:[]}));
+    const body = document.getElementById('gridBody');
+    body.innerHTML = '';
+    if (!json.data || json.data.length === 0){
+      body.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Sem registros</td></tr>';
+      return;
+    }
+    json.data.forEach(row=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="px-3 py-2">${row.id}</td>
+        <td class="px-3 py-2">${row.data || ''}</td>
+        <td class="px-3 py-2">${row.processo || ''}</td>
+        <td class="px-3 py-2">${row.setor || ''}</td>
+        <td class="px-3 py-2">${row.status || ''}</td>
+        <td class="px-3 py-2">${(row.responsaveis||[]).join(', ')}</td>
+        <td class="px-3 py-2">-</td>`;
+      body.appendChild(tr);
+    });
+  } finally {
+    if (overlay) overlay.classList.remove('active');
   }
-  json.data.forEach(row=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="px-3 py-2">${row.id}</td>
-      <td class="px-3 py-2">${row.data || ''}</td>
-      <td class="px-3 py-2">${row.processo || ''}</td>
-      <td class="px-3 py-2">${row.setor || ''}</td>
-      <td class="px-3 py-2">${row.status || ''}</td>
-      <td class="px-3 py-2">${(row.responsaveis||[]).join(', ')}</td>
-      <td class="px-3 py-2">-</td>`;
-    body.appendChild(tr);
-  });
 }
 
 document.getElementById('solicitacaoForm').addEventListener('submit', createSolicitacao);
