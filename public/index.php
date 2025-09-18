@@ -43,10 +43,13 @@ require_once $basePath . '/src/Support/helpers.php';
 // Run auto-migrations
 use App\Core\Migration;
 use App\Core\Router;
+use App\Setup\MelhoriaContinuaSetup;
 
 try {
     $migration = new Migration();
     $migration->runMigrations();
+    // Ensure Melhoria Contínua tables exist
+    (new MelhoriaContinuaSetup())->ensure();
 } catch (\Exception $e) {
     // Skip migrations if connection limit exceeded, but don't break the app
     if (strpos($e->getMessage(), 'max_connections_per_hour') === false) {
@@ -89,7 +92,16 @@ $router->get('/controle-de-descartes', [App\Controllers\PageController::class, '
 $router->get('/femea', [App\Controllers\PageController::class, 'femea']);
 $router->get('/pops-e-its', [App\Controllers\PageController::class, 'popsEIts']);
 $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
-$router->get('/melhoria-continua', [App\Controllers\PageController::class, 'melhoriaContinua']);
+$router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'solicitacoes']);
+$router->get('/melhoria-continua/solicitacoes', [App\Controllers\MelhoriaContinuaController::class, 'solicitacoes']);
+$router->post('/melhoria-continua/solicitacoes/create', [App\Controllers\MelhoriaContinuaController::class, 'apiCreateSolicitacao']);
+$router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\MelhoriaContinuaController::class, 'apiListSolicitacoes']);
+$router->get('/melhoria-continua/pendentes', [App\Controllers\MelhoriaContinuaController::class, 'pendentes']);
+$router->get('/melhoria-continua/pendentes/list', [App\Controllers\MelhoriaContinuaController::class, 'apiListPendentes']);
+$router->post('/melhoria-continua/pendentes/update-status', [App\Controllers\MelhoriaContinuaController::class, 'apiUpdateStatus']);
+$router->post('/melhoria-continua/pendentes/delete', [App\Controllers\MelhoriaContinuaController::class, 'apiDelete']);
+$router->get('/melhoria-continua/historico', [App\Controllers\MelhoriaContinuaController::class, 'historico']);
+$router->get('/melhoria-continua/historico/logs', [App\Controllers\MelhoriaContinuaController::class, 'apiLogs']);
 $router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
 
 // Registros Gerais - páginas separadas

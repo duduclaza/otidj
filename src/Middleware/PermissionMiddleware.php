@@ -25,6 +25,11 @@ class PermissionMiddleware
         '/femea' => 'femea',
         '/pops-e-its' => 'pops_its',
         '/fluxogramas' => 'fluxogramas',
+        // Melhoria Contínua
+        '/melhoria-continua' => 'melhoria_continua',
+        '/melhoria-continua/solicitacoes' => 'solicitacao_melhorias',
+        '/melhoria-continua/pendentes' => 'melhorias_pendentes',
+        '/melhoria-continua/historico' => 'historico_melhorias',
         '/controle-de-rc' => 'controle_rc',
         
         // Registros
@@ -236,6 +241,10 @@ class PermissionMiddleware
             'femea' => '/femea',
             'pops_its' => '/pops-e-its',
             'fluxogramas' => '/fluxogramas',
+            'melhoria_continua' => '/melhoria-continua',
+            'solicitacao_melhorias' => '/melhoria-continua/solicitacoes',
+            'melhorias_pendentes' => '/melhoria-continua/pendentes',
+            'historico_melhorias' => '/melhoria-continua/historico',
             'controle_rc' => '/controle-de-rc',
             'registros_filiais' => '/registros/filiais',
             'registros_departamentos' => '/registros/departamentos',
