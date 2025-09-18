@@ -6,11 +6,19 @@
     <p class="text-sm text-green-700">O sistema agora roda automaticamente as migrações a cada acesso. As tabelas são criadas/atualizadas automaticamente quando você faz push de novas versões.</p>
   </div>
 
-  <div class="p-4 bg-white border rounded">
-    <h2 class="font-medium mb-2">Setup Manual (Opcional)</h2>
-    <p class="text-gray-600 mb-3">Você ainda pode executar o setup manualmente se necessário:</p>
-    <form method="post" action="/configuracoes/setup-banco" onsubmit="return confirm('Executar setup do banco agora?');">
-      <button class="px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700">Setup Banco de Dados</button>
+  <div class="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg">
+    <h2 class="font-semibold text-lg text-blue-900 mb-3">🔧 Setup Manual do Banco de Dados</h2>
+    <p class="text-blue-700 mb-4">Execute este setup para:</p>
+    <ul class="list-disc list-inside text-blue-700 text-sm mb-4 space-y-1">
+      <li>Criar todas as tabelas necessárias</li>
+      <li>Adicionar o módulo "Solicitação de Melhorias" às permissões</li>
+      <li>Remover módulos antigos não utilizados</li>
+      <li>Atualizar estrutura do banco de dados</li>
+    </ul>
+    <form method="post" action="/configuracoes/setup-banco" onsubmit="return confirm('⚠️ ATENÇÃO: Isso irá atualizar o banco de dados.\n\n✅ Criar tabelas de Solicitação de Melhorias\n✅ Atualizar permissões dos perfis\n✅ Remover módulos antigos\n\nDeseja continuar?');">
+      <button class="px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg">
+        🚀 Executar Setup Completo
+      </button>
     </form>
   </div>
 
@@ -27,11 +35,19 @@
     <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
       <h3 class="font-medium text-blue-800 mb-2">Tabelas Criadas Automaticamente:</h3>
       <ul class="text-sm text-blue-700 space-y-1">
+        <li>• <strong>users</strong> - Usuários do sistema</li>
+        <li>• <strong>profiles</strong> - Perfis de usuário</li>
+        <li>• <strong>profile_permissions</strong> - Permissões por perfil</li>
+        <li>• <strong>invitations</strong> - Convites de acesso</li>
         <li>• <strong>filiais</strong> - Cadastro de filiais da empresa</li>
         <li>• <strong>departamentos</strong> - Departamentos organizacionais</li>
         <li>• <strong>fornecedores</strong> - Cadastro de fornecedores</li>
         <li>• <strong>parametros_retornados</strong> - Parâmetros para análise de retornados</li>
-        <li>• <strong>toners</strong> - Cadastro completo de toners com cálculos automáticos</li>
+        <li>• <strong>toners</strong> - Cadastro completo de toners</li>
+        <li>• <strong>retornados</strong> - Registro de toners retornados</li>
+        <li>• <strong>solicitacoes_melhorias</strong> - Solicitações de melhoria</li>
+        <li>• <strong>solicitacoes_melhorias_responsaveis</strong> - Responsáveis por solicitação</li>
+        <li>• <strong>solicitacoes_melhorias_anexos</strong> - Anexos das solicitações</li>
         <li>• <strong>migrations</strong> - Controle de versões do banco</li>
       </ul>
     </div>

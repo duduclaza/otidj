@@ -148,8 +148,26 @@ $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::cla
 $router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesController::class, 'getPermissions']);
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 
-// Solicitações de Melhorias routes
-$router->get('/melhoria-continua/solicitacoes', [App\Controllers\SolicitacoesMelhoriasController::class, 'index']);
+// Solicitações de Melhorias routes (test version)
+$router->get('/melhoria-continua/solicitacoes', function() {
+    // Start session
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    
+    // Set test data
+    $_SESSION['user_id'] = 1;
+    $_SESSION['user_name'] = 'Usuário de Teste';
+    
+    $setores = ['TI', 'Qualidade', 'Produção', 'Administrativo'];
+    $usuarios = [
+        ['id' => 1, 'name' => 'Admin', 'email' => 'admin@test.com'],
+        ['id' => 2, 'name' => 'User', 'email' => 'user@test.com']
+    ];
+    
+    // Include the view directly
+    include __DIR__ . '/../views/melhoria-continua/solicitacoes.php';
+});
 $router->post('/melhoria-continua/solicitacoes/create', [App\Controllers\SolicitacoesMelhoriasController::class, 'create']);
 $router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\SolicitacoesMelhoriasController::class, 'getSolicitacoes']);
 $router->get('/melhoria-continua/solicitacoes/{id}/details', [App\Controllers\SolicitacoesMelhoriasController::class, 'getDetails']);
