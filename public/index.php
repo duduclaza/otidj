@@ -148,6 +148,14 @@ $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::cla
 $router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesController::class, 'getPermissions']);
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 
+// Solicitações de Melhorias routes
+$router->get('/melhoria-continua/solicitacoes', [App\Controllers\SolicitacoesMelhoriasController::class, 'index']);
+$router->post('/melhoria-continua/solicitacoes/create', [App\Controllers\SolicitacoesMelhoriasController::class, 'create']);
+$router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\SolicitacoesMelhoriasController::class, 'getSolicitacoes']);
+$router->get('/melhoria-continua/solicitacoes/{id}/details', [App\Controllers\SolicitacoesMelhoriasController::class, 'getDetails']);
+$router->get('/melhoria-continua/solicitacoes/{id}/print', [App\Controllers\SolicitacoesMelhoriasController::class, 'printSolicitacao']);
+$router->post('/melhoria-continua/solicitacoes/update-status', [App\Controllers\SolicitacoesMelhoriasController::class, 'updateStatus']);
+
 // Dispatch request
 try {
     // Verificar permissões antes de executar a rota

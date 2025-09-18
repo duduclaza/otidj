@@ -22,7 +22,7 @@ class SolicitacoesMelhoriasController
     {
         AuthController::requireAuth();
         
-        if (!AuthController::hasPermission('solicitacao_melhorias', 'view')) {
+        if (!PermissionService::hasPermission($_SESSION['user_id'], 'solicitacao_melhorias', 'view')) {
             http_response_code(403);
             echo 'Acesso negado';
             return;
@@ -48,7 +48,7 @@ class SolicitacoesMelhoriasController
     {
         AuthController::requireAuth();
         
-        if (!AuthController::hasPermission('solicitacao_melhorias', 'edit')) {
+        if (!PermissionService::hasPermission($_SESSION['user_id'], 'solicitacao_melhorias', 'edit')) {
             echo json_encode(['success' => false, 'message' => 'Sem permissão para criar solicitações']);
             return;
         }
@@ -139,7 +139,7 @@ class SolicitacoesMelhoriasController
     {
         AuthController::requireAuth();
         
-        if (!AuthController::hasPermission('solicitacao_melhorias', 'view')) {
+        if (!PermissionService::hasPermission($_SESSION['user_id'], 'solicitacao_melhorias', 'view')) {
             echo json_encode(['success' => false, 'message' => 'Sem permissão']);
             return;
         }
@@ -185,7 +185,7 @@ class SolicitacoesMelhoriasController
     {
         AuthController::requireAuth();
         
-        if (!AuthController::hasPermission('solicitacao_melhorias', 'edit')) {
+        if (!PermissionService::hasPermission($_SESSION['user_id'], 'solicitacao_melhorias', 'edit')) {
             echo json_encode(['success' => false, 'message' => 'Sem permissão para alterar status']);
             return;
         }
@@ -217,7 +217,7 @@ class SolicitacoesMelhoriasController
     {
         AuthController::requireAuth();
         
-        if (!AuthController::hasPermission('solicitacao_melhorias', 'view')) {
+        if (!PermissionService::hasPermission($_SESSION['user_id'], 'solicitacao_melhorias', 'view')) {
             echo json_encode(['success' => false, 'message' => 'Sem permissão']);
             return;
         }
@@ -333,6 +333,56 @@ class SolicitacoesMelhoriasController
                     $uploadedCount++;
                 }
             }
+        }
+    }
+
+    /**
+     * Print solicitação
+     */
+    public function printSolicitacao($id)
+    {
+        AuthController::requireAuth();
+        
+        if (!PermissionService::hasPermission($_SESSION['user_id'], 'solicitacao_melhorias', 'view')) {
+            http_response_code(403);
+            echo 'Acesso negado';
+            return;
+        }
+
+        try {
+            // Get solicitação
+            $stmt = $this->db->prepare("SELECT * FROM solicitacoes_melhorias WHERE id = ?");
+            $stmt->execute([$id]);
+            $solicitacao = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$solicitacao) {
+                echo 'Solicitação não encontrada';
+                return;
+            }
+
+            // Get responsáveis
+            $stmt = $this->db->prepare("
+                SELECT usuario_nome, usuario_email 
+                FROM solicitacoes_melhorias_responsaveis 
+                WHERE solicitacao_id = ?
+            ");
+            $stmt->execute([$id]);
+            $responsaveis = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Get anexos
+            $stmt = $this->db->prepare("
+                SELECT nome_original, tipo_arquivo, tamanho_arquivo 
+                FROM solicitacoes_melhorias_anexos 
+                WHERE solicitacao_id = ?
+            ");
+            $stmt->execute([$id]);
+            $anexos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Render print view
+            require_once __DIR__ . '/../../views/melhoria-continua/print-solicitacao.php';
+
+        } catch (\Exception $e) {
+            echo 'Erro ao carregar solicitação: ' . $e->getMessage();
         }
     }
 
