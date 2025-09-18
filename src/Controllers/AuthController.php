@@ -57,21 +57,9 @@ class AuthController
                 $_SESSION['user_setor'] = $user['setor'];
                 $_SESSION['user_filial'] = $user['filial'];
                 
-                // Load user permissions
-                $stmt = $this->db->prepare("SELECT * FROM user_permissions WHERE user_id = ?");
-                $stmt->execute([$user['id']]);
-                $permissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                
-                $_SESSION['user_permissions'] = [];
-                foreach ($permissions as $perm) {
-                    $_SESSION['user_permissions'][$perm['module']] = [
-                        'view' => (bool)$perm['can_view'],
-                        'edit' => (bool)$perm['can_edit'],
-                        'delete' => (bool)$perm['can_delete'],
-                        'import' => (bool)$perm['can_import'],
-                        'export' => (bool)$perm['can_export']
-                    ];
-                }
+                // Load user profile information
+                $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
+                $_SESSION['user_profile'] = $profileInfo;
                 
                 echo json_encode(['success' => true, 'message' => 'Login realizado com sucesso!']);
             } else {
@@ -183,21 +171,16 @@ class AuthController
     }
     
     /**
-     * Check if user has permission for module and action
+     * Check if user has permission for specific action
      */
-    public static function can(string $module, string $action): bool
+    public static function hasPermission(string $module, string $action): bool
     {
         if (!self::check()) {
             return false;
         }
         
-        // Admin has all permissions
-        if ($_SESSION['user_role'] === 'admin') {
-            return true;
-        }
-        
-        $permissions = $_SESSION['user_permissions'] ?? [];
-        return $permissions[$module][$action] ?? false;
+        $userId = $_SESSION['user_id'];
+        return \App\Services\PermissionService::hasPermission($userId, $module, $action);
     }
     
     /**

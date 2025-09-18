@@ -140,6 +140,14 @@ $router->post('/admin/permissions/update', [App\Controllers\AdminController::cla
 $router->post('/admin/invitations/approve', [App\Controllers\AdminController::class, 'approveInvitation']);
 $router->post('/admin/invitations/reject', [App\Controllers\AdminController::class, 'rejectInvitation']);
 
+// Profiles routes
+$router->get('/admin/profiles', [App\Controllers\ProfilesController::class, 'index']);
+$router->post('/admin/profiles/create', [App\Controllers\ProfilesController::class, 'create']);
+$router->post('/admin/profiles/update', [App\Controllers\ProfilesController::class, 'update']);
+$router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::class, 'delete']);
+$router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesController::class, 'getPermissions']);
+$router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
+
 // Dispatch request
 try {
     $router->dispatch();

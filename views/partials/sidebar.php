@@ -22,6 +22,7 @@ $menu = [
   ['label' => 'Configurações', 'href' => '#', 'icon' => '⚙️', 'submenu' => [
     ['label' => 'Configurações Gerais', 'href' => '/configuracoes', 'icon' => '⚙️'],
     ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥'],
+    ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭'],
     ['label' => 'Solicitações de Acesso', 'href' => '/admin/invitations', 'icon' => '📧'],
     ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧'],
   ]],

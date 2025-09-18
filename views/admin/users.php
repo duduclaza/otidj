@@ -81,6 +81,13 @@
         </div>
       </div>
 
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Perfil de Acesso *</label>
+        <select id="userProfile" name="profile_id" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+          <option value="">Selecione um perfil</option>
+        </select>
+      </div>
+
       <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
         <button type="button" onclick="cancelUserForm()" class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
           Cancelar
@@ -103,7 +110,7 @@
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Função</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado em</th>
             <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
@@ -154,6 +161,7 @@
 let currentUserId = null;
 let setoresList = [];
 let filiaisList = [];
+let profilesList = [];
 
 // Load users on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -178,8 +186,10 @@ function loadUsers() {
       displayUsers(result.users);
       setoresList = result.setores || [];
       filiaisList = result.filiais || [];
+      profilesList = result.profiles || [];
       console.log('Setores recebidos:', setoresList);
       console.log('Filiais recebidas:', filiaisList);
+      console.log('Perfis recebidos:', profilesList);
       populateDropdowns();
     } else {
       alert('Erro ao carregar usuários: ' + result.message);
@@ -229,6 +239,27 @@ function populateDropdowns() {
   } else {
     console.error('Elemento userFilial não encontrado');
   }
+  
+  // Populate profiles dropdown
+  const profileSelect = document.getElementById('userProfile');
+  if (profileSelect) {
+    profileSelect.innerHTML = '<option value="">Selecione um perfil</option>';
+    if (profilesList && profilesList.length > 0) {
+      profilesList.forEach(profile => {
+        const option = document.createElement('option');
+        option.value = profile.id;
+        option.textContent = profile.name;
+        if (profile.description) {
+          option.title = profile.description;
+        }
+        profileSelect.appendChild(option);
+      });
+    } else {
+      console.log('Nenhum perfil encontrado');
+    }
+  } else {
+    console.error('Elemento userProfile não encontrado');
+  }
 }
 
 function displayUsers(users) {
@@ -251,8 +282,8 @@ function displayUsers(users) {
       </td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.email}</td>
       <td class="px-6 py-4 whitespace-nowrap">
-        <span class="px-2 py-1 text-xs font-medium rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}">
-          ${user.role === 'admin' ? 'Administrador' : 'Usuário'}
+        <span class="px-2 py-1 text-xs font-medium rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}" title="${user.profile_description || ''}">
+          ${user.profile_name || 'Sem perfil'}
         </span>
       </td>
       <td class="px-6 py-4 whitespace-nowrap">
@@ -265,7 +296,6 @@ function displayUsers(users) {
       </td>
       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
         <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-900">Editar</button>
-        <button onclick="managePermissions(${user.id}, '${user.name}')" class="text-green-600 hover:text-green-900">Permissões</button>
         <button onclick="deleteUser(${user.id}, '${user.name}')" class="text-red-600 hover:text-red-900">Excluir</button>
       </td>
     `;
@@ -341,6 +371,7 @@ function editUser(userId) {
           document.getElementById('userFilial').value = user.filial || '';
           document.getElementById('userRole').value = user.role;
           document.getElementById('userStatus').value = user.status;
+          document.getElementById('userProfile').value = user.profile_id || '';
           
           // Show password field but make it optional for editing
           document.getElementById('passwordField').style.display = 'block';

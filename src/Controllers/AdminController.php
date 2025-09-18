@@ -46,7 +46,13 @@ class AdminController
         // Check if it's an AJAX request
         if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
             try {
-                $stmt = $this->db->prepare("SELECT id, name, email, setor, filial, role, status, created_at FROM users ORDER BY created_at DESC");
+                $stmt = $this->db->prepare("
+                SELECT u.id, u.name, u.email, u.setor, u.filial, u.role, u.status, u.created_at, u.profile_id,
+                       p.name as profile_name, p.description as profile_description
+                FROM users u 
+                LEFT JOIN profiles p ON u.profile_id = p.id 
+                ORDER BY u.created_at DESC
+            ");
                 $stmt->execute();
                 $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 
@@ -60,12 +66,18 @@ class AdminController
                 $filiaisStmt->execute();
                 $filiais = $filiaisStmt->fetchAll(\PDO::FETCH_COLUMN);
                 
+                // Get profiles
+                $profilesStmt = $this->db->prepare("SELECT id, name, description FROM profiles ORDER BY is_admin DESC, name ASC");
+                $profilesStmt->execute();
+                $profiles = $profilesStmt->fetchAll(\PDO::FETCH_ASSOC);
+                
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => true,
                     'users' => $users,
                     'setores' => $setores,
-                    'filiais' => $filiais
+                    'filiais' => $filiais,
+                    'profiles' => $profiles
                 ]);
                 return;
             } catch (\Exception $e) {
@@ -137,6 +149,7 @@ class AdminController
             $setor = $_POST['setor'] ?? '';
             $filial = $_POST['filial'] ?? '';
             $role = $_POST['role'] ?? 'user';
+            $profileId = $_POST['profile_id'] ?? null;
             
             if (empty($name) || empty($email) || empty($password)) {
                 echo json_encode(['success' => false, 'message' => 'Nome, email e senha são obrigatórios']);
@@ -156,10 +169,17 @@ class AdminController
                 exit;
             }
             
+            // If no profile specified, get default profile
+            if (empty($profileId)) {
+                $defaultProfileStmt = $this->db->prepare("SELECT id FROM profiles WHERE is_default = 1 LIMIT 1");
+                $defaultProfileStmt->execute();
+                $profileId = $defaultProfileStmt->fetchColumn();
+            }
+            
             // Create user
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, status) VALUES (?, ?, ?, ?, ?, ?, 'active')");
-            $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role]);
+            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
+            $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
             
             // Send welcome email (don't let email errors break user creation)
             try {
@@ -345,6 +365,7 @@ class AdminController
             $filial = $_POST['filial'] ?? '';
             $role = $_POST['role'] ?? 'user';
             $status = $_POST['status'] ?? 'active';
+            $profileId = $_POST['profile_id'] ?? null;
             
             // Debug log
             error_log("UpdateUser - UserID: $userId, Name: $name, Email: $email");
@@ -406,8 +427,8 @@ class AdminController
             if (!empty($password)) {
                 error_log("Updating user with new password");
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, status = ? WHERE id = ?");
-                $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $status, $userId]);
+                $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
+                $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId, $status, $userId]);
                 
                 error_log("Update result with password: " . ($result ? 'success' : 'failed'));
                 
@@ -421,8 +442,8 @@ class AdminController
                 echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! (Nova senha definida)']);
             } else {
                 error_log("Updating user without password change");
-                $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, status = ? WHERE id = ?");
-                $result = $stmt->execute([$name, $email, $setor, $filial, $role, $status, $userId]);
+                $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
+                $result = $stmt->execute([$name, $email, $setor, $filial, $role, $profileId, $status, $userId]);
                 
                 error_log("Update result without password: " . ($result ? 'success' : 'failed'));
                 

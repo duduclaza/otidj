@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 7;
+    private const CURRENT_VERSION = 8;
 
     public function __construct()
     {
@@ -67,6 +67,11 @@ class Migration
                 // Version 7: Create authentication tables
                 $this->migration7();
                 $this->updateVersion(7);
+            }
+            if ($currentVersion < 8) {
+                // Version 8: Create profiles system
+                $this->migration8();
+                $this->updateVersion(8);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -396,5 +401,124 @@ class Migration
                 $stmt->execute([$adminId, $module]);
             }
         }
+    }
+
+    private function migration8(): void
+    {
+        // Create profiles table
+        $this->db->exec('CREATE TABLE IF NOT EXISTS profiles (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL UNIQUE,
+            description TEXT NULL,
+            is_default BOOLEAN DEFAULT FALSE,
+            is_admin BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_name (name),
+            INDEX idx_default (is_default),
+            INDEX idx_admin (is_admin)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+
+        // Create profile_permissions table
+        $this->db->exec('CREATE TABLE IF NOT EXISTS profile_permissions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            profile_id INT NOT NULL,
+            module VARCHAR(100) NOT NULL,
+            can_view BOOLEAN DEFAULT FALSE,
+            can_edit BOOLEAN DEFAULT FALSE,
+            can_delete BOOLEAN DEFAULT FALSE,
+            can_import BOOLEAN DEFAULT FALSE,
+            can_export BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_profile_module (profile_id, module),
+            INDEX idx_profile_id (profile_id),
+            INDEX idx_module (module)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+
+        // Add profile_id column to users table
+        $this->db->exec('ALTER TABLE users 
+            ADD COLUMN IF NOT EXISTS profile_id INT NULL AFTER role,
+            ADD INDEX idx_profile_id (profile_id)');
+
+        // Create default profiles
+        $this->createDefaultProfiles();
+        
+        // Migrate existing users to use profiles
+        $this->migrateUsersToProfiles();
+    }
+
+    private function createDefaultProfiles(): void
+    {
+        // Create Administrator profile
+        $stmt = $this->db->prepare("INSERT IGNORE INTO profiles (name, description, is_admin, is_default) VALUES (?, ?, ?, ?)");
+        $stmt->execute(['Administrador', 'Perfil com acesso total ao sistema', true, false]);
+        $adminProfileId = $this->db->lastInsertId() ?: $this->getProfileIdByName('Administrador');
+
+        // Create default user profile
+        $stmt->execute(['Usuário Comum', 'Perfil padrão para usuários comuns', false, true]);
+        $userProfileId = $this->db->lastInsertId() ?: $this->getProfileIdByName('Usuário Comum');
+
+        // Create Supervisor profile
+        $stmt->execute(['Supervisor', 'Perfil para supervisores com permissões intermediárias', false, false]);
+        $supervisorProfileId = $this->db->lastInsertId() ?: $this->getProfileIdByName('Supervisor');
+
+        // Define modules
+        $modules = [
+            'dashboard' => 'Dashboard',
+            'toners' => 'Controle de Toners', 
+            'homologacoes' => 'Homologações',
+            'amostragens' => 'Amostragens',
+            'auditorias' => 'Auditorias',
+            'garantias' => 'Garantias',
+            'registros' => 'Registros Gerais',
+            'configuracoes' => 'Configurações',
+            'usuarios' => 'Gerenciar Usuários',
+            'perfis' => 'Gerenciar Perfis'
+        ];
+
+        // Administrator permissions (full access)
+        foreach ($modules as $module => $name) {
+            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 1, 1, 1, 1)");
+            $stmt->execute([$adminProfileId, $module]);
+        }
+
+        // Common user permissions (view only for most modules)
+        $userModules = ['dashboard', 'toners', 'amostragens'];
+        foreach ($userModules as $module) {
+            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 0, 0, 0, 0)");
+            $stmt->execute([$userProfileId, $module]);
+        }
+
+        // Supervisor permissions (view and edit for most modules)
+        $supervisorModules = ['dashboard', 'toners', 'homologacoes', 'amostragens', 'auditorias', 'garantias'];
+        foreach ($supervisorModules as $module) {
+            $canEdit = in_array($module, ['toners', 'amostragens']) ? 1 : 0;
+            $canDelete = in_array($module, ['amostragens']) ? 1 : 0;
+            $stmt = $this->db->prepare("INSERT IGNORE INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, ?, ?, 0, 1)");
+            $stmt->execute([$supervisorProfileId, $module, $canEdit, $canDelete]);
+        }
+    }
+
+    private function getProfileIdByName(string $name): ?int
+    {
+        $stmt = $this->db->prepare("SELECT id FROM profiles WHERE name = ?");
+        $stmt->execute([$name]);
+        return $stmt->fetchColumn() ?: null;
+    }
+
+    private function migrateUsersToProfiles(): void
+    {
+        // Get profile IDs
+        $adminProfileId = $this->getProfileIdByName('Administrador');
+        $userProfileId = $this->getProfileIdByName('Usuário Comum');
+
+        // Update existing users to use profiles
+        $stmt = $this->db->prepare("UPDATE users SET profile_id = ? WHERE role = 'admin' AND profile_id IS NULL");
+        $stmt->execute([$adminProfileId]);
+
+        $stmt = $this->db->prepare("UPDATE users SET profile_id = ? WHERE role = 'user' AND profile_id IS NULL");
+        $stmt->execute([$userProfileId]);
     }
 }
