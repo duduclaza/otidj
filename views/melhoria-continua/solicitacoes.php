@@ -19,19 +19,6 @@ if (!function_exists('e')) {
   </div>
 <?php endif; ?>
 
-<!-- Development Notice -->
-<div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
-  <div class="flex items-center">
-    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-    </svg>
-    <div>
-      <strong>Sistema em Desenvolvimento:</strong> Para funcionalidade completa, execute o 
-      <a href="/configuracoes" class="underline font-semibold">Setup do Banco de Dados</a> 
-      na página de configurações.
-    </div>
-  </div>
-</div>
 
 <section class="space-y-6">
   <div class="flex justify-between items-center">
@@ -57,13 +44,6 @@ if (!function_exists('e')) {
     
     <form id="solicitacaoForm" class="space-y-6" enctype="multipart/form-data">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Usuário (automático) -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
-          <input type="text" value="<?= e($_SESSION['user_name'] ?? 'Usuário') ?>" readonly 
-                 class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-gray-100 cursor-not-allowed">
-        </div>
-
         <!-- Data (automática) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Data da Solicitação</label>
@@ -84,83 +64,96 @@ if (!function_exists('e')) {
           </select>
         </div>
 
+        <!-- Processo -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Processo *</label>
+          <input type="text" name="processo" required 
+                 class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                 placeholder="Descreva o processo relacionado à melhoria">
+        </div>
+
+        <!-- Responsáveis -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Responsáveis *</label>
+          <div class="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto bg-gray-50">
+            <?php if (isset($usuarios) && is_array($usuarios)): ?>
+              <?php foreach ($usuarios as $usuario): ?>
+                <label class="flex items-center space-x-3 py-2 hover:bg-white rounded px-2 cursor-pointer">
+                  <input type="checkbox" name="responsaveis[]" value="<?= $usuario['id'] ?>" 
+                         data-email="<?= e($usuario['email']) ?>"
+                         class="form-checkbox h-4 w-4 text-blue-600 rounded focus:ring-blue-500">
+                  <div class="flex-1">
+                    <span class="text-sm font-medium text-gray-900"><?= e($usuario['name']) ?></span>
+                    <span class="text-xs text-gray-500 block"><?= e($usuario['email']) ?></span>
+                  </div>
+                </label>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <p class="text-gray-500 text-sm">Nenhum usuário encontrado</p>
+            <?php endif; ?>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Selecione um ou mais responsáveis que receberão notificação por email</p>
+        </div>
+
         <!-- Status (automático) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-          <input type="text" value="Pendente" readonly 
-                 class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-gray-100 cursor-not-allowed">
+          <div class="flex items-center space-x-2">
+            <span class="inline-flex px-3 py-1 text-sm font-medium rounded-full bg-yellow-100 text-yellow-800 border border-yellow-300">
+              Pendente
+            </span>
+            <span class="text-xs text-gray-500">(Somente administradores podem alterar o status)</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Processo -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Processo *</label>
-        <input type="text" name="processo" required 
-               class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-               placeholder="Descreva o processo relacionado à melhoria">
-      </div>
-
-      <!-- Descrição da Melhoria -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Descrição da Melhoria *</label>
-        <textarea name="descricao_melhoria" required rows="4" 
-                  class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
-      </div>
-
-      <!-- Responsáveis -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Responsáveis *</label>
-        <div class="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
-          <?php if (isset($usuarios) && is_array($usuarios)): ?>
-            <?php foreach ($usuarios as $usuario): ?>
-              <label class="flex items-center space-x-2 py-1">
-                <input type="checkbox" name="responsaveis[]" value="<?= $usuario['id'] ?>" 
-                       class="form-checkbox h-4 w-4 text-blue-600 rounded">
-                <span class="text-sm"><?= e($usuario['name']) ?> (<?= e($usuario['email']) ?>)</span>
-              </label>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <p class="text-gray-500 text-sm">Nenhum usuário encontrado</p>
-          <?php endif; ?>
+        <!-- Observações -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
+          <textarea name="observacoes" rows="3" 
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Observações adicionais (opcional)..."></textarea>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Selecione um ou mais responsáveis que receberão notificação por email</p>
-      </div>
 
-      <!-- Resultado Esperado -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Resultado Esperado *</label>
-        <textarea name="resultado_esperado" required rows="3" 
-                  class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Descreva o resultado esperado com a implementação desta melhoria..."></textarea>
-      </div>
+        <!-- Resultado Esperado -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Resultado Esperado *</label>
+          <textarea name="resultado_esperado" required rows="4" 
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Descreva o resultado esperado com a implementação desta melhoria..."></textarea>
+        </div>
 
-      <!-- Observações -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
-        <textarea name="observacoes" rows="3" 
-                  class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="Observações adicionais (opcional)..."></textarea>
-      </div>
+        <!-- Anexos -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Anexos</label>
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+            <input type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf" 
+                   id="fileInput" class="hidden" onchange="updateFileList()">
+            <label for="fileInput" class="cursor-pointer">
+              <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <div class="mt-2">
+                <span class="text-sm font-medium text-blue-600 hover:text-blue-500">Clique para selecionar arquivos</span>
+                <span class="text-sm text-gray-500"> ou arraste e solte aqui</span>
+              </div>
+            </label>
+          </div>
+          <div id="fileList" class="mt-2 space-y-1"></div>
+          <p class="text-xs text-gray-500 mt-2">
+            <strong>Limites:</strong> Máximo 5 arquivos, 5MB cada. 
+            <strong>Formatos aceitos:</strong> JPG, PNG, GIF, PDF
+          </p>
+        </div>
 
-      <!-- Anexos -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Anexos</label>
-        <input type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf" 
-               class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-        <p class="text-xs text-gray-500 mt-1">Máximo 5 arquivos, até 5MB cada. Formatos: JPG, PNG, GIF, PDF</p>
-      </div>
-
-      <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
-        <button type="button" onclick="cancelSolicitacaoForm()" class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-          Cancelar
-        </button>
-        <button type="button" onclick="submitSolicitacao()" id="submitBtn" class="px-6 py-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
-          Enviar Solicitação
-        </button>
-      </div>
-    </form>
-  </div>
+        <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
+          <button type="button" onclick="cancelSolicitacaoForm()" class="px-6 py-3 text-sm font-medium text-gray-700 bg-gray-200 border border-gray-300 rounded-lg hover:bg-gray-300 transition-colors">
+            Cancelar
+          </button>
+          <button type="submit" id="submitBtn" class="px-6 py-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors shadow-lg">
+            Enviar Solicitação
+          </button>
+        </div>
+      </form>
 
   <!-- Solicitações Grid -->
   <div class="bg-white rounded-lg shadow overflow-hidden">
@@ -269,6 +262,43 @@ function submitSolicitacao() {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Enviar Solicitação';
   });
+}
+
+function updateFileList() {
+  const fileInput = document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  
+  fileList.innerHTML = '';
+  
+  if (fileInput.files.length > 0) {
+    if (fileInput.files.length > 5) {
+      alert('Máximo 5 arquivos permitidos');
+      fileInput.value = '';
+      return;
+    }
+    
+    Array.from(fileInput.files).forEach((file, index) => {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`Arquivo "${file.name}" excede 5MB`);
+        fileInput.value = '';
+        fileList.innerHTML = '';
+        return;
+      }
+      
+      const fileItem = document.createElement('div');
+      fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded border';
+      fileItem.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+          </svg>
+          <span class="text-sm text-gray-700">${file.name}</span>
+          <span class="text-xs text-gray-500">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+        </div>
+      `;
+      fileList.appendChild(fileItem);
+    });
+  }
 }
 
 function loadSolicitacoes() {
