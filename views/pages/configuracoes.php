@@ -11,11 +11,11 @@
     <p class="text-blue-700 mb-4">Execute este setup para:</p>
     <ul class="list-disc list-inside text-blue-700 text-sm mb-4 space-y-1">
       <li>Criar todas as tabelas necessárias</li>
-      <li>Adicionar o módulo "Solicitação de Melhorias" às permissões</li>
-      <li>Remover módulos antigos não utilizados</li>
       <li>Atualizar estrutura do banco de dados</li>
+      <li>Executar migrações pendentes</li>
+      <li>Inserir dados padrão se necessário</li>
     </ul>
-    <form method="post" action="/configuracoes/setup-banco" onsubmit="return confirm('⚠️ ATENÇÃO: Isso irá atualizar o banco de dados.\n\n✅ Criar tabelas de Solicitação de Melhorias\n✅ Atualizar permissões dos perfis\n✅ Remover módulos antigos\n\nDeseja continuar?');">
+    <form method="post" action="/configuracoes/setup-banco" onsubmit="return confirm('⚠️ ATENÇÃO: Isso irá atualizar o banco de dados.\n\n✅ Executar migrações\n✅ Criar tabelas necessárias\n✅ Inserir dados padrão\n\nDeseja continuar?');">
       <button class="px-6 py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors shadow-lg">
         🚀 Executar Setup Completo
       </button>
@@ -45,9 +45,6 @@
         <li>• <strong>parametros_retornados</strong> - Parâmetros para análise de retornados</li>
         <li>• <strong>toners</strong> - Cadastro completo de toners</li>
         <li>• <strong>retornados</strong> - Registro de toners retornados</li>
-        <li>• <strong>solicitacoes_melhorias</strong> - Solicitações de melhoria</li>
-        <li>• <strong>solicitacoes_melhorias_responsaveis</strong> - Responsáveis por solicitação</li>
-        <li>• <strong>solicitacoes_melhorias_anexos</strong> - Anexos das solicitações</li>
         <li>• <strong>migrations</strong> - Controle de versões do banco</li>
       </ul>
     </div>

@@ -25,7 +25,6 @@ class PermissionMiddleware
         '/femea' => 'femea',
         '/pops-e-its' => 'pops_its',
         '/fluxogramas' => 'fluxogramas',
-        '/solicitacoes' => 'solicitacao_melhorias',
         '/controle-de-rc' => 'controle_rc',
         
         // Registros
@@ -237,7 +236,6 @@ class PermissionMiddleware
             'femea' => '/femea',
             'pops_its' => '/pops-e-its',
             'fluxogramas' => '/fluxogramas',
-            'solicitacao_melhorias' => '/solicitacoes',
             'controle_rc' => '/controle-de-rc',
             'registros_filiais' => '/registros/filiais',
             'registros_departamentos' => '/registros/departamentos',

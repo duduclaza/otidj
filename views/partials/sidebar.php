@@ -39,13 +39,12 @@ $menu = [
     'href' => '#', 
     'icon' => '📊', 
     'category' => true,
-    'modules' => ['homologacoes', 'femea', 'pops_its', 'fluxogramas', 'solicitacao_melhorias', 'controle_rc'],
+    'modules' => ['homologacoes', 'femea', 'pops_its', 'fluxogramas', 'controle_rc'],
     'submenu' => [
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
       ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈', 'module' => 'femea'],
       ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
       ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
-      ['label' => 'Solicitação de Melhorias', 'href' => '/solicitacoes', 'icon' => '💡', 'module' => 'solicitacao_melhorias'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
     ]
   ],
