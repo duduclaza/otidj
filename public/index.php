@@ -148,8 +148,27 @@ $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::cla
 $router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesController::class, 'getPermissions']);
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 
-// Solicitações de Melhorias routes
-$router->get('/melhoria-continua/solicitacoes', [App\Controllers\SolicitacoesMelhoriasController::class, 'index']);
+// Solicitações de Melhorias routes (debug version)
+$router->get('/melhoria-continua/solicitacoes', function() {
+    echo "<!DOCTYPE html>";
+    echo "<html><head><title>Debug Solicitações</title><script src='https://cdn.tailwindcss.com'></script></head>";
+    echo "<body class='bg-gray-100 p-8'>";
+    echo "<div class='max-w-4xl mx-auto'>";
+    echo "<div class='bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4'>";
+    echo "✅ Rota funcionando! O sistema está capturando a URL corretamente.";
+    echo "</div>";
+    echo "<h1 class='text-2xl font-bold text-gray-900 mb-4'>Debug - Solicitação de Melhorias</h1>";
+    echo "<p class='text-gray-700 mb-4'>Se você está vendo esta mensagem, significa que:</p>";
+    echo "<ul class='list-disc list-inside text-gray-700 space-y-2 mb-6'>";
+    echo "<li>✅ O roteador está funcionando</li>";
+    echo "<li>✅ A URL está sendo capturada corretamente</li>";
+    echo "<li>✅ O PHP está executando</li>";
+    echo "</ul>";
+    echo "<div class='bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded'>";
+    echo "<p><strong>Próximo passo:</strong> Verificar se o controller original tem algum problema.</p>";
+    echo "</div>";
+    echo "</div></body></html>";
+});
 $router->post('/melhoria-continua/solicitacoes/create', [App\Controllers\SolicitacoesMelhoriasController::class, 'create']);
 $router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\SolicitacoesMelhoriasController::class, 'getSolicitacoes']);
 $router->get('/melhoria-continua/solicitacoes/{id}/details', [App\Controllers\SolicitacoesMelhoriasController::class, 'getDetails']);

@@ -1,3 +1,12 @@
+<?php 
+// Function to safely escape output
+if (!function_exists('e')) {
+    function e($string) {
+        return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+    }
+}
+?>
+
 <?php if (isset($error)): ?>
   <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
     <?= e($error) ?>
@@ -37,7 +46,7 @@
         <!-- Usuário (automático) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
-          <input type="text" value="<?= e($_SESSION['user_name']) ?>" readonly 
+          <input type="text" value="<?= e($_SESSION['user_name'] ?? 'Usuário') ?>" readonly 
                  class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm bg-gray-100 cursor-not-allowed">
         </div>
 
@@ -53,9 +62,11 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Setor *</label>
           <select name="setor" required class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
             <option value="">Selecione o setor</option>
-            <?php foreach ($setores as $setor): ?>
-              <option value="<?= e($setor) ?>"><?= e($setor) ?></option>
-            <?php endforeach; ?>
+            <?php if (isset($setores) && is_array($setores)): ?>
+              <?php foreach ($setores as $setor): ?>
+                <option value="<?= e($setor) ?>"><?= e($setor) ?></option>
+              <?php endforeach; ?>
+            <?php endif; ?>
           </select>
         </div>
 
@@ -87,13 +98,17 @@
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Responsáveis *</label>
         <div class="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
-          <?php foreach ($usuarios as $usuario): ?>
-            <label class="flex items-center space-x-2 py-1">
-              <input type="checkbox" name="responsaveis[]" value="<?= $usuario['id'] ?>" 
-                     class="form-checkbox h-4 w-4 text-blue-600 rounded">
-              <span class="text-sm"><?= e($usuario['name']) ?> (<?= e($usuario['email']) ?>)</span>
-            </label>
-          <?php endforeach; ?>
+          <?php if (isset($usuarios) && is_array($usuarios)): ?>
+            <?php foreach ($usuarios as $usuario): ?>
+              <label class="flex items-center space-x-2 py-1">
+                <input type="checkbox" name="responsaveis[]" value="<?= $usuario['id'] ?>" 
+                       class="form-checkbox h-4 w-4 text-blue-600 rounded">
+                <span class="text-sm"><?= e($usuario['name']) ?> (<?= e($usuario['email']) ?>)</span>
+              </label>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <p class="text-gray-500 text-sm">Nenhum usuário encontrado</p>
+          <?php endif; ?>
         </div>
         <p class="text-xs text-gray-500 mt-1">Selecione um ou mais responsáveis que receberão notificação por email</p>
       </div>
