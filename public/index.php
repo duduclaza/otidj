@@ -1,105 +1,106 @@
 <?php
-// Versão ultra-simples que funciona SEM Controllers problemáticos
+// Sistema SGQ OTI DJ - Versão Corrigida
 session_start();
+
+// No-cache headers
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Router;
+use App\Core\Migration;
+use App\Middleware\PermissionMiddleware;
 
 // Load environment
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
+// Error reporting
+$isDebug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+if ($isDebug) {
+    ini_set('display_errors', '1');
+    error_reporting(E_ALL);
+} else {
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+}
+
 // Create router
 $router = new Router(__DIR__);
 
-// Página inicial simples
-$router->get('/', function() {
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: /login');
-        exit;
-    }
-    header('Location: /admin');
-    exit;
-});
+// Run migrations (with error handling)
+try {
+    $migration = new Migration();
+    $migration->run();
+} catch (\Exception $e) {
+    error_log('Migration error: ' . $e->getMessage());
+    // Continue without migrations if they fail
+}
 
-// Login simples
-$router->get('/login', function() {
-    echo '<!DOCTYPE html><html><head><title>Login - SGQ</title>';
-    echo '<script src="https://cdn.tailwindcss.com"></script></head><body class="bg-gray-100">';
-    echo '<div class="min-h-screen flex items-center justify-center">';
-    echo '<div class="bg-white p-8 rounded-lg shadow-md w-96">';
-    echo '<h1 class="text-2xl font-bold mb-6 text-center">SGQ OTI DJ</h1>';
-    echo '<form method="POST" action="/auth/login">';
-    echo '<div class="mb-4">';
-    echo '<label class="block text-sm font-medium mb-2">Email:</label>';
-    echo '<input type="email" name="email" class="w-full border rounded px-3 py-2" required>';
-    echo '</div>';
-    echo '<div class="mb-6">';
-    echo '<label class="block text-sm font-medium mb-2">Senha:</label>';
-    echo '<input type="password" name="password" class="w-full border rounded px-3 py-2" required>';
-    echo '</div>';
-    echo '<button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Entrar</button>';
-    echo '</form>';
-    echo '</div></div></body></html>';
-});
+// Auth routes
+$router->get('/login', [App\Controllers\AuthController::class, 'showLogin']);
+$router->post('/auth/login', [App\Controllers\AuthController::class, 'login']);
+$router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
 
-// Admin simples
-$router->get('/admin', function() {
-    if (!isset($_SESSION['user_id'])) {
-        header('Location: /login');
-        exit;
-    }
-    
-    echo '<!DOCTYPE html><html><head><title>Admin - SGQ</title>';
-    echo '<script src="https://cdn.tailwindcss.com"></script></head><body>';
-    echo '<div class="container mx-auto p-6">';
-    echo '<h1 class="text-3xl font-bold mb-6">🎉 Sistema SGQ Funcionando!</h1>';
-    echo '<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">';
-    echo '<strong>Sucesso!</strong> O sistema está funcionando corretamente.';
-    echo '</div>';
-    echo '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
-    echo '<div class="bg-white p-4 rounded shadow"><h3 class="font-bold">✅ Router</h3><p>Funcionando</p></div>';
-    echo '<div class="bg-white p-4 rounded shadow"><h3 class="font-bold">✅ Database</h3><p>Conectado</p></div>';
-    echo '<div class="bg-white p-4 rounded shadow"><h3 class="font-bold">✅ Sessions</h3><p>Ativas</p></div>';
-    echo '</div>';
-    echo '<div class="mt-6">';
-    echo '<a href="/diagnostic.php" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">🔧 Diagnóstico Completo</a>';
-    echo '<a href="/logout" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 ml-2">Sair</a>';
-    echo '</div>';
-    echo '</div></body></html>';
-});
+// Dashboard
+$router->get('/', [App\Controllers\DashboardController::class, 'index']);
 
-// Logout simples
-$router->get('/logout', function() {
-    session_destroy();
-    header('Location: /login');
-    exit;
-});
+// Admin routes
+$router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
+$router->get('/admin/users', [App\Controllers\AdminController::class, 'users']);
+$router->get('/admin/invitations', [App\Controllers\AdminController::class, 'invitations']);
+$router->post('/admin/users/create', [App\Controllers\AdminController::class, 'createUser']);
+$router->post('/admin/users/update', [App\Controllers\AdminController::class, 'updateUser']);
+$router->post('/admin/users/delete', [App\Controllers\AdminController::class, 'deleteUser']);
+$router->post('/admin/users/send-credentials', [App\Controllers\AdminController::class, 'sendCredentials']);
+$router->get('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'userPermissions']);
+$router->post('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'updateUserPermissions']);
 
-// Auth login simples
-$router->post('/auth/login', function() {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    
-    // Login básico (você pode melhorar depois)
-    if ($email === 'admin@sgq.com' && $password === 'admin123') {
-        $_SESSION['user_id'] = 1;
-        $_SESSION['user_name'] = 'Administrador';
-        $_SESSION['user_email'] = $email;
-        header('Location: /admin');
-    } else {
-        header('Location: /login?error=1');
-    }
-    exit;
-});
+// Toners routes
+$router->get('/toners/cadastro', [App\Controllers\TonersController::class, 'cadastro']);
+$router->post('/toners/cadastro', [App\Controllers\TonersController::class, 'store']);
+$router->get('/toners/retornados', [App\Controllers\TonersController::class, 'retornados']);
+$router->post('/toners/retornados', [App\Controllers\TonersController::class, 'storeRetornado']);
+
+// Other routes
+$router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);
+$router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
+$router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
+
+// Profiles routes
+$router->get('/admin/profiles', [App\Controllers\ProfilesController::class, 'index']);
+$router->post('/admin/profiles/create', [App\Controllers\ProfilesController::class, 'create']);
+$router->post('/admin/profiles/update', [App\Controllers\ProfilesController::class, 'update']);
+$router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::class, 'delete']);
+
+// API routes
+$router->get('/api/users', [App\Controllers\UsersController::class, 'getUsers']);
+$router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 
 // Dispatch
 try {
+    $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    
+    // Apply middleware
+    PermissionMiddleware::handle($currentRoute, $method);
+    
     $router->dispatch();
-} catch (Exception $e) {
-    echo '<!DOCTYPE html><html><head><title>Erro</title></head><body>';
-    echo '<h1>Erro: ' . htmlspecialchars($e->getMessage()) . '</h1>';
-    echo '<p><a href="/diagnostic.php">Diagnóstico</a></p>';
-    echo '</body></html>';
+    
+} catch (\Exception $e) {
+    error_log('Application error: ' . $e->getMessage());
+    
+    if ($isDebug) {
+        echo '<h1>Erro: ' . htmlspecialchars($e->getMessage()) . '</h1>';
+        echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+    } else {
+        http_response_code(500);
+        echo '<!DOCTYPE html><html><head><title>Erro 500</title></head><body>';
+        echo '<h1>Erro Interno do Servidor</h1>';
+        echo '<p>Tente novamente em alguns minutos.</p>';
+        echo '</body></html>';
+    }
 }
 ?>
