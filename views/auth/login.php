@@ -1,8 +1,8 @@
 <div class="glass-effect rounded-2xl shadow-2xl p-8">
   <!-- Logo/Header -->
   <div class="text-center mb-8">
-    <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full mb-6 shadow-lg p-2">
-      <img src="/img/logo.png" alt="DJ Logo" class="w-full h-full object-contain">
+    <div class="inline-flex items-center justify-center mb-6">
+      <img src="/img/logo.png" alt="DJ Logo" class="w-20 h-20 object-contain">
     </div>
     <h1 class="text-4xl font-bold text-white mb-3">SGQ OTI DJ</h1>
     <p class="text-blue-100 text-lg">Sistema de Gestão da Qualidade</p>
