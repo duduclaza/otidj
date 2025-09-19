@@ -242,119 +242,66 @@ class AdminController
      */
     public function sendCredentials()
     {
-        error_log('sendCredentials method called');
-        
-        // Limpar qualquer output anterior
-        if (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Headers JSON
-        header('Content-Type: application/json; charset=utf-8');
-        header('Cache-Control: no-cache, must-revalidate');
-        
+        // Teste básico primeiro
         try {
-            error_log('Checking authentication...');
+            // Limpar qualquer output anterior
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
             
-            // Verificar se é admin
+            // Headers JSON
+            header('Content-Type: application/json; charset=utf-8');
+            header('Cache-Control: no-cache, must-revalidate');
+            
+            // Log básico
+            file_put_contents(__DIR__ . '/../../storage/logs/debug.log', date('Y-m-d H:i:s') . " - sendCredentials called\n", FILE_APPEND);
+            
+            // Verificar sessão
             if (!isset($_SESSION['user_id'])) {
-                error_log('User not authenticated');
                 echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
                 exit;
             }
             
-            error_log('User ID: ' . $_SESSION['user_id']);
-            
-            // Verificar se é admin usando PermissionService
-            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
-                error_log('User is not admin');
+            // Verificar se é admin
+            $isAdmin = \App\Services\PermissionService::isAdmin($_SESSION['user_id']);
+            if (!$isAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
                 exit;
             }
             
             $userId = $_POST['user_id'] ?? $_POST['id'] ?? null;
-            error_log('Target user ID: ' . $userId);
-            
             if (!$userId) {
-                error_log('No user ID provided');
                 echo json_encode(['success' => false, 'message' => 'ID do usuário é obrigatório']);
                 exit;
             }
             
-            // Buscar dados do usuário
-            error_log('Searching for user in database...');
+            // Buscar usuário
             $stmt = $this->db->prepare("SELECT id, name, email, status FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if (!$user) {
-                error_log('User not found in database');
                 echo json_encode(['success' => false, 'message' => 'Usuário não encontrado']);
                 exit;
             }
             
-            error_log('User found: ' . $user['email']);
-            
             if ($user['status'] !== 'active') {
-                error_log('User is not active: ' . $user['status']);
                 echo json_encode(['success' => false, 'message' => 'Usuário não está ativo']);
                 exit;
             }
             
-            // Verificar se o email está configurado
-            error_log('Checking email configuration...');
-            if (empty($_ENV['MAIL_HOST']) || empty($_ENV['MAIL_USERNAME'])) {
-                error_log('Email configuration missing');
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Configurações de email não encontradas. Verifique as configurações do sistema.'
-                ]);
-                exit;
-            }
-            
-            // Gerar nova senha temporária
-            error_log('Generating temporary password...');
-            $tempPassword = $this->generateTempPassword();
-            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
-            
-            // Atualizar senha no banco
-            error_log('Updating password in database...');
-            $updateStmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $updateStmt->execute([$hashedPassword, $userId]);
-            
-            // Enviar email com as credenciais
-            error_log('Attempting to send email...');
-            try {
-                $emailService = new \App\Services\EmailService();
-                $result = $emailService->sendWelcomeEmail($user, $tempPassword);
-                
-                error_log('Email send result: ' . ($result ? 'success' : 'failed'));
-                
-                if ($result) {
-                    echo json_encode([
-                        'success' => true, 
-                        'message' => 'Credenciais enviadas com sucesso para ' . $user['email']
-                    ]);
-                } else {
-                    echo json_encode([
-                        'success' => false, 
-                        'message' => 'Erro ao enviar email. Verifique as configurações de email.'
-                    ]);
-                }
-            } catch (\Exception $emailError) {
-                error_log('Email error: ' . $emailError->getMessage());
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Erro ao enviar email: ' . $emailError->getMessage()
-                ]);
-            }
+            // Por enquanto, vamos apenas simular o sucesso sem enviar email
+            // para identificar onde está o problema
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Teste: Credenciais seriam enviadas para ' . $user['email']
+            ]);
             
         } catch (\Exception $e) {
-            error_log('General error in sendCredentials: ' . $e->getMessage());
-            error_log('Stack trace: ' . $e->getTraceAsString());
+            file_put_contents(__DIR__ . '/../../storage/logs/debug.log', date('Y-m-d H:i:s') . " - Error: " . $e->getMessage() . "\n", FILE_APPEND);
             echo json_encode([
                 'success' => false, 
-                'message' => 'Erro interno do servidor: ' . $e->getMessage()
+                'message' => 'Erro: ' . $e->getMessage()
             ]);
         }
         exit;
