@@ -131,18 +131,31 @@ class AdminController
      */
     public function createUser()
     {
-        // Clean ALL output buffers to prevent HTML mixing with JSON
+        // Garantir que nada seja enviado antes dos headers
+        if (headers_sent()) {
+            die(json_encode(['success' => false, 'message' => 'Headers já enviados']));
+        }
+        
+        // Limpar todos os buffers
         while (ob_get_level()) {
             ob_end_clean();
         }
         
-        AuthController::requireAdmin();
+        // Verificar se é admin
+        try {
+            AuthController::requireAdmin();
+        } catch (\Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+            exit;
+        }
         
-        // Set JSON headers FIRST
-        header('Content-Type: application/json');
+        // Headers JSON
+        header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
+        header('Pragma: no-cache');
         
-        // Prevent any accidental output
+        // Iniciar captura de output
         ob_start();
         
         try {
@@ -154,25 +167,23 @@ class AdminController
             $role = $_POST['role'] ?? 'user';
             $profileId = $_POST['profile_id'] ?? null;
             
-            if (empty($name) || empty($email) || empty($password)) {
-                ob_end_clean();
-                echo json_encode(['success' => false, 'message' => 'Nome, email e senha são obrigatórios']);
-                exit;
+            // Validar dados
+            if (empty($name) || empty($email)) {
+                $this->sendJsonResponse(['success' => false, 'message' => 'Nome e email são obrigatórios']);
+                return;
             }
             
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                ob_end_clean();
-                echo json_encode(['success' => false, 'message' => 'Email inválido']);
-                exit;
+                $this->sendJsonResponse(['success' => false, 'message' => 'Email inválido']);
+                return;
             }
             
-            // Check if user already exists
+            // Verificar se usuário já existe
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
             $stmt->execute([$email]);
             if ($stmt->fetchColumn() > 0) {
-                ob_end_clean();
-                echo json_encode(['success' => false, 'message' => 'Este email já está cadastrado']);
-                exit;
+                $this->sendJsonResponse(['success' => false, 'message' => 'Este email já está cadastrado']);
+                return;
             }
             
             // If no profile specified, get default profile
@@ -213,26 +224,36 @@ class AdminController
             
             $userId = $this->db->lastInsertId();
             
-            // Send welcome email with temporary password (don't let email errors break user creation)
+            // Enviar email de boas-vindas
             try {
                 $emailService = new \App\Services\EmailService();
                 $userData = ['id' => $userId, 'name' => $name, 'email' => $email];
                 $emailService->sendWelcomeEmail($userData, $tempPassword);
-                ob_end_clean();
-                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! Email de boas-vindas enviado com senha temporária.']);
+                $this->sendJsonResponse(['success' => true, 'message' => 'Usuário criado com sucesso! Email de boas-vindas enviado.']);
             } catch (\Exception $emailError) {
                 error_log('Error sending welcome email: ' . $emailError->getMessage());
-                ob_end_clean();
-                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! (Erro ao enviar email: verifique configurações SMTP)']);
+                $this->sendJsonResponse(['success' => true, 'message' => 'Usuário criado com sucesso! (Erro ao enviar email)']);
             }
             
         } catch (\Exception $e) {
             error_log('Error creating user: ' . $e->getMessage());
+            $this->sendJsonResponse(['success' => false, 'message' => 'Erro ao criar usuário: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * Send clean JSON response
+     */
+    private function sendJsonResponse($data)
+    {
+        // Limpar qualquer output anterior
+        if (ob_get_level()) {
             ob_end_clean();
-            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor. Tente novamente.']);
         }
         
-        exit; // Ensure no additional output
+        // Enviar resposta JSON limpa
+        echo json_encode($data);
+        exit;
     }
     
     /**
