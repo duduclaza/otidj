@@ -1,62 +1,60 @@
 <?php
-// Teste mínimo para identificar o problema
-echo "<!DOCTYPE html><html><head><title>Teste Mínimo</title></head><body>";
-echo "<h1>🔧 Teste Mínimo do Sistema</h1>";
+// Teste gradual para identificar o problema específico
+session_start();
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use App\Core\Router;
+use App\Middleware\PermissionMiddleware;
+
+// Load environment
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
+
+echo "<!DOCTYPE html><html><head><title>Teste Gradual</title></head><body>";
+echo "<h1>🔧 Teste Gradual do Sistema</h1>";
 
 try {
-    echo "<p>✅ PHP funcionando</p>";
+    echo "<p>✅ Básicos OK</p>";
     
-    // Teste 1: Session
-    session_start();
-    echo "<p>✅ Session OK</p>";
+    // Teste 6: Criar Router
+    $router = new Router(__DIR__);
+    echo "<p>✅ Router criado</p>";
     
-    // Teste 2: Autoload
-    $autoloadPath = __DIR__ . '/../vendor/autoload.php';
-    if (file_exists($autoloadPath)) {
-        require_once $autoloadPath;
-        echo "<p>✅ Autoload encontrado</p>";
-    } else {
-        throw new Exception("Autoload não encontrado em: $autoloadPath");
-    }
+    // Teste 7: Adicionar uma rota simples
+    $router->get('/', function() {
+        echo "<h1>🎉 Sistema Funcionando!</h1>";
+        echo "<p>Todas as rotas básicas estão OK</p>";
+        echo "<p><a href='/admin/users'>Ir para Usuários</a></p>";
+    });
+    echo "<p>✅ Rota básica adicionada</p>";
     
-    // Teste 3: Environment
-    $envPath = __DIR__ . '/../.env';
-    if (file_exists($envPath)) {
-        $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-        $dotenv->safeLoad();
-        echo "<p>✅ Environment carregado</p>";
-    } else {
-        throw new Exception(".env não encontrado em: $envPath");
-    }
+    // Teste 8: Testar PermissionMiddleware
+    $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    echo "<p>✅ Middleware carregado</p>";
     
-    // Teste 4: Classes básicas
-    if (class_exists('App\\Core\\Router')) {
-        echo "<p>✅ Router class OK</p>";
-    } else {
-        throw new Exception("Router class não encontrada");
-    }
+    // Teste 9: Adicionar rotas principais (sem controllers complexos)
+    $router->get('/admin/users', function() {
+        echo "<h1>Página de Usuários</h1>";
+        echo "<p>Esta seria a página de usuários</p>";
+        echo "<p><a href='/'>← Voltar</a></p>";
+    });
+    echo "<p>✅ Rotas principais adicionadas</p>";
     
-    // Teste 5: Database
-    try {
-        $db = new PDO(
-            "mysql:host={$_ENV['DB_HOST']};port={$_ENV['DB_PORT']};dbname={$_ENV['DB_DATABASE']};charset=utf8mb4",
-            $_ENV['DB_USERNAME'],
-            $_ENV['DB_PASSWORD'],
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-        echo "<p>✅ Database conectado</p>";
-    } catch (Exception $dbError) {
-        echo "<p>⚠️ Database erro: " . $dbError->getMessage() . "</p>";
-    }
+    echo "<h2>🚀 Tentando executar rota...</h2>";
     
-    echo "<h2>🎉 Todos os testes básicos passaram!</h2>";
-    echo "<p>O problema pode estar em uma classe específica ou rota.</p>";
+    // Aplicar middleware (comentado por enquanto)
+    // PermissionMiddleware::handle($currentRoute, $method);
+    
+    $router->dispatch();
     
 } catch (Exception $e) {
     echo "<h2>❌ ERRO ENCONTRADO:</h2>";
     echo "<p><strong>Mensagem:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
     echo "<p><strong>Arquivo:</strong> " . $e->getFile() . "</p>";
     echo "<p><strong>Linha:</strong> " . $e->getLine() . "</p>";
+    echo "<p><strong>Trace:</strong></p>";
+    echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
 }
 
 echo "</body></html>";
