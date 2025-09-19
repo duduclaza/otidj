@@ -32,6 +32,10 @@ class Router
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
         $normalized = $this->normalize($uri);
 
+        // Debug logging
+        error_log("Router Debug - Method: $method, URI: $uri, Normalized: $normalized");
+        error_log("Router Debug - Available routes for $method: " . print_r(array_keys($this->routes[$method] ?? []), true));
+
         // First try exact match
         $handler = $this->routes[$method][$normalized] ?? null;
         $route = $normalized;
@@ -49,14 +53,20 @@ class Router
         
         if (!$handler) {
             // If route exists for other method, return 405
+            $allowedMethods = [];
             foreach ($this->routes as $m => $set) {
                 if (isset($set[$normalized])) {
-                    http_response_code(405);
-                    header('Allow: ' . implode(', ', array_keys($this->routes)));
-                    echo '405 Method Not Allowed';
-                    return;
+                    $allowedMethods[] = $m;
                 }
             }
+            
+            if (!empty($allowedMethods)) {
+                http_response_code(405);
+                header('Allow: ' . implode(', ', $allowedMethods));
+                echo '405 Method Not Allowed';
+                return;
+            }
+            
             http_response_code(404);
             echo '404 Not Found';
             return;
