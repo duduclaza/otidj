@@ -1,11 +1,11 @@
 <div class="glass-effect rounded-2xl shadow-2xl p-8">
   <!-- Logo/Header -->
   <div class="text-center mb-6">
-    <div class="inline-flex items-center justify-center -mb-4">
+    <div class="inline-flex items-center justify-center m-0">
       <img src="./public/img/logo.png" alt="DJ Logo" class="w-96 h-96 object-contain">
     </div>
     <h1 class="text-3xl font-bold text-white mb-3">🎉 Bem-vindo!</h1>
-    <p class="text-blue-100 text-lg mb-4">Este é seu primeiro acesso ao SGQ OTI DJ</p>
+    <p class="text-blue-100 text-lg mb-4">Este é seu primeiro acesso ao SGQ OTI</p>
     <div class="bg-blue-500 bg-opacity-20 rounded-lg p-4 mb-6">
       <p class="text-blue-100 text-sm">
         Por segurança, recomendamos que você altere sua senha temporária para uma mais segura.
