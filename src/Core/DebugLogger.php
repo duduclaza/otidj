@@ -11,25 +11,32 @@ class DebugLogger
     
     private function __construct()
     {
-        $this->sessionId = session_id() ?: uniqid();
-        $this->logFile = __DIR__ . '/../../storage/logs/debug_' . date('Y-m-d') . '.log';
-        
-        // Garantir que o diretório existe
-        $logDir = dirname($this->logFile);
-        if (!is_dir($logDir)) {
-            mkdir($logDir, 0755, true);
+        try {
+            $this->sessionId = session_id() ?: uniqid();
+            $this->logFile = __DIR__ . '/../../storage/logs/debug_' . date('Y-m-d') . '.log';
+            
+            // Garantir que o diretório existe
+            $logDir = dirname($this->logFile);
+            if (!is_dir($logDir)) {
+                @mkdir($logDir, 0755, true);
+            }
+            
+            // Só configurar handlers se conseguiu criar o diretório
+            if (is_dir($logDir) && is_writable($logDir)) {
+                $this->setupErrorHandlers();
+                
+                // Log de início da sessão
+                $this->log('SESSION_START', 'Nova sessão iniciada', [
+                    'session_id' => $this->sessionId,
+                    'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                    'timestamp' => date('Y-m-d H:i:s')
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Se falhar, continuar sem debug
+            error_log('DebugLogger constructor failed: ' . $e->getMessage());
         }
-        
-        // Configurar handler de erros
-        $this->setupErrorHandlers();
-        
-        // Log de início da sessão
-        $this->log('SESSION_START', 'Nova sessão iniciada', [
-            'session_id' => $this->sessionId,
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
-            'timestamp' => date('Y-m-d H:i:s')
-        ]);
     }
     
     public static function getInstance(): self
@@ -115,21 +122,29 @@ class DebugLogger
     
     private function writeToFile(array $logEntry): void
     {
-        $line = sprintf(
-            "[%s] %s: %s | %s | Memory: %s\n",
-            $logEntry['datetime'],
-            $logEntry['type'],
-            $logEntry['message'],
-            $logEntry['url'],
-            $this->formatBytes($logEntry['memory_usage'])
-        );
-        
-        file_put_contents($this->logFile, $line, FILE_APPEND | LOCK_EX);
-        
-        // Se há contexto, salvar detalhes
-        if (!empty($logEntry['context'])) {
-            $contextLine = "    Context: " . json_encode($logEntry['context'], JSON_PRETTY_PRINT) . "\n";
-            file_put_contents($this->logFile, $contextLine, FILE_APPEND | LOCK_EX);
+        try {
+            if (!$this->logFile || !is_writable(dirname($this->logFile))) {
+                return; // Não consegue escrever, ignora
+            }
+            
+            $line = sprintf(
+                "[%s] %s: %s | %s | Memory: %s\n",
+                $logEntry['datetime'],
+                $logEntry['type'],
+                $logEntry['message'],
+                $logEntry['url'],
+                $this->formatBytes($logEntry['memory_usage'])
+            );
+            
+            @file_put_contents($this->logFile, $line, FILE_APPEND | LOCK_EX);
+            
+            // Se há contexto, salvar detalhes
+            if (!empty($logEntry['context'])) {
+                $contextLine = "    Context: " . json_encode($logEntry['context'], JSON_PRETTY_PRINT) . "\n";
+                @file_put_contents($this->logFile, $contextLine, FILE_APPEND | LOCK_EX);
+            }
+        } catch (\Exception $e) {
+            // Se falhar ao escrever, ignora silenciosamente
         }
     }
     

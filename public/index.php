@@ -23,13 +23,18 @@ use App\Setup\MelhoriaContinuaSetup;
 $dotenv = Dotenv\Dotenv::createImmutable($basePath);
 $dotenv->safeLoad();
 
-// Initialize Debug Logger
-$debugLogger = DebugLogger::getInstance();
-$debugLogger->info('Application started', [
-    'url' => $_SERVER['REQUEST_URI'] ?? '/',
-    'method' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
-    'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
-]);
+// Initialize Debug Logger (with error handling)
+try {
+    $debugLogger = DebugLogger::getInstance();
+    $debugLogger->info('Application started', [
+        'url' => $_SERVER['REQUEST_URI'] ?? '/',
+        'method' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+    ]);
+} catch (\Exception $e) {
+    // If debug logger fails, continue without it
+    error_log('Debug Logger initialization failed: ' . $e->getMessage());
+}
 
 // Error reporting configuration
 $isDebug = $_ENV['APP_DEBUG'] ?? 'false';
