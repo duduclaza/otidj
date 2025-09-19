@@ -273,27 +273,22 @@ class AdminController
                 exit;
             }
 
-            // Gerar nova senha temporária
-            $tempPassword = $this->generateTempPassword();
-            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+            // Sempre enviar a senha temporária mudar@123
+            $senhaTemporaria = 'mudar@123';
 
-            // Atualizar senha no banco
-            $updateStmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $updateStmt->execute([$hashedPassword, $userId]);
-
-            // Enviar email de credenciais
+            // Enviar email de credenciais com a senha temporária
             $emailService = new \App\Services\EmailService();
-            $emailSent = $emailService->sendWelcomeEmail($user, $tempPassword);
+            $emailSent = $emailService->sendWelcomeEmail($user, $senhaTemporaria);
 
             if ($emailSent) {
                 echo json_encode([
                     'success' => true,
-                    'message' => 'Credenciais enviadas com sucesso para ' . $user['email'] . '!'
+                    'message' => 'Credenciais enviadas com sucesso para ' . $user['email'] . '! Senha: mudar@123'
                 ]);
             } else {
                 echo json_encode([
                     'success' => false,
-                    'message' => 'Senha atualizada, mas falha ao enviar email para ' . $user['email']
+                    'message' => 'Falha ao enviar email para ' . $user['email']
                 ]);
             }
 
