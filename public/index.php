@@ -10,7 +10,6 @@ header('Expires: 0');
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Router;
-use App\Core\Migration;
 use App\Middleware\PermissionMiddleware;
 
 // Load environment
@@ -30,22 +29,22 @@ if ($isDebug) {
 // Create router
 $router = new Router(__DIR__);
 
-// Run migrations (with error handling)
-try {
-    $migration = new Migration();
-    $migration->run();
-} catch (\Exception $e) {
-    error_log('Migration error: ' . $e->getMessage());
-    // Continue without migrations if they fail
-}
+// Do NOT run migrations on every request to avoid DB connection/timeout issues in production
 
 // Auth routes (match AuthController methods: login = show page, authenticate = process)
 $router->get('/login', [App\Controllers\AuthController::class, 'login']);
 $router->post('/auth/login', [App\Controllers\AuthController::class, 'authenticate']);
 $router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
 
-// Dashboard
-$router->get('/', [App\Controllers\DashboardController::class, 'index']);
+// Lightweight root: redirect unauthenticated users to /login to avoid heavy controller
+$router->get('/', function() {
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: /login');
+        exit;
+    }
+    // Authenticated: send to admin dashboard
+    (new App\Controllers\AdminController())->dashboard();
+});
 
 // Admin routes
 $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
@@ -84,8 +83,17 @@ try {
     $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
     
-    // Apply middleware
-    PermissionMiddleware::handle($currentRoute, $method);
+    // Apply middleware only for protected routes
+    $isPublicAuthRoute = (
+        strpos($currentRoute, '/login') === 0 ||
+        strpos($currentRoute, '/auth/') === 0 ||
+        strpos($currentRoute, '/register') === 0 ||
+        strpos($currentRoute, '/logout') === 0
+    );
+
+    if (!$isPublicAuthRoute) {
+        PermissionMiddleware::handle($currentRoute, $method);
+    }
     
     $router->dispatch();
     
