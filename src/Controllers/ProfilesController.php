@@ -290,6 +290,8 @@ class ProfilesController
             $stmt->execute([$profileId]);
             $dbPermissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
+            error_log('Loading permissions for profile ' . $profileId . ': ' . json_encode($dbPermissions));
+            
             $permissions = [];
             foreach ($dbPermissions as $perm) {
                 $permissions[$perm['module']] = $perm;
@@ -346,12 +348,22 @@ class ProfilesController
      */
     private function saveProfilePermissions($profileId, $permissions)
     {
+        error_log('Saving permissions for profile ' . $profileId . ': ' . json_encode($permissions));
+        
         // Delete existing permissions
         $stmt = $this->db->prepare("DELETE FROM profile_permissions WHERE profile_id = ?");
         $stmt->execute([$profileId]);
         
         // Insert new permissions
         foreach ($permissions as $module => $perms) {
+            $canView = isset($perms['view']) ? 1 : 0;
+            $canEdit = isset($perms['edit']) ? 1 : 0;
+            $canDelete = isset($perms['delete']) ? 1 : 0;
+            $canImport = isset($perms['import']) ? 1 : 0;
+            $canExport = isset($perms['export']) ? 1 : 0;
+            
+            error_log("Saving module $module: view=$canView, edit=$canEdit, delete=$canDelete, import=$canImport, export=$canExport");
+            
             $stmt = $this->db->prepare("
                 INSERT INTO profile_permissions 
                 (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
@@ -360,12 +372,18 @@ class ProfilesController
             $stmt->execute([
                 $profileId,
                 $module,
-                isset($perms['view']) ? 1 : 0,
-                isset($perms['edit']) ? 1 : 0,
-                isset($perms['delete']) ? 1 : 0,
-                isset($perms['import']) ? 1 : 0,
-                isset($perms['export']) ? 1 : 0
+                $canView,
+                $canEdit,
+                $canDelete,
+                $canImport,
+                $canExport
             ]);
         }
+        
+        // Verificar se foi salvo corretamente
+        $checkStmt = $this->db->prepare("SELECT module, can_view, can_edit, can_delete FROM profile_permissions WHERE profile_id = ?");
+        $checkStmt->execute([$profileId]);
+        $saved = $checkStmt->fetchAll(\PDO::FETCH_ASSOC);
+        error_log('Permissions saved in database: ' . json_encode($saved));
     }
 }
