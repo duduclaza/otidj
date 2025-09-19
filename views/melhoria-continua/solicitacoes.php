@@ -97,6 +97,7 @@
             <th class="px-3 py-2 text-left">Processo</th>
             <th class="px-3 py-2 text-left">Setor</th>
             <th class="px-3 py-2 text-left">Status</th>
+            <th class="px-3 py-2 text-left">Anexos</th>
             <th class="px-3 py-2 text-left">Responsáveis</th>
             <th class="px-3 py-2 text-left">Ações</th>
           </tr>
@@ -180,10 +181,29 @@ async function loadGrid(){
         <td class="px-3 py-2">${row.processo || ''}</td>
         <td class="px-3 py-2">${row.setor || ''}</td>
         <td class="px-3 py-2">${row.status || ''}</td>
+        <td class="px-3 py-2"><a class="text-blue-600 hover:underline" href="/melhoria-continua/solicitacoes/${row.id}/anexos" target="_blank">Ver anexos</a></td>
         <td class="px-3 py-2">${(row.responsaveis||[]).join(', ')}</td>
-        <td class="px-3 py-2">-</td>`;
+        <td class="px-3 py-2 space-x-2"><button class="px-2 py-1 text-xs bg-red-600 text-white rounded" onclick="excluir(${row.id})">Excluir</button></td>`;
       body.appendChild(tr);
     });
+  } finally {
+    if (overlay) overlay.classList.remove('active');
+  }
+}
+
+async function excluir(id){
+  if (!confirm('Deseja excluir esta melhoria?')) return;
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) overlay.classList.add('active');
+  try {
+    const fd = new FormData(); fd.append('id', id);
+    const resp = await fetch('/melhoria-continua/pendentes/delete', { method:'POST', body: fd });
+    const json = await resp.json().catch(()=>({success:false,message:'Erro'}));
+    alert(json.message || (json.success ? 'Excluído' : 'Erro'));
+    if (json.success) await loadGrid();
+  } catch(err){
+    console.error(err);
+    alert('Falha ao excluir.');
   } finally {
     if (overlay) overlay.classList.remove('active');
   }

@@ -18,6 +18,7 @@
             <th class="px-3 py-2 text-left">Setor</th>
             <th class="px-3 py-2 text-left">Status</th>
             <th class="px-3 py-2 text-left">Observação</th>
+            <th class="px-3 py-2 text-left">Anexos</th>
             <th class="px-3 py-2 text-left">Ações</th>
           </tr>
         </thead>
@@ -55,10 +56,9 @@ async function loadPendentes(){
         </select>
       </td>
       <td class="px-3 py-2"><input type="text" class="border rounded px-2 py-1 text-sm w-64" value="${row.observacoes||''}" data-obs-for="${row.id}" placeholder="Digite a observação"></td>
+      <td class="px-3 py-2"><a class="text-blue-600 hover:underline" href="/melhoria-continua/solicitacoes/${row.id}/anexos" target="_blank">Ver anexos</a></td>
       <td class="px-3 py-2 space-x-2">
         <button class="px-2 py-1 text-xs bg-blue-600 text-white rounded" onclick="salvar(${row.id})">Salvar</button>
-        <button class="px-2 py-1 text-xs bg-red-600 text-white rounded" onclick="excluir(${row.id})">Excluir</button>
-        <button class="px-2 py-1 text-xs bg-gray-200 rounded" onclick="imprimir(${row.id})">Imprimir</button>
       </td>`;
     body.appendChild(tr);
   });
@@ -94,10 +94,6 @@ async function excluir(id){
   const json = await resp.json().catch(()=>({success:false,message:'Erro'}));
   alert(json.message || (json.success ? 'Excluído' : 'Erro'));
   if (json.success) loadPendentes();
-}
-
-function imprimir(id){
-  window.open(`/melhoria-continua/solicitacoes/${id}/print`, '_blank');
 }
 
 window.addEventListener('load', loadPendentes);

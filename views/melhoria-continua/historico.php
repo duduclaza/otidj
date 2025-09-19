@@ -17,6 +17,7 @@
             <th class="px-3 py-2 text-left">Usuário</th>
             <th class="px-3 py-2 text-left">Ação</th>
             <th class="px-3 py-2 text-left">Detalhes</th>
+            <th class="px-3 py-2 text-left">Ações</th>
           </tr>
         </thead>
         <tbody id="gridHistorico" class="divide-y">
@@ -44,7 +45,11 @@ async function loadHistorico(){
       <td class="px-3 py-2">#${row.solicitacao_id || ''}</td>
       <td class="px-3 py-2">${row.usuario || ''}</td>
       <td class="px-3 py-2">${row.acao || ''}</td>
-      <td class="px-3 py-2">${row.detalhes || ''}</td>`;
+      <td class="px-3 py-2">${row.detalhes || ''}</td>
+      <td class="px-3 py-2 space-x-2">
+        <a class="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300" href="/melhoria-continua/solicitacoes/${row.solicitacao_id}/print" target="_blank">Imprimir</a>
+        <a class="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700" href="/melhoria-continua/solicitacoes/${row.solicitacao_id}/anexos" target="_blank">Anexos</a>
+      </td>`;
     body.appendChild(tr);
   });
 }

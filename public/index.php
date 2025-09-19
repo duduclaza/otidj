@@ -96,6 +96,10 @@ $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::
 $router->get('/melhoria-continua/solicitacoes', [App\Controllers\MelhoriaContinuaController::class, 'index']);
 $router->post('/melhoria-continua/solicitacoes/create', [App\Controllers\MelhoriaContinuaController::class, 'apiCreateSolicitacao']);
 $router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\MelhoriaContinuaController::class, 'apiListSolicitacoes']);
+$router->get('/melhoria-continua/solicitacoes/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
+$router->get('/melhoria-continua/solicitacoes/{id}/anexos', [App\Controllers\MelhoriaContinuaController::class, 'viewAnexos']);
+$router->get('/melhoria-continua/solicitacoes/{id}/anexos/list', [App\Controllers\MelhoriaContinuaController::class, 'apiListAnexos']);
+$router->get('/melhoria-continua/anexos/{id}/download', [App\Controllers\MelhoriaContinuaController::class, 'downloadAnexo']);
 $router->get('/melhoria-continua/pendentes', [App\Controllers\MelhoriaContinuaController::class, 'index']);
 $router->get('/melhoria-continua/pendentes/list', [App\Controllers\MelhoriaContinuaController::class, 'apiListPendentes']);
 $router->post('/melhoria-continua/pendentes/update-status', [App\Controllers\MelhoriaContinuaController::class, 'apiUpdateStatus']);

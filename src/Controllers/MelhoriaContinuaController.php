@@ -164,6 +164,15 @@ class MelhoriaContinuaController
         try {
             $id = (int)($_POST['id'] ?? 0);
             if ($id <= 0) { echo json_encode(['success'=>false,'message'=>'ID inválido']); return; }
+            // Somente o criador pode excluir (ou ajuste aqui se tiver checagem de admin)
+            $user = $this->getCurrentUser();
+            $chk = $this->db->prepare("SELECT usuario_id FROM solicitacoes_melhorias WHERE id = ?");
+            $chk->execute([$id]);
+            $ownerId = (int)($chk->fetchColumn() ?: 0);
+            if ($ownerId !== (int)$user['id']) {
+                echo json_encode(['success'=>false,'message'=>'Sem permissão para excluir esta solicitação.']);
+                return;
+            }
             $this->deleteUploadsDirectory($id);
             $stmt = $this->db->prepare("DELETE FROM solicitacoes_melhorias WHERE id = ?");
             $stmt->execute([$id]);
@@ -199,6 +208,60 @@ class MelhoriaContinuaController
         echo '<html><head><title>Impressão Solicitação #'.htmlspecialchars((string)$id)."</title></head><body>";
         echo '<h1>Solicitação #'.htmlspecialchars((string)$id).'</h1>';
         echo '<p>Esta é uma página de impressão (stub).</p>';
+        echo '</body></html>';
+    }
+
+    // Anexos
+    public function apiListAnexos($params = []): void
+    {
+        header('Content-Type: application/json');
+        try {
+            $id = (int)($params['id'] ?? ($_GET['id'] ?? 0));
+            if ($id <= 0) { echo json_encode(['success'=>false,'data'=>[]]); return; }
+            $stmt = $this->db->prepare("SELECT id, nome_original, nome_arquivo, tipo_arquivo, tamanho_arquivo FROM solicitacoes_melhorias_anexos WHERE solicitacao_id = ? ORDER BY id");
+            $stmt->execute([$id]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+            echo json_encode(['success'=>true,'data'=>$rows]);
+        } catch (\Throwable $e) {
+            echo json_encode(['success'=>false,'data'=>[], 'message'=>$e->getMessage()]);
+        }
+    }
+
+    public function downloadAnexo($params = []): void
+    {
+        $anexoId = (int)($params['id'] ?? 0);
+        if ($anexoId <= 0) { http_response_code(404); echo 'Arquivo não encontrado'; return; }
+        $stmt = $this->db->prepare("SELECT nome_original, caminho_arquivo, tipo_arquivo FROM solicitacoes_melhorias_anexos WHERE id = ?");
+        $stmt->execute([$anexoId]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        if (!$row || !is_file($row['caminho_arquivo'])) { http_response_code(404); echo 'Arquivo não encontrado'; return; }
+        header('Content-Description: File Transfer');
+        header('Content-Type: '.($row['tipo_arquivo'] ?: 'application/octet-stream'));
+        header('Content-Disposition: attachment; filename="'.basename($row['nome_original']).'"');
+        header('Content-Length: '.filesize($row['caminho_arquivo']));
+        readfile($row['caminho_arquivo']);
+        exit;
+    }
+
+    public function viewAnexos($params = []): void
+    {
+        $id = (int)($params['id'] ?? 0);
+        if ($id <= 0) { http_response_code(404); echo 'Solicitação inválida'; return; }
+        $stmt = $this->db->prepare("SELECT id, nome_original FROM solicitacoes_melhorias_anexos WHERE solicitacao_id = ? ORDER BY id");
+        $stmt->execute([$id]);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        echo '<!doctype html><html lang="pt-br"><head><meta charset="utf-8"><title>Anexos Solicitação #'.$id.'</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></head><body class="p-6">';
+        echo '<h1 class="text-xl font-semibold mb-4">Anexos da Solicitação #'.htmlspecialchars((string)$id).'</h1>';
+        if (empty($rows)) {
+            echo '<div class="text-gray-600">Nenhum anexo encontrado.</div>';
+        } else {
+            echo '<ul class="list-disc ml-6 space-y-2">';
+            foreach ($rows as $r) {
+                $url = '/melhoria-continua/anexos/'.(int)$r['id'].'/download';
+                echo '<li><a class="text-blue-600 hover:underline" href="'.$url.'">'.htmlspecialchars($r['nome_original']).'</a></li>';
+            }
+            echo '</ul>';
+        }
         echo '</body></html>';
     }
 
