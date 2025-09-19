@@ -58,22 +58,28 @@
   // Count available tabs
   let availableTabs = [];
   
+  // Use session permissions (more reliable)
+  const sessionPermissions = <?= json_encode($_SESSION['user_permissions'] ?? []) ?>;
+  const finalPermissions = Object.keys(sessionPermissions).length > 0 ? sessionPermissions : userPermissions;
+  
+  console.log('Final permissions used:', finalPermissions);
+  
   // Check each tab and hide if no permission
-  if (!userPermissions.solicitacao_melhorias) {
+  if (!finalPermissions.solicitacao_melhorias) {
     document.getElementById('tab-solicitacoes').style.display = 'none';
     document.getElementById('pane-solicitacoes').style.display = 'none';
   } else {
     availableTabs.push('solicitacoes');
   }
   
-  if (!userPermissions.melhorias_pendentes) {
+  if (!finalPermissions.melhorias_pendentes) {
     document.getElementById('tab-pendentes').style.display = 'none';
     document.getElementById('pane-pendentes').style.display = 'none';
   } else {
     availableTabs.push('pendentes');
   }
   
-  if (!userPermissions.historico_melhorias) {
+  if (!finalPermissions.historico_melhorias) {
     document.getElementById('tab-historico').style.display = 'none';
     document.getElementById('pane-historico').style.display = 'none';
   } else {

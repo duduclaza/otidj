@@ -25,8 +25,11 @@ class MelhoriaContinuaController
     {
         if (session_status() === PHP_SESSION_NONE) session_start();
         
-        // Carregar permissões do usuário para o frontend
+        // Forçar recarregamento das permissões (limpar cache)
         $user = $this->getCurrentUser();
+        \App\Services\PermissionService::clearUserPermissions($user['id']);
+        
+        // Carregar permissões do usuário para o frontend
         $permissions = \App\Services\PermissionService::getUserPermissions($user['id']);
         
         // Se for admin, dar todas as permissões
@@ -37,6 +40,8 @@ class MelhoriaContinuaController
                 'historico_melhorias' => ['view' => true, 'edit' => true, 'delete' => true],
             ]);
         }
+        
+        error_log('Permissions loaded for user ' . $user['id'] . ': ' . json_encode($permissions));
         
         // Simplificar permissões para o frontend (só view)
         $simplePermissions = [];
