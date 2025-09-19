@@ -56,15 +56,11 @@ class AdminController
                 $stmt->execute();
                 $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 
-                // Get departamentos from departamentos table
-                $departamentosStmt = $this->db->prepare("SELECT nome FROM departamentos ORDER BY nome");
-                $departamentosStmt->execute();
-                $setores = $departamentosStmt->fetchAll(\PDO::FETCH_COLUMN);
+                // Get setores usando a mesma lógica da API
+                $setores = $this->getSetoresList();
                 
-                // Get filiais from filiais table
-                $filiaisStmt = $this->db->prepare("SELECT nome FROM filiais ORDER BY nome");
-                $filiaisStmt->execute();
-                $filiais = $filiaisStmt->fetchAll(\PDO::FETCH_COLUMN);
+                // Get filiais usando a mesma lógica da API  
+                $filiais = $this->getFiliaisList();
                 
                 // Get profiles
                 $profilesStmt = $this->db->prepare("SELECT id, name, description FROM profiles ORDER BY is_admin DESC, name ASC");
@@ -411,7 +407,77 @@ class AdminController
             error_log('Failed to send password change notification: ' . $e->getMessage());
         }
     }
-
+    
+    /**
+     * Get setores list using robust query logic
+     */
+    private function getSetoresList(): array
+    {
+        $queries = [
+            "SELECT name FROM departments WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+            "SELECT nome as name FROM departments WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome",
+            "SELECT name FROM departamentos WHERE name IS NOT NULL AND name <> '' ORDER BY name", 
+            "SELECT nome as name FROM departamentos WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome",
+            "SELECT name FROM setores WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+            "SELECT nome as name FROM setores WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome"
+        ];
+        
+        foreach ($queries as $query) {
+            try {
+                $stmt = $this->db->query($query);
+                $result = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+                if (!empty($result)) {
+                    return $result;
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+        
+        // Fallback: buscar dos usuários
+        try {
+            $stmt = $this->db->query("SELECT DISTINCT setor FROM users WHERE setor IS NOT NULL AND setor <> '' ORDER BY setor");
+            return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+    
+    /**
+     * Get filiais list using robust query logic
+     */
+    private function getFiliaisList(): array
+    {
+        $queries = [
+            "SELECT name FROM filiais WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+            "SELECT nome as name FROM filiais WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome",
+            "SELECT name FROM branches WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+            "SELECT nome as name FROM branches WHERE nome IS NOT NULL AND nome <> '' ORDER by nome",
+            "SELECT name FROM subsidiarias WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+            "SELECT nome as name FROM subsidiarias WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome"
+        ];
+        
+        foreach ($queries as $query) {
+            try {
+                $stmt = $this->db->query($query);
+                $result = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+                if (!empty($result)) {
+                    return $result;
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+        
+        // Fallback: buscar dos usuários
+        try {
+            $stmt = $this->db->query("SELECT DISTINCT filial FROM users WHERE filial IS NOT NULL AND filial <> '' ORDER BY filial");
+            return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+    
     /**
      * Send welcome email to new user
      */

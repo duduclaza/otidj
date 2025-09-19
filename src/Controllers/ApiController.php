@@ -23,19 +23,26 @@ class ApiController
         try {
             $setores = [];
             
-            // Tenta várias tabelas possíveis
-            $tables = ['departments', 'departamentos', 'setores'];
+            // Tenta várias tabelas e colunas possíveis
+            $queries = [
+                "SELECT name FROM departments WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+                "SELECT nome as name FROM departments WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome",
+                "SELECT name FROM departamentos WHERE name IS NOT NULL AND name <> '' ORDER BY name", 
+                "SELECT nome as name FROM departamentos WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome",
+                "SELECT name FROM setores WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+                "SELECT nome as name FROM setores WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome"
+            ];
             
-            foreach ($tables as $table) {
+            foreach ($queries as $query) {
                 try {
-                    $stmt = $this->db->query("SELECT name FROM {$table} WHERE name IS NOT NULL AND name <> '' ORDER BY name");
+                    $stmt = $this->db->query($query);
                     $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                     if (!empty($result)) {
                         $setores = $result;
                         break;
                     }
                 } catch (\Exception $e) {
-                    // Tabela não existe, continua
+                    // Query falhou, continua
                     continue;
                 }
             }
@@ -72,19 +79,26 @@ class ApiController
         try {
             $filiais = [];
             
-            // Tenta várias tabelas possíveis
-            $tables = ['filiais', 'branches', 'subsidiarias'];
+            // Tenta várias tabelas e colunas possíveis
+            $queries = [
+                "SELECT name FROM filiais WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+                "SELECT nome as name FROM filiais WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome",
+                "SELECT name FROM branches WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+                "SELECT nome as name FROM branches WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome",
+                "SELECT name FROM subsidiarias WHERE name IS NOT NULL AND name <> '' ORDER BY name",
+                "SELECT nome as name FROM subsidiarias WHERE nome IS NOT NULL AND nome <> '' ORDER BY nome"
+            ];
             
-            foreach ($tables as $table) {
+            foreach ($queries as $query) {
                 try {
-                    $stmt = $this->db->query("SELECT name FROM {$table} WHERE name IS NOT NULL AND name <> '' ORDER BY name");
+                    $stmt = $this->db->query($query);
                     $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                     if (!empty($result)) {
                         $filiais = $result;
                         break;
                     }
                 } catch (\Exception $e) {
-                    // Tabela não existe, continua
+                    // Query falhou, continua
                     continue;
                 }
             }
