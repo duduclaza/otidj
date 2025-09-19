@@ -52,19 +52,39 @@
 
   // Check permissions and show/hide tabs
   const userPermissions = window.userPermissions || {};
+  console.log('User permissions:', userPermissions);
   
-  // Hide tabs based on permissions
+  // Count available tabs
+  let availableTabs = [];
+  
+  // Check each tab and hide if no permission
   if (!userPermissions.solicitacao_melhorias) {
     document.getElementById('tab-solicitacoes').style.display = 'none';
     document.getElementById('pane-solicitacoes').style.display = 'none';
+  } else {
+    availableTabs.push('solicitacoes');
   }
+  
   if (!userPermissions.melhorias_pendentes) {
     document.getElementById('tab-pendentes').style.display = 'none';
     document.getElementById('pane-pendentes').style.display = 'none';
+  } else {
+    availableTabs.push('pendentes');
   }
+  
   if (!userPermissions.historico_melhorias) {
     document.getElementById('tab-historico').style.display = 'none';
     document.getElementById('pane-historico').style.display = 'none';
+  } else {
+    availableTabs.push('historico');
+  }
+  
+  console.log('Available tabs:', availableTabs);
+  
+  // If no tabs available, show message
+  if (availableTabs.length === 0) {
+    document.querySelector('section').innerHTML = '<div class="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">Você não tem permissão para acessar nenhuma aba de Melhoria Contínua. Entre em contato com o administrador.</div>';
+    return;
   }
 
   // Select tab by hash (?tab=pendentes OR #pendentes)
@@ -74,12 +94,9 @@
   const wanted = queryTab || hash;
   
   // Find first available tab
-  let firstAvailable = 'solicitacoes';
-  if (userPermissions.solicitacao_melhorias) firstAvailable = 'solicitacoes';
-  else if (userPermissions.melhorias_pendentes) firstAvailable = 'pendentes';
-  else if (userPermissions.historico_melhorias) firstAvailable = 'historico';
+  let firstAvailable = availableTabs[0] || 'solicitacoes';
   
-  if (wanted && ['solicitacoes','pendentes','historico'].includes(wanted) && userPermissions[wanted === 'solicitacoes' ? 'solicitacao_melhorias' : wanted === 'pendentes' ? 'melhorias_pendentes' : 'historico_melhorias']) {
+  if (wanted && availableTabs.includes(wanted)) {
     activate('#pane-' + wanted);
   } else {
     activate('#pane-' + firstAvailable);
