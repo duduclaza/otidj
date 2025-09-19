@@ -242,6 +242,100 @@ class AdminController
     }
     
     /**
+     * Send credentials via email
+     */
+    public function sendCredentials()
+    {
+        // Garantir que nada seja enviado antes dos headers
+        if (headers_sent()) {
+            die(json_encode(['success' => false, 'message' => 'Headers já enviados']));
+        }
+        
+        // Limpar todos os buffers
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Verificar se é admin
+        try {
+            AuthController::requireAdmin();
+        } catch (\Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+            exit;
+        }
+        
+        // Headers JSON
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+        
+        try {
+            $userId = $_POST['user_id'] ?? null;
+            
+            if (!$userId) {
+                $this->sendJsonResponse(['success' => false, 'message' => 'ID do usuário é obrigatório']);
+                return;
+            }
+            
+            // Buscar dados do usuário
+            $stmt = $this->db->prepare("SELECT id, name, email, status FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$user) {
+                $this->sendJsonResponse(['success' => false, 'message' => 'Usuário não encontrado']);
+                return;
+            }
+            
+            if ($user['status'] !== 'active') {
+                $this->sendJsonResponse(['success' => false, 'message' => 'Usuário não está ativo']);
+                return;
+            }
+            
+            // Gerar nova senha temporária
+            $tempPassword = \App\Controllers\AuthController::generateTempPassword();
+            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+            
+            // Atualizar senha no banco e marcar como primeiro acesso
+            $updateStmt = $this->db->prepare("UPDATE users SET password = ?, first_access = 1 WHERE id = ?");
+            $updateStmt->execute([$hashedPassword, $userId]);
+            
+            // Verificar se o email está configurado
+            if (empty($_ENV['MAIL_HOST']) || empty($_ENV['MAIL_USERNAME'])) {
+                $this->sendJsonResponse([
+                    'success' => false, 
+                    'message' => 'Configurações de email não encontradas. Verifique o arquivo .env'
+                ]);
+                return;
+            }
+            
+            // Enviar email com as credenciais
+            try {
+                $emailService = new \App\Services\EmailService();
+                $emailService->sendWelcomeEmail($user, $tempPassword);
+                
+                $this->sendJsonResponse([
+                    'success' => true, 
+                    'message' => 'Credenciais enviadas com sucesso para ' . $user['email']
+                ]);
+            } catch (\Exception $emailError) {
+                error_log('Error sending credentials email: ' . $emailError->getMessage());
+                $this->sendJsonResponse([
+                    'success' => false, 
+                    'message' => 'Erro ao enviar email: ' . $emailError->getMessage()
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            error_log('Error sending credentials: ' . $e->getMessage());
+            $this->sendJsonResponse([
+                'success' => false, 
+                'message' => 'Erro interno: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
      * Send clean JSON response
      */
     private function sendJsonResponse($data)

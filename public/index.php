@@ -158,8 +158,9 @@ $router->get('/admin/invitations', [App\Controllers\AdminController::class, 'inv
 $router->post('/admin/users/create', [App\Controllers\AdminController::class, 'createUser']);
 $router->post('/admin/users/update', [App\Controllers\AdminController::class, 'updateUser']);
 $router->post('/admin/users/delete', [App\Controllers\AdminController::class, 'deleteUser']);
+$router->post('/admin/users/send-credentials', [App\Controllers\AdminController::class, 'sendCredentials']);
 $router->get('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'userPermissions']);
-$router->post('/admin/permissions/update', [App\Controllers\AdminController::class, 'updatePermissions']);
+$router->post('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'updateUserPermissions']);
 $router->post('/admin/invitations/approve', [App\Controllers\AdminController::class, 'approveInvitation']);
 $router->post('/admin/invitations/reject', [App\Controllers\AdminController::class, 'rejectInvitation']);
 
