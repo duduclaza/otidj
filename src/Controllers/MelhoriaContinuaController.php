@@ -23,6 +23,29 @@ class MelhoriaContinuaController
     // Página com ABAS
     public function index(): void
     {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        
+        // Carregar permissões do usuário para o frontend
+        $user = $this->getCurrentUser();
+        $permissions = \App\Services\PermissionService::getUserPermissions($user['id']);
+        
+        // Se for admin, dar todas as permissões
+        if (\App\Services\PermissionService::isAdmin($user['id'])) {
+            $permissions = array_merge($permissions, [
+                'solicitacao_melhorias' => ['view' => true, 'edit' => true, 'delete' => true],
+                'melhorias_pendentes' => ['view' => true, 'edit' => true, 'delete' => true],
+                'historico_melhorias' => ['view' => true, 'edit' => true, 'delete' => true],
+            ]);
+        }
+        
+        // Simplificar permissões para o frontend (só view)
+        $simplePermissions = [];
+        foreach ($permissions as $module => $perms) {
+            $simplePermissions[$module] = $perms['view'] ?? false;
+        }
+        
+        $_SESSION['user_permissions'] = $simplePermissions;
+        
         $setores = $this->getSetores();
         $usuarios = $this->getUsuarios();
         $this->render('index', compact('setores','usuarios'));

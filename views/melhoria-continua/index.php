@@ -53,6 +53,7 @@
   // Check permissions and show/hide tabs
   const userPermissions = window.userPermissions || {};
   console.log('User permissions:', userPermissions);
+  console.log('Session permissions:', <?= json_encode($_SESSION['user_permissions'] ?? []) ?>);
   
   // Count available tabs
   let availableTabs = [];
