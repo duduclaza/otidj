@@ -159,6 +159,7 @@ $router->post('/admin/users/create', [App\Controllers\AdminController::class, 'c
 $router->post('/admin/users/update', [App\Controllers\AdminController::class, 'updateUser']);
 $router->post('/admin/users/delete', [App\Controllers\AdminController::class, 'deleteUser']);
 $router->post('/admin/users/send-credentials', [App\Controllers\AdminController::class, 'sendCredentials']);
+$router->get('/admin/test-email', [App\Controllers\AdminController::class, 'testEmail']);
 $router->get('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'userPermissions']);
 $router->post('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'updateUserPermissions']);
 $router->post('/admin/invitations/approve', [App\Controllers\AdminController::class, 'approveInvitation']);

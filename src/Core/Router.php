@@ -32,9 +32,6 @@ class Router
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
         $normalized = $this->normalize($uri);
 
-        // Debug logging
-        error_log("Router Debug - Method: $method, URI: $uri, Normalized: $normalized");
-        error_log("Router Debug - Available routes for $method: " . print_r(array_keys($this->routes[$method] ?? []), true));
 
         // First try exact match
         $handler = $this->routes[$method][$normalized] ?? null;
