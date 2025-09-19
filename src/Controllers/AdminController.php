@@ -242,7 +242,6 @@ class AdminController
      */
     public function sendCredentials()
     {
-        // Teste básico primeiro
         try {
             // Limpar qualquer output anterior
             while (ob_get_level()) {
@@ -253,9 +252,6 @@ class AdminController
             header('Content-Type: application/json; charset=utf-8');
             header('Cache-Control: no-cache, must-revalidate');
             
-            // Log básico
-            file_put_contents(__DIR__ . '/../../storage/logs/debug.log', date('Y-m-d H:i:s') . " - sendCredentials called\n", FILE_APPEND);
-            
             // Verificar sessão
             if (!isset($_SESSION['user_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
@@ -263,8 +259,7 @@ class AdminController
             }
             
             // Verificar se é admin
-            $isAdmin = \App\Services\PermissionService::isAdmin($_SESSION['user_id']);
-            if (!$isAdmin) {
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
                 exit;
             }
@@ -290,18 +285,58 @@ class AdminController
                 exit;
             }
             
-            // Por enquanto, vamos apenas simular o sucesso sem enviar email
-            // para identificar onde está o problema
-            echo json_encode([
-                'success' => true, 
-                'message' => 'Teste: Credenciais seriam enviadas para ' . $user['email']
-            ]);
+            // Verificar configurações de email
+            if (empty($_ENV['MAIL_HOST']) || empty($_ENV['MAIL_USERNAME'])) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Configurações de email não encontradas'
+                ]);
+                exit;
+            }
+            
+            // Gerar nova senha temporária
+            $tempPassword = $this->generateTempPassword();
+            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+            
+            // Atualizar senha no banco
+            $updateStmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $updateStmt->execute([$hashedPassword, $userId]);
+            
+            // Tentar enviar email com timeout reduzido
+            try {
+                $emailService = new \App\Services\EmailService();
+                
+                // Definir timeout mais baixo para evitar lentidão
+                ini_set('default_socket_timeout', 10);
+                
+                $result = $emailService->sendWelcomeEmail($user, $tempPassword);
+                
+                if ($result) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Credenciais enviadas com sucesso para ' . $user['email'] . '!'
+                    ]);
+                } else {
+                    // Se falhou, pelo menos a senha foi atualizada
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Senha atualizada! Email pode ter falhado. Nova senha: ' . $tempPassword
+                    ]);
+                }
+            } catch (\Exception $emailError) {
+                // Log do erro mas retorna sucesso com a senha
+                error_log('Email error: ' . $emailError->getMessage());
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Senha atualizada! Erro no email: ' . $tempPassword . ' (use esta senha)'
+                ]);
+            }
             
         } catch (\Exception $e) {
-            file_put_contents(__DIR__ . '/../../storage/logs/debug.log', date('Y-m-d H:i:s') . " - Error: " . $e->getMessage() . "\n", FILE_APPEND);
+            error_log('Error in sendCredentials: ' . $e->getMessage());
             echo json_encode([
                 'success' => false, 
-                'message' => 'Erro: ' . $e->getMessage()
+                'message' => 'Erro interno: ' . $e->getMessage()
             ]);
         }
         exit;

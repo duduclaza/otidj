@@ -28,6 +28,16 @@ class EmailService
             $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $this->mailer->Port = (int)($_ENV['MAIL_PORT'] ?? 465);
             
+            // Timeout settings para melhor performance
+            $this->mailer->Timeout = 10; // 10 segundos
+            $this->mailer->SMTPOptions = array(
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                )
+            );
+            
             // Default sender
             $this->mailer->setFrom(
                 $_ENV['MAIL_FROM_ADDRESS'] ?? 'djsgqoti@sgqoti.com.br',
@@ -37,6 +47,11 @@ class EmailService
             // Content settings
             $this->mailer->isHTML(true);
             $this->mailer->CharSet = 'UTF-8';
+            
+            // Debug em desenvolvimento
+            if (($_ENV['APP_DEBUG'] ?? 'false') === 'true') {
+                $this->mailer->SMTPDebug = 1;
+            }
             
         } catch (Exception $e) {
             error_log("Email configuration error: " . $e->getMessage());
