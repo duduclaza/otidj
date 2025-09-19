@@ -21,24 +21,43 @@ class ApiController
         header('Content-Type: application/json');
         
         try {
-            // Primeiro tenta buscar da tabela departments
-            $stmt = $this->db->query("SELECT name FROM departments WHERE name IS NOT NULL AND name <> '' ORDER BY name");
-            $setores = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $setores = [];
             
-            // Se não encontrar, busca dos usuários como fallback
+            // Tenta várias tabelas possíveis
+            $tables = ['departments', 'departamentos', 'setores'];
+            
+            foreach ($tables as $table) {
+                try {
+                    $stmt = $this->db->query("SELECT name FROM {$table} WHERE name IS NOT NULL AND name <> '' ORDER BY name");
+                    $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                    if (!empty($result)) {
+                        $setores = $result;
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    // Tabela não existe, continua
+                    continue;
+                }
+            }
+            
+            // Se não encontrar em tabelas específicas, busca dos usuários
             if (empty($setores)) {
                 $stmt = $this->db->query("SELECT DISTINCT setor as name FROM users WHERE setor IS NOT NULL AND setor <> '' ORDER BY setor");
                 $setores = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             }
             
+            error_log('Setores encontrados: ' . json_encode($setores));
+            
             echo json_encode([
                 'success' => true,
-                'data' => $setores
+                'data' => $setores,
+                'count' => count($setores)
             ]);
         } catch (\Exception $e) {
+            error_log('Erro ao carregar setores: ' . $e->getMessage());
             echo json_encode([
                 'success' => false,
-                'message' => 'Erro ao carregar setores'
+                'message' => 'Erro ao carregar setores: ' . $e->getMessage()
             ]);
         }
     }
@@ -51,24 +70,43 @@ class ApiController
         header('Content-Type: application/json');
         
         try {
-            // Primeiro tenta buscar da tabela filiais
-            $stmt = $this->db->query("SELECT name FROM filiais WHERE name IS NOT NULL AND name <> '' ORDER BY name");
-            $filiais = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $filiais = [];
             
-            // Se não encontrar, busca dos usuários como fallback
+            // Tenta várias tabelas possíveis
+            $tables = ['filiais', 'branches', 'subsidiarias'];
+            
+            foreach ($tables as $table) {
+                try {
+                    $stmt = $this->db->query("SELECT name FROM {$table} WHERE name IS NOT NULL AND name <> '' ORDER BY name");
+                    $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                    if (!empty($result)) {
+                        $filiais = $result;
+                        break;
+                    }
+                } catch (\Exception $e) {
+                    // Tabela não existe, continua
+                    continue;
+                }
+            }
+            
+            // Se não encontrar em tabelas específicas, busca dos usuários
             if (empty($filiais)) {
                 $stmt = $this->db->query("SELECT DISTINCT filial as name FROM users WHERE filial IS NOT NULL AND filial <> '' ORDER BY filial");
                 $filiais = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             }
             
+            error_log('Filiais encontradas: ' . json_encode($filiais));
+            
             echo json_encode([
                 'success' => true,
-                'data' => $filiais
+                'data' => $filiais,
+                'count' => count($filiais)
             ]);
         } catch (\Exception $e) {
+            error_log('Erro ao carregar filiais: ' . $e->getMessage());
             echo json_encode([
                 'success' => false,
-                'message' => 'Erro ao carregar filiais'
+                'message' => 'Erro ao carregar filiais: ' . $e->getMessage()
             ]);
         }
     }

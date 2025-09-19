@@ -84,10 +84,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadSetores() {
+  console.log('Carregando setores...');
   fetch('/api/setores')
-    .then(response => response.json())
+    .then(response => {
+      console.log('Response setores:', response.status);
+      return response.json();
+    })
     .then(result => {
-      if (result.success) {
+      console.log('Resultado setores:', result);
+      if (result.success && result.data) {
         const select = document.getElementById('setorSelect');
         result.data.forEach(setor => {
           const option = document.createElement('option');
@@ -96,6 +101,9 @@ function loadSetores() {
           option.className = 'text-gray-800';
           select.appendChild(option);
         });
+        console.log('Setores carregados:', result.count);
+      } else {
+        console.error('Erro na resposta:', result.message);
       }
     })
     .catch(error => {
@@ -104,10 +112,15 @@ function loadSetores() {
 }
 
 function loadFiliais() {
+  console.log('Carregando filiais...');
   fetch('/api/filiais')
-    .then(response => response.json())
+    .then(response => {
+      console.log('Response filiais:', response.status);
+      return response.json();
+    })
     .then(result => {
-      if (result.success) {
+      console.log('Resultado filiais:', result);
+      if (result.success && result.data) {
         const select = document.getElementById('filialSelect');
         result.data.forEach(filial => {
           const option = document.createElement('option');
@@ -116,6 +129,9 @@ function loadFiliais() {
           option.className = 'text-gray-800';
           select.appendChild(option);
         });
+        console.log('Filiais carregadas:', result.count);
+      } else {
+        console.error('Erro na resposta:', result.message);
       }
     })
     .catch(error => {
