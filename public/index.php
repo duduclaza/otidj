@@ -1,40 +1,53 @@
 <?php
-// No-cache headers for all responses
-header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-header('Cache-Control: post-check=0, pre-check=0', false);
-header('Pragma: no-cache');
-header('Expires: 0');
+// Error handling first
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 
-// Load environment first
-$basePath = dirname(__DIR__);
-
-// Composer autoload
-session_start();
-
-require_once $basePath . '/vendor/autoload.php';
-
-use App\Core\Router;
-use App\Core\Migration;
-use App\Core\DebugLogger;
-use App\Middleware\PermissionMiddleware;
-use App\Setup\MelhoriaContinuaSetup;
-
-// Load environment variables
-$dotenv = Dotenv\Dotenv::createImmutable($basePath);
-$dotenv->safeLoad();
-
-// Initialize Debug Logger (with error handling)
 try {
-    $debugLogger = DebugLogger::getInstance();
-    $debugLogger->info('Application started', [
-        'url' => $_SERVER['REQUEST_URI'] ?? '/',
-        'method' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
-        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
-    ]);
-} catch (\Exception $e) {
-    // If debug logger fails, continue without it
-    error_log('Debug Logger initialization failed: ' . $e->getMessage());
-}
+    // No-cache headers for all responses
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Cache-Control: post-check=0, pre-check=0', false);
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Load environment first
+    $basePath = dirname(__DIR__);
+
+    // Composer autoload
+    session_start();
+
+    if (!file_exists($basePath . '/vendor/autoload.php')) {
+        throw new Exception('Composer autoload not found. Run: composer install');
+    }
+
+    require_once $basePath . '/vendor/autoload.php';
+
+    use App\Core\Router;
+    use App\Core\Migration;
+    use App\Middleware\PermissionMiddleware;
+
+    // Load environment variables
+    if (!file_exists($basePath . '/.env')) {
+        throw new Exception('.env file not found');
+    }
+
+    $dotenv = Dotenv\Dotenv::createImmutable($basePath);
+    $dotenv->safeLoad();
+
+    // Initialize Debug Logger (optional)
+    $debugLogger = null;
+    try {
+        if (class_exists('App\Core\DebugLogger')) {
+            $debugLogger = App\Core\DebugLogger::getInstance();
+            $debugLogger->info('Application started', [
+                'url' => $_SERVER['REQUEST_URI'] ?? '/',
+                'method' => $_SERVER['REQUEST_METHOD'] ?? 'GET'
+            ]);
+        }
+    } catch (\Exception $e) {
+        // Debug logger is optional, continue without it
+        error_log('Debug Logger failed: ' . $e->getMessage());
+    }
 
 // Error reporting configuration
 $isDebug = $_ENV['APP_DEBUG'] ?? 'false';
@@ -202,18 +215,33 @@ $router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesContro
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 
 
-// Dispatch request
-try {
-    // Verificar permissões antes de executar a rota
-    $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-    
-    // Aplicar middleware de permissões
-    \App\Middleware\PermissionMiddleware::handle($currentRoute, $method);
-    
-    $router->dispatch();
+    // Dispatch request
+    try {
+        // Verificar permissões antes de executar a rota
+        $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        
+        // Aplicar middleware de permissões
+        \App\Middleware\PermissionMiddleware::handle($currentRoute, $method);
+        
+        $router->dispatch();
+    } catch (\Exception $e) {
+        error_log('Router Error: ' . $e->getMessage());
+        http_response_code(500);
+        echo '<h1>Erro 500 - Erro Interno do Servidor</h1>';
+        echo '<p>Ocorreu um erro interno. Tente novamente em alguns minutos.</p>';
+        echo '<p><a href="/diagnostic.php">Executar Diagnóstico</a></p>';
+    }
+
 } catch (\Exception $e) {
-    echo '<pre>Router Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
-    echo '<pre>Stack trace: ' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+    // Catch geral para qualquer erro na inicialização
+    error_log('Application Error: ' . $e->getMessage());
     http_response_code(500);
+    
+    echo '<!DOCTYPE html><html><head><title>Erro 500</title></head><body>';
+    echo '<h1>🚨 Erro 500 - Sistema Temporariamente Indisponível</h1>';
+    echo '<p><strong>Erro:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
+    echo '<p><a href="/diagnostic.php">🔧 Executar Diagnóstico do Sistema</a></p>';
+    echo '<p><a href="javascript:history.back()">← Voltar</a></p>';
+    echo '</body></html>';
 }

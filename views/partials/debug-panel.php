@@ -158,9 +158,15 @@ class DebugPanel {
     async loadLogs() {
         try {
             const response = await fetch(`/debug/logs?since=${this.lastTimestamp}`);
+            
+            // Se a resposta não for 200, não tenta processar
+            if (!response.ok) {
+                return;
+            }
+            
             const data = await response.json();
             
-            if (data.success && data.logs.length > 0) {
+            if (data.success && data.logs && data.logs.length > 0) {
                 this.logs.push(...data.logs);
                 this.lastTimestamp = data.timestamp;
                 
@@ -172,7 +178,8 @@ class DebugPanel {
                 this.updateDisplay();
             }
         } catch (error) {
-            console.error('Erro ao carregar logs:', error);
+            // Silenciosamente ignora erros de debug para não quebrar a aplicação
+            console.debug('Debug logs não disponíveis:', error.message);
         }
     }
     

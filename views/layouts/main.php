@@ -146,7 +146,12 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
     });
   </script>
   
-  <!-- Debug Panel (sempre visível) -->
-  <?php include __DIR__ . '/../partials/debug-panel.php'; ?>
+  <!-- Debug Panel (só se debug estiver ativo) -->
+  <?php 
+  $showDebug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true' || isset($_GET['debug']);
+  if ($showDebug): 
+      include __DIR__ . '/../partials/debug-panel.php'; 
+  endif; 
+  ?>
 </body>
 </html>
