@@ -142,6 +142,9 @@ $router->get('/login', [App\Controllers\AuthController::class, 'login']);
 $router->post('/auth/login', [App\Controllers\AuthController::class, 'authenticate']);
 $router->get('/register', [App\Controllers\AuthController::class, 'register']);
 $router->post('/auth/register', [App\Controllers\AuthController::class, 'requestInvitation']);
+$router->get('/auth/first-access', [App\Controllers\AuthController::class, 'firstAccess']);
+$router->post('/auth/change-first-password', [App\Controllers\AuthController::class, 'changeFirstPassword']);
+$router->post('/auth/skip-first-password', [App\Controllers\AuthController::class, 'skipFirstPassword']);
 $router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
 
 // Admin routes

@@ -61,6 +61,16 @@ class AuthController
                 $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
                 $_SESSION['user_profile'] = $profileInfo;
                 
+                // Verificar se é primeiro acesso
+                if ($user['first_access'] == 1) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Primeiro acesso detectado',
+                        'redirect' => '/auth/first-access'
+                    ]);
+                    return;
+                }
+                
                 // Determinar URL de redirecionamento baseado nas permissões
                 $redirectUrl = '/';
                 if (!\App\Services\PermissionService::hasPermission($user['id'], 'dashboard', 'view')) {
@@ -287,7 +297,121 @@ class AuthController
                 }
             }
         } catch (\Exception $e) {
-            error_log("Error notifying admins: " . $e->getMessage());
+            // Log error but don't show to user
+            error_log('Error sending admin notification: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Show first access page
+     */
+    public function firstAccess()
+    {
+        // Verificar se usuário está logado
+        if (!isset($_SESSION['user_id'])) {
+            redirect('/login');
+            return;
+        }
+        
+        // Verificar se realmente é primeiro acesso
+        $stmt = $this->db->prepare("SELECT first_access FROM users WHERE id = ?");
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if (!$user || $user['first_access'] != 1) {
+            redirect('/');
+            return;
+        }
+        
+        $title = 'Primeiro Acesso - SGQ OTI DJ';
+        $viewFile = __DIR__ . '/../../views/auth/first-access.php';
+        include __DIR__ . '/../../views/layouts/auth.php';
+    }
+    
+    /**
+     * Change password on first access
+     */
+    public function changeFirstPassword()
+    {
+        header('Content-Type: application/json');
+        
+        if (!isset($_SESSION['user_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+            return;
+        }
+        
+        $newPassword = $_POST['new_password'] ?? '';
+        
+        if (strlen($newPassword) < 6) {
+            echo json_encode(['success' => false, 'message' => 'A senha deve ter pelo menos 6 caracteres']);
+            return;
+        }
+        
+        try {
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            
+            $stmt = $this->db->prepare("UPDATE users SET password = ?, first_access = 0 WHERE id = ?");
+            $stmt->execute([$hashedPassword, $_SESSION['user_id']]);
+            
+            // Determinar URL de redirecionamento
+            $redirectUrl = '/';
+            if (!\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+                $redirectUrl = $this->findFirstAllowedModule($_SESSION['user_id']) ?: '/profile';
+            }
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Senha alterada com sucesso!',
+                'redirect' => $redirectUrl
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao alterar senha']);
+        }
+    }
+    
+    /**
+     * Skip first password change
+     */
+    public function skipFirstPassword()
+    {
+        header('Content-Type: application/json');
+        
+        if (!isset($_SESSION['user_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+            return;
+        }
+        
+        try {
+            $stmt = $this->db->prepare("UPDATE users SET first_access = 0 WHERE id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            
+            // Determinar URL de redirecionamento
+            $redirectUrl = '/';
+            if (!\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+                $redirectUrl = $this->findFirstAllowedModule($_SESSION['user_id']) ?: '/profile';
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'redirect' => $redirectUrl
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro interno']);
+        }
+    }
+    
+    /**
+     * Generate temporary password
+     */
+    public static function generateTempPassword(int $length = 8): string
+    {
+        $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $password = '';
+        
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $characters[random_int(0, strlen($characters) - 1)];
+        }
+        
+        return $password;
     }
 }

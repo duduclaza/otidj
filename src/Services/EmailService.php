@@ -277,6 +277,106 @@ class EmailService
     }
     
     /**
+     * Send welcome email with temporary password
+     */
+    public function sendWelcomeEmail(array $user, string $tempPassword): bool
+    {
+        $subject = "Bem-vindo ao SGQ OTI DJ - Seus dados de acesso";
+        
+        $body = $this->buildWelcomeEmailTemplate($user, $tempPassword);
+        
+        $altBody = "Bem-vindo ao SGQ OTI DJ!\n\n";
+        $altBody .= "Seus dados de acesso:\n";
+        $altBody .= "Email: {$user['email']}\n";
+        $altBody .= "Senha temporária: {$tempPassword}\n\n";
+        $altBody .= "Acesse: " . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/login\n";
+        $altBody .= "Recomendamos alterar sua senha no primeiro acesso.";
+        
+        return $this->send($user['email'], $subject, $body, $altBody);
+    }
+    
+    private function buildWelcomeEmailTemplate(array $user, string $tempPassword): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Bem-vindo ao SGQ OTI DJ</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 50%, #1e293b 100%); padding: 40px; text-align: center; border-radius: 15px 15px 0 0;'>
+                <div style='background: white; width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; padding: 10px;'>
+                    <img src='{$appUrl}/img/logo.png' alt='DJ Logo' style='max-width: 100%; max-height: 100%; object-fit: contain;'>
+                </div>
+                <h1 style='color: white; margin: 0; font-size: 32px;'>🎉 Bem-vindo!</h1>
+                <p style='color: #bfdbfe; margin: 10px 0 0 0; font-size: 18px;'>SGQ OTI DJ - Sistema de Gestão da Qualidade</p>
+            </div>
+            
+            <div style='background: white; padding: 40px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='text-align: center; margin-bottom: 30px;'>
+                    <h2 style='color: #1e40af; margin: 0 0 10px 0;'>Olá, {$user['name']}!</h2>
+                    <p style='color: #666; font-size: 16px; margin: 0;'>Sua conta foi criada com sucesso no SGQ OTI DJ.</p>
+                </div>
+                
+                <div style='background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 10px; padding: 25px; margin: 25px 0;'>
+                    <h3 style='color: #1e40af; margin: 0 0 15px 0; font-size: 18px;'>🔑 Seus dados de acesso:</h3>
+                    
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px; background: #dbeafe; border: 1px solid #bfdbfe; font-weight: bold; width: 30%;'>Email:</td>
+                            <td style='padding: 10px; border: 1px solid #bfdbfe; font-family: monospace; background: white;'>{$user['email']}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px; background: #dbeafe; border: 1px solid #bfdbfe; font-weight: bold;'>Senha Temporária:</td>
+                            <td style='padding: 10px; border: 1px solid #bfdbfe; font-family: monospace; background: white; font-weight: bold; color: #dc2626;'>{$tempPassword}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/login' style='background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);'>
+                        🚀 Acessar Sistema
+                    </a>
+                </div>
+                
+                <div style='background: #fef3c7; border: 2px solid #fbbf24; border-radius: 10px; padding: 20px; margin: 25px 0;'>
+                    <div style='display: flex; align-items: start;'>
+                        <div style='margin-right: 15px; font-size: 24px;'>⚠️</div>
+                        <div>
+                            <h4 style='color: #92400e; margin: 0 0 10px 0; font-size: 16px;'>Importante - Segurança:</h4>
+                            <ul style='color: #92400e; margin: 0; padding-left: 20px; font-size: 14px;'>
+                                <li>Esta é uma <strong>senha temporária</strong></li>
+                                <li>Recomendamos <strong>alterar sua senha</strong> no primeiro acesso</li>
+                                <li>Use uma senha segura com pelo menos 6 caracteres</li>
+                                <li>Não compartilhe seus dados de acesso</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;'>
+                    <p style='margin: 0; color: #666; font-size: 14px; text-align: center;'>
+                        <strong>Precisa de ajuda?</strong><br>
+                        Entre em contato com o administrador do sistema ou acesse a documentação de ajuda.
+                    </p>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 15px 15px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
      * Test email configuration
      */
     public function testConnection(): array

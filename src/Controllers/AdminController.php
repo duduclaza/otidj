@@ -176,17 +176,25 @@ class AdminController
                 $profileId = $defaultProfileStmt->fetchColumn();
             }
             
-            // Create user
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
+            // Generate temporary password
+            $tempPassword = \App\Controllers\AuthController::generateTempPassword();
+            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+            
+            // Create user with first_access = 1
+            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status, first_access) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1)");
             $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
             
-            // Send welcome email (don't let email errors break user creation)
+            $userId = $this->db->lastInsertId();
+            
+            // Send welcome email with temporary password (don't let email errors break user creation)
             try {
-                $this->sendWelcomeEmail($name, $email, $password);
-                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso e email de boas-vindas enviado']);
+                $emailService = new \App\Services\EmailService();
+                $userData = ['id' => $userId, 'name' => $name, 'email' => $email];
+                $emailService->sendWelcomeEmail($userData, $tempPassword);
+                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! Email de boas-vindas enviado com senha temporária.']);
             } catch (\Exception $emailError) {
-                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! (Erro ao enviar email: verifique configurações)']);
+                error_log('Error sending welcome email: ' . $emailError->getMessage());
+                echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! (Erro ao enviar email: verifique configurações SMTP)']);
             }
             
         } catch (\Exception $e) {
