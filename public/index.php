@@ -137,6 +137,10 @@ $router->post('/configuracoes/setup-banco', [App\Controllers\ConfigController::c
 $router->get('/email/test-connection', [App\Controllers\EmailController::class, 'testConnection']);
 $router->post('/email/send-test', [App\Controllers\EmailController::class, 'sendTest']);
 
+// API routes
+$router->get('/api/setores', [App\Controllers\ApiController::class, 'getSetores']);
+$router->get('/api/filiais', [App\Controllers\ApiController::class, 'getFiliais']);
+
 // Auth routes
 $router->get('/login', [App\Controllers\AuthController::class, 'login']);
 $router->post('/auth/login', [App\Controllers\AuthController::class, 'authenticate']);

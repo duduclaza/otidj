@@ -29,16 +29,18 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-white text-sm font-medium mb-2">Setor</label>
-        <input type="text" name="setor" 
-               class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
-               placeholder="Ex: TI, Qualidade">
+        <select name="setor" id="setorSelect"
+                class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent">
+          <option value="" class="text-gray-800">Selecione um setor...</option>
+        </select>
       </div>
 
       <div>
         <label class="block text-white text-sm font-medium mb-2">Filial</label>
-        <input type="text" name="filial" 
-               class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
-               placeholder="Ex: Matriz, Filial SP">
+        <select name="filial" id="filialSelect"
+                class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent">
+          <option value="" class="text-gray-800">Selecione uma filial...</option>
+        </select>
       </div>
     </div>
 
@@ -75,6 +77,52 @@
 </div>
 
 <script>
+// Carregar setores e filiais ao carregar a página
+document.addEventListener('DOMContentLoaded', function() {
+  loadSetores();
+  loadFiliais();
+});
+
+function loadSetores() {
+  fetch('/api/setores')
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        const select = document.getElementById('setorSelect');
+        result.data.forEach(setor => {
+          const option = document.createElement('option');
+          option.value = setor.name;
+          option.textContent = setor.name;
+          option.className = 'text-gray-800';
+          select.appendChild(option);
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Erro ao carregar setores:', error);
+    });
+}
+
+function loadFiliais() {
+  fetch('/api/filiais')
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        const select = document.getElementById('filialSelect');
+        result.data.forEach(filial => {
+          const option = document.createElement('option');
+          option.value = filial.name;
+          option.textContent = filial.name;
+          option.className = 'text-gray-800';
+          select.appendChild(option);
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Erro ao carregar filiais:', error);
+    });
+}
+
 document.getElementById('registerForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
