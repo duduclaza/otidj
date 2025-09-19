@@ -145,5 +145,8 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
       });
     });
   </script>
+  
+  <!-- Debug Panel (sempre visível) -->
+  <?php include __DIR__ . '/../partials/debug-panel.php'; ?>
 </body>
 </html>

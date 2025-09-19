@@ -127,34 +127,27 @@ class AdminController
      */
     public function createUser()
     {
-        // Garantir que nada seja enviado antes dos headers
-        if (headers_sent()) {
-            die(json_encode(['success' => false, 'message' => 'Headers já enviados']));
-        }
-        
-        // Limpar todos os buffers
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Verificar se é admin
         try {
-            AuthController::requireAdmin();
-        } catch (\Exception $e) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Acesso negado']);
-            exit;
-        }
-        
-        // Headers JSON
-        header('Content-Type: application/json; charset=utf-8');
-        header('Cache-Control: no-cache, must-revalidate');
-        header('Pragma: no-cache');
-        
-        // Iniciar captura de output
-        ob_start();
-        
-        try {
+            // Limpar qualquer output anterior
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            
+            // Headers JSON
+            header('Content-Type: application/json; charset=utf-8');
+            header('Cache-Control: no-cache, must-revalidate');
+            
+            // Verificar se é admin
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                exit;
+            }
+            
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
+                exit;
+            }
+            
             $name = trim($_POST['name'] ?? '');
             $email = trim($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
@@ -163,78 +156,64 @@ class AdminController
             $role = $_POST['role'] ?? 'user';
             $profileId = $_POST['profile_id'] ?? null;
             
-            // Validar dados
+            // Validar dados obrigatórios
             if (empty($name) || empty($email)) {
-                $this->sendJsonResponse(['success' => false, 'message' => 'Nome e email são obrigatórios']);
-                return;
+                echo json_encode(['success' => false, 'message' => 'Nome e email são obrigatórios']);
+                exit;
             }
             
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $this->sendJsonResponse(['success' => false, 'message' => 'Email inválido']);
-                return;
+                echo json_encode(['success' => false, 'message' => 'Email inválido']);
+                exit;
             }
             
             // Verificar se usuário já existe
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
             $stmt->execute([$email]);
             if ($stmt->fetchColumn() > 0) {
-                $this->sendJsonResponse(['success' => false, 'message' => 'Este email já está cadastrado']);
-                return;
+                echo json_encode(['success' => false, 'message' => 'Este email já está cadastrado']);
+                exit;
             }
             
-            // If no profile specified, get default profile
+            // Se não especificou perfil, usar o padrão
             if (empty($profileId)) {
                 $defaultProfileStmt = $this->db->prepare("SELECT id FROM profiles WHERE is_default = 1 LIMIT 1");
                 $defaultProfileStmt->execute();
                 $profileId = $defaultProfileStmt->fetchColumn();
-            }
-            
-            // Generate temporary password
-            $tempPassword = \App\Controllers\AuthController::generateTempPassword();
-            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
-            
-            // Check if first_access column exists
-            $hasFirstAccessColumn = false;
-            try {
-                $this->db->query("SELECT first_access FROM users LIMIT 1");
-                $hasFirstAccessColumn = true;
-            } catch (\Exception $e) {
-                // Column doesn't exist, we'll add it
-                try {
-                    $this->db->exec("ALTER TABLE users ADD COLUMN first_access TINYINT(1) DEFAULT 0");
-                    $hasFirstAccessColumn = true;
-                } catch (\Exception $alterError) {
-                    error_log('Could not add first_access column: ' . $alterError->getMessage());
+                
+                // Se não encontrou perfil padrão, usar o primeiro disponível
+                if (!$profileId) {
+                    $firstProfileStmt = $this->db->prepare("SELECT id FROM profiles LIMIT 1");
+                    $firstProfileStmt->execute();
+                    $profileId = $firstProfileStmt->fetchColumn();
                 }
             }
             
-            // Create user
-            if ($hasFirstAccessColumn) {
-                $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status, first_access) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1)");
-                $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
-            } else {
-                // Fallback without first_access column
-                $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
-                $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
-            }
+            // Gerar senha temporária
+            $tempPassword = $this->generateTempPassword();
+            $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
+            
+            // Criar usuário (sem tentar adicionar colunas que podem não existir)
+            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
+            $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
             
             $userId = $this->db->lastInsertId();
             
-            // Enviar email de boas-vindas
-            try {
-                $emailService = new \App\Services\EmailService();
-                $userData = ['id' => $userId, 'name' => $name, 'email' => $email];
-                $emailService->sendWelcomeEmail($userData, $tempPassword);
-                $this->sendJsonResponse(['success' => true, 'message' => 'Usuário criado com sucesso! Email de boas-vindas enviado.']);
-            } catch (\Exception $emailError) {
-                error_log('Error sending welcome email: ' . $emailError->getMessage());
-                $this->sendJsonResponse(['success' => true, 'message' => 'Usuário criado com sucesso! (Erro ao enviar email)']);
-            }
+            // Retornar sucesso com a senha (sem tentar enviar email por enquanto)
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Usuário criado com sucesso! Senha temporária: ' . $tempPassword,
+                'user_id' => $userId
+            ]);
             
         } catch (\Exception $e) {
             error_log('Error creating user: ' . $e->getMessage());
-            $this->sendJsonResponse(['success' => false, 'message' => 'Erro ao criar usuário: ' . $e->getMessage()]);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Erro ao criar usuário: ' . $e->getMessage()
+            ]);
         }
+        exit;
     }
     
     /**

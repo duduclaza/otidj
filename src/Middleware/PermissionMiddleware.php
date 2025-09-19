@@ -61,7 +61,7 @@ class PermissionMiddleware
         ];
         
         // Rotas de API que têm verificação própria
-        $apiRoutes = ['/api/', '/admin/users/create', '/admin/users/update', '/admin/users/delete', '/admin/users/send-credentials'];
+        $apiRoutes = ['/api/', '/admin/users/create', '/admin/users/update', '/admin/users/delete', '/admin/users/send-credentials', '/admin/test-email', '/debug/'];
         
         // Verificar se é rota pública
         foreach ($publicRoutes as $publicRoute) {

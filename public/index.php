@@ -9,11 +9,27 @@ header('Expires: 0');
 $basePath = dirname(__DIR__);
 
 // Composer autoload
-require $basePath . '/vendor/autoload.php';
+session_start();
 
-// Load environment
+require_once $basePath . '/vendor/autoload.php';
+
+use App\Core\Router;
+use App\Core\Migration;
+use App\Core\DebugLogger;
+use App\Middleware\PermissionMiddleware;
+use App\Setup\MelhoriaContinuaSetup;
+
+// Load environment variables
 $dotenv = Dotenv\Dotenv::createImmutable($basePath);
 $dotenv->safeLoad();
+
+// Initialize Debug Logger
+$debugLogger = DebugLogger::getInstance();
+$debugLogger->info('Application started', [
+    'url' => $_SERVER['REQUEST_URI'] ?? '/',
+    'method' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
+    'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
+]);
 
 // Error reporting configuration
 $isDebug = $_ENV['APP_DEBUG'] ?? 'false';
@@ -160,6 +176,13 @@ $router->post('/admin/users/update', [App\Controllers\AdminController::class, 'u
 $router->post('/admin/users/delete', [App\Controllers\AdminController::class, 'deleteUser']);
 $router->post('/admin/users/send-credentials', [App\Controllers\AdminController::class, 'sendCredentials']);
 $router->get('/admin/test-email', [App\Controllers\AdminController::class, 'testEmail']);
+
+// Debug routes
+$router->get('/debug/logs', [App\Controllers\DebugController::class, 'getLogs']);
+$router->get('/debug/report', [App\Controllers\DebugController::class, 'generateReport']);
+$router->post('/debug/clear', [App\Controllers\DebugController::class, 'clearLogs']);
+$router->post('/debug/test', [App\Controllers\DebugController::class, 'test']);
+
 $router->get('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'userPermissions']);
 $router->post('/admin/users/{id}/permissions', [App\Controllers\AdminController::class, 'updateUserPermissions']);
 $router->post('/admin/invitations/approve', [App\Controllers\AdminController::class, 'approveInvitation']);
