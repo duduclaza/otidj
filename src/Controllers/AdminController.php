@@ -242,23 +242,11 @@ class AdminController
      */
     public function sendCredentials()
     {
-        // Garantir que nada seja enviado antes dos headers
-        if (headers_sent()) {
-            die(json_encode(['success' => false, 'message' => 'Headers já enviados']));
-        }
+        error_log('sendCredentials method called');
         
-        // Limpar todos os buffers
-        while (ob_get_level()) {
+        // Limpar qualquer output anterior
+        if (ob_get_level()) {
             ob_end_clean();
-        }
-        
-        // Verificar se é admin
-        try {
-            AuthController::requireAdmin();
-        } catch (\Exception $e) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Acesso negado']);
-            exit;
         }
         
         // Headers JSON
@@ -266,69 +254,126 @@ class AdminController
         header('Cache-Control: no-cache, must-revalidate');
         
         try {
-            $userId = $_POST['user_id'] ?? null;
+            error_log('Checking authentication...');
+            
+            // Verificar se é admin
+            if (!isset($_SESSION['user_id'])) {
+                error_log('User not authenticated');
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                exit;
+            }
+            
+            error_log('User ID: ' . $_SESSION['user_id']);
+            
+            // Verificar se é admin usando PermissionService
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+                error_log('User is not admin');
+                echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
+                exit;
+            }
+            
+            $userId = $_POST['user_id'] ?? $_POST['id'] ?? null;
+            error_log('Target user ID: ' . $userId);
             
             if (!$userId) {
-                $this->sendJsonResponse(['success' => false, 'message' => 'ID do usuário é obrigatório']);
-                return;
+                error_log('No user ID provided');
+                echo json_encode(['success' => false, 'message' => 'ID do usuário é obrigatório']);
+                exit;
             }
             
             // Buscar dados do usuário
+            error_log('Searching for user in database...');
             $stmt = $this->db->prepare("SELECT id, name, email, status FROM users WHERE id = ?");
             $stmt->execute([$userId]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if (!$user) {
-                $this->sendJsonResponse(['success' => false, 'message' => 'Usuário não encontrado']);
-                return;
+                error_log('User not found in database');
+                echo json_encode(['success' => false, 'message' => 'Usuário não encontrado']);
+                exit;
             }
             
+            error_log('User found: ' . $user['email']);
+            
             if ($user['status'] !== 'active') {
-                $this->sendJsonResponse(['success' => false, 'message' => 'Usuário não está ativo']);
-                return;
+                error_log('User is not active: ' . $user['status']);
+                echo json_encode(['success' => false, 'message' => 'Usuário não está ativo']);
+                exit;
+            }
+            
+            // Verificar se o email está configurado
+            error_log('Checking email configuration...');
+            if (empty($_ENV['MAIL_HOST']) || empty($_ENV['MAIL_USERNAME'])) {
+                error_log('Email configuration missing');
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Configurações de email não encontradas. Verifique as configurações do sistema.'
+                ]);
+                exit;
             }
             
             // Gerar nova senha temporária
-            $tempPassword = \App\Controllers\AuthController::generateTempPassword();
+            error_log('Generating temporary password...');
+            $tempPassword = $this->generateTempPassword();
             $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
             
-            // Atualizar senha no banco e marcar como primeiro acesso
-            $updateStmt = $this->db->prepare("UPDATE users SET password = ?, first_access = 1 WHERE id = ?");
+            // Atualizar senha no banco
+            error_log('Updating password in database...');
+            $updateStmt = $this->db->prepare("UPDATE users SET password = ? WHERE id = ?");
             $updateStmt->execute([$hashedPassword, $userId]);
             
-            // Verificar se o email está configurado
-            if (empty($_ENV['MAIL_HOST']) || empty($_ENV['MAIL_USERNAME'])) {
-                $this->sendJsonResponse([
-                    'success' => false, 
-                    'message' => 'Configurações de email não encontradas. Verifique o arquivo .env'
-                ]);
-                return;
-            }
-            
             // Enviar email com as credenciais
+            error_log('Attempting to send email...');
             try {
                 $emailService = new \App\Services\EmailService();
-                $emailService->sendWelcomeEmail($user, $tempPassword);
+                $result = $emailService->sendWelcomeEmail($user, $tempPassword);
                 
-                $this->sendJsonResponse([
-                    'success' => true, 
-                    'message' => 'Credenciais enviadas com sucesso para ' . $user['email']
-                ]);
+                error_log('Email send result: ' . ($result ? 'success' : 'failed'));
+                
+                if ($result) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Credenciais enviadas com sucesso para ' . $user['email']
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => 'Erro ao enviar email. Verifique as configurações de email.'
+                    ]);
+                }
             } catch (\Exception $emailError) {
-                error_log('Error sending credentials email: ' . $emailError->getMessage());
-                $this->sendJsonResponse([
+                error_log('Email error: ' . $emailError->getMessage());
+                echo json_encode([
                     'success' => false, 
                     'message' => 'Erro ao enviar email: ' . $emailError->getMessage()
                 ]);
             }
             
         } catch (\Exception $e) {
-            error_log('Error sending credentials: ' . $e->getMessage());
-            $this->sendJsonResponse([
+            error_log('General error in sendCredentials: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
                 'success' => false, 
-                'message' => 'Erro interno: ' . $e->getMessage()
+                'message' => 'Erro interno do servidor: ' . $e->getMessage()
             ]);
         }
+        exit;
+    }
+    
+    /**
+     * Generate temporary password
+     */
+    private function generateTempPassword(int $length = 8): string
+    {
+        $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $password = '';
+        $charactersLength = strlen($characters);
+        
+        for ($i = 0; $i < $length; $i++) {
+            $password .= $characters[rand(0, $charactersLength - 1)];
+        }
+        
+        return $password;
     }
     
     /**
