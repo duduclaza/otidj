@@ -39,9 +39,9 @@ try {
     // Continue without migrations if they fail
 }
 
-// Auth routes
-$router->get('/login', [App\Controllers\AuthController::class, 'showLogin']);
-$router->post('/auth/login', [App\Controllers\AuthController::class, 'login']);
+// Auth routes (match AuthController methods: login = show page, authenticate = process)
+$router->get('/login', [App\Controllers\AuthController::class, 'login']);
+$router->post('/auth/login', [App\Controllers\AuthController::class, 'authenticate']);
 $router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
 
 // Dashboard
