@@ -2,7 +2,7 @@
   <!-- Logo/Header -->
   <div class="text-center mb-8">
     <div class="inline-flex items-center justify-center mb-6">
-      <img src="/img/logo.png" alt="DJ Logo" class="w-20 h-20 object-contain">
+      <img src="./public/img/logo.png" alt="DJ Logo" class="w-96 h-96 object-contain">
     </div>
     <h1 class="text-3xl font-bold text-white mb-3">🎉 Bem-vindo!</h1>
     <p class="text-blue-100 text-lg mb-4">Este é seu primeiro acesso ao SGQ OTI DJ</p>
