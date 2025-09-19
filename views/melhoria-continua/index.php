@@ -50,15 +50,39 @@
 
   tabs.forEach(t=>t.addEventListener('click', ()=>activate(t.getAttribute('data-target'))));
 
+  // Check permissions and show/hide tabs
+  const userPermissions = window.userPermissions || {};
+  
+  // Hide tabs based on permissions
+  if (!userPermissions.solicitacao_melhorias) {
+    document.getElementById('tab-solicitacoes').style.display = 'none';
+    document.getElementById('pane-solicitacoes').style.display = 'none';
+  }
+  if (!userPermissions.melhorias_pendentes) {
+    document.getElementById('tab-pendentes').style.display = 'none';
+    document.getElementById('pane-pendentes').style.display = 'none';
+  }
+  if (!userPermissions.historico_melhorias) {
+    document.getElementById('tab-historico').style.display = 'none';
+    document.getElementById('pane-historico').style.display = 'none';
+  }
+
   // Select tab by hash (?tab=pendentes OR #pendentes)
   const params = new URLSearchParams(window.location.search);
   const queryTab = params.get('tab');
   const hash = window.location.hash.replace('#','');
   const wanted = queryTab || hash;
-  if (wanted && ['solicitacoes','pendentes','historico'].includes(wanted)) {
+  
+  // Find first available tab
+  let firstAvailable = 'solicitacoes';
+  if (userPermissions.solicitacao_melhorias) firstAvailable = 'solicitacoes';
+  else if (userPermissions.melhorias_pendentes) firstAvailable = 'pendentes';
+  else if (userPermissions.historico_melhorias) firstAvailable = 'historico';
+  
+  if (wanted && ['solicitacoes','pendentes','historico'].includes(wanted) && userPermissions[wanted === 'solicitacoes' ? 'solicitacao_melhorias' : wanted === 'pendentes' ? 'melhorias_pendentes' : 'historico_melhorias']) {
     activate('#pane-' + wanted);
   } else {
-    activate('#pane-solicitacoes');
+    activate('#pane-' + firstAvailable);
   }
 })();
 </script>

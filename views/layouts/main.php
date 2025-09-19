@@ -17,6 +17,10 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
   <link rel="stylesheet" href="/src/Support/modal-styles.css">
   <script src="/src/Support/modal-utils.js"></script>
   <script>
+    // User permissions for frontend
+    window.userPermissions = <?= json_encode($_SESSION['user_permissions'] ?? []) ?>;
+  </script>
+  <script>
     // Tailwind config with dark theme
     tailwind.config = {
       theme: {

@@ -246,22 +246,53 @@ class MelhoriaContinuaController
     public function viewAnexos($params = []): void
     {
         $id = (int)($params['id'] ?? 0);
-        if ($id <= 0) { http_response_code(404); echo 'Solicitação inválida'; return; }
-        $stmt = $this->db->prepare("SELECT id, nome_original FROM solicitacoes_melhorias_anexos WHERE solicitacao_id = ? ORDER BY id");
+        if ($id <= 0) { 
+            error_log("viewAnexos: ID inválido recebido: " . print_r($params, true));
+            http_response_code(404); echo 'Solicitação inválida - ID não fornecido'; return; 
+        }
+        
+        // Verificar se a solicitação existe
+        $checkStmt = $this->db->prepare("SELECT id FROM solicitacoes_melhorias WHERE id = ?");
+        $checkStmt->execute([$id]);
+        if (!$checkStmt->fetchColumn()) {
+            error_log("viewAnexos: Solicitação não encontrada para ID: " . $id);
+            http_response_code(404); echo 'Solicitação não encontrada'; return;
+        }
+        
+        $stmt = $this->db->prepare("SELECT id, nome_original, tamanho_arquivo, tipo_arquivo FROM solicitacoes_melhorias_anexos WHERE solicitacao_id = ? ORDER BY id");
         $stmt->execute([$id]);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-        echo '<!doctype html><html lang="pt-br"><head><meta charset="utf-8"><title>Anexos Solicitação #'.$id.'</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></head><body class="p-6">';
-        echo '<h1 class="text-xl font-semibold mb-4">Anexos da Solicitação #'.htmlspecialchars((string)$id).'</h1>';
+        error_log("viewAnexos: Encontrados " . count($rows) . " anexos para solicitação " . $id);
+
+        // Se houver apenas um arquivo, já redireciona para download direto
+        if (count($rows) === 1) {
+            $only = $rows[0];
+            header('Location: /melhoria-continua/anexos/'.(int)$only['id'].'/download');
+            return;
+        }
+
+        echo '<!doctype html><html lang="pt-br"><head><meta charset="utf-8"><title>Anexos Solicitação #'.(int)$id.'</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></head><body class="p-6 bg-gray-50">';
+        echo '<div class="max-w-3xl mx-auto bg-white border rounded-lg shadow">';
+        echo '<div class="px-6 py-4 border-b"><h1 class="text-lg font-semibold">Anexos da Solicitação #'.htmlspecialchars((string)$id).'</h1></div>';
+        echo '<div class="p-6">';
         if (empty($rows)) {
             echo '<div class="text-gray-600">Nenhum anexo encontrado.</div>';
         } else {
-            echo '<ul class="list-disc ml-6 space-y-2">';
+            echo '<table class="min-w-full text-sm">';
+            echo '<thead class="bg-gray-50"><tr><th class="text-left px-3 py-2">Arquivo</th><th class="text-left px-3 py-2">Tamanho</th><th class="text-left px-3 py-2">Ação</th></tr></thead>';
+            echo '<tbody class="divide-y">';
             foreach ($rows as $r) {
                 $url = '/melhoria-continua/anexos/'.(int)$r['id'].'/download';
-                echo '<li><a class="text-blue-600 hover:underline" href="'.$url.'">'.htmlspecialchars($r['nome_original']).'</a></li>';
+                $size = isset($r['tamanho_arquivo']) ? (round(((int)$r['tamanho_arquivo'])/1024/1024, 2).' MB') : '-';
+                echo '<tr>';
+                echo '<td class="px-3 py-2">'.htmlspecialchars($r['nome_original']).'</td>';
+                echo '<td class="px-3 py-2 text-gray-600">'.$size.'</td>';
+                echo '<td class="px-3 py-2"><a class="inline-flex items-center px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" href="'.$url.'">Baixar</a></td>';
+                echo '</tr>';
             }
-            echo '</ul>';
+            echo '</tbody></table>';
         }
+        echo '</div></div>';
         echo '</body></html>';
     }
 
@@ -269,8 +300,17 @@ class MelhoriaContinuaController
     private function getSetores(): array
     {
         try {
-            $stmt = $this->db->query("SELECT DISTINCT setor FROM users WHERE setor IS NOT NULL AND setor <> '' ORDER BY setor");
-            return $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+            // Primeiro tenta buscar da tabela departments
+            $stmt = $this->db->query("SELECT name FROM departments WHERE name IS NOT NULL AND name <> '' ORDER BY name");
+            $setores = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+            
+            // Se não encontrar, busca dos usuários como fallback
+            if (empty($setores)) {
+                $stmt = $this->db->query("SELECT DISTINCT setor FROM users WHERE setor IS NOT NULL AND setor <> '' ORDER BY setor");
+                $setores = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+            }
+            
+            return $setores;
         } catch (\Throwable $e) { return []; }
     }
 
