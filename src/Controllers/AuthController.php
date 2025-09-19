@@ -6,11 +6,19 @@ use App\Config\Database;
 
 class AuthController
 {
-    private $db;
+    private $db = null; // Lazy connection
     
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        // Do NOT open a DB connection here to keep /login robust.
+        // Some shared hosts have strict connection limits and this runs on every page load.
+        // We'll lazily fetch the connection only when needed (e.g., authenticate, requests).
+        try {
+            // No-op. Keep constructor safe.
+        } catch (\Exception $e) {
+            // Never break the login page due to DB issues in constructor
+            error_log('AuthController init warning: ' . $e->getMessage());
+        }
     }
     
     /**
@@ -45,6 +53,10 @@ class AuthController
         }
         
         try {
+            // Ensure DB connection (lazy)
+            if ($this->db === null) {
+                $this->db = Database::getInstance();
+            }
             $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
             $stmt->execute([$email]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -87,6 +99,7 @@ class AuthController
                 echo json_encode(['success' => false, 'message' => 'Email ou senha incorretos']);
             }
         } catch (\Exception $e) {
+            error_log('Authenticate error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
         }
     }
