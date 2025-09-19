@@ -131,16 +131,19 @@ class AdminController
      */
     public function createUser()
     {
-        // Clean output buffer to prevent HTML mixing with JSON
-        if (ob_get_level()) {
-            ob_clean();
+        // Clean ALL output buffers to prevent HTML mixing with JSON
+        while (ob_get_level()) {
+            ob_end_clean();
         }
         
         AuthController::requireAdmin();
         
-        // Set JSON headers
+        // Set JSON headers FIRST
         header('Content-Type: application/json');
         header('Cache-Control: no-cache, must-revalidate');
+        
+        // Prevent any accidental output
+        ob_start();
         
         try {
             $name = trim($_POST['name'] ?? '');
@@ -152,11 +155,13 @@ class AdminController
             $profileId = $_POST['profile_id'] ?? null;
             
             if (empty($name) || empty($email) || empty($password)) {
+                ob_end_clean();
                 echo json_encode(['success' => false, 'message' => 'Nome, email e senha são obrigatórios']);
                 exit;
             }
             
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                ob_end_clean();
                 echo json_encode(['success' => false, 'message' => 'Email inválido']);
                 exit;
             }
@@ -165,6 +170,7 @@ class AdminController
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
             $stmt->execute([$email]);
             if ($stmt->fetchColumn() > 0) {
+                ob_end_clean();
                 echo json_encode(['success' => false, 'message' => 'Este email já está cadastrado']);
                 exit;
             }
@@ -212,14 +218,17 @@ class AdminController
                 $emailService = new \App\Services\EmailService();
                 $userData = ['id' => $userId, 'name' => $name, 'email' => $email];
                 $emailService->sendWelcomeEmail($userData, $tempPassword);
+                ob_end_clean();
                 echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! Email de boas-vindas enviado com senha temporária.']);
             } catch (\Exception $emailError) {
                 error_log('Error sending welcome email: ' . $emailError->getMessage());
+                ob_end_clean();
                 echo json_encode(['success' => true, 'message' => 'Usuário criado com sucesso! (Erro ao enviar email: verifique configurações SMTP)']);
             }
             
         } catch (\Exception $e) {
             error_log('Error creating user: ' . $e->getMessage());
+            ob_end_clean();
             echo json_encode(['success' => false, 'message' => 'Erro interno do servidor. Tente novamente.']);
         }
         
