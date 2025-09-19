@@ -241,16 +241,23 @@ class AuthController
     }
     
     /**
-     * Encontrar o primeiro módulo que o usuário tem permissão
+     * Redirecionamento inteligente baseado nas permissões do usuário
      */
-    private function findFirstAllowedModule(int $userId): ?string
+    private function getSmartRedirectUrl(int $userId): string
     {
-        // Lista de módulos em ordem de prioridade
+        // Primeiro, tentar dashboard se tiver permissão
+        if (\App\Services\PermissionService::hasPermission($userId, 'dashboard', 'view')) {
+            return '/';
+        }
+        
+        // Lista de módulos em ordem de prioridade (mais usados primeiro)
         $moduleUrls = [
             'toners_cadastro' => '/toners/cadastro',
+            'amostragens' => '/toners/amostragens', 
             'toners_retornados' => '/toners/retornados',
-            'amostragens' => '/toners/amostragens',
             'homologacoes' => '/homologacoes',
+            'melhoria_continua' => '/melhoria-continua',
+            'solicitacao_melhorias' => '/melhoria-continua/solicitacoes',
             'garantias' => '/garantias',
             'controle_descartes' => '/controle-de-descartes',
             'femea' => '/femea',
@@ -262,16 +269,26 @@ class AuthController
             'registros_fornecedores' => '/registros/fornecedores',
             'registros_parametros' => '/registros/parametros',
             'configuracoes_gerais' => '/configuracoes',
-            'profile' => '/profile',
         ];
         
+        // Procurar primeiro módulo com permissão
         foreach ($moduleUrls as $module => $url) {
             if (\App\Services\PermissionService::hasPermission($userId, $module, 'view')) {
                 return $url;
             }
         }
         
-        return null;
+        // Se não encontrar nenhum módulo, ir para perfil
+        return '/profile';
+    }
+    
+    /**
+     * Encontrar o primeiro módulo que o usuário tem permissão (método legado)
+     */
+    private function findFirstAllowedModule(int $userId): ?string
+    {
+        $url = $this->getSmartRedirectUrl($userId);
+        return $url === '/profile' ? null : $url;
     }
     
     private function notifyAdminsNewInvitation(string $name, string $email): void
@@ -359,15 +376,30 @@ class AuthController
             $stmt = $this->db->prepare("UPDATE users SET password = ?, first_access = 0 WHERE id = ?");
             $stmt->execute([$hashedPassword, $_SESSION['user_id']]);
             
-            // Determinar URL de redirecionamento
-            $redirectUrl = '/';
-            if (!\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
-                $redirectUrl = $this->findFirstAllowedModule($_SESSION['user_id']) ?: '/profile';
+            // Recarregar informações do usuário e permissões
+            $userStmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
+            $userStmt->execute([$_SESSION['user_id']]);
+            $user = $userStmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if ($user) {
+                // Atualizar sessão com dados atualizados
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
+                $_SESSION['user_setor'] = $user['setor'];
+                $_SESSION['user_filial'] = $user['filial'];
+                
+                // Recarregar perfil e permissões
+                $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
+                $_SESSION['user_profile'] = $profileInfo;
             }
+            
+            // Determinar URL de redirecionamento inteligente
+            $redirectUrl = $this->getSmartRedirectUrl($_SESSION['user_id']);
             
             echo json_encode([
                 'success' => true, 
-                'message' => 'Senha alterada com sucesso!',
+                'message' => 'Senha alterada com sucesso! Bem-vindo ao SGQ OTI!',
                 'redirect' => $redirectUrl
             ]);
         } catch (\Exception $e) {
@@ -391,11 +423,26 @@ class AuthController
             $stmt = $this->db->prepare("UPDATE users SET first_access = 0 WHERE id = ?");
             $stmt->execute([$_SESSION['user_id']]);
             
-            // Determinar URL de redirecionamento
-            $redirectUrl = '/';
-            if (!\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
-                $redirectUrl = $this->findFirstAllowedModule($_SESSION['user_id']) ?: '/profile';
+            // Recarregar informações do usuário e permissões
+            $userStmt = $this->db->prepare("SELECT * FROM users WHERE id = ?");
+            $userStmt->execute([$_SESSION['user_id']]);
+            $user = $userStmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if ($user) {
+                // Atualizar sessão com dados atualizados
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
+                $_SESSION['user_setor'] = $user['setor'];
+                $_SESSION['user_filial'] = $user['filial'];
+                
+                // Recarregar perfil e permissões
+                $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
+                $_SESSION['user_profile'] = $profileInfo;
             }
+            
+            // Determinar URL de redirecionamento inteligente
+            $redirectUrl = $this->getSmartRedirectUrl($_SESSION['user_id']);
             
             echo json_encode([
                 'success' => true,
