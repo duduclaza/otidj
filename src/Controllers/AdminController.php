@@ -180,9 +180,30 @@ class AdminController
             $tempPassword = \App\Controllers\AuthController::generateTempPassword();
             $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
             
-            // Create user with first_access = 1
-            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status, first_access) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1)");
-            $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
+            // Check if first_access column exists
+            $hasFirstAccessColumn = false;
+            try {
+                $this->db->query("SELECT first_access FROM users LIMIT 1");
+                $hasFirstAccessColumn = true;
+            } catch (\Exception $e) {
+                // Column doesn't exist, we'll add it
+                try {
+                    $this->db->exec("ALTER TABLE users ADD COLUMN first_access TINYINT(1) DEFAULT 0");
+                    $hasFirstAccessColumn = true;
+                } catch (\Exception $alterError) {
+                    error_log('Could not add first_access column: ' . $alterError->getMessage());
+                }
+            }
+            
+            // Create user
+            if ($hasFirstAccessColumn) {
+                $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status, first_access) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', 1)");
+                $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
+            } else {
+                // Fallback without first_access column
+                $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
+                $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
+            }
             
             $userId = $this->db->lastInsertId();
             

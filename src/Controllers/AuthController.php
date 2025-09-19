@@ -61,8 +61,8 @@ class AuthController
                 $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
                 $_SESSION['user_profile'] = $profileInfo;
                 
-                // Verificar se é primeiro acesso
-                if ($user['first_access'] == 1) {
+                // Verificar se é primeiro acesso (se a coluna existir)
+                if (isset($user['first_access']) && $user['first_access'] == 1) {
                     echo json_encode([
                         'success' => true, 
                         'message' => 'Primeiro acesso detectado',
@@ -314,11 +314,17 @@ class AuthController
         }
         
         // Verificar se realmente é primeiro acesso
-        $stmt = $this->db->prepare("SELECT first_access FROM users WHERE id = ?");
-        $stmt->execute([$_SESSION['user_id']]);
-        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
-        if (!$user || $user['first_access'] != 1) {
+        try {
+            $stmt = $this->db->prepare("SELECT first_access FROM users WHERE id = ?");
+            $stmt->execute([$_SESSION['user_id']]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$user || !isset($user['first_access']) || $user['first_access'] != 1) {
+                redirect('/');
+                return;
+            }
+        } catch (\Exception $e) {
+            // Se a coluna não existir, redirecionar para home
             redirect('/');
             return;
         }
