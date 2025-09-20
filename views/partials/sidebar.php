@@ -68,9 +68,8 @@ $menu = [
     'href' => '#', 
     'icon' => '⚙️', 
     'category' => true,
-    'modules' => ['configuracoes_gerais', 'admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel'],
+    'modules' => ['admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel'],
     'submenu' => [
-      ['label' => 'Configurações Gerais', 'href' => '/configuracoes', 'icon' => '⚙️', 'module' => 'configuracoes_gerais'],
       ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥', 'module' => 'admin_usuarios'],
       ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
       ['label' => 'Solicitações de Acesso', 'href' => '/admin/invitations', 'icon' => '📧', 'module' => 'admin_convites'],
