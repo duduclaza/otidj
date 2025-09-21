@@ -267,35 +267,35 @@ window.exportToExcel = function exportToExcel() {
   }, 2000);
 }
 
-window.openImportModal = function openImportModal() {
-  console.log('Opening import modal...');
-  const modal = document.getElementById('importModal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    console.log('Modal opened successfully');
-  } else {
-    console.error('Import modal not found!');
-  }
-}
-
-window.closeImportModal = function closeImportModal() {
-  document.getElementById('importModal').classList.add('hidden');
-  const progressDiv = document.getElementById('importProgress');
-  if (progressDiv) {
-    progressDiv.style.display = 'none';
-  }
-  const debugConsole = document.getElementById('debugConsole');
-  if (debugConsole) {
-    debugConsole.style.display = 'none';
-  }
-  debugMode = false;
-}
+// Import functions removed - not needed anymore
 
 // Delete functions - definidas no início para estar disponíveis imediatamente
 window.confirmDelete = function confirmDelete(id, modelo) {
+  console.log('🗑️ confirmDelete chamada com:', { id, modelo });
+  
   deleteId = id;
-  document.getElementById('deleteModeloName').textContent = modelo;
-  document.getElementById('deleteModal').classList.remove('hidden');
+  
+  // Verificar se o modal existe
+  const modal = document.getElementById('deleteModal');
+  const modeloName = document.getElementById('deleteModeloName');
+  
+  if (!modal) {
+    console.error('❌ Modal deleteModal não encontrado!');
+    // Fallback: usar confirm nativo
+    if (confirm(`Tem certeza que deseja excluir o registro do modelo "${modelo}"?`)) {
+      window.deleteRetornado();
+    }
+    return;
+  }
+  
+  if (!modeloName) {
+    console.error('❌ Elemento deleteModeloName não encontrado!');
+  } else {
+    modeloName.textContent = modelo;
+  }
+  
+  modal.classList.remove('hidden');
+  console.log('✅ Modal de exclusão aberto');
 }
 
 window.closeDeleteModal = function closeDeleteModal() {
@@ -371,9 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
     deleteRetornado: typeof window.deleteRetornado,
     showNotification: typeof window.showNotification,
     filterData: typeof window.filterData,
-    exportToExcel: typeof window.exportToExcel,
-    openImportModal: typeof window.openImportModal,
-    closeImportModal: typeof window.closeImportModal
+    exportToExcel: typeof window.exportToExcel
   });
   
   // Teste rápido das funções
@@ -383,15 +381,13 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ confirmDelete está OK');
   }
   
-  // Adicionar botão de teste temporário
-  const testButton = document.createElement('button');
-  testButton.textContent = 'TESTE - Clique aqui';
-  testButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999; background: red; color: white; padding: 10px;';
-  testButton.onclick = function() {
-    alert('JavaScript está funcionando!');
-    console.log('Teste de clique funcionou!');
-  };
-  document.body.appendChild(testButton);
+  // Teste simples das funções críticas
+  setTimeout(() => {
+    console.log('🧪 TESTE DAS FUNÇÕES:');
+    console.log('confirmDelete disponível:', typeof window.confirmDelete === 'function');
+    console.log('filterData disponível:', typeof window.filterData === 'function');
+    console.log('exportToExcel disponível:', typeof window.exportToExcel === 'function');
+  }, 1000);
   
   carregarModelos();
   carregarParametrosGerais();
@@ -809,7 +805,7 @@ function submitRetornado(e) {
 
   <!-- Filters and Search -->
   <div class="bg-white border rounded-lg p-4">
-    <div class="grid grid-cols-1 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-3">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
         <input type="text" id="searchInput" placeholder="Modelo, código..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -836,14 +832,6 @@ function submitRetornado(e) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
           <span>Exportar</span>
-        </button>
-      </div>
-      <div class="flex items-end">
-        <button onclick="openImportModal()" class="w-full bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
-          </svg>
-          <span>Importar</span>
         </button>
       </div>
     </div>
@@ -914,11 +902,8 @@ function submitRetornado(e) {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= date('d/m/Y', strtotime($retornado['data_registro'])) ?></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   <button onclick="confirmDelete(<?= $retornado['id'] ?>, '<?= e($retornado['modelo']) ?>')" 
-                          class="text-red-600 hover:text-red-900 transition-colors" 
-                          title="Excluir registro">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
+                          class="text-red-600 hover:text-red-800 text-xs bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors">
+                    Excluir
                   </button>
                 </td>
               </tr>
@@ -2048,7 +2033,6 @@ console.log('🔧 FUNÇÕES DISPONÍVEIS NO WINDOW:');
 console.log('confirmDelete:', typeof window.confirmDelete);
 console.log('filterData:', typeof window.filterData);
 console.log('exportToExcel:', typeof window.exportToExcel);
-console.log('openImportModal:', typeof window.openImportModal);
 
 // Test if functions are callable
 try {
