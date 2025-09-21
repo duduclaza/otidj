@@ -1,15 +1,10 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold">Cadastro de Toners</h1>
-    <div class="flex gap-2">
-      <button onclick="testModal()" class="px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 text-sm">
-        Teste Modal
-      </button>
-      <button onclick="openImportModal()" class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
-        <span>📊</span>
-        Importar
-      </button>
-    </div>
+    <button onclick="openImportModal()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 font-medium">
+      <span>📊</span>
+      Importar
+    </button>
   </div>
   
   <!-- Formulário de Cadastro -->
@@ -184,70 +179,90 @@
 <div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="z-index: 9999;" onclick="closeImportModal()">
   <div class="bg-white rounded-lg shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
     <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Importar Toners</h3>
+    <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white rounded-t-lg">
+      <div class="flex items-center">
+        <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mr-3">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-gray-900">📊 Importar Toners</h3>
+          <p class="text-sm text-gray-600 mt-1">Faça upload de um arquivo Excel ou CSV com os dados dos toners</p>
+        </div>
+      </div>
     </div>
     
     <!-- Content -->
     <div class="px-6 py-4 space-y-4">
       <!-- File Input -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Selecione o arquivo Excel:
+        <label class="block text-sm font-semibold text-gray-700 mb-3">
+          📁 Selecione o arquivo Excel ou CSV:
         </label>
-        <div class="relative">
+        <div class="relative group">
           <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" 
-                 class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 class="w-full border-2 border-dashed border-gray-300 rounded-xl px-4 py-4 text-sm focus:ring-3 focus:ring-blue-200 focus:border-blue-400 hover:border-gray-400 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+          <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+            <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
             </svg>
           </div>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Formatos aceitos: .xlsx, .xls, .csv</p>
+        <div class="flex items-center mt-2 text-xs text-gray-500">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Formatos aceitos: <span class="font-medium">.xlsx, .xls, .csv</span> • Tamanho máximo: <span class="font-medium">10MB</span>
+        </div>
       </div>
       
       <!-- Progress Bar (hidden by default) -->
       <div id="progressContainer" class="hidden">
-        <div class="mb-3">
-          <div class="flex justify-between text-sm font-medium text-gray-700 mb-1">
-            <span>Progresso da Importação</span>
-            <span id="progressText">0%</span>
+        <div class="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-4 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center">
+              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
+              <span class="text-sm font-semibold text-gray-700">⚡ Progresso da Importação</span>
+            </div>
+            <span id="progressText" class="text-sm font-bold text-blue-600">0%</span>
           </div>
-          <div class="w-full bg-gray-200 rounded-full h-3">
-            <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
+            <div id="progressBar" class="bg-gradient-to-r from-blue-500 via-blue-600 to-green-500 h-4 rounded-full transition-all duration-500 ease-out shadow-sm" style="width: 0%"></div>
+          </div>
+          <div id="importStatus" class="text-sm text-gray-700 bg-white rounded-lg p-3 mt-3 border border-gray-200 shadow-sm">
+            Preparando importação...
           </div>
         </div>
-        <div id="importStatus" class="text-sm text-gray-600 bg-gray-50 rounded-lg p-2"></div>
       </div>
     </div>
     
     <!-- Footer -->
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
       <!-- Template Download -->
-      <div class="mb-3">
+      <div class="mb-4">
         <button onclick="downloadTemplate()" 
-                class="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-blue-700 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-xl hover:from-blue-100 hover:to-blue-200 hover:border-blue-300 focus:ring-3 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200 shadow-sm hover:shadow-md">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
-          Baixar Template Excel
+          📥 Baixar Template Excel
         </button>
       </div>
       
       <!-- Action Buttons -->
       <div class="flex space-x-3">
         <button id="cancelBtn" onclick="closeImportModal()" 
-                class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
-          Cancelar
+                class="flex-1 px-4 py-3 text-sm font-semibold text-gray-600 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 focus:ring-3 focus:ring-gray-200 focus:ring-opacity-50 transition-all duration-200 shadow-sm hover:shadow-md">
+          ❌ Cancelar
         </button>
         <button id="importBtn" onclick="importExcel()" 
-                class="flex-1 px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                class="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-600 border-2 border-green-500 rounded-xl hover:from-green-600 hover:to-green-700 hover:border-green-600 focus:ring-3 focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md">
           <span class="flex items-center justify-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
             </svg>
-            Importar Dados
+            📤 Importar Dados
           </span>
         </button>
       </div>
@@ -410,13 +425,9 @@ function forceShowModal() {
 
 // Modal functions
 function openImportModal() {
-  console.log('Abrindo modal de importação...');
   const modal = document.getElementById('importModal');
   if (modal) {
-    console.log('Modal encontrado, classes antes:', modal.className);
-    console.log('Modal HTML:', modal.outerHTML.substring(0, 200) + '...');
-    
-    // Remover hidden e forçar TODOS os estilos necessários
+    // Remover hidden e forçar estilos necessários
     modal.classList.remove('hidden');
     modal.style.cssText = `
       display: flex !important;
@@ -434,20 +445,7 @@ function openImportModal() {
       opacity: 1 !important;
     `;
     
-    console.log('Modal classes depois:', modal.className);
-    console.log('Modal computed display:', window.getComputedStyle(modal).display);
-    console.log('Modal computed position:', window.getComputedStyle(modal).position);
-    console.log('Modal computed z-index:', window.getComputedStyle(modal).zIndex);
-    
-    // Verificar posição e tamanho
-    const rect = modal.getBoundingClientRect();
-    console.log('Modal rect:', rect);
-    
-    // Verificar se há elementos filhos
-    console.log('Modal children count:', modal.children.length);
-    console.log('Modal first child:', modal.children[0]);
-    
-    // Forçar estilos do conteúdo interno também
+    // Garantir que o conteúdo interno seja visível
     const modalContent = modal.querySelector('.bg-white');
     if (modalContent) {
       modalContent.style.cssText = `
@@ -461,19 +459,9 @@ function openImportModal() {
         z-index: 100000 !important;
         position: relative !important;
       `;
-      console.log('Modal content styled');
     }
-    
-    // Teste final - adicionar borda vermelha para debug visual
-    modal.style.border = '5px solid red !important';
-    
   } else {
-    console.error('Modal não encontrado! Verificando todos os elementos com ID...');
-    const allElements = document.querySelectorAll('[id]');
-    console.log('Elementos com ID encontrados:', Array.from(allElements).map(el => el.id));
-    
-    // Criar modal dinamicamente se não encontrar
-    console.log('Criando modal dinamicamente...');
+    // Fallback: criar modal dinamicamente
     createDynamicModal();
   }
 }
@@ -609,14 +597,16 @@ function updateDynamicProgress(percentage, status) {
 }
 
 function closeImportModal() {
-  console.log('Fechando modal de importação...');
   const modal = document.getElementById('importModal');
   if (modal) {
     modal.classList.add('hidden');
-    modal.style.display = 'none'; // Força o display none
-    console.log('Modal fechado com sucesso');
-  } else {
-    console.error('Modal não encontrado ao fechar!');
+    modal.style.display = 'none';
+  }
+  
+  // Fechar modal dinâmico também se existir
+  const dynamicModal = document.getElementById('dynamicImportModal');
+  if (dynamicModal) {
+    dynamicModal.remove();
   }
 }
 
