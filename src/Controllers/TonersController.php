@@ -16,11 +16,58 @@ class TonersController
     public function cadastro(): void
     {
         try {
-            $toners = $this->db->query('SELECT * FROM toners ORDER BY modelo')->fetchAll();
+            // Get pagination parameters
+            $page = max(1, (int)($_GET['page'] ?? 1));
+            $perPage = 10; // 10 linhas por página
+            $offset = ($page - 1) * $perPage;
+            
+            // Get total count for pagination
+            $countStmt = $this->db->query('SELECT COUNT(*) FROM toners');
+            $totalRecords = $countStmt->fetchColumn();
+            $totalPages = ceil($totalRecords / $perPage);
+            
+            // Get paginated toners
+            $stmt = $this->db->prepare('
+                SELECT * FROM toners 
+                ORDER BY modelo 
+                LIMIT :limit OFFSET :offset
+            ');
+            $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            $toners = $stmt->fetchAll();
+            
+            // Pagination info
+            $pagination = [
+                'current_page' => $page,
+                'total_pages' => $totalPages,
+                'total_records' => $totalRecords,
+                'per_page' => $perPage,
+                'has_previous' => $page > 1,
+                'has_next' => $page < $totalPages,
+                'previous_page' => $page > 1 ? $page - 1 : null,
+                'next_page' => $page < $totalPages ? $page + 1 : null
+            ];
+            
         } catch (\PDOException $e) {
             $toners = [];
+            $pagination = [
+                'current_page' => 1,
+                'total_pages' => 1,
+                'total_records' => 0,
+                'per_page' => $perPage,
+                'has_previous' => false,
+                'has_next' => false,
+                'previous_page' => null,
+                'next_page' => null
+            ];
         }
-        $this->render('toners/cadastro', ['title' => 'Cadastro de Toners', 'toners' => $toners]);
+        
+        $this->render('toners/cadastro', [
+            'title' => 'Cadastro de Toners', 
+            'toners' => $toners,
+            'pagination' => $pagination
+        ]);
     }
 
     public function retornados(): void

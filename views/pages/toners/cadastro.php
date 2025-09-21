@@ -81,7 +81,15 @@
   <!-- Lista/Grid -->
   <div class="bg-white border rounded-lg">
     <div class="px-4 py-3 border-b flex justify-between items-center">
-      <h2 class="text-lg font-medium">Toners Cadastrados</h2>
+      <div>
+        <h2 class="text-lg font-medium">Toners Cadastrados</h2>
+        <?php if (isset($pagination)): ?>
+          <p class="text-sm text-gray-600 mt-1">
+            <?= $pagination['total_records'] ?> toner(s) encontrado(s) • 
+            Página <?= $pagination['current_page'] ?> de <?= $pagination['total_pages'] ?>
+          </p>
+        <?php endif; ?>
+      </div>
       <button onclick="exportToExcel()" class="px-3 py-1 text-sm rounded bg-gray-600 text-white hover:bg-gray-700">
         Exportar Excel
       </button>
@@ -172,6 +180,99 @@
         </tbody>
       </table>
     </div>
+    
+    <!-- Paginação -->
+    <?php if (isset($pagination) && $pagination['total_pages'] > 1): ?>
+    <div class="px-4 py-3 border-t bg-gray-50 flex items-center justify-between">
+      <div class="flex items-center text-sm text-gray-700">
+        <span>
+          Mostrando 
+          <span class="font-medium"><?= (($pagination['current_page'] - 1) * $pagination['per_page']) + 1 ?></span>
+          até 
+          <span class="font-medium"><?= min($pagination['current_page'] * $pagination['per_page'], $pagination['total_records']) ?></span>
+          de 
+          <span class="font-medium"><?= $pagination['total_records'] ?></span>
+          resultados
+        </span>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <!-- Botão Anterior -->
+        <?php if ($pagination['has_previous']): ?>
+          <a href="?page=<?= $pagination['previous_page'] ?>" 
+             class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Anterior
+          </a>
+        <?php else: ?>
+          <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Anterior
+          </span>
+        <?php endif; ?>
+
+        <!-- Números das páginas -->
+        <div class="flex items-center space-x-1">
+          <?php
+          $start = max(1, $pagination['current_page'] - 2);
+          $end = min($pagination['total_pages'], $pagination['current_page'] + 2);
+          
+          // Mostrar primeira página se não estiver no range
+          if ($start > 1): ?>
+            <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">1</a>
+            <?php if ($start > 2): ?>
+              <span class="px-2 py-2 text-sm text-gray-500">...</span>
+            <?php endif; ?>
+          <?php endif; ?>
+
+          <?php for ($i = $start; $i <= $end; $i++): ?>
+            <?php if ($i == $pagination['current_page']): ?>
+              <span class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">
+                <?= $i ?>
+              </span>
+            <?php else: ?>
+              <a href="?page=<?= $i ?>" 
+                 class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                <?= $i ?>
+              </a>
+            <?php endif; ?>
+          <?php endfor; ?>
+
+          <!-- Mostrar última página se não estiver no range -->
+          <?php if ($end < $pagination['total_pages']): ?>
+            <?php if ($end < $pagination['total_pages'] - 1): ?>
+              <span class="px-2 py-2 text-sm text-gray-500">...</span>
+            <?php endif; ?>
+            <a href="?page=<?= $pagination['total_pages'] ?>" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">
+              <?= $pagination['total_pages'] ?>
+            </a>
+          <?php endif; ?>
+        </div>
+
+        <!-- Botão Próximo -->
+        <?php if ($pagination['has_next']): ?>
+          <a href="?page=<?= $pagination['next_page'] ?>" 
+             class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-700 transition-colors">
+            Próximo
+            <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </a>
+        <?php else: ?>
+          <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-gray-100 border border-gray-200 rounded-md cursor-not-allowed">
+            Próximo
+            <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </span>
+        <?php endif; ?>
+      </div>
+    </div>
+    <?php endif; ?>
   </div>
 
   <!-- Import Modal -->
@@ -1153,4 +1254,91 @@ window.forceCloseModal = function() {
 
 // Instrução para o usuário
 console.log('💡 DICA: Se o modal não fechar, digite no console: forceCloseModal()');
+
+// ===== PAGINAÇÃO - NAVEGAÇÃO POR TECLADO =====
+document.addEventListener('DOMContentLoaded', function() {
+  // Navegação por teclado na paginação
+  document.addEventListener('keydown', function(e) {
+    // Verificar se não está em um input ou textarea
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+      return;
+    }
+    
+    const currentPage = <?= $pagination['current_page'] ?? 1 ?>;
+    const totalPages = <?= $pagination['total_pages'] ?? 1 ?>;
+    
+    // Seta esquerda ou 'P' para página anterior
+    if ((e.key === 'ArrowLeft' || e.key.toLowerCase() === 'p') && currentPage > 1) {
+      e.preventDefault();
+      window.location.href = '?page=' + (currentPage - 1);
+    }
+    
+    // Seta direita ou 'N' para próxima página
+    if ((e.key === 'ArrowRight' || e.key.toLowerCase() === 'n') && currentPage < totalPages) {
+      e.preventDefault();
+      window.location.href = '?page=' + (currentPage + 1);
+    }
+    
+    // Home para primeira página
+    if (e.key === 'Home' && currentPage > 1) {
+      e.preventDefault();
+      window.location.href = '?page=1';
+    }
+    
+    // End para última página
+    if (e.key === 'End' && currentPage < totalPages) {
+      e.preventDefault();
+      window.location.href = '?page=' + totalPages;
+    }
+  });
+  
+  // Adicionar tooltips nos botões de paginação
+  const paginationButtons = document.querySelectorAll('a[href*="page="]');
+  paginationButtons.forEach(button => {
+    const page = new URL(button.href).searchParams.get('page');
+    button.title = `Ir para página ${page}`;
+  });
+  
+  // Mostrar atalhos de teclado se houver mais de uma página
+  if (<?= $pagination['total_pages'] ?? 1 ?> > 1) {
+    console.log('⌨️ ATALHOS DE PAGINAÇÃO:');
+    console.log('   ← ou P = Página anterior');
+    console.log('   → ou N = Próxima página');
+    console.log('   Home = Primeira página');
+    console.log('   End = Última página');
+  }
+});
+
+// Função para ir diretamente para uma página específica
+function goToPage(page) {
+  const totalPages = <?= $pagination['total_pages'] ?? 1 ?>;
+  if (page >= 1 && page <= totalPages) {
+    window.location.href = '?page=' + page;
+  }
+}
+
+// Função para mostrar loading durante navegação
+function showPaginationLoading(element) {
+  const originalText = element.textContent;
+  element.textContent = 'Carregando...';
+  element.style.opacity = '0.7';
+  element.style.pointerEvents = 'none';
+  
+  // Restaurar após um tempo (fallback)
+  setTimeout(() => {
+    element.textContent = originalText;
+    element.style.opacity = '1';
+    element.style.pointerEvents = 'auto';
+  }, 3000);
+}
+
+// Adicionar loading aos links de paginação
+document.addEventListener('DOMContentLoaded', function() {
+  const paginationLinks = document.querySelectorAll('a[href*="page="]');
+  paginationLinks.forEach(link => {
+    link.addEventListener('click', function() {
+      showPaginationLoading(this);
+    });
+  });
+});
 </script>
