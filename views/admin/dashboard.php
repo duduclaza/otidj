@@ -317,7 +317,488 @@
   </div>
 </div>
 
+<!-- Modal para Gráfico Expandido -->
+<div id="expandedChartModal" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4" style="z-index: 999999;">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-full overflow-auto" onclick="event.stopPropagation()">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
+      <h3 id="expandedChartTitle" class="text-xl font-bold text-gray-900">📊 Gráfico Expandido</h3>
+      <button onclick="closeExpandedChart()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors">
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div class="p-8">
+      <canvas id="expandedChart" width="1000" height="500"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
+// Variáveis globais para os gráficos
+let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart;
+let expandedChartInstance;
+
+// Dados de exemplo (serão substituídos por dados reais da API)
+const dadosRetornadosMes = {
+  labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+  datasets: [{
+    label: 'Quantidade de Retornados',
+    data: [120, 150, 180, 140, 200, 160, 190, 220, 180, 210, 170, 190],
+    backgroundColor: 'rgba(34, 197, 94, 0.8)',
+    borderColor: 'rgba(34, 197, 94, 1)',
+    borderWidth: 2,
+    borderRadius: 8,
+    borderSkipped: false,
+  }]
+};
+
+const dadosRetornadosDestino = {
+  labels: ['Descarte', 'Estoque', 'Uso Interno', 'Garantia'],
+  datasets: [{
+    data: [45, 30, 15, 10],
+    backgroundColor: [
+      'rgba(239, 68, 68, 0.8)',   // Vermelho - Descarte
+      'rgba(34, 197, 94, 0.8)',   // Verde - Estoque
+      'rgba(59, 130, 246, 0.8)',  // Azul - Uso Interno
+      'rgba(168, 85, 247, 0.8)'   // Roxo - Garantia
+    ],
+    borderColor: [
+      'rgba(239, 68, 68, 1)',
+      'rgba(34, 197, 94, 1)',
+      'rgba(59, 130, 246, 1)',
+      'rgba(168, 85, 247, 1)'
+    ],
+    borderWidth: 2
+  }]
+};
+
+const dadosTonersRecuperados = {
+  labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+  datasets: [{
+    label: 'Valor Recuperado (R$)',
+    data: [15000, 18000, 22000, 17000, 25000, 20000, 23000, 28000, 21000, 26000, 19000, 24000],
+    backgroundColor: 'rgba(168, 85, 247, 0.8)',
+    borderColor: 'rgba(168, 85, 247, 1)',
+    borderWidth: 2,
+    borderRadius: 8,
+    borderSkipped: false,
+  }]
+};
+
+// Inicializar gráficos
+function initCharts() {
+  // Gráfico de Retornados por Mês
+  const ctx1 = document.getElementById('retornadosMesChart').getContext('2d');
+  retornadosMesChart = new Chart(ctx1, {
+    type: 'bar',
+    data: dadosRetornadosMes,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: 'white',
+          bodyColor: 'white',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
+          borderWidth: 1,
+          cornerRadius: 8,
+          callbacks: {
+            afterBody: function(context) {
+              const currentValue = context[0].parsed.y;
+              const previousIndex = context[0].dataIndex - 1;
+              if (previousIndex >= 0) {
+                const previousValue = dadosRetornadosMes.datasets[0].data[previousIndex];
+                const percentage = ((currentValue - previousValue) / previousValue * 100).toFixed(1);
+                return `Variação: ${percentage > 0 ? '+' : ''}${percentage}% vs mês anterior`;
+              }
+              return '';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)',
+          },
+          ticks: {
+            color: '#6B7280',
+          }
+        },
+        x: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)',
+          },
+          ticks: {
+            color: '#6B7280',
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfico de Retornados por Destino
+  const ctx2 = document.getElementById('retornadosDestinoChart').getContext('2d');
+  retornadosDestinoChart = new Chart(ctx2, {
+    type: 'doughnut',
+    data: dadosRetornadosDestino,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: 'white',
+          bodyColor: 'white',
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((context.parsed / total) * 100).toFixed(1);
+              return `${context.label}: ${context.parsed} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Gráfico de Toners Recuperados
+  const ctx3 = document.getElementById('tonersRecuperadosChart').getContext('2d');
+  tonersRecuperadosChart = new Chart(ctx3, {
+    type: 'bar',
+    data: dadosTonersRecuperados,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleColor: 'white',
+          bodyColor: 'white',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
+          borderWidth: 1,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              return `Valor: R$ ${context.parsed.y.toLocaleString('pt-BR')}`;
+            },
+            afterBody: function(context) {
+              const currentValue = context[0].parsed.y;
+              const previousIndex = context[0].dataIndex - 1;
+              if (previousIndex >= 0) {
+                const previousValue = dadosTonersRecuperados.datasets[0].data[previousIndex];
+                const percentage = ((currentValue - previousValue) / previousValue * 100).toFixed(1);
+                const quantidadeEstimada = Math.round(currentValue / 89.90); // Preço médio do toner
+                return `Quantidade estimada: ${quantidadeEstimada} toners\nVariação: ${percentage > 0 ? '+' : ''}${percentage}% vs mês anterior`;
+              }
+              return '';
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)',
+          },
+          ticks: {
+            color: '#6B7280',
+            callback: function(value) {
+              return 'R$ ' + value.toLocaleString('pt-BR');
+            }
+          }
+        },
+        x: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)',
+          },
+          ticks: {
+            color: '#6B7280',
+          }
+        }
+      }
+    }
+  });
+}
+
+// Função para expandir gráfico
+function expandChart(chartId) {
+  const modal = document.getElementById('expandedChartModal');
+  const expandedCanvas = document.getElementById('expandedChart');
+  const title = document.getElementById('expandedChartTitle');
+  
+  let chartData, chartType, chartTitle;
+  
+  switch(chartId) {
+    case 'retornadosMesChart':
+      chartData = dadosRetornadosMes;
+      chartType = 'bar';
+      chartTitle = '📊 Retornados por Mês - Visão Expandida';
+      break;
+    case 'retornadosDestinoChart':
+      chartData = dadosRetornadosDestino;
+      chartType = 'doughnut';
+      chartTitle = '🥧 Destino dos Retornados - Visão Expandida';
+      break;
+    case 'tonersRecuperadosChart':
+      chartData = dadosTonersRecuperados;
+      chartType = 'bar';
+      chartTitle = '💰 Valor Recuperado em Toners - Visão Expandida';
+      break;
+  }
+  
+  title.textContent = chartTitle;
+  
+  // Destruir gráfico anterior se existir
+  if (expandedChartInstance) {
+    expandedChartInstance.destroy();
+  }
+  
+  // Criar novo gráfico expandido
+  const ctx = expandedCanvas.getContext('2d');
+  expandedChartInstance = new Chart(ctx, {
+    type: chartType,
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            font: {
+              size: 16
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          titleColor: 'white',
+          bodyColor: 'white',
+          borderColor: 'rgba(255, 255, 255, 0.2)',
+          borderWidth: 1,
+          cornerRadius: 12,
+          displayColors: true,
+          titleFont: {
+            size: 16
+          },
+          bodyFont: {
+            size: 14
+          }
+        }
+      },
+      scales: chartType === 'doughnut' ? {} : {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)',
+          },
+          ticks: {
+            color: '#6B7280',
+            font: {
+              size: 14
+            }
+          }
+        },
+        x: {
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)',
+          },
+          ticks: {
+            color: '#6B7280',
+            font: {
+              size: 14
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Mostrar modal
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+// Função para fechar gráfico expandido
+function closeExpandedChart() {
+  const modal = document.getElementById('expandedChartModal');
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
+  
+  if (expandedChartInstance) {
+    expandedChartInstance.destroy();
+    expandedChartInstance = null;
+  }
+}
+
+// Função para expandir todos os gráficos
+function expandAllCharts() {
+  // Criar modal com todos os gráficos
+  createFullScreenDashboard();
+}
+
+function createFullScreenDashboard() {
+  // Bloquear scroll da página
+  document.body.style.overflow = 'hidden';
+  
+  const modalHTML = `
+    <div id="fullScreenDashboard" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 999999; display: flex; flex-direction: column; overflow: auto;">
+      <div style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto;">
+          <h1 style="font-size: 28px; font-weight: bold; color: #1a202c; margin: 0;">📊 Dashboard Completo - Apresentação</h1>
+          <button onclick="closeFullScreenDashboard()" style="width: 40px; height: 40px; background: rgba(239, 68, 68, 0.1); border: 2px solid #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s;">
+            <svg style="width: 20px; height: 20px; color: #ef4444;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <div style="flex: 1; padding: 40px 20px; max-width: 1400px; margin: 0 auto; width: 100%;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+          <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            <h3 style="font-size: 20px; font-weight: bold; color: #1a202c; margin-bottom: 20px; text-align: center;">📊 Retornados por Mês</h3>
+            <canvas id="fullScreenChart1" width="600" height="300"></canvas>
+          </div>
+          <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            <h3 style="font-size: 20px; font-weight: bold; color: #1a202c; margin-bottom: 20px; text-align: center;">🥧 Destino dos Retornados</h3>
+            <canvas id="fullScreenChart2" width="600" height="300"></canvas>
+          </div>
+        </div>
+        
+        <div style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+          <h3 style="font-size: 20px; font-weight: bold; color: #1a202c; margin-bottom: 20px; text-align: center;">💰 Valor Recuperado em Toners (R$)</h3>
+          <canvas id="fullScreenChart3" width="1200" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Adicionar ao body
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Criar gráficos em tela cheia
+  setTimeout(() => {
+    createFullScreenCharts();
+  }, 100);
+}
+
+function createFullScreenCharts() {
+  // Gráfico 1 - Retornados por Mês
+  const ctx1 = document.getElementById('fullScreenChart1').getContext('2d');
+  new Chart(ctx1, {
+    type: 'bar',
+    data: dadosRetornadosMes,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // Gráfico 2 - Destino
+  const ctx2 = document.getElementById('fullScreenChart2').getContext('2d');
+  new Chart(ctx2, {
+    type: 'doughnut',
+    data: dadosRetornadosDestino,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+
+  // Gráfico 3 - Toners Recuperados
+  const ctx3 = document.getElementById('fullScreenChart3').getContext('2d');
+  new Chart(ctx3, {
+    type: 'bar',
+    data: dadosTonersRecuperados,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return 'R$ ' + value.toLocaleString('pt-BR');
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function closeFullScreenDashboard() {
+  document.body.style.overflow = '';
+  const modal = document.getElementById('fullScreenDashboard');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+// Funções de filtro
+function updateCharts() {
+  console.log('Atualizando gráficos com filtros...');
+}
+
+function applyFilters() {
+  const filial = document.getElementById('filtroFilial').value;
+  const dataInicial = document.getElementById('dataInicial').value;
+  const dataFinal = document.getElementById('dataFinal').value;
+  
+  console.log('Aplicando filtros:', { filial, dataInicial, dataFinal });
+  alert(`Filtros aplicados:\nFilial: ${filial || 'Todas'}\nPeríodo: ${dataInicial || 'Início'} até ${dataFinal || 'Hoje'}`);
+}
+
+function clearFilters() {
+  document.getElementById('filtroFilial').value = '';
+  document.getElementById('dataInicial').value = '';
+  document.getElementById('dataFinal').value = '';
+  updateCharts();
+}
+
+// Funções do modal de usuário
 function openCreateUserModal() {
   openModal('createUserModal');
 }
@@ -349,4 +830,18 @@ function submitCreateUser() {
     alert('Erro de conexão: ' + error.message);
   });
 }
+
+// Inicializar quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+  // Definir datas padrão
+  const hoje = new Date();
+  const trintaDiasAtras = new Date();
+  trintaDiasAtras.setDate(hoje.getDate() - 30);
+  
+  document.getElementById('dataInicial').value = trintaDiasAtras.toISOString().split('T')[0];
+  document.getElementById('dataFinal').value = hoje.toISOString().split('T')[0];
+  
+  // Inicializar gráficos
+  initCharts();
+});
 </script>
