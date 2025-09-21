@@ -176,7 +176,7 @@
 </section>
 
 <!-- Import Modal -->
-<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="z-index: 9999;" onclick="closeImportModal()">
+<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="z-index: 9999;">
   <div class="bg-white rounded-lg shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
     <!-- Header -->
     <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white rounded-t-lg">
@@ -193,7 +193,7 @@
           </div>
         </div>
         <!-- Close Button -->
-        <button onclick="closeImportModal()" class="flex-shrink-0 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors duration-200 group">
+        <button onclick="console.log('X clicado!'); event.stopPropagation(); closeImportModal();" class="flex-shrink-0 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors duration-200 group">
           <svg class="w-5 h-5 text-gray-500 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
@@ -464,6 +464,14 @@ function openImportModal() {
         position: relative !important;
       `;
     }
+    
+    // Adicionar evento de clique no overlay para fechar
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeImportModal();
+      }
+    });
+    
   } else {
     // Fallback: criar modal dinamicamente
     createDynamicModal();
@@ -601,16 +609,21 @@ function updateDynamicProgress(percentage, status) {
 }
 
 function closeImportModal() {
+  console.log('Fechando modal...');
   const modal = document.getElementById('importModal');
   if (modal) {
     modal.classList.add('hidden');
     modal.style.display = 'none';
+    console.log('Modal fechado com sucesso');
+  } else {
+    console.log('Modal não encontrado');
   }
   
   // Fechar modal dinâmico também se existir
   const dynamicModal = document.getElementById('dynamicImportModal');
   if (dynamicModal) {
     dynamicModal.remove();
+    console.log('Modal dinâmico removido');
   }
 }
 
