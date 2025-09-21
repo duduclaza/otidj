@@ -63,8 +63,9 @@
         <!-- Anexo da NF -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Anexo da NF (PDF) *</label>
-          <input type="file" name="arquivo_nf" accept=".pdf" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <p class="text-xs text-gray-500 mt-1">Apenas arquivos PDF são aceitos</p>
+          <input id="arquivo_nf" type="file" name="arquivo_nf" accept="application/pdf,.pdf" required onchange="validatePdfFile(this)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <p class="text-xs text-gray-500 mt-1">Apenas PDF até 10MB</p>
+          <div id="arquivo_nf_preview" class="mt-2"></div>
         </div>
 
         <!-- Fotos -->
@@ -97,8 +98,9 @@
         <!-- Evidências -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Evidências (Fotos)</label>
-          <input type="file" name="evidencias[]" accept="image/*" multiple class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <input id="evidencias" type="file" name="evidencias[]" accept="image/*" multiple onchange="validateEvidenceFiles(this)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           <p class="text-xs text-gray-500 mt-1">Selecione uma ou mais fotos como evidência do problema</p>
+          <div id="evidencias_preview" class="mt-2"></div>
         </div>
       </div>
 
@@ -226,41 +228,63 @@ function logActivity(type, action, details = {}) {
 }
 
 // Modal functions
-function openAmostragemModal() {
-  openModal('amostragemModal');
-  document.getElementById('modalTitle').textContent = 'Adicionar Nova Amostragem';
-  document.getElementById('amostragemForm').reset();
-  document.getElementById('amostragemId').value = '';
-  
-  // Set default status to 'pendente'
-  document.querySelector('input[name="status"][value="pendente"]').checked = true;
-  selectedStatus = 'pendente';
-  
-  // Load users for responsáveis dropdown
-  loadUsers();
-  
-  logActivity('modal', 'Abrir modal de amostragem');
+function toggleAmostragemForm() {
+  const container = document.getElementById('amostragemFormContainer');
+  const btn = document.getElementById('toggleAmostragemFormBtn');
+  if (container.classList.contains('hidden')) {
+    container.classList.remove('hidden');
+    btn.innerHTML = `
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+      <span>Cancelar</span>
+    `;
+    // default status e usuários
+    document.querySelector('input[name="status"][value="pendente"]').checked = true;
+    selectedStatus = 'pendente';
+    loadUsers();
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    closeAmostragemForm();
+  }
 }
 
-function closeAmostragemModal() {
-  closeModal('amostragemModal');
-  document.getElementById('amostragemForm').reset();
-  logActivity('modal', 'Fechar modal de amostragem');
+function closeAmostragemForm() {
+  const container = document.getElementById('amostragemFormContainer');
+  const btn = document.getElementById('toggleAmostragemFormBtn');
+  const form = document.getElementById('amostragemForm');
+  container.classList.add('hidden');
+  form.reset();
+  btn.innerHTML = `
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+    <span>Nova Amostragem</span>
+  `;
+  // reset condicionais e previews
+  document.querySelector('input[name="status"][value="pendente"]').checked = true;
+  toggleStatusFields();
+  clearFilePreview('arquivo_nf');
+  clearFilePreview('evidencias');
 }
 
 function toggleStatusFields() {
   const status = document.querySelector('input[name="status"]:checked')?.value;
   const reprovadoFields = document.getElementById('reprovadoFields');
-  
   logActivity('user_action', 'Status Changed', { status });
   selectedStatus = status;
-  
   if (status === 'reprovado') {
     reprovadoFields.classList.remove('hidden');
-    document.querySelector('textarea[name="observacao"]').required = true;
+    const obs = document.querySelector('textarea[name="observacao"]');
+    const evid = document.getElementById('evidencias');
+    if (obs) obs.required = true;
+    if (evid) evid.required = true;
   } else {
     reprovadoFields.classList.add('hidden');
-    document.querySelector('textarea[name="observacao"]').required = false;
+    const obs = document.querySelector('textarea[name="observacao"]');
+    const evid = document.getElementById('evidencias');
+    if (obs) obs.required = false;
+    if (evid) evid.required = false;
   }
 }
 
@@ -286,19 +310,19 @@ function loadUsers() {
       if (Array.isArray(users)) {
         users.forEach((user, index) => {
           const checkboxDiv = document.createElement('div');
-          checkboxDiv.className = 'flex items-center mb-2';
+          checkboxDiv.className = 'flex items-center p-2 hover:bg-blue-50 rounded-lg mb-1';
           
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.name = 'responsaveis[]';
-          checkbox.value = user.name;
+          checkbox.value = JSON.stringify({ name: user.name, email: user.email });
           checkbox.id = `responsavel_${index}`;
-          checkbox.className = 'mr-2';
+          checkbox.className = 'mr-3 text-blue-600 focus:ring-blue-500 h-4 w-4';
           
           const label = document.createElement('label');
           label.htmlFor = `responsavel_${index}`;
-          label.textContent = `${user.name} (${user.email})`;
-          label.className = 'text-sm cursor-pointer';
+          label.innerHTML = `<div class="flex flex-col"><span class="text-sm font-medium text-gray-900">${user.name}</span><span class="text-xs text-gray-500">${user.email}</span></div>`;
+          label.className = 'cursor-pointer flex-1';
           
           checkboxDiv.appendChild(checkbox);
           checkboxDiv.appendChild(label);
@@ -314,9 +338,9 @@ function loadUsers() {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
         checkbox.name = 'responsaveis[]';
-        checkbox.value = 'Test User';
+        checkbox.value = JSON.stringify({ name: 'Test User', email: 'test@example.com' });
         checkbox.id = 'responsavel_test';
-        checkbox.className = 'mr-2';
+        checkbox.className = 'mr-3 text-blue-600 focus:ring-blue-500 h-4 w-4';
         
         const label = document.createElement('label');
         label.htmlFor = 'responsavel_test';
@@ -408,7 +432,7 @@ function submitAmostragem() {
   formData.append('status', statusSelected);
   formData.append('observacao', observacao);
   
-  // Add responsaveis
+  // Add responsaveis (JSON de name+email)
   responsaveis.forEach(responsavel => {
     formData.append('responsaveis[]', responsavel);
   });
@@ -438,7 +462,7 @@ function submitAmostragem() {
   .then(result => {
     if (result.success) {
       alert(result.message);
-      closeAmostragemModal();
+      closeAmostragemForm();
       location.reload();
     } else {
       alert('Erro: ' + result.message);
@@ -470,6 +494,11 @@ function deleteAmostragem(id) {
   }
 }
 
+function excluirAmostragem(id, numeroNf) {
+  console.log('Excluir amostragem:', id, numeroNf);
+  deleteAmostragem(id);
+}
+
 function printAmostragens() {
   logActivity('user_action', 'Print Amostragens');
   window.print();
@@ -492,18 +521,102 @@ function downloadAmostragemLog() {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('openAmostragemBtn').addEventListener('click', openAmostragemModal);
+  const toggleBtn = document.getElementById('toggleAmostragemFormBtn');
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleAmostragemForm);
+  const closeBtn = document.getElementById('closeAmostragemFormBtn');
+  if (closeBtn) closeBtn.addEventListener('click', closeAmostragemForm);
   logActivity('system', 'Page Loaded');
 });
 
 // Export functions globally
-window.openAmostragemModal = openAmostragemModal;
-window.closeAmostragemModal = closeAmostragemModal;
+// Exports
+window.toggleAmostragemForm = toggleAmostragemForm;
+window.closeAmostragemForm = closeAmostragemForm;
 window.toggleStatusFields = toggleStatusFields;
 window.loadUsers = loadUsers;
 window.submitAmostragem = submitAmostragem;
 window.editAmostragem = editAmostragem;
 window.deleteAmostragem = deleteAmostragem;
+window.excluirAmostragem = excluirAmostragem;
 window.printAmostragens = printAmostragens;
 window.downloadAmostragemLog = downloadAmostragemLog;
+
+// ===== Utilidades de validação e preview =====
+function validatePdfFile(input) {
+  const file = input.files[0];
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (!file) return true;
+  const allowed = ['application/pdf'];
+  if (!allowed.includes(file.type)) {
+    alert('Apenas arquivos PDF são permitidos.');
+    input.value = '';
+    return false;
+  }
+  if (file.size > maxSize) {
+    alert('O PDF deve ter no máximo 10MB.');
+    input.value = '';
+    return false;
+  }
+  showFilePreview(file, 'arquivo_nf_preview');
+  return true;
+}
+
+function validateEvidenceFiles(input) {
+  const files = Array.from(input.files || []);
+  if (files.length === 0) return true;
+  const maxEach = 5 * 1024 * 1024; // 5MB
+  const allowed = ['image/jpeg','image/jpg','image/png','image/gif','image/webp'];
+  if (files.length > 5) {
+    alert('Máximo de 5 imagens.');
+    input.value='';
+    return false;
+  }
+  for (const f of files) {
+    if (!allowed.includes(f.type)) { alert('Apenas imagens (JPG, PNG, GIF, WEBP).'); input.value=''; return false; }
+    if (f.size > maxEach) { alert(`Imagem muito grande: ${f.name}`); input.value=''; return false; }
+  }
+  showImagePreviews(files, 'evidencias_preview');
+  return true;
+}
+
+function showFilePreview(file, containerId) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = `
+    <div class="flex items-center p-2 bg-green-50 border border-green-200 rounded-lg">
+      <svg class="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M8 6h8m5 5v7a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h6"></path>
+      </svg>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-green-800">${file.name}</p>
+        <p class="text-xs text-green-600">${(file.size/1048576).toFixed(2)} MB</p>
+      </div>
+      <button type="button" onclick="clearFilePreview('arquivo_nf')" class="text-green-600 hover:text-green-800">&times;</button>
+    </div>`;
+}
+
+function showImagePreviews(files, containerId) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = '';
+  files.forEach((file, idx) => {
+    const r = new FileReader();
+    r.onload = e => {
+      const d = document.createElement('div');
+      d.className = 'relative inline-block mr-2 mb-2';
+      d.innerHTML = `
+        <img src="${e.target.result}" alt="ev${idx}" class="w-20 h-20 object-cover rounded border" />
+        <div class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs cursor-pointer" onclick="this.parentElement.remove()">×</div>`;
+      c.appendChild(d);
+    };
+    r.readAsDataURL(file);
+  });
+}
+
+function clearFilePreview(inputName) {
+  const input = document.querySelector(`input[name="${inputName}"]`);
+  const preview = document.getElementById(`${inputName}_preview`);
+  if (input) input.value='';
+  if (preview) preview.innerHTML='';
+}
 </script>
