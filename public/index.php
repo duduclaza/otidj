@@ -60,6 +60,9 @@ $router->post('/admin/users/{id}/permissions', [App\Controllers\AdminController:
 // Toners routes
 $router->get('/toners/cadastro', [App\Controllers\TonersController::class, 'cadastro']);
 $router->post('/toners/cadastro', [App\Controllers\TonersController::class, 'store']);
+$router->post('/toners/cadastro/edit', [App\Controllers\TonersController::class, 'update']);
+$router->post('/toners/cadastro/delete', [App\Controllers\TonersController::class, 'delete']);
+$router->post('/toners/import', [App\Controllers\TonersController::class, 'import']);
 $router->get('/toners/retornados', [App\Controllers\TonersController::class, 'retornados']);
 $router->post('/toners/retornados', [App\Controllers\TonersController::class, 'storeRetornado']);
 
@@ -77,6 +80,7 @@ $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::cla
 // API routes
 $router->get('/api/users', [App\Controllers\UsersController::class, 'getUsers']);
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
+$router->get('/api/toner', [App\Controllers\TonersController::class, 'getTonerData']);
 
 // Dispatch
 try {

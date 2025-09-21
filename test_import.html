@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Importação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-xl font-bold mb-4">Teste de Importação de Toners</h1>
+        
+        <form id="testForm" enctype="multipart/form-data">
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Selecione um arquivo CSV/Excel:</label>
+                <input type="file" id="fileInput" name="excel_file" accept=".xlsx,.xls,.csv" 
+                       class="w-full border rounded px-3 py-2">
+            </div>
+            
+            <button type="button" onclick="testImport()" 
+                    class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                Testar Importação
+            </button>
+        </form>
+        
+        <div id="result" class="mt-4 p-3 rounded hidden"></div>
+    </div>
+
+    <script>
+        function testImport() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const resultDiv = document.getElementById('result');
+            
+            if (!file) {
+                showResult('Por favor, selecione um arquivo.', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('excel_file', file);
+            
+            showResult('Enviando arquivo...', 'info');
+            
+            fetch('/toners/import', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.text();
+            })
+            .then(text => {
+                console.log('Response text:', text);
+                try {
+                    const result = JSON.parse(text);
+                    if (result.success) {
+                        showResult('Sucesso: ' + result.message, 'success');
+                    } else {
+                        showResult('Erro: ' + result.message, 'error');
+                    }
+                } catch (e) {
+                    showResult('Erro ao processar resposta: ' + text, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                showResult('Erro de conexão: ' + error.message, 'error');
+            });
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'mt-4 p-3 rounded ';
+            
+            if (type === 'success') {
+                resultDiv.className += 'bg-green-100 text-green-800 border border-green-200';
+            } else if (type === 'error') {
+                resultDiv.className += 'bg-red-100 text-red-800 border border-red-200';
+            } else {
+                resultDiv.className += 'bg-blue-100 text-blue-800 border border-blue-200';
+            }
+            
+            resultDiv.textContent = message;
+            resultDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

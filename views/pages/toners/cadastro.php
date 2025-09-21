@@ -356,11 +356,25 @@ function deleteToner(id) {
 
 // Modal functions
 function openImportModal() {
-  document.getElementById('importModal').classList.remove('hidden');
+  console.log('Abrindo modal de importação...');
+  const modal = document.getElementById('importModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    console.log('Modal aberto com sucesso');
+  } else {
+    console.error('Modal não encontrado!');
+  }
 }
 
 function closeImportModal() {
-  document.getElementById('importModal').classList.add('hidden');
+  console.log('Fechando modal de importação...');
+  const modal = document.getElementById('importModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    console.log('Modal fechado com sucesso');
+  } else {
+    console.error('Modal não encontrado ao fechar!');
+  }
 }
 
 function downloadTemplate() {
@@ -423,8 +437,11 @@ function downloadTemplate() {
 }
 
 function importExcel() {
+  console.log('Iniciando importação...');
   const fileInput = document.getElementById('excelFileInput');
   const file = fileInput.files[0];
+  
+  console.log('Arquivo selecionado:', file);
   
   if (!file) {
     alert('Por favor, selecione um arquivo Excel.');

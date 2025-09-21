@@ -392,8 +392,12 @@ class TonersController
         header('Content-Type: application/json');
         
         try {
+            // Log para debug
+            error_log('Import method called. FILES: ' . print_r($_FILES, true));
+            
             if (!isset($_FILES['excel_file']) || $_FILES['excel_file']['error'] !== UPLOAD_ERR_OK) {
-                echo json_encode(['success' => false, 'message' => 'Erro no upload do arquivo']);
+                $error = $_FILES['excel_file']['error'] ?? 'Arquivo não enviado';
+                echo json_encode(['success' => false, 'message' => 'Erro no upload do arquivo. Código: ' . $error]);
                 return;
             }
 
