@@ -29,6 +29,10 @@ class PermissionMiddleware
         // Melhoria Contínua
         '/melhoria-continua' => 'melhoria_continua',
         '/melhoria-continua/solicitacoes' => 'solicitacao_melhorias',
+        '/melhoria-continua/solicitacoes/create' => 'solicitacao_melhorias',
+        '/melhoria-continua/solicitacoes/store' => 'solicitacao_melhorias',
+        '/melhoria-continua/solicitacoes/list' => 'solicitacao_melhorias',
+        '/melhoria-continua/solicitacoes/update-status' => 'solicitacao_melhorias',
         '/melhoria-continua/pendentes' => 'melhorias_pendentes',
         '/melhoria-continua/historico' => 'historico_melhorias',
         '/controle-de-rc' => 'controle_rc',

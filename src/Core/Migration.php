@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 8;
+    private const CURRENT_VERSION = 9;
 
     public function __construct()
     {
@@ -72,6 +72,11 @@ class Migration
                 // Version 8: Create profiles system
                 $this->migration8();
                 $this->updateVersion(8);
+            }
+            if ($currentVersion < 9) {
+                // Version 9: Create solicitacoes_melhorias system
+                $this->migration9();
+                $this->updateVersion(9);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -485,6 +490,7 @@ class Migration
             'pops_its' => 'POPs e ITs',
             'fluxogramas' => 'Fluxogramas',
             'melhoria_continua' => 'Melhoria Contínua',
+            'solicitacao_melhorias' => 'Solicitação de Melhorias',
             'controle_rc' => 'Controle de RC',
             'registros_filiais' => 'Filiais',
             'registros_departamentos' => 'Departamentos',
@@ -551,13 +557,13 @@ class Migration
         // Analista de Qualidade permissions (foco em qualidade e análises)
         $analistaModules = [
             'dashboard', 'homologacoes', 'amostragens', 'garantias', 'femea', 
-            'pops_its', 'fluxogramas', 'melhoria_continua', 'controle_rc', 
-            'toners_cadastro', 'toners_retornados', 'profile'
+            'pops_its', 'fluxogramas', 'melhoria_continua', 'solicitacao_melhorias', 
+            'controle_rc', 'toners_cadastro', 'toners_retornados', 'profile'
         ];
         foreach ($analistaModules as $module) {
             $canEdit = in_array($module, [
                 'homologacoes', 'amostragens', 'femea', 'pops_its', 'fluxogramas', 
-                'melhoria_continua', 'controle_rc', 'profile'
+                'melhoria_continua', 'solicitacao_melhorias', 'controle_rc', 'profile'
             ]) ? 1 : 0;
             $canDelete = in_array($module, ['amostragens', 'homologacoes']) ? 1 : 0;
             $canExport = 1; // Analistas podem exportar dados para análise

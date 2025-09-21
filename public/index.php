@@ -77,6 +77,15 @@ $router->post('/admin/profiles/create', [App\Controllers\ProfilesController::cla
 $router->post('/admin/profiles/update', [App\Controllers\ProfilesController::class, 'update']);
 $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::class, 'delete']);
 
+// Melhoria Continua routes
+$router->get('/melhoria-continua/solicitacoes', [App\Controllers\MelhoriaContinuaController::class, 'index']);
+$router->get('/melhoria-continua/solicitacoes/create', [App\Controllers\MelhoriaContinuaController::class, 'create']);
+$router->post('/melhoria-continua/solicitacoes/store', [App\Controllers\MelhoriaContinuaController::class, 'store']);
+$router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
+$router->get('/melhoria-continua/solicitacoes/{id}/details', [App\Controllers\MelhoriaContinuaController::class, 'details']);
+$router->get('/melhoria-continua/solicitacoes/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
+$router->post('/melhoria-continua/solicitacoes/update-status', [App\Controllers\MelhoriaContinuaController::class, 'updateStatus']);
+
 // API routes
 $router->get('/api/users', [App\Controllers\UsersController::class, 'getUsers']);
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
