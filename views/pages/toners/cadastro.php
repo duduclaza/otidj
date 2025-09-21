@@ -384,20 +384,174 @@ function openImportModal() {
   const modal = document.getElementById('importModal');
   if (modal) {
     console.log('Modal encontrado, classes antes:', modal.className);
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex'; // Força o display
-    modal.style.zIndex = '9999'; // Força o z-index
-    console.log('Modal aberto com sucesso, classes depois:', modal.className);
-    console.log('Modal style display:', window.getComputedStyle(modal).display);
-    console.log('Modal style visibility:', window.getComputedStyle(modal).visibility);
-    console.log('Modal style z-index:', window.getComputedStyle(modal).zIndex);
+    console.log('Modal HTML:', modal.outerHTML.substring(0, 200) + '...');
     
-    // Teste adicional - verificar se o modal está visível
+    // Remover hidden e forçar estilos
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.zIndex = '99999';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    
+    console.log('Modal classes depois:', modal.className);
+    console.log('Modal computed display:', window.getComputedStyle(modal).display);
+    console.log('Modal computed position:', window.getComputedStyle(modal).position);
+    console.log('Modal computed z-index:', window.getComputedStyle(modal).zIndex);
+    
+    // Verificar posição e tamanho
     const rect = modal.getBoundingClientRect();
-    console.log('Modal position:', rect);
+    console.log('Modal rect:', rect);
+    
+    // Verificar se há elementos filhos
+    console.log('Modal children count:', modal.children.length);
+    console.log('Modal first child:', modal.children[0]);
+    
+    // Teste final - adicionar borda vermelha para debug visual
+    modal.style.border = '5px solid red';
+    
   } else {
-    console.error('Modal não encontrado!');
+    console.error('Modal não encontrado! Verificando todos os elementos com ID...');
+    const allElements = document.querySelectorAll('[id]');
+    console.log('Elementos com ID encontrados:', Array.from(allElements).map(el => el.id));
+    
+    // Criar modal dinamicamente se não encontrar
+    console.log('Criando modal dinamicamente...');
+    createDynamicModal();
   }
+}
+
+// Função para criar modal dinamicamente
+function createDynamicModal() {
+  // Remover modal existente se houver
+  const existingModal = document.getElementById('dynamicImportModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  const modalHTML = `
+    <div id="dynamicImportModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 16px;">
+      <div style="background: white; border-radius: 8px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); width: 100%; max-width: 28rem;" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div style="padding: 24px 24px 16px 24px; border-bottom: 1px solid #e5e7eb;">
+          <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Importar Toners</h3>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <!-- File Input -->
+          <div>
+            <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 8px;">
+              Selecione o arquivo Excel:
+            </label>
+            <input type="file" id="dynamicExcelFileInput" accept=".xlsx,.xls,.csv" 
+                   style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px;">
+            <p style="font-size: 12px; color: #6b7280; margin-top: 4px; margin-bottom: 0;">Formatos aceitos: .xlsx, .xls, .csv</p>
+          </div>
+          
+          <!-- Progress Container -->
+          <div id="dynamicProgressContainer" style="display: none;">
+            <div style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px;">
+                <span>Progresso da Importação</span>
+                <span id="dynamicProgressText">0%</span>
+              </div>
+              <div style="width: 100%; background: #e5e7eb; border-radius: 9999px; height: 12px;">
+                <div id="dynamicProgressBar" style="background: linear-gradient(to right, #3b82f6, #2563eb); height: 12px; border-radius: 9999px; transition: all 0.5s ease-out; width: 0%;"></div>
+              </div>
+            </div>
+            <div id="dynamicImportStatus" style="font-size: 14px; color: #4b5563; background: #f9fafb; border-radius: 8px; padding: 8px;"></div>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding: 16px 24px 24px 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
+          <!-- Template Download -->
+          <div style="margin-bottom: 12px;">
+            <button onclick="downloadTemplate()" 
+                    style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 8px 16px; font-size: 14px; font-weight: 500; color: #1d4ed8; background: #dbeafe; border: 1px solid #bfdbfe; border-radius: 8px; cursor: pointer; transition: background-color 0.2s;">
+              📥 Baixar Template Excel
+            </button>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: 12px;">
+            <button onclick="closeDynamicModal()" 
+                    style="flex: 1; padding: 8px 16px; font-size: 14px; font-weight: 500; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; transition: background-color 0.2s;">
+              Cancelar
+            </button>
+            <button onclick="importDynamicExcel()" 
+                    style="flex: 1; padding: 8px 16px; font-size: 14px; font-weight: 500; color: white; background: #16a34a; border: 1px solid transparent; border-radius: 8px; cursor: pointer; transition: background-color 0.2s;">
+              📤 Importar Dados
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Adicionar event listener para fechar ao clicar no overlay
+  document.getElementById('dynamicImportModal').addEventListener('click', closeDynamicModal);
+}
+
+// Funções para o modal dinâmico
+function closeDynamicModal() {
+  const modal = document.getElementById('dynamicImportModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function importDynamicExcel() {
+  const fileInput = document.getElementById('dynamicExcelFileInput');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    alert('Por favor, selecione um arquivo Excel.');
+    return;
+  }
+  
+  // Usar a mesma lógica de importação, mas com IDs dinâmicos
+  document.getElementById('dynamicProgressContainer').style.display = 'block';
+  
+  const formData = new FormData();
+  formData.append('excel_file', file);
+  
+  updateDynamicProgress(10, 'Enviando arquivo...');
+  
+  fetch('/toners/import', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      updateDynamicProgress(100, `Concluído! ${result.imported} registros importados`);
+      setTimeout(() => {
+        closeDynamicModal();
+        alert('Importação concluída com sucesso!');
+        location.reload();
+      }, 2000);
+    } else {
+      alert('Erro na importação: ' + result.message);
+      document.getElementById('dynamicProgressContainer').style.display = 'none';
+    }
+  })
+  .catch(error => {
+    alert('Erro de conexão: ' + error.message);
+    document.getElementById('dynamicProgressContainer').style.display = 'none';
+  });
+}
+
+function updateDynamicProgress(percentage, status) {
+  document.getElementById('dynamicProgressBar').style.width = percentage + '%';
+  document.getElementById('dynamicProgressText').textContent = percentage + '%';
+  document.getElementById('dynamicImportStatus').textContent = status;
 }
 
 function closeImportModal() {
