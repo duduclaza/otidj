@@ -295,12 +295,50 @@ window.confirmDelete = function confirmDelete(id, modelo) {
   }
   
   modal.classList.remove('hidden');
+  
+  // Forçar visibilidade do modal
+  modal.style.display = 'flex';
+  modal.style.zIndex = '99999';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  
   console.log('✅ Modal de exclusão aberto');
+  console.log('Modal classes:', modal.className);
+  console.log('Modal style display:', modal.style.display);
+  
+  // Teste adicional - verificar se modal está realmente visível
+  setTimeout(() => {
+    const rect = modal.getBoundingClientRect();
+    console.log('Modal position:', rect);
+    console.log('Modal computed style:', window.getComputedStyle(modal).display);
+    console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
+    console.log('Modal opacity:', window.getComputedStyle(modal).opacity);
+    
+    // Verificar se há elementos com z-index maior
+    const allElements = document.querySelectorAll('*');
+    let highZIndexElements = [];
+    allElements.forEach(el => {
+      const zIndex = parseInt(window.getComputedStyle(el).zIndex);
+      if (zIndex > 99999) {
+        highZIndexElements.push({element: el, zIndex: zIndex});
+      }
+    });
+    if (highZIndexElements.length > 0) {
+      console.log('⚠️ Elementos com z-index maior que o modal:', highZIndexElements);
+    }
+  }, 100);
 }
 
 window.closeDeleteModal = function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.add('hidden');
+  const modal = document.getElementById('deleteModal');
+  modal.classList.add('hidden');
+  modal.style.display = 'none'; // Limpar estilo forçado
   deleteId = null;
+  console.log('🚪 Modal de exclusão fechado');
 }
 
 window.deleteRetornado = function deleteRetornado() {
