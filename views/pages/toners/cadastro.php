@@ -632,7 +632,7 @@ function createFullScreenModal() {
                    onchange="this.style.borderColor='#3b82f6'"
                    onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'"
                    onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
-            <div style="display: flex; align-items: center; margin-top: 8px; font-size: 12px; color: #6b7280;">
+            <div style="flex items-center mt-2 text-xs text-gray-500">
               <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
@@ -643,8 +643,8 @@ function createFullScreenModal() {
           <!-- Progress Container -->
           <div id="fullScreenProgressContainer" style="display: none;">
             <div style="background: linear-gradient(to right, #dbeafe, #dcfce7); border: 1px solid #3b82f6; border-radius: 12px; padding: 16px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <div style="display: flex; align-items: center;">
+              <div style="flex items-center justify-between mb-3">
+                <div style="flex items-center">
                   <div style="width: 20px; height: 20px; border: 2px solid #3b82f6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
                   <span style="font-size: 14px; font-weight: 600; color: #374151;">⚡ Progresso da Importação</span>
                 </div>
@@ -1120,4 +1120,37 @@ function showSuccessMessage(message) {
 function exportToExcel() {
   alert('Funcionalidade de exportação será implementada em breve.');
 }
+
+// 🚨 FUNÇÃO DE EMERGÊNCIA - Use no Console se o X não funcionar
+window.forceCloseModal = function() {
+  console.log('🚨 EMERGÊNCIA: FECHANDO TODOS OS MODALS...');
+  
+  // Restaurar scroll
+  document.body.style.overflow = '';
+  
+  // Remover TODOS os elementos com position fixed e z-index alto
+  document.querySelectorAll('*').forEach(el => {
+    const styles = window.getComputedStyle(el);
+    const zIndex = parseInt(styles.zIndex);
+    
+    if (styles.position === 'fixed' && zIndex > 1000) {
+      el.remove();
+      console.log('🗑️ Removido elemento suspeito:', el.tagName, el.id, el.className);
+    }
+  });
+  
+  // Remover elementos por ID que contenham "modal"
+  ['importModal', 'dynamicImportModal', 'fullScreenImportModal', 'modal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.remove();
+      console.log('🗑️ Removido por ID:', id);
+    }
+  });
+  
+  console.log('✅ EMERGÊNCIA CONCLUÍDA!');
+};
+
+// Instrução para o usuário
+console.log('💡 DICA: Se o modal não fechar, digite no console: forceCloseModal()');
 </script>
