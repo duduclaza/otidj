@@ -378,6 +378,36 @@ function testModal() {
   document.body.appendChild(testDiv);
 }
 
+// Função para forçar modal manualmente (use no Console se necessário)
+function forceShowModal() {
+  const modal = document.getElementById('importModal');
+  if (modal) {
+    // Remover todas as classes
+    modal.className = '';
+    
+    // Aplicar estilos brutalmente
+    modal.setAttribute('style', `
+      display: flex !important;
+      position: fixed !important;
+      top: 0px !important;
+      left: 0px !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 999999 !important;
+      background: rgba(255, 0, 0, 0.9) !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    `);
+    
+    console.log('Modal forçado a aparecer com fundo vermelho!');
+    return true;
+  }
+  return false;
+}
+
 // Modal functions
 function openImportModal() {
   console.log('Abrindo modal de importação...');
@@ -386,16 +416,23 @@ function openImportModal() {
     console.log('Modal encontrado, classes antes:', modal.className);
     console.log('Modal HTML:', modal.outerHTML.substring(0, 200) + '...');
     
-    // Remover hidden e forçar estilos
+    // Remover hidden e forçar TODOS os estilos necessários
     modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    modal.style.position = 'fixed';
-    modal.style.top = '0';
-    modal.style.left = '0';
-    modal.style.width = '100vw';
-    modal.style.height = '100vh';
-    modal.style.zIndex = '99999';
-    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    modal.style.cssText = `
+      display: flex !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 99999 !important;
+      background-color: rgba(0, 0, 0, 0.8) !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    `;
     
     console.log('Modal classes depois:', modal.className);
     console.log('Modal computed display:', window.getComputedStyle(modal).display);
@@ -410,8 +447,25 @@ function openImportModal() {
     console.log('Modal children count:', modal.children.length);
     console.log('Modal first child:', modal.children[0]);
     
+    // Forçar estilos do conteúdo interno também
+    const modalContent = modal.querySelector('.bg-white');
+    if (modalContent) {
+      modalContent.style.cssText = `
+        background: white !important;
+        border-radius: 8px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+        width: 100% !important;
+        max-width: 28rem !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 100000 !important;
+        position: relative !important;
+      `;
+      console.log('Modal content styled');
+    }
+    
     // Teste final - adicionar borda vermelha para debug visual
-    modal.style.border = '5px solid red';
+    modal.style.border = '5px solid red !important';
     
   } else {
     console.error('Modal não encontrado! Verificando todos os elementos com ID...');
