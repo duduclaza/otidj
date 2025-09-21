@@ -119,13 +119,21 @@
             <th class="px-3 py-2 text-left font-medium text-gray-700">Custo/Folha</th>
             <th class="px-3 py-2 text-left font-medium text-gray-700">Cor</th>
             <th class="px-3 py-2 text-left font-medium text-gray-700">Tipo</th>
+            <th class="px-3 py-2 text-left font-medium text-gray-700">
+              <div class="flex items-center space-x-1">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Última Atualização</span>
+              </div>
+            </th>
             <th class="px-3 py-2 text-right font-medium text-gray-700">Ações</th>
           </tr>
         </thead>
         <tbody class="divide-y">
           <?php if (empty($toners)): ?>
             <tr>
-              <td colspan="11" class="px-4 py-8 text-center text-gray-500">Nenhum toner cadastrado</td>
+              <td colspan="12" class="px-4 py-8 text-center text-gray-500">Nenhum toner cadastrado</td>
             </tr>
           <?php else: ?>
             <?php foreach ($toners as $t): ?>
@@ -178,6 +186,42 @@
                     <option value="Compativel" <?= $t['tipo'] === 'Compativel' ? 'selected' : '' ?>>Compatível</option>
                     <option value="Remanufaturado" <?= $t['tipo'] === 'Remanufaturado' ? 'selected' : '' ?>>Remanufaturado</option>
                   </select>
+                </td>
+                <td class="px-3 py-2">
+                  <?php 
+                  $updatedTime = strtotime($t['updated_at']);
+                  $timeDiff = time() - $updatedTime;
+                  $isRecent = $timeDiff < 86400; // 24 horas
+                  $textColor = $isRecent ? 'text-green-600' : 'text-gray-600';
+                  $iconColor = $isRecent ? 'text-green-500' : 'text-gray-400';
+                  
+                  // Formato de tempo relativo
+                  if ($timeDiff < 3600) { // Menos de 1 hora
+                    $timeAgo = 'há ' . floor($timeDiff / 60) . ' min';
+                  } elseif ($timeDiff < 86400) { // Menos de 24 horas
+                    $timeAgo = 'há ' . floor($timeDiff / 3600) . 'h';
+                  } elseif ($timeDiff < 2592000) { // Menos de 30 dias
+                    $timeAgo = 'há ' . floor($timeDiff / 86400) . ' dias';
+                  } else {
+                    $timeAgo = date('d/m/Y', $updatedTime);
+                  }
+                  ?>
+                  <div class="flex items-center space-x-1">
+                    <svg class="w-3 h-3 <?= $iconColor ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="flex flex-col">
+                      <span class="text-xs <?= $textColor ?>" title="Última atualização: <?= date('d/m/Y H:i:s', $updatedTime) ?><?= $isRecent ? ' (Recente)' : '' ?>">
+                        <?= date('d/m/Y H:i', $updatedTime) ?>
+                      </span>
+                      <span class="text-xs text-gray-400 italic">
+                        <?= $timeAgo ?>
+                        <?php if ($isRecent): ?>
+                          <span class="inline-block w-1.5 h-1.5 bg-green-400 rounded-full ml-1" title="Atualizado nas últimas 24 horas"></span>
+                        <?php endif; ?>
+                      </span>
+                    </div>
+                  </div>
                 </td>
                 <td class="px-3 py-2 text-right space-x-1">
                   <button onclick="editToner(<?= $t['id'] ?>)" class="edit-btn-<?= $t['id'] ?> text-blue-600 hover:text-blue-800 text-xs">Editar</button>
