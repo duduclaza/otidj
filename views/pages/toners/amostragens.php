@@ -458,17 +458,29 @@ function submitAmostragem() {
     method: 'POST',
     body: formData
   })
-  .then(response => response.json())
+  .then(async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`HTTP ${response.status} ${response.statusText}: ${text.slice(0, 200)}`);
+    }
+    if (contentType.includes('application/json')) {
+      return response.json();
+    }
+    const text = await response.text();
+    throw new Error(`Resposta não JSON do servidor: ${text.slice(0, 200)}`);
+  })
   .then(result => {
-    if (result.success) {
-      alert(result.message);
+    if (result && result.success) {
+      alert(result.message || 'Amostragem registrada com sucesso!');
       closeAmostragemForm();
       location.reload();
     } else {
-      alert('Erro: ' + result.message);
+      alert('Erro: ' + (result && result.message ? result.message : 'Falha desconhecida.'));
     }
   })
   .catch(error => {
+    console.error('Erro no envio da amostragem:', error);
     alert('Erro de conexão: ' + error.message);
   });
 }

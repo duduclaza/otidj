@@ -73,6 +73,9 @@ $router->get('/toners/export', [App\Controllers\TonersController::class, 'export
 // Other routes
 $router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);
 $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
+// Amostragens actions
+$router->post('/toners/amostragens', [App\Controllers\AmostragemController::class, 'store']);
+$router->delete('/toners/amostragens/{id}', [App\Controllers\AmostragemController::class, 'delete']);
 $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
 
 // Profiles routes

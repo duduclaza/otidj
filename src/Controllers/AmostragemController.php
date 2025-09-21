@@ -40,7 +40,24 @@ class AmostragemController
             $numero_nf = $_POST['numero_nf'] ?? '';
             $status = $_POST['status'] ?? 'pendente';
             $observacao = $_POST['observacao'] ?? '';
-            $responsaveis = $_POST['responsaveis'] ?? [];
+            $responsaveisRaw = $_POST['responsaveis'] ?? [];
+
+            // Parse responsaveis (can be names or JSON strings {name,email})
+            $responsaveisParsed = [];
+            $responsaveisNomes = [];
+            foreach ($responsaveisRaw as $r) {
+                $decoded = json_decode($r, true);
+                if (is_array($decoded) && isset($decoded['name'])) {
+                    $name = trim((string)$decoded['name']);
+                    $email = isset($decoded['email']) ? trim((string)$decoded['email']) : '';
+                    $responsaveisParsed[] = ['name' => $name, 'email' => $email];
+                    if ($name !== '') { $responsaveisNomes[] = $name; }
+                } else {
+                    $name = trim((string)$r);
+                    $responsaveisParsed[] = ['name' => $name, 'email' => ''];
+                    if ($name !== '') { $responsaveisNomes[] = $name; }
+                }
+            }
             
             error_log("Parsed values - numero_nf: '$numero_nf', status: '$status'");
             
@@ -49,7 +66,7 @@ class AmostragemController
                 return;
             }
             
-            if (empty($responsaveis)) {
+            if (empty($responsaveisParsed)) {
                 echo json_encode(['success' => false, 'message' => 'Pelo menos um responsável deve ser selecionado']);
                 return;
             }
@@ -121,31 +138,38 @@ class AmostragemController
                 ':observacao' => $observacao,
                 ':arquivo_nf' => $arquivo_nf,
                 ':evidencias' => json_encode($evidencias),
-                ':responsaveis' => json_encode($responsaveis),
+                ':responsaveis' => json_encode($responsaveisParsed),
                 ':fotos' => json_encode($fotos)
             ]);
 
+            // Build names and emails arrays
+            $names = [];
+            $emails = [];
+            foreach ($responsaveisParsed as $rp) {
+                if (!empty($rp['name'])) { $names[] = $rp['name']; }
+                if (!empty($rp['email'])) { $emails[] = $rp['email']; }
+            }
+
             // Send email to responsaveis
-            $this->sendEmailToResponsaveis($responsaveis, $numero_nf, $status, $arquivo_nf, $fotos);
+            $this->sendEmailToResponsaveis($names, $emails, $numero_nf, $status, $arquivo_nf, $fotos);
             
-            echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!'], JSON_UNESCAPED_SLASHES);
 
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()], JSON_UNESCAPED_SLASHES);
         }
     }
 
-    private function sendEmailToResponsaveis($responsaveis, $numero_nf, $status, $arquivo_nf, $fotos)
+    private function sendEmailToResponsaveis(array $names, array $emails, string $numero_nf, string $status, string $arquivo_nf, array $fotos)
     {
         try {
-            // Get user emails from database
-            $placeholders = str_repeat('?,', count($responsaveis) - 1) . '?';
-            $stmt = $this->db->prepare("SELECT name, email FROM users WHERE name IN ($placeholders) AND status = 'active'");
-            $stmt->execute($responsaveis);
-            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (empty($users)) {
-                return;
+            $users = [];
+            // If we don't have emails, try to resolve by names in DB
+            if (empty($emails) && !empty($names)) {
+                $placeholders = str_repeat('?,', count($names) - 1) . '?';
+                $stmt = $this->db->prepare("SELECT name, email FROM users WHERE name IN ($placeholders) AND status = 'active'");
+                $stmt->execute($names);
+                $users = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             }
 
             $subject = "Nova Amostragem Registrada - NF: $numero_nf";
@@ -154,7 +178,7 @@ class AmostragemController
                 <h2>Nova Amostragem Registrada</h2>
                 <p><strong>Número da NF:</strong> $numero_nf</p>
                 <p><strong>Status:</strong> " . ucfirst($status) . "</p>
-                <p><strong>Responsáveis:</strong> " . implode(', ', $responsaveis) . "</p>
+                <p><strong>Responsáveis:</strong> " . implode(', ', $names) . "</p>
                 <p><strong>Data de Registro:</strong> " . date('d/m/Y H:i') . "</p>
             ";
 
@@ -173,16 +197,30 @@ class AmostragemController
             ";
 
             // Use EmailService if available
-            if (class_exists('\App\Services\EmailService')) {
+            if (class_exists('\\App\\Services\\EmailService')) {
                 $emailService = new \App\Services\EmailService();
-                
-                foreach ($users as $user) {
-                    $emailService->send(
-                        $user['email'],
-                        $user['name'],
-                        $subject,
-                        $message
-                    );
+
+                // Prefer direct emails provided in request
+                if (!empty($emails)) {
+                    foreach ($emails as $email) {
+                        $emailService->send(
+                            $email,
+                            '',
+                            $subject,
+                            $message
+                        );
+                    }
+                } elseif (!empty($users)) {
+                    foreach ($users as $user) {
+                        if (!empty($user['email'])) {
+                            $emailService->send(
+                                $user['email'],
+                                $user['name'] ?? '',
+                                $subject,
+                                $message
+                            );
+                        }
+                    }
                 }
             }
         } catch (\Exception $e) {
