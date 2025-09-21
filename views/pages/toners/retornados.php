@@ -180,6 +180,117 @@ let parametrosGerais = {};
 let selectedDestino = '';
 let deleteId = null;
 
+// ===== TODAS AS FUNÇÕES DEFINIDAS NO INÍCIO =====
+
+// Filter and export functions
+window.filterData = function filterData() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const dateFrom = document.getElementById('dateFrom').value;
+  const dateTo = document.getElementById('dateTo').value;
+  
+  console.log('Filtering with:', { search, dateFrom, dateTo });
+  
+  // Get all table rows (excluding header)
+  const rows = document.querySelectorAll('#retornadosTable tr');
+  let visibleCount = 0;
+  
+  rows.forEach(row => {
+    let show = true;
+    
+    // Text search filter
+    if (search) {
+      const text = row.textContent.toLowerCase();
+      if (!text.includes(search)) {
+        show = false;
+      }
+    }
+    
+    // Date range filter
+    if (show && (dateFrom || dateTo)) {
+      const dateCell = row.querySelector('td:nth-last-child(2)'); // Data column (second to last)
+      if (dateCell) {
+        const dateText = dateCell.textContent.trim();
+        // Convert DD/MM/YYYY to YYYY-MM-DD for comparison
+        const dateParts = dateText.split('/');
+        if (dateParts.length === 3) {
+          const rowDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+          
+          if (dateFrom && rowDate < dateFrom) {
+            show = false;
+          }
+          if (dateTo && rowDate > dateTo) {
+            show = false;
+          }
+        }
+      }
+    }
+    
+    row.style.display = show ? '' : 'none';
+    if (show) visibleCount++;
+  });
+  
+  // Show feedback
+  showNotification(`Filtro aplicado: ${visibleCount} registro(s) encontrado(s)`, 'info');
+}
+
+window.exportToExcel = function exportToExcel() {
+  // Show loading state
+  const button = event.target.closest('button');
+  const originalContent = button.innerHTML;
+  button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> <span>Exportando...</span>';
+  button.disabled = true;
+  
+  // Get filter values
+  const dateFrom = document.getElementById('dateFrom').value;
+  const dateTo = document.getElementById('dateTo').value;
+  const search = document.getElementById('searchInput').value;
+  
+  // Build query parameters
+  const params = new URLSearchParams();
+  if (dateFrom) params.append('date_from', dateFrom);
+  if (dateTo) params.append('date_to', dateTo);
+  if (search) params.append('search', search);
+  
+  // Create download link
+  const link = document.createElement('a');
+  link.href = `/toners/retornados/export?${params.toString()}`;
+  link.download = `retornados_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Restore button after delay
+  setTimeout(() => {
+    button.innerHTML = originalContent;
+    button.disabled = false;
+    showNotification('Exportação concluída com sucesso!', 'success');
+  }, 2000);
+}
+
+window.openImportModal = function openImportModal() {
+  console.log('Opening import modal...');
+  const modal = document.getElementById('importModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    console.log('Modal opened successfully');
+  } else {
+    console.error('Import modal not found!');
+  }
+}
+
+window.closeImportModal = function closeImportModal() {
+  document.getElementById('importModal').classList.add('hidden');
+  const progressDiv = document.getElementById('importProgress');
+  if (progressDiv) {
+    progressDiv.style.display = 'none';
+  }
+  const debugConsole = document.getElementById('debugConsole');
+  if (debugConsole) {
+    debugConsole.style.display = 'none';
+  }
+  debugMode = false;
+}
+
 // Delete functions - definidas no início para estar disponíveis imediatamente
 window.confirmDelete = function confirmDelete(id, modelo) {
   deleteId = id;
@@ -258,8 +369,29 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmDelete: typeof window.confirmDelete,
     closeDeleteModal: typeof window.closeDeleteModal,
     deleteRetornado: typeof window.deleteRetornado,
-    showNotification: typeof window.showNotification
+    showNotification: typeof window.showNotification,
+    filterData: typeof window.filterData,
+    exportToExcel: typeof window.exportToExcel,
+    openImportModal: typeof window.openImportModal,
+    closeImportModal: typeof window.closeImportModal
   });
+  
+  // Teste rápido das funções
+  if (typeof window.confirmDelete !== 'function') {
+    console.error('❌ confirmDelete não está definida!');
+  } else {
+    console.log('✅ confirmDelete está OK');
+  }
+  
+  // Adicionar botão de teste temporário
+  const testButton = document.createElement('button');
+  testButton.textContent = 'TESTE - Clique aqui';
+  testButton.style.cssText = 'position: fixed; top: 10px; right: 10px; z-index: 9999; background: red; color: white; padding: 10px;';
+  testButton.onclick = function() {
+    alert('JavaScript está funcionando!');
+    console.log('Teste de clique funcionou!');
+  };
+  document.body.appendChild(testButton);
   
   carregarModelos();
   carregarParametrosGerais();
@@ -1353,33 +1485,7 @@ function closeRetornadoModal() {
   updateDestinoButtons();
 }
 
-function openImportModal() {
-  console.log('Opening import modal...');
-  const modal = document.getElementById('importModal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    console.log('Modal opened successfully');
-  } else {
-    console.error('Import modal not found!');
-  }
-}
-
-function closeImportModal() {
-  document.getElementById('importModal').classList.add('hidden');
-  const progressDiv = document.getElementById('importProgress');
-  if (progressDiv) {
-    progressDiv.style.display = 'none';
-  }
-  const debugConsole = document.getElementById('debugConsole');
-  if (debugConsole) {
-    debugConsole.style.display = 'none';
-  }
-  debugMode = false;
-  const debugBtn = document.getElementById('debugToggleBtn');
-  if (debugBtn) {
-    debugBtn.textContent = 'Mostrar Debug';
-  }
-}
+// Import modal functions already defined at the top
 
 // Mode toggle
 function toggleMode() {
@@ -1910,102 +2016,13 @@ function resetImportModal() {
   document.getElementById('importStatus').textContent = 'Preparando importação...';
 }
 
-// Filter and export functions
-function filterData() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const dateFrom = document.getElementById('dateFrom').value;
-  const dateTo = document.getElementById('dateTo').value;
-  
-  console.log('Filtering with:', { search, dateFrom, dateTo });
-  
-  // Get all table rows (excluding header)
-  const rows = document.querySelectorAll('#retornadosTable tr');
-  let visibleCount = 0;
-  
-  rows.forEach(row => {
-    let show = true;
-    
-    // Text search filter
-    if (search) {
-      const text = row.textContent.toLowerCase();
-      if (!text.includes(search)) {
-        show = false;
-      }
-    }
-    
-    // Date range filter
-    if (show && (dateFrom || dateTo)) {
-      const dateCell = row.querySelector('td:nth-last-child(2)'); // Data column (second to last)
-      if (dateCell) {
-        const dateText = dateCell.textContent.trim();
-        // Convert DD/MM/YYYY to YYYY-MM-DD for comparison
-        const dateParts = dateText.split('/');
-        if (dateParts.length === 3) {
-          const rowDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
-          
-          if (dateFrom && rowDate < dateFrom) {
-            show = false;
-          }
-          if (dateTo && rowDate > dateTo) {
-            show = false;
-          }
-        }
-      }
-    }
-    
-    row.style.display = show ? '' : 'none';
-    if (show) visibleCount++;
-  });
-  
-  // Show feedback
-  showNotification(`Filtro aplicado: ${visibleCount} registro(s) encontrado(s)`, 'info');
-}
-
-function exportToExcel() {
-  // Show loading state
-  const button = event.target.closest('button');
-  const originalContent = button.innerHTML;
-  button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> <span>Exportando...</span>';
-  button.disabled = true;
-  
-  // Get filter values
-  const dateFrom = document.getElementById('dateFrom').value;
-  const dateTo = document.getElementById('dateTo').value;
-  const search = document.getElementById('searchInput').value;
-  
-  // Build query parameters
-  const params = new URLSearchParams();
-  if (dateFrom) params.append('date_from', dateFrom);
-  if (dateTo) params.append('date_to', dateTo);
-  if (search) params.append('search', search);
-  
-  // Create download link
-  const link = document.createElement('a');
-  link.href = `/toners/retornados/export?${params.toString()}`;
-  link.download = `retornados_${new Date().toISOString().slice(0, 10)}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  // Restore button after delay
-  setTimeout(() => {
-    button.innerHTML = originalContent;
-    button.disabled = false;
-    showNotification('Exportação concluída com sucesso!', 'success');
-  }, 2000);
-}
+// Filter and export functions already defined at the top
 
 // Functions already defined at the top of the script
 
-// Ensure functions are available globally - moved to end of script after all functions are defined
-window.openRetornadoModal = openRetornadoModal;
-window.closeRetornadoModal = closeRetornadoModal;
-window.openImportModal = openImportModal;
-window.closeImportModal = closeImportModal;
-window.confirmDelete = confirmDelete;
-window.closeDeleteModal = closeDeleteModal;
-window.deleteRetornado = deleteRetornado;
-window.filterData = filterData;
+// Functions already defined at the top of the script
+
+// Functions already assigned to window when defined above
 if (typeof toggleMode === 'function') window.toggleMode = toggleMode;
 if (typeof updateTonerData === 'function') window.updateTonerData = updateTonerData;
 if (typeof calculatePercentage === 'function') window.calculatePercentage = calculatePercentage;
@@ -2025,4 +2042,22 @@ function logActivity(type, message, data = {}) {
 // Initialize session start time
 window.sessionStartTime = Date.now();
 logActivity('system', 'Page Loaded', { timestamp: new Date().toISOString() });
+
+// Final check - log all available functions
+console.log('🔧 FUNÇÕES DISPONÍVEIS NO WINDOW:');
+console.log('confirmDelete:', typeof window.confirmDelete);
+console.log('filterData:', typeof window.filterData);
+console.log('exportToExcel:', typeof window.exportToExcel);
+console.log('openImportModal:', typeof window.openImportModal);
+
+// Test if functions are callable
+try {
+  if (typeof window.confirmDelete === 'function') {
+    console.log('✅ confirmDelete está OK');
+  } else {
+    console.error('❌ confirmDelete não é uma função');
+  }
+} catch (e) {
+  console.error('❌ Erro ao testar confirmDelete:', e);
+}
 </script>
