@@ -1,10 +1,15 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold">Cadastro de Toners</h1>
-    <button onclick="openImportModal()" class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
-      <span>📊</span>
-      Importar
-    </button>
+    <div class="flex gap-2">
+      <button onclick="testModal()" class="px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 text-sm">
+        Teste Modal
+      </button>
+      <button onclick="openImportModal()" class="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
+        <span>📊</span>
+        Importar
+      </button>
+    </div>
   </div>
   
   <!-- Formulário de Cadastro -->
@@ -176,8 +181,8 @@
 </section>
 
 <!-- Import Modal -->
-<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="z-index: 9999;" onclick="closeImportModal()">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">Importar Toners</h3>
@@ -354,13 +359,42 @@ function deleteToner(id) {
   form.submit();
 }
 
+// Função de teste
+function testModal() {
+  alert('Teste de JavaScript funcionando!');
+  console.log('Teste de JavaScript funcionando!');
+  
+  // Criar um modal de teste simples
+  const testDiv = document.createElement('div');
+  testDiv.innerHTML = `
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 99999; display: flex; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px;">
+        <h3>Modal de Teste</h3>
+        <p>Se você está vendo isso, o JavaScript está funcionando!</p>
+        <button onclick="this.closest('div').parentElement.remove()" style="background: #dc2626; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Fechar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(testDiv);
+}
+
 // Modal functions
 function openImportModal() {
   console.log('Abrindo modal de importação...');
   const modal = document.getElementById('importModal');
   if (modal) {
+    console.log('Modal encontrado, classes antes:', modal.className);
     modal.classList.remove('hidden');
-    console.log('Modal aberto com sucesso');
+    modal.style.display = 'flex'; // Força o display
+    modal.style.zIndex = '9999'; // Força o z-index
+    console.log('Modal aberto com sucesso, classes depois:', modal.className);
+    console.log('Modal style display:', window.getComputedStyle(modal).display);
+    console.log('Modal style visibility:', window.getComputedStyle(modal).visibility);
+    console.log('Modal style z-index:', window.getComputedStyle(modal).zIndex);
+    
+    // Teste adicional - verificar se o modal está visível
+    const rect = modal.getBoundingClientRect();
+    console.log('Modal position:', rect);
   } else {
     console.error('Modal não encontrado!');
   }
@@ -371,6 +405,7 @@ function closeImportModal() {
   const modal = document.getElementById('importModal');
   if (modal) {
     modal.classList.add('hidden');
+    modal.style.display = 'none'; // Força o display none
     console.log('Modal fechado com sucesso');
   } else {
     console.error('Modal não encontrado ao fechar!');
