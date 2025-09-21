@@ -178,10 +178,89 @@
 let modelosData = [];
 let parametrosGerais = {};
 let selectedDestino = '';
+let deleteId = null;
+
+// Delete functions - definidas no início para estar disponíveis imediatamente
+window.confirmDelete = function confirmDelete(id, modelo) {
+  deleteId = id;
+  document.getElementById('deleteModeloName').textContent = modelo;
+  document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+window.closeDeleteModal = function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.add('hidden');
+  deleteId = null;
+}
+
+window.deleteRetornado = function deleteRetornado() {
+  if (!deleteId) return;
+  
+  fetch(`/toners/retornados/delete/${deleteId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      showNotification('Registro excluído com sucesso!', 'success');
+      closeDeleteModal();
+      location.reload();
+    } else {
+      alert('Erro ao excluir registro: ' + result.message);
+    }
+  })
+  .catch(error => {
+    alert('Erro de conexão: ' + error.message);
+  });
+}
+
+// Notification function
+window.showNotification = function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+  notification.innerHTML = `
+    <div class="flex items-center space-x-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.classList.remove('translate-x-full');
+  }, 100);
+  
+  // Animate out and remove
+  setTimeout(() => {
+    notification.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 4000);
+}
 
 // Carregar dados iniciais
 document.addEventListener('DOMContentLoaded', function() {
   console.log('DOM loaded, iniciando carregamento...');
+  
+  // Verificar se as funções estão disponíveis
+  console.log('Funções disponíveis:', {
+    confirmDelete: typeof window.confirmDelete,
+    closeDeleteModal: typeof window.closeDeleteModal,
+    deleteRetornado: typeof window.deleteRetornado,
+    showNotification: typeof window.showNotification
+  });
+  
   carregarModelos();
   carregarParametrosGerais();
   
@@ -1916,76 +1995,7 @@ function exportToExcel() {
   }, 2000);
 }
 
-// Notification function
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
-  
-  notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
-  notification.innerHTML = `
-    <div class="flex items-center space-x-2">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-      </svg>
-      <span>${message}</span>
-    </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Animate in
-  setTimeout(() => {
-    notification.classList.remove('translate-x-full');
-  }, 100);
-  
-  // Animate out and remove
-  setTimeout(() => {
-    notification.classList.add('translate-x-full');
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.parentNode.removeChild(notification);
-      }
-    }, 300);
-  }, 4000);
-}
-
-// Delete functions
-let deleteId = null;
-
-function confirmDelete(id, modelo) {
-  deleteId = id;
-  document.getElementById('deleteModeloName').textContent = modelo;
-  document.getElementById('deleteModal').classList.remove('hidden');
-}
-
-function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.add('hidden');
-  deleteId = null;
-}
-
-function deleteRetornado() {
-  if (!deleteId) return;
-  
-  fetch(`/toners/retornados/delete/${deleteId}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-    }
-  })
-  .then(response => response.json())
-  .then(result => {
-    if (result.success) {
-      alert('Registro excluído com sucesso!');
-      closeDeleteModal();
-      location.reload();
-    } else {
-      alert('Erro ao excluir registro: ' + result.message);
-    }
-  })
-  .catch(error => {
-    alert('Erro de conexão: ' + error.message);
-  });
-}
+// Functions already defined at the top of the script
 
 // Ensure functions are available globally - moved to end of script after all functions are defined
 window.openRetornadoModal = openRetornadoModal;
