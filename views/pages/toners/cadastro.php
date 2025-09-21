@@ -90,20 +90,12 @@
           </p>
         <?php endif; ?>
       </div>
-      <div class="flex space-x-2">
-        <button onclick="exportToExcel()" class="px-3 py-1 text-sm rounded bg-green-600 text-white hover:bg-green-700 flex items-center space-x-1 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <span>Exportar</span>
-        </button>
-        <button onclick="exportToExcelAdvanced()" class="px-3 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center space-x-1 transition-colors">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
-          <span>Relatório</span>
-        </button>
-      </div>
+      <button onclick="exportToExcel()" class="px-3 py-1 text-sm rounded bg-green-600 text-white hover:bg-green-700 flex items-center space-x-1 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span>Exportar Excel</span>
+      </button>
     </div>
     <div class="overflow-x-auto">
       <table class="min-w-full text-sm">
@@ -1280,34 +1272,9 @@ function exportToExcel() {
   button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> <span>Exportando...</span>';
   button.disabled = true;
   
-  // Create download link and trigger download
+  // Create download link and trigger download (usando versão avançada com estatísticas)
   const link = document.createElement('a');
   link.href = '/toners/export';
-  link.download = 'toners_cadastro_' + new Date().toISOString().slice(0, 10) + '.csv';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  // Restore button after a short delay
-  setTimeout(() => {
-    button.innerHTML = originalContent;
-    button.disabled = false;
-    
-    // Show success message
-    showNotification('Exportação concluída com sucesso!', 'success');
-  }, 2000);
-}
-
-function exportToExcelAdvanced() {
-  // Show loading state
-  const button = event.target.closest('button');
-  const originalContent = button.innerHTML;
-  button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> <span>Gerando...</span>';
-  button.disabled = true;
-  
-  // Create download link and trigger download
-  const link = document.createElement('a');
-  link.href = '/toners/export-advanced';
   link.download = 'toners_relatorio_completo_' + new Date().toISOString().slice(0, 10) + '.csv';
   document.body.appendChild(link);
   link.click();
@@ -1319,7 +1286,7 @@ function exportToExcelAdvanced() {
     button.disabled = false;
     
     // Show success message
-    showNotification('Relatório completo exportado com sucesso!', 'success');
+    showNotification('Planilha Excel exportada com sucesso!', 'success');
   }, 2500);
 }
 

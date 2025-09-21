@@ -65,8 +65,7 @@ $router->post('/toners/delete', [App\Controllers\TonersController::class, 'delet
 $router->get('/toners/retornados', [App\Controllers\TonersController::class, 'retornados']);
 $router->post('/toners/retornados', [App\Controllers\TonersController::class, 'storeRetornado']);
 $router->post('/toners/import', [App\Controllers\TonersController::class, 'import']);
-$router->get('/toners/export', [App\Controllers\TonersController::class, 'exportExcel']);
-$router->get('/toners/export-advanced', [App\Controllers\TonersController::class, 'exportExcelAdvanced']);
+$router->get('/toners/export', [App\Controllers\TonersController::class, 'exportExcelAdvanced']);
 
 // Other routes
 $router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);

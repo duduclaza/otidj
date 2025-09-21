@@ -17,7 +17,6 @@ class PermissionMiddleware
         '/toners/cadastro' => 'toners_cadastro',
         '/toners/import' => 'toners_cadastro',
         '/toners/export' => 'toners_cadastro',
-        '/toners/export-advanced' => 'toners_cadastro',
         '/toners/retornados' => 'toners_retornados',
         
         // Módulos principais
