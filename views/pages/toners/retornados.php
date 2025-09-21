@@ -298,13 +298,18 @@ window.confirmDelete = function confirmDelete(id, modelo) {
   
   // Forçar visibilidade do modal
   modal.style.display = 'flex';
-  modal.style.zIndex = '99999';
+  modal.style.zIndex = '999999'; // Z-index ainda maior
   modal.style.position = 'fixed';
   modal.style.top = '0';
   modal.style.left = '0';
   modal.style.width = '100%';
   modal.style.height = '100%';
   modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  modal.style.visibility = 'visible !important'; // Forçar visibility
+  modal.style.opacity = '1 !important'; // Forçar opacity
+  
+  // Remover qualquer classe que possa estar escondendo o modal
+  modal.classList.remove('invisible', 'opacity-0', 'hidden');
   
   console.log('✅ Modal de exclusão aberto');
   console.log('Modal classes:', modal.className);
@@ -329,6 +334,12 @@ window.confirmDelete = function confirmDelete(id, modelo) {
     });
     if (highZIndexElements.length > 0) {
       console.log('⚠️ Elementos com z-index maior que o modal:', highZIndexElements);
+      
+      // Tentar reduzir o z-index dos elementos conflitantes
+      highZIndexElements.forEach(item => {
+        console.log('Reduzindo z-index de:', item.element);
+        item.element.style.zIndex = '999998'; // Menor que o modal
+      });
     }
   }, 100);
 }
@@ -336,7 +347,19 @@ window.confirmDelete = function confirmDelete(id, modelo) {
 window.closeDeleteModal = function closeDeleteModal() {
   const modal = document.getElementById('deleteModal');
   modal.classList.add('hidden');
-  modal.style.display = 'none'; // Limpar estilo forçado
+  
+  // Limpar todos os estilos forçados
+  modal.style.display = 'none';
+  modal.style.visibility = '';
+  modal.style.opacity = '';
+  modal.style.zIndex = '';
+  modal.style.position = '';
+  modal.style.top = '';
+  modal.style.left = '';
+  modal.style.width = '';
+  modal.style.height = '';
+  modal.style.backgroundColor = '';
+  
   deleteId = null;
   console.log('🚪 Modal de exclusão fechado');
 }
