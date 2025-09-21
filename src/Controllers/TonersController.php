@@ -758,6 +758,207 @@ class TonersController
         }
     }
 
+    public function exportExcel(): void
+    {
+        try {
+            // Get all toners for export
+            $stmt = $this->db->query('
+                SELECT 
+                    modelo,
+                    peso_cheio,
+                    peso_vazio,
+                    gramatura,
+                    capacidade_folhas,
+                    preco_toner,
+                    gramatura_por_folha,
+                    custo_por_folha,
+                    cor,
+                    tipo,
+                    created_at,
+                    updated_at
+                FROM toners 
+                ORDER BY modelo
+            ');
+            $toners = $stmt->fetchAll();
+
+            if (empty($toners)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Nenhum toner encontrado para exportar']);
+                return;
+            }
+
+            // Generate filename with current date
+            $filename = 'toners_cadastro_' . date('Y-m-d_H-i-s') . '.csv';
+
+            // Set headers for CSV download
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Expires: 0');
+
+            // Open output stream
+            $output = fopen('php://output', 'w');
+
+            // Add BOM for UTF-8 (helps with Excel encoding)
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // CSV Headers (in Portuguese)
+            $headers = [
+                'Modelo',
+                'Peso Cheio (g)',
+                'Peso Vazio (g)', 
+                'Gramatura (g)',
+                'Capacidade Folhas',
+                'Preço Toner (R$)',
+                'Gramatura por Folha (g)',
+                'Custo por Folha (R$)',
+                'Cor',
+                'Tipo',
+                'Data Cadastro',
+                'Última Atualização'
+            ];
+
+            fputcsv($output, $headers, ';'); // Using semicolon for better Excel compatibility
+
+            // Add data rows
+            foreach ($toners as $toner) {
+                $row = [
+                    $toner['modelo'],
+                    number_format($toner['peso_cheio'], 2, ',', '.'),
+                    number_format($toner['peso_vazio'], 2, ',', '.'),
+                    number_format($toner['gramatura'], 2, ',', '.'),
+                    number_format($toner['capacidade_folhas'], 0, ',', '.'),
+                    'R$ ' . number_format($toner['preco_toner'], 2, ',', '.'),
+                    number_format($toner['gramatura_por_folha'], 4, ',', '.'),
+                    'R$ ' . number_format($toner['custo_por_folha'], 4, ',', '.'),
+                    $toner['cor'],
+                    $toner['tipo'],
+                    date('d/m/Y H:i', strtotime($toner['created_at'])),
+                    date('d/m/Y H:i', strtotime($toner['updated_at']))
+                ];
+
+                fputcsv($output, $row, ';');
+            }
+
+            fclose($output);
+            exit;
+
+        } catch (\PDOException $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Erro ao exportar: ' . $e->getMessage()]);
+        }
+    }
+
+    public function exportExcelAdvanced(): void
+    {
+        try {
+            // Get all toners with additional statistics
+            $stmt = $this->db->query('
+                SELECT 
+                    t.*,
+                    COALESCE(r.total_retornados, 0) as total_retornados,
+                    COALESCE(r.valor_total_recuperado, 0) as valor_total_recuperado
+                FROM toners t
+                LEFT JOIN (
+                    SELECT 
+                        modelo,
+                        COUNT(*) as total_retornados,
+                        SUM(valor_calculado) as valor_total_recuperado
+                    FROM retornados 
+                    WHERE modelo_cadastrado = 1
+                    GROUP BY modelo
+                ) r ON t.modelo = r.modelo
+                ORDER BY t.modelo
+            ');
+            $toners = $stmt->fetchAll();
+
+            if (empty($toners)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Nenhum toner encontrado para exportar']);
+                return;
+            }
+
+            // Generate filename with current date
+            $filename = 'toners_relatorio_completo_' . date('Y-m-d_H-i-s') . '.csv';
+
+            // Set headers for CSV download
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Expires: 0');
+
+            // Open output stream
+            $output = fopen('php://output', 'w');
+
+            // Add BOM for UTF-8
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // CSV Headers (Extended)
+            $headers = [
+                'Modelo',
+                'Peso Cheio (g)',
+                'Peso Vazio (g)', 
+                'Gramatura (g)',
+                'Capacidade Folhas',
+                'Preço Toner (R$)',
+                'Gramatura por Folha (g)',
+                'Custo por Folha (R$)',
+                'Cor',
+                'Tipo',
+                'Total Retornados',
+                'Valor Total Recuperado (R$)',
+                'Data Cadastro',
+                'Última Atualização'
+            ];
+
+            fputcsv($output, $headers, ';');
+
+            // Add summary row
+            $totalToners = count($toners);
+            $totalRetornados = array_sum(array_column($toners, 'total_retornados'));
+            $valorTotalRecuperado = array_sum(array_column($toners, 'valor_total_recuperado'));
+
+            $summaryRow = [
+                "RESUMO - {$totalToners} Toners Cadastrados",
+                '', '', '', '', '', '', '',
+                "Total Retornados: {$totalRetornados}",
+                "Valor Total: R$ " . number_format($valorTotalRecuperado, 2, ',', '.'),
+                '', '', '', ''
+            ];
+            fputcsv($output, $summaryRow, ';');
+            fputcsv($output, [''], ';'); // Empty row
+
+            // Add data rows
+            foreach ($toners as $toner) {
+                $row = [
+                    $toner['modelo'],
+                    number_format($toner['peso_cheio'], 2, ',', '.'),
+                    number_format($toner['peso_vazio'], 2, ',', '.'),
+                    number_format($toner['gramatura'], 2, ',', '.'),
+                    number_format($toner['capacidade_folhas'], 0, ',', '.'),
+                    'R$ ' . number_format($toner['preco_toner'], 2, ',', '.'),
+                    number_format($toner['gramatura_por_folha'], 4, ',', '.'),
+                    'R$ ' . number_format($toner['custo_por_folha'], 4, ',', '.'),
+                    $toner['cor'],
+                    $toner['tipo'],
+                    $toner['total_retornados'],
+                    'R$ ' . number_format($toner['valor_total_recuperado'], 2, ',', '.'),
+                    date('d/m/Y H:i', strtotime($toner['created_at'])),
+                    date('d/m/Y H:i', strtotime($toner['updated_at']))
+                ];
+
+                fputcsv($output, $row, ';');
+            }
+
+            fclose($output);
+            exit;
+
+        } catch (\PDOException $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Erro ao exportar: ' . $e->getMessage()]);
+        }
+    }
+
     private function render(string $view, array $data = []): void
     {
         extract($data);
