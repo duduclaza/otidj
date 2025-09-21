@@ -269,122 +269,41 @@ window.exportToExcel = function exportToExcel() {
 
 // Import functions removed - not needed anymore
 
-// Delete functions - definidas no início para estar disponíveis imediatamente
-window.confirmDelete = function confirmDelete(id, modelo) {
-  console.log('🗑️ confirmDelete chamada com:', { id, modelo });
+// Nova função de exclusão simples e direta
+window.excluirRetornado = function excluirRetornado(id, modelo) {
+  console.log('🗑️ Excluir retornado:', { id, modelo });
   
-  deleteId = id;
-  
-  // Verificar se o modal existe
-  const modal = document.getElementById('deleteModal');
-  const modeloName = document.getElementById('deleteModeloName');
-  
-  if (!modal) {
-    console.error('❌ Modal deleteModal não encontrado!');
-    // Fallback: usar confirm nativo
-    if (confirm(`Tem certeza que deseja excluir o registro do modelo "${modelo}"?`)) {
-      window.deleteRetornado();
-    }
+  // Confirmação simples com alert nativo
+  if (!confirm(`Tem certeza que deseja excluir o registro do modelo "${modelo}"?\n\nEsta ação não pode ser desfeita.`)) {
     return;
   }
   
-  if (!modeloName) {
-    console.error('❌ Elemento deleteModeloName não encontrado!');
-  } else {
-    modeloName.textContent = modelo;
-  }
+  console.log('✅ Usuário confirmou exclusão, enviando requisição...');
   
-  modal.classList.remove('hidden');
-  
-  // Forçar visibilidade do modal
-  modal.style.display = 'flex';
-  modal.style.zIndex = '999999'; // Z-index ainda maior
-  modal.style.position = 'fixed';
-  modal.style.top = '0';
-  modal.style.left = '0';
-  modal.style.width = '100%';
-  modal.style.height = '100%';
-  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-  modal.style.visibility = 'visible !important'; // Forçar visibility
-  modal.style.opacity = '1 !important'; // Forçar opacity
-  
-  // Remover qualquer classe que possa estar escondendo o modal
-  modal.classList.remove('invisible', 'opacity-0', 'hidden');
-  
-  console.log('✅ Modal de exclusão aberto');
-  console.log('Modal classes:', modal.className);
-  console.log('Modal style display:', modal.style.display);
-  
-  // Teste adicional - verificar se modal está realmente visível
-  setTimeout(() => {
-    const rect = modal.getBoundingClientRect();
-    console.log('Modal position:', rect);
-    console.log('Modal computed style:', window.getComputedStyle(modal).display);
-    console.log('Modal visibility:', window.getComputedStyle(modal).visibility);
-    console.log('Modal opacity:', window.getComputedStyle(modal).opacity);
-    
-    // Verificar se há elementos com z-index maior
-    const allElements = document.querySelectorAll('*');
-    let highZIndexElements = [];
-    allElements.forEach(el => {
-      const zIndex = parseInt(window.getComputedStyle(el).zIndex);
-      if (zIndex > 99999) {
-        highZIndexElements.push({element: el, zIndex: zIndex});
-      }
-    });
-    if (highZIndexElements.length > 0) {
-      console.log('⚠️ Elementos com z-index maior que o modal:', highZIndexElements);
-      
-      // Tentar reduzir o z-index dos elementos conflitantes
-      highZIndexElements.forEach(item => {
-        console.log('Reduzindo z-index de:', item.element);
-        item.element.style.zIndex = '999998'; // Menor que o modal
-      });
-    }
-  }, 100);
-}
-
-window.closeDeleteModal = function closeDeleteModal() {
-  const modal = document.getElementById('deleteModal');
-  modal.classList.add('hidden');
-  
-  // Limpar todos os estilos forçados
-  modal.style.display = 'none';
-  modal.style.visibility = '';
-  modal.style.opacity = '';
-  modal.style.zIndex = '';
-  modal.style.position = '';
-  modal.style.top = '';
-  modal.style.left = '';
-  modal.style.width = '';
-  modal.style.height = '';
-  modal.style.backgroundColor = '';
-  
-  deleteId = null;
-  console.log('🚪 Modal de exclusão fechado');
-}
-
-window.deleteRetornado = function deleteRetornado() {
-  if (!deleteId) return;
-  
-  fetch(`/toners/retornados/delete/${deleteId}`, {
+  // Fazer requisição DELETE diretamente
+  fetch(`/toners/retornados/delete/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
     }
   })
-  .then(response => response.json())
+  .then(response => {
+    console.log('📡 Resposta recebida:', response.status);
+    return response.json();
+  })
   .then(result => {
+    console.log('📋 Resultado:', result);
+    
     if (result.success) {
-      showNotification('Registro excluído com sucesso!', 'success');
-      closeDeleteModal();
-      location.reload();
+      alert('✅ Registro excluído com sucesso!');
+      location.reload(); // Recarregar página para atualizar lista
     } else {
-      alert('Erro ao excluir registro: ' + result.message);
+      alert('❌ Erro ao excluir registro: ' + result.message);
     }
   })
   .catch(error => {
-    alert('Erro de conexão: ' + error.message);
+    console.error('❌ Erro na requisição:', error);
+    alert('❌ Erro de conexão: ' + error.message);
   });
 }
 
@@ -427,25 +346,23 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Verificar se as funções estão disponíveis
   console.log('Funções disponíveis:', {
-    confirmDelete: typeof window.confirmDelete,
-    closeDeleteModal: typeof window.closeDeleteModal,
-    deleteRetornado: typeof window.deleteRetornado,
+    excluirRetornado: typeof window.excluirRetornado,
     showNotification: typeof window.showNotification,
     filterData: typeof window.filterData,
     exportToExcel: typeof window.exportToExcel
   });
   
   // Teste rápido das funções
-  if (typeof window.confirmDelete !== 'function') {
-    console.error('❌ confirmDelete não está definida!');
+  if (typeof window.excluirRetornado !== 'function') {
+    console.error('❌ excluirRetornado não está definida!');
   } else {
-    console.log('✅ confirmDelete está OK');
+    console.log('✅ excluirRetornado está OK');
   }
   
   // Teste simples das funções críticas
   setTimeout(() => {
     console.log('🧪 TESTE DAS FUNÇÕES:');
-    console.log('confirmDelete disponível:', typeof window.confirmDelete === 'function');
+    console.log('excluirRetornado disponível:', typeof window.excluirRetornado === 'function');
     console.log('filterData disponível:', typeof window.filterData === 'function');
     console.log('exportToExcel disponível:', typeof window.exportToExcel === 'function');
   }, 1000);
@@ -962,8 +879,8 @@ function submitRetornado(e) {
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= date('d/m/Y', strtotime($retornado['data_registro'])) ?></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <button onclick="confirmDelete(<?= $retornado['id'] ?>, '<?= e($retornado['modelo']) ?>')" 
-                          class="text-red-600 hover:text-red-800 text-xs bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors">
+                  <button onclick="excluirRetornado(<?= $retornado['id'] ?>, '<?= e($retornado['modelo']) ?>')" 
+                          class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 rounded-md font-medium transition-colors duration-200 shadow-sm hover:shadow-md">
                     Excluir
                   </button>
                 </td>
@@ -1237,41 +1154,7 @@ function submitRetornado(e) {
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
-    <!-- Header -->
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Confirmar Exclusão</h3>
-    </div>
-    
-    <!-- Content -->
-    <div class="px-6 py-4">
-      <div class="flex items-center mb-4">
-        <svg class="w-12 h-12 text-red-500 mr-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.876c1.17 0 2.25-.16 2.25-1.729 0-.329-.314-.729-.314-1.271L18 7.5c0-.621-.504-1.125-1.125-1.125H7.125C6.504 6.375 6 6.879 6 7.5l-.686 8.5c0 .542-.314.942-.314 1.271 0 1.569 1.08 1.729 2.25 1.729z"></path>
-        </svg>
-        <div>
-          <p class="text-gray-900 font-medium">Tem certeza que deseja excluir este registro?</p>
-          <p class="text-gray-600 text-sm mt-1">Modelo: <span id="deleteModeloName" class="font-semibold"></span></p>
-          <p class="text-red-600 text-sm mt-2">Esta ação não pode ser desfeita.</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Footer -->
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-      <div class="flex space-x-3 justify-end">
-        <button onclick="closeDeleteModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-          Cancelar
-        </button>
-        <button onclick="deleteRetornado()" class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 transition-colors">
-          Excluir
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Modal de exclusão removido - usando confirmação nativa -->
 
 <script>
 let tonerData = {};
@@ -2091,18 +1974,18 @@ logActivity('system', 'Page Loaded', { timestamp: new Date().toISOString() });
 
 // Final check - log all available functions
 console.log('🔧 FUNÇÕES DISPONÍVEIS NO WINDOW:');
-console.log('confirmDelete:', typeof window.confirmDelete);
+console.log('excluirRetornado:', typeof window.excluirRetornado);
 console.log('filterData:', typeof window.filterData);
 console.log('exportToExcel:', typeof window.exportToExcel);
 
 // Test if functions are callable
 try {
-  if (typeof window.confirmDelete === 'function') {
-    console.log('✅ confirmDelete está OK');
+  if (typeof window.excluirRetornado === 'function') {
+    console.log('✅ excluirRetornado está OK');
   } else {
-    console.error('❌ confirmDelete não é uma função');
+    console.error('❌ excluirRetornado não é uma função');
   }
 } catch (e) {
-  console.error('❌ Erro ao testar confirmDelete:', e);
+  console.error('❌ Erro ao testar excluirRetornado:', e);
 }
 </script>
