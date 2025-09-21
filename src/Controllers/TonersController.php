@@ -441,6 +441,7 @@ class TonersController
         try {
             // Log para debug
             error_log('Import method called. FILES: ' . print_r($_FILES, true));
+            error_log('POST data: ' . print_r($_POST, true));
             
             if (!isset($_FILES['excel_file']) || $_FILES['excel_file']['error'] !== UPLOAD_ERR_OK) {
                 $error = $_FILES['excel_file']['error'] ?? 'Arquivo não enviado';
@@ -480,9 +481,16 @@ class TonersController
             $excelData = $this->readExcelFile($uploadedFile);
             
             if (empty($excelData)) {
-                echo json_encode(['success' => false, 'message' => 'Arquivo vazio ou formato inválido']);
+                echo json_encode(['success' => false, 'message' => 'Arquivo vazio ou formato inválido. Verifique se o arquivo contém dados.']);
                 return;
             }
+            
+            // Log the data structure for debugging
+            error_log("Excel data structure: " . json_encode([
+                'total_rows' => count($excelData),
+                'first_row' => $excelData[0] ?? 'empty',
+                'second_row' => $excelData[1] ?? 'empty'
+            ]));
 
             $totalRows = count($excelData);
             $imported = 0;
@@ -497,16 +505,28 @@ class TonersController
                     if (empty(array_filter($row))) continue;
 
                     $modelo = trim($row[0] ?? '');
-                    $peso_cheio = (float)($row[1] ?? 0);
-                    $peso_vazio = (float)($row[2] ?? 0);
-                    $capacidade_folhas = (int)($row[3] ?? 0);
-                    $preco_toner = (float)($row[4] ?? 0);
+                    
+                    // Parse numbers with better handling
+                    $peso_cheio_str = trim($row[1] ?? '0');
+                    $peso_vazio_str = trim($row[2] ?? '0');
+                    $capacidade_folhas_str = trim($row[3] ?? '0');
+                    $preco_toner_str = trim($row[4] ?? '0');
+                    
+                    // Convert comma to dot for decimal numbers
+                    $peso_cheio = (float)str_replace(',', '.', $peso_cheio_str);
+                    $peso_vazio = (float)str_replace(',', '.', $peso_vazio_str);
+                    $capacidade_folhas = (int)$capacidade_folhas_str;
+                    $preco_toner = (float)str_replace(',', '.', $preco_toner_str);
+                    
                     $cor = trim($row[5] ?? '');
                     $tipo = trim($row[6] ?? '');
 
+                    // Log row data for debugging
+                    error_log("Processing row " . ($index + 1) . ": " . json_encode($row));
+
                     // Validate required fields
                     if (empty($modelo) || $peso_cheio <= 0 || $peso_vazio <= 0 || $capacidade_folhas <= 0 || $preco_toner <= 0 || empty($cor) || empty($tipo)) {
-                        $errors[] = "Linha " . ($index + 1) . ": Dados incompletos ou inválidos";
+                        $errors[] = "Linha " . ($index + 1) . ": Dados incompletos ou inválidos - Modelo: '$modelo', Peso Cheio: $peso_cheio, Peso Vazio: $peso_vazio, Cap: $capacidade_folhas, Preço: $preco_toner, Cor: '$cor', Tipo: '$tipo'";
                         continue;
                     }
 
@@ -572,28 +592,45 @@ class TonersController
         
         // Try to read as CSV first (most common case from our frontend conversion)
         if (($handle = fopen($filePath, "r")) !== FALSE) {
-            // Try different delimiters
+            // Try different delimiters - prioritize comma since frontend uses it
             $delimiters = [',', ';', "\t"];
             $firstLine = fgets($handle);
             rewind($handle);
             
-            // Detect delimiter
-            $delimiter = ',';
+            // Detect delimiter by counting occurrences
+            $delimiter = ','; // Default to comma (used by frontend)
+            $maxCount = 0;
+            
             foreach ($delimiters as $del) {
-                if (substr_count($firstLine, $del) > 0) {
+                $count = substr_count($firstLine, $del);
+                if ($count > $maxCount) {
+                    $maxCount = $count;
                     $delimiter = $del;
-                    break;
                 }
             }
             
+            // Log for debugging
+            error_log("Detected delimiter: '$delimiter' in first line: " . trim($firstLine));
+            
             // Read with detected delimiter
-            while (($row = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
-                // Clean up the row data
-                $cleanRow = array_map('trim', $row);
+            while (($row = fgetcsv($handle, 2000, $delimiter)) !== FALSE) {
+                // Clean up the row data and handle empty cells
+                $cleanRow = array_map(function($cell) {
+                    return trim($cell ?? '');
+                }, $row);
+                
+                // Ensure we have at least 7 columns (pad with empty strings if needed)
+                while (count($cleanRow) < 7) {
+                    $cleanRow[] = '';
+                }
+                
                 $data[] = $cleanRow;
             }
             fclose($handle);
         }
+        
+        // Log the parsed data for debugging
+        error_log("Parsed CSV data: " . json_encode(array_slice($data, 0, 3))); // First 3 rows
         
         return $data;
     }

@@ -1072,16 +1072,16 @@ function closeImportModal() {
     }
   });
   
-  console.log('🎉 Fechamento concluído!');
+  console.log(' Fechamento concluído!');
 }
 
 function downloadTemplate() {
-  // Create Excel template with proper structure
+  // Create Excel template with proper 
   const data = [
-    ['Modelo', 'Peso Cheio (g)', 'Peso Vazio (g)', 'Capacidade de Folhas', 'Preço do Toner (R$)', 'Cor', 'Tipo'],
-    ['HP CF280A', '850.50', '120.30', '2700', '89.90', 'Black', 'Original'],
-    ['HP CE285A', '720.00', '110.50', '1600', '65.00', 'Black', 'Compativel'],
-    ['', '', '', '', '', '', '']
+    ['Modelo', 'Peso Cheio (g)', 'Peso Vazio (g)', 'Capacidade Folhas', 'Preço Toner (R$)', 'Cor', 'Tipo'],
+    ['HP CF280A', 850.5, 120.3, 2700, 89.90, 'Black', 'Original'],
+    ['Canon 045', 720.8, 110.2, 1300, 75.50, 'Yellow', 'Compativel'],
+    ['Brother TN-421', 680.9, 105.1, 1800, 65.00, 'Magenta', 'Remanufaturado']
   ];
   
   // Create workbook
