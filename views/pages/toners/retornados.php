@@ -8,12 +8,6 @@
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-gray-900">Registro de Retornados</h1>
     <div class="flex space-x-3">
-      <button onclick="downloadActivityLog()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-        </svg>
-        <span>Download Log</span>
-      </button>
       <button id="toggleRetornadoFormBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -604,10 +598,10 @@ function submitRetornado(e) {
 
   <!-- Filters and Search -->
   <div class="bg-white border rounded-lg p-4">
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-      <div class="lg:col-span-2">
+    <div class="grid grid-cols-1 lg:grid-cols-6 gap-3">
+      <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-        <input type="text" id="searchInput" placeholder="Modelo, código, usuário..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <input type="text" id="searchInput" placeholder="Modelo, código..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
@@ -617,15 +611,28 @@ function submitRetornado(e) {
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
         <input type="date" id="dateTo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
-      <div class="flex items-end justify-end space-x-2">
-        <button onclick="filterData()" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
-          Filtrar
+      <div class="flex items-end">
+        <button onclick="filterData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+          <span>Filtrar</span>
         </button>
-        <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
-          Exportar
+      </div>
+      <div class="flex items-end">
+        <button onclick="exportToExcel()" class="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span>Exportar</span>
         </button>
-        <button onclick="openImportModal()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
-          Importar
+      </div>
+      <div class="flex items-end">
+        <button onclick="openImportModal()" class="w-full bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-center space-x-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+          </svg>
+          <span>Importar</span>
         </button>
       </div>
     </div>
@@ -1656,8 +1663,8 @@ function importRetornados() {
         return;
       }
       
-      // Process rows with real progress tracking
-      processImportRows(rows);
+      // Process rows with batch import
+      processBatchImport(file);
       
     } catch (error) {
       alert('Erro ao ler arquivo: ' + error.message);
@@ -1666,6 +1673,44 @@ function importRetornados() {
   };
   
   reader.readAsArrayBuffer(file);
+}
+
+function processBatchImport(file) {
+  // Show progress
+  document.getElementById('importProgressBar').style.width = '50%';
+  document.getElementById('importStatus').textContent = 'Enviando arquivo para o servidor...';
+  
+  // Create FormData for file upload
+  const formData = new FormData();
+  formData.append('import_file', file);
+  
+  // Send to server
+  fetch('/toners/retornados/import', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(result => {
+    document.getElementById('importProgressBar').style.width = '100%';
+    
+    if (result.success) {
+      document.getElementById('importStatus').textContent = 'Importação concluída!';
+      setTimeout(() => {
+        alert(`Importação concluída!\n${result.imported} registros importados com sucesso.`);
+        closeImportModal();
+        location.reload();
+      }, 1000);
+    } else {
+      document.getElementById('importStatus').textContent = 'Erro na importação';
+      alert('Erro na importação: ' + result.message);
+      resetImportModal();
+    }
+  })
+  .catch(error => {
+    document.getElementById('importStatus').textContent = 'Erro de conexão';
+    alert('Erro de conexão: ' + error.message);
+    resetImportModal();
+  });
 }
 
 function processImportRows(rows) {
@@ -1792,23 +1837,116 @@ function filterData() {
   const dateFrom = document.getElementById('dateFrom').value;
   const dateTo = document.getElementById('dateTo').value;
   
-  // Simple client-side filtering
+  console.log('Filtering with:', { search, dateFrom, dateTo });
+  
+  // Get all table rows (excluding header)
   const rows = document.querySelectorAll('#retornadosTable tr');
+  let visibleCount = 0;
+  
   rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    const show = text.includes(search);
+    let show = true;
+    
+    // Text search filter
+    if (search) {
+      const text = row.textContent.toLowerCase();
+      if (!text.includes(search)) {
+        show = false;
+      }
+    }
+    
+    // Date range filter
+    if (show && (dateFrom || dateTo)) {
+      const dateCell = row.querySelector('td:nth-last-child(2)'); // Data column (second to last)
+      if (dateCell) {
+        const dateText = dateCell.textContent.trim();
+        // Convert DD/MM/YYYY to YYYY-MM-DD for comparison
+        const dateParts = dateText.split('/');
+        if (dateParts.length === 3) {
+          const rowDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+          
+          if (dateFrom && rowDate < dateFrom) {
+            show = false;
+          }
+          if (dateTo && rowDate > dateTo) {
+            show = false;
+          }
+        }
+      }
+    }
+    
     row.style.display = show ? '' : 'none';
+    if (show) visibleCount++;
   });
+  
+  // Show feedback
+  showNotification(`Filtro aplicado: ${visibleCount} registro(s) encontrado(s)`, 'info');
 }
 
-function exportData() {
-  const dateFrom = prompt('Data inicial (YYYY-MM-DD):');
-  const dateTo = prompt('Data final (YYYY-MM-DD):');
+function exportToExcel() {
+  // Show loading state
+  const button = event.target.closest('button');
+  const originalContent = button.innerHTML;
+  button.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> <span>Exportando...</span>';
+  button.disabled = true;
   
-  if (dateFrom && dateTo) {
-    alert(`Exportando dados de ${dateFrom} até ${dateTo}...`);
-    // Implement actual export logic
-  }
+  // Get filter values
+  const dateFrom = document.getElementById('dateFrom').value;
+  const dateTo = document.getElementById('dateTo').value;
+  const search = document.getElementById('searchInput').value;
+  
+  // Build query parameters
+  const params = new URLSearchParams();
+  if (dateFrom) params.append('date_from', dateFrom);
+  if (dateTo) params.append('date_to', dateTo);
+  if (search) params.append('search', search);
+  
+  // Create download link
+  const link = document.createElement('a');
+  link.href = `/toners/retornados/export?${params.toString()}`;
+  link.download = `retornados_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Restore button after delay
+  setTimeout(() => {
+    button.innerHTML = originalContent;
+    button.disabled = false;
+    showNotification('Exportação concluída com sucesso!', 'success');
+  }, 2000);
+}
+
+// Notification function
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  
+  notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+  notification.innerHTML = `
+    <div class="flex items-center space-x-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span>${message}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.classList.remove('translate-x-full');
+  }, 100);
+  
+  // Animate out and remove
+  setTimeout(() => {
+    notification.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 4000);
 }
 
 // Delete functions
@@ -1867,74 +2005,11 @@ if (typeof calculateValue === 'function') window.calculateValue = calculateValue
 if (typeof showGuidance === 'function') window.showGuidance = showGuidance;
 if (typeof checkAutoDiscard === 'function') window.checkAutoDiscard = checkAutoDiscard;
 if (typeof loadParameters === 'function') window.loadParameters = loadParameters;
-if (typeof downloadActivityLog === 'function') window.downloadActivityLog = downloadActivityLog;
 if (typeof submitRetornado === 'function') window.submitRetornado = submitRetornado;
 
-// Activity log download function
-function downloadActivityLog() {
-  logActivity('user_action', 'Download Activity Log Requested');
-  
-  const report = {
-    generated_at: new Date().toISOString(),
-    page_url: window.location.href,
-    user_agent: navigator.userAgent,
-    session_duration: Date.now() - (window.sessionStartTime || Date.now()),
-    total_activities: activityLog.length,
-    
-    // Summary statistics
-    summary: {
-      errors: activityLog.filter(log => log.type === 'error').length,
-      user_actions: activityLog.filter(log => log.type === 'user_action').length,
-      calculations: activityLog.filter(log => log.type === 'calculation').length,
-      validations: activityLog.filter(log => log.type === 'validation').length,
-      modal_actions: activityLog.filter(log => log.type === 'modal').length,
-      form_actions: activityLog.filter(log => log.type === 'form').length
-    },
-    
-    // Current form state
-    current_state: {
-      selected_destination: selectedDestino,
-      modal_open: !document.getElementById('retornadoModal')?.classList.contains('hidden'),
-      debug_mode: debugMode,
-      toner_data_loaded: !!window.tonerData,
-      parameters_loaded: !!window.parameters
-    },
-    
-    // Browser info
-    browser_info: {
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight
-      },
-      screen: {
-        width: screen.width,
-        height: screen.height
-      },
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      language: navigator.language
-    },
-    
-    // All activity logs
-    activities: activityLog,
-    
-    // Import results if any
-    import_results: importResults.length > 0 ? importResults : null
-  };
-  
-  // Create filename with timestamp
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  const filename = `retornados-activity-log-${timestamp}.json`;
-  
-  // Download JSON file
-  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-  
-  logActivity('user_action', 'Activity Log Downloaded', { filename, total_entries: activityLog.length });
+// Simplified activity logging
+function logActivity(type, message, data = {}) {
+  console.log(`[${type.toUpperCase()}] ${message}`, data);
 }
 
 // Initialize session start time

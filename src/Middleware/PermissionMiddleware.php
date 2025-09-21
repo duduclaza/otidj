@@ -18,6 +18,9 @@ class PermissionMiddleware
         '/toners/import' => 'toners_cadastro',
         '/toners/export' => 'toners_cadastro',
         '/toners/retornados' => 'toners_retornados',
+        '/toners/retornados/export' => 'toners_retornados',
+        '/toners/retornados/import' => 'toners_retornados',
+        '/toners/retornados/delete' => 'toners_retornados',
         
         // Módulos principais
         '/homologacoes' => 'homologacoes',

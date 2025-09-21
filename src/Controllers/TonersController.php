@@ -670,6 +670,178 @@ class TonersController
         }
     }
 
+    public function exportRetornados(): void
+    {
+        try {
+            // Get filter parameters
+            $dateFrom = $_GET['date_from'] ?? null;
+            $dateTo = $_GET['date_to'] ?? null;
+            $search = $_GET['search'] ?? null;
+
+            // Build query with filters
+            $sql = 'SELECT * FROM retornados WHERE 1=1';
+            $params = [];
+
+            if ($dateFrom) {
+                $sql .= ' AND DATE(data_registro) >= :date_from';
+                $params[':date_from'] = $dateFrom;
+            }
+
+            if ($dateTo) {
+                $sql .= ' AND DATE(data_registro) <= :date_to';
+                $params[':date_to'] = $dateTo;
+            }
+
+            if ($search) {
+                $sql .= ' AND (modelo LIKE :search OR codigo_cliente LIKE :search OR usuario LIKE :search)';
+                $params[':search'] = '%' . $search . '%';
+            }
+
+            $sql .= ' ORDER BY data_registro DESC';
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $retornados = $stmt->fetchAll();
+
+            if (empty($retornados)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Nenhum registro encontrado para exportar']);
+                return;
+            }
+
+            // Generate filename with current date
+            $filename = 'retornados_' . date('Y-m-d_H-i-s') . '.csv';
+
+            // Set headers for CSV download
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            header('Expires: 0');
+
+            // Open output stream
+            $output = fopen('php://output', 'w');
+
+            // Add BOM for UTF-8 (helps with Excel encoding)
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // CSV Headers (in Portuguese)
+            $headers = [
+                'Modelo',
+                'Código Cliente',
+                'Usuário',
+                'Filial',
+                'Modo',
+                'Peso Retornado (g)',
+                'Percentual Chip (%)',
+                'Destino',
+                'Valor Calculado (R$)',
+                'Observação',
+                'Data Registro'
+            ];
+
+            fputcsv($output, $headers, ';');
+
+            // Add data rows
+            foreach ($retornados as $retornado) {
+                $row = [
+                    $retornado['modelo'],
+                    $retornado['codigo_cliente'],
+                    $retornado['usuario'],
+                    $retornado['filial'],
+                    $retornado['modo'],
+                    $retornado['peso_retornado'] ? number_format($retornado['peso_retornado'], 2, ',', '.') : '',
+                    $retornado['percentual_chip'] ? number_format($retornado['percentual_chip'], 2, ',', '.') : '',
+                    ucfirst(str_replace('_', ' ', $retornado['destino'])),
+                    $retornado['valor_calculado'] ? 'R$ ' . number_format($retornado['valor_calculado'], 2, ',', '.') : '',
+                    $retornado['observacao'] ?? '',
+                    date('d/m/Y H:i', strtotime($retornado['data_registro']))
+                ];
+
+                fputcsv($output, $row, ';');
+            }
+
+            fclose($output);
+            exit;
+
+        } catch (\PDOException $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Erro ao exportar: ' . $e->getMessage()]);
+        }
+    }
+
+    public function importRetornados(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_FILES['import_file']) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Erro no upload do arquivo']);
+                return;
+            }
+
+            $uploadedFile = $_FILES['import_file']['tmp_name'];
+            $data = $this->readCSVFile($uploadedFile);
+            
+            if (empty($data)) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo vazio ou formato inválido']);
+                return;
+            }
+
+            $imported = 0;
+            $errors = [];
+
+            foreach ($data as $index => $row) {
+                if ($index === 0) continue; // Skip header
+
+                try {
+                    // Validate and insert data
+                    $stmt = $this->db->prepare('
+                        INSERT INTO retornados (usuario, filial, codigo_cliente, modelo, modo, peso_retornado, percentual_chip, destino, observacao) 
+                        VALUES (:usuario, :filial, :codigo_cliente, :modelo, :modo, :peso_retornado, :percentual_chip, :destino, :observacao)
+                    ');
+                    
+                    $stmt->execute([
+                        ':usuario' => $row[2] ?? 'Importado',
+                        ':filial' => $row[3] ?? 'Jundiaí',
+                        ':codigo_cliente' => $row[1] ?? '',
+                        ':modelo' => $row[0] ?? '',
+                        ':modo' => 'peso', // Default
+                        ':peso_retornado' => !empty($row[5]) ? (float)str_replace(',', '.', $row[5]) : null,
+                        ':percentual_chip' => !empty($row[6]) ? (float)str_replace(',', '.', $row[6]) : null,
+                        ':destino' => strtolower(str_replace(' ', '_', $row[7] ?? 'descarte')),
+                        ':observacao' => $row[9] ?? ''
+                    ]);
+
+                    $imported++;
+                } catch (\PDOException $e) {
+                    $errors[] = "Linha " . ($index + 1) . ": " . $e->getMessage();
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => "Importação concluída! $imported registros importados",
+                'imported' => $imported,
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+
+    private function readCSVFile(string $filePath): array
+    {
+        $data = [];
+        if (($handle = fopen($filePath, "r")) !== FALSE) {
+            while (($row = fgetcsv($handle, 1000, ";")) !== FALSE) {
+                $data[] = array_map('trim', $row);
+            }
+            fclose($handle);
+        }
+        return $data;
+    }
+
     public function importRow(): void
     {
         header('Content-Type: application/json');
