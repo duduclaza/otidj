@@ -176,7 +176,7 @@
 </section>
 
 <!-- Import Modal -->
-<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style="z-index: 9999;">
+<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4" style="z-index: 999999; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;">
   <div class="bg-white rounded-lg shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
     <!-- Header -->
     <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white rounded-t-lg">
@@ -429,8 +429,14 @@ function forceShowModal() {
 
 // Modal functions
 function openImportModal() {
-  const modal = document.getElementById('importModal');
+  let modal = document.getElementById('importModal');
+  
+  // Se o modal existe, mover para o body principal para aparecer por cima de tudo
   if (modal) {
+    // Mover modal para o body principal (fora do iframe)
+    if (modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
     // Remover hidden e forçar estilos necessários
     modal.classList.remove('hidden');
     modal.style.cssText = `
@@ -440,14 +446,17 @@ function openImportModal() {
       left: 0 !important;
       width: 100vw !important;
       height: 100vh !important;
-      z-index: 99999 !important;
-      background-color: rgba(0, 0, 0, 0.8) !important;
+      z-index: 999999 !important;
+      background-color: rgba(0, 0, 0, 0.85) !important;
       align-items: center !important;
       justify-content: center !important;
       padding: 16px !important;
       visibility: visible !important;
       opacity: 1 !important;
     `;
+    
+    // Garantir que o modal apareça por cima de tudo
+    document.body.style.overflow = 'hidden'; // Impede scroll da página
     
     // Garantir que o conteúdo interno seja visível
     const modalContent = modal.querySelector('.bg-white');
@@ -473,9 +482,191 @@ function openImportModal() {
     });
     
   } else {
-    // Fallback: criar modal dinamicamente
-    createDynamicModal();
+    // Fallback: criar modal dinamicamente no body principal
+    createFullScreenModal();
   }
+}
+
+// Função para criar modal em tela cheia
+function createFullScreenModal() {
+  // Remover modal existente se houver
+  const existingModal = document.getElementById('fullScreenImportModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // Bloquear scroll da página
+  document.body.style.overflow = 'hidden';
+  
+  const modalHTML = `
+    <div id="fullScreenImportModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 16px;">
+      <div style="background: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 28rem;" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div style="padding: 24px 24px 16px 24px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(to right, #f9fafb, white); border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+              <svg style="width: 24px; height: 24px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 style="font-size: 20px; font-weight: bold; color: #111827; margin: 0;">📊 Importar Toners</h3>
+              <p style="font-size: 14px; color: #6b7280; margin: 4px 0 0 0;">Faça upload de um arquivo Excel ou CSV com os dados dos toners</p>
+            </div>
+          </div>
+          <button onclick="closeFullScreenModal()" style="width: 32px; height: 32px; background: #f3f4f6; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+            <svg style="width: 20px; height: 20px; color: #6b7280;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 24px; display: flex; flex-direction: column; gap: 16px;">
+          <!-- File Input -->
+          <div>
+            <label style="display: block; font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 12px;">
+              📁 Selecione o arquivo Excel ou CSV:
+            </label>
+            <input type="file" id="fullScreenFileInput" accept=".xlsx,.xls,.csv" 
+                   style="width: 100%; border: 2px dashed #d1d5db; border-radius: 12px; padding: 16px; font-size: 14px; transition: all 0.2s;" 
+                   onchange="this.style.borderColor='#3b82f6'"
+                   onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)'"
+                   onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
+            <div style="display: flex; align-items: center; margin-top: 8px; font-size: 12px; color: #6b7280;">
+              <svg style="width: 16px; height: 16px; margin-right: 4px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Formatos aceitos: <span style="font-weight: 500;">.xlsx, .xls, .csv</span> • Tamanho máximo: <span style="font-weight: 500;">10MB</span>
+            </div>
+          </div>
+          
+          <!-- Progress Container -->
+          <div id="fullScreenProgressContainer" style="display: none;">
+            <div style="background: linear-gradient(to right, #dbeafe, #dcfce7); border: 1px solid #3b82f6; border-radius: 12px; padding: 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center;">
+                  <div style="width: 20px; height: 20px; border: 2px solid #3b82f6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;"></div>
+                  <span style="font-size: 14px; font-weight: 600; color: #374151;">⚡ Progresso da Importação</span>
+                </div>
+                <span id="fullScreenProgressText" style="font-size: 14px; font-weight: bold; color: #3b82f6;">0%</span>
+              </div>
+              <div style="width: 100%; background: #e5e7eb; border-radius: 9999px; height: 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                <div id="fullScreenProgressBar" style="background: linear-gradient(to right, #3b82f6, #10b981); height: 16px; border-radius: 9999px; transition: all 0.5s ease-out; width: 0%;"></div>
+              </div>
+              <div id="fullScreenImportStatus" style="font-size: 14px; color: #374151; background: white; border-radius: 8px; padding: 12px; margin-top: 12px; border: 1px solid #e5e7eb;">
+                Preparando importação...
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding: 16px 24px 24px 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 12px 12px;">
+          <!-- Template Download -->
+          <div style="margin-bottom: 12px;">
+            <button onclick="downloadTemplate()" 
+                    style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 12px 16px; font-size: 14px; font-weight: 500; color: #1d4ed8; background: linear-gradient(to right, #dbeafe, #bfdbfe); border: 1px solid #3b82f6; border-radius: 8px; cursor: pointer; transition: all 0.2s;"
+                    onmouseover="this.style.background='linear-gradient(to right, #bfdbfe, #93c5fd)'"
+                    onmouseout="this.style.background='linear-gradient(to right, #dbeafe, #bfdbfe)'">
+              <svg style="width: 16px; height: 16px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              📥 Baixar Template
+            </button>
+          </div>
+          
+          <!-- Import Button -->
+          <div>
+            <button onclick="importFullScreenExcel()" 
+                    style="width: 100%; padding: 12px 16px; font-size: 14px; font-weight: 600; color: white; background: linear-gradient(to right, #10b981, #059669); border: 1px solid #10b981; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                    onmouseover="this.style.background='linear-gradient(to right, #059669, #047857)'; this.style.boxShadow='0 6px 8px rgba(0,0,0,0.15)'"
+                    onmouseout="this.style.background='linear-gradient(to right, #10b981, #059669)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)'">
+              <span style="display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 16px; height: 16px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                📤 Importar Dados
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `;
+  
+  // Adicionar ao body principal
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Adicionar event listener para fechar ao clicar no overlay
+  document.getElementById('fullScreenImportModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeFullScreenModal();
+    }
+  });
+}
+
+// Funções para o modal em tela cheia
+function closeFullScreenModal() {
+  document.body.style.overflow = '';
+  const modal = document.getElementById('fullScreenImportModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+function importFullScreenExcel() {
+  const fileInput = document.getElementById('fullScreenFileInput');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    alert('Por favor, selecione um arquivo Excel.');
+    return;
+  }
+  
+  // Mostrar progress
+  document.getElementById('fullScreenProgressContainer').style.display = 'block';
+  
+  const formData = new FormData();
+  formData.append('excel_file', file);
+  
+  updateFullScreenProgress(10, 'Enviando arquivo...');
+  
+  fetch('/toners/import', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      updateFullScreenProgress(100, `Concluído! ${result.imported} registros importados`);
+      setTimeout(() => {
+        closeFullScreenModal();
+        alert('Importação concluída com sucesso!');
+        location.reload();
+      }, 2000);
+    } else {
+      alert('Erro na importação: ' + result.message);
+      document.getElementById('fullScreenProgressContainer').style.display = 'none';
+    }
+  })
+  .catch(error => {
+    alert('Erro de conexão: ' + error.message);
+    document.getElementById('fullScreenProgressContainer').style.display = 'none';
+  });
+}
+
+function updateFullScreenProgress(percentage, status) {
+  document.getElementById('fullScreenProgressBar').style.width = percentage + '%';
+  document.getElementById('fullScreenProgressText').textContent = percentage + '%';
+  document.getElementById('fullScreenImportStatus').textContent = status;
 }
 
 // Função para criar modal dinamicamente
@@ -610,6 +801,10 @@ function updateDynamicProgress(percentage, status) {
 
 function closeImportModal() {
   console.log('Fechando modal...');
+  
+  // Restaurar scroll da página
+  document.body.style.overflow = '';
+  
   const modal = document.getElementById('importModal');
   if (modal) {
     modal.classList.add('hidden');
