@@ -41,6 +41,8 @@ class ControleDescartesController
     // Listar descartes com filtros
     public function listDescartes()
     {
+        // Limpar qualquer output anterior
+        ob_clean();
         header('Content-Type: application/json');
         
         try {
@@ -352,6 +354,8 @@ class ControleDescartesController
     // Obter detalhes de um descarte
     public function getDescarte($id)
     {
+        // Limpar qualquer output anterior
+        ob_clean();
         header('Content-Type: application/json');
         
         try {
