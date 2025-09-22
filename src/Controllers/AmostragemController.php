@@ -127,20 +127,32 @@ class AmostragemController
                 }
             }
 
-            $stmt = $this->db->prepare("
-                INSERT INTO amostragens (numero_nf, status, observacao, arquivo_nf, evidencias, responsaveis, fotos, data_registro) 
-                VALUES (:numero_nf, :status, :observacao, :arquivo_nf, :evidencias, :responsaveis, :fotos, NOW())
-            ");
+            // Build INSERT based on existing columns (produção pode não ter colunas novas)
+            $hasResponsaveis = $this->hasColumn('amostragens', 'responsaveis');
+            $hasFotos = $this->hasColumn('amostragens', 'fotos');
 
-            $stmt->execute([
+            $columns = ['numero_nf', 'status', 'observacao', 'arquivo_nf', 'evidencias'];
+            $placeholders = [':numero_nf', ':status', ':observacao', ':arquivo_nf', ':evidencias'];
+            if ($hasResponsaveis) { $columns[] = 'responsaveis'; $placeholders[] = ':responsaveis'; }
+            if ($hasFotos) { $columns[] = 'fotos'; $placeholders[] = ':fotos'; }
+            $columns[] = 'data_registro';
+            $valuesSql = implode(', ', $placeholders) . ', NOW()';
+            $columnsSql = implode(', ', $columns);
+
+            $sql = "INSERT INTO amostragens ($columnsSql) VALUES ($valuesSql)";
+            $stmt = $this->db->prepare($sql);
+
+            $params = [
                 ':numero_nf' => $numero_nf,
                 ':status' => $status,
                 ':observacao' => $observacao,
                 ':arquivo_nf' => $arquivo_nf,
-                ':evidencias' => json_encode($evidencias),
-                ':responsaveis' => json_encode($responsaveisParsed),
-                ':fotos' => json_encode($fotos)
-            ]);
+                ':evidencias' => json_encode($evidencias)
+            ];
+            if ($hasResponsaveis) { $params[':responsaveis'] = json_encode($responsaveisParsed); }
+            if ($hasFotos) { $params[':fotos'] = json_encode($fotos); }
+
+            $stmt->execute($params);
 
             // Build names and emails arrays
             $names = [];
@@ -327,6 +339,18 @@ class AmostragemController
 
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao buscar amostragem: ' . $e->getMessage()]);
+        }
+    }
+
+    // Helper: verifica se a coluna existe na tabela
+    private function hasColumn(string $table, string $column): bool
+    {
+        try {
+            $stmt = $this->db->prepare("SHOW COLUMNS FROM `{$table}` LIKE ?");
+            $stmt->execute([$column]);
+            return (bool)$stmt->fetch();
+        } catch (\PDOException $e) {
+            return false;
         }
     }
 }
