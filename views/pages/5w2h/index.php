@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
             <h1 class="text-3xl font-bold text-gray-900">5W2H - Planos de Ação</h1>
             <p class="text-gray-600 mt-2">Gerencie seus planos de ação utilizando a metodologia 5W2H</p>
         </div>
-        <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+        <button onclick="document.getElementById('planoModal').style.display='block'; alert('Modal aberto!');" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
@@ -89,8 +89,30 @@ if (!isset($_SESSION['user_id'])) {
 </div>
 
 <!-- Modal Criar/Editar Plano -->
-<div id="planoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.8); z-index: 999999;">
-    <div style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); background: white; border: 2px solid #333; width: 90%; max-width: 900px; max-height: 80vh; overflow-y: auto;">
+<div id="planoModal" style="display: none;">
+    <style>
+        #planoModal {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: rgba(0,0,0,0.9) !important;
+            z-index: 999999 !important;
+        }
+        #planoModal .modal-content {
+            position: absolute !important;
+            top: 5% !important;
+            left: 5% !important;
+            width: 90% !important;
+            height: 90% !important;
+            background: white !important;
+            border: 3px solid red !important;
+            overflow-y: auto !important;
+            padding: 20px !important;
+        }
+    </style>
+    <div class="modal-content">
             <div class="p-6 border-b">
                 <div class="flex justify-between items-center">
                     <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Novo Plano 5W2H</h3>
