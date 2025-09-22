@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 16;
+    private const CURRENT_VERSION = 17;
 
     public function __construct()
     {
@@ -112,6 +112,11 @@ class Migration
                 // Version 16: Create POPs and ITs system tables
                 $this->migration16();
                 $this->updateVersion(16);
+            }
+            if ($currentVersion < 17) {
+                // Version 17: Create 5W2H system tables
+                $this->migration17();
+                $this->updateVersion(17);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -1069,6 +1074,132 @@ class Migration
                 VALUES (?, 'pops_its_visualizacao', 1, 0, 0, 0, 0)
             ");
             $stmt->execute([$userProfileId]);
+        }
+    }
+
+    private function migration17(): void
+    {
+        // Criar tabela de planos 5W2H
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS planos_5w2h (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                titulo VARCHAR(255) NOT NULL,
+                what TEXT NOT NULL COMMENT 'O que será feito',
+                why TEXT NOT NULL COMMENT 'Por que será feito',
+                where_local TEXT COMMENT 'Onde será feito',
+                when_inicio DATE COMMENT 'Data de início',
+                when_fim DATE COMMENT 'Data de término',
+                who_id INT COMMENT 'Responsável principal',
+                how TEXT COMMENT 'Como será feito',
+                how_much DECIMAL(10,2) DEFAULT 0.00 COMMENT 'Quanto custará',
+                status ENUM('Aberto','Em andamento','Concluído','Cancelado') DEFAULT 'Aberto',
+                setor_id INT COMMENT 'Setor responsável',
+                observacoes TEXT NULL,
+                anexos TEXT NULL COMMENT 'URLs ou nomes de arquivos',
+                created_by INT NOT NULL COMMENT 'Usuário que criou',
+                updated_by INT NULL COMMENT 'Último usuário que atualizou',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (who_id) REFERENCES users(id) ON DELETE SET NULL,
+                FOREIGN KEY (setor_id) REFERENCES departamentos(id) ON DELETE SET NULL,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+                INDEX idx_status (status),
+                INDEX idx_who_id (who_id),
+                INDEX idx_setor_id (setor_id),
+                INDEX idx_created_by (created_by),
+                INDEX idx_dates (when_inicio, when_fim)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Planos 5W2H - Metodologia de planejamento'
+        ");
+
+        // Criar tabela de histórico de alterações dos planos 5W2H
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS planos_5w2h_historico (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                plano_id INT NOT NULL,
+                campo_alterado VARCHAR(100) NOT NULL,
+                valor_anterior TEXT,
+                valor_novo TEXT,
+                alterado_por INT NOT NULL,
+                alterado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (plano_id) REFERENCES planos_5w2h(id) ON DELETE CASCADE,
+                FOREIGN KEY (alterado_por) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_plano_id (plano_id),
+                INDEX idx_alterado_por (alterado_por),
+                INDEX idx_alterado_em (alterado_em)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Histórico de alterações dos planos 5W2H'
+        ");
+
+        // Criar tabela de anexos dos planos 5W2H
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS planos_5w2h_anexos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                plano_id INT NOT NULL,
+                nome_arquivo VARCHAR(255) NOT NULL,
+                nome_original VARCHAR(255) NOT NULL,
+                tipo_arquivo VARCHAR(100) NOT NULL,
+                tamanho_arquivo INT NOT NULL,
+                caminho_arquivo VARCHAR(500) NOT NULL,
+                uploaded_by INT NOT NULL,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (plano_id) REFERENCES planos_5w2h(id) ON DELETE CASCADE,
+                FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_plano_id (plano_id),
+                INDEX idx_uploaded_by (uploaded_by)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Anexos dos planos 5W2H'
+        ");
+
+        // Atualizar permissões para incluir módulo 5W2H
+        $this->update5W2HPermissions();
+    }
+
+    private function update5W2HPermissions(): void
+    {
+        // Módulo 5W2H
+        $module = '5w2h_planos';
+
+        // Administrador: acesso total
+        $adminProfileId = $this->getProfileIdByName('Administrador');
+        if ($adminProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 1, 1, 1, 1)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=1, can_export=1
+            ");
+            $stmt->execute([$adminProfileId, $module]);
+        }
+
+        // Supervisor: pode criar, editar e visualizar planos do seu setor
+        $supervisorProfileId = $this->getProfileIdByName('Supervisor');
+        if ($supervisorProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 1, 1, 0, 1)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=0, can_export=1
+            ");
+            $stmt->execute([$supervisorProfileId, $module]);
+        }
+
+        // Analista de Qualidade: pode criar e gerenciar planos
+        $analistaProfileId = $this->getProfileIdByName('Analista de Qualidade');
+        if ($analistaProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 1, 1, 0, 1)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=0, can_export=1
+            ");
+            $stmt->execute([$analistaProfileId, $module]);
+        }
+
+        // Usuário Comum: pode criar e editar apenas seus próprios planos
+        $userProfileId = $this->getProfileIdByName('Usuário Comum');
+        if ($userProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 1, 0, 0, 0)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=0, can_import=0, can_export=0
+            ");
+            $stmt->execute([$userProfileId, $module]);
         }
     }
 }
