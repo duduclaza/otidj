@@ -320,23 +320,38 @@ class AuthController
     private function notifyAdminsNewInvitation(string $name, string $email): void
     {
         try {
-            // Get all admin emails
-            $stmt = $this->db->prepare("SELECT email FROM users WHERE role = 'admin' AND status = 'active'");
+            // Get all admin users
+            $stmt = $this->db->prepare("SELECT id, email FROM users WHERE role = 'admin' AND status = 'active'");
             $stmt->execute();
-            $admins = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
             if (!empty($admins)) {
-                $subject = "Nova Solicitação de Acesso - SGQ OTI DJ";
-                $body = "
-                <h2>Nova Solicitação de Acesso</h2>
-                <p><strong>Nome:</strong> {$name}</p>
-                <p><strong>Email:</strong> {$email}</p>
-                <p>Acesse o painel administrativo para aprovar ou rejeitar esta solicitação.</p>
-                <p><a href='" . ($_ENV['APP_URL'] ?? '') . "/admin/invitations'>Ver Solicitações Pendentes</a></p>
-                ";
+                // Create system notifications for all admins
+                $notificationTitle = "Nova Solicitação de Acesso";
+                $notificationMessage = "Nova solicitação de {$name} ({$email}) aguardando aprovação.";
                 
-                foreach ($admins as $adminEmail) {
-                    sendEmail($adminEmail, $subject, $body);
+                foreach ($admins as $admin) {
+                    // Create system notification
+                    $notifStmt = $this->db->prepare("
+                        INSERT INTO notifications (user_id, title, message, type, created_at) 
+                        VALUES (?, ?, ?, 'access_request', NOW())
+                    ");
+                    $notifStmt->execute([$admin['id'], $notificationTitle, $notificationMessage]);
+                    
+                    // Send email notification
+                    $subject = "Nova Solicitação de Acesso - SGQ OTI DJ";
+                    $body = "
+                    <h2>Nova Solicitação de Acesso</h2>
+                    <p><strong>Nome:</strong> {$name}</p>
+                    <p><strong>Email:</strong> {$email}</p>
+                    <p>Acesse o painel administrativo para aprovar ou rejeitar esta solicitação.</p>
+                    <p><a href='" . ($_ENV['APP_URL'] ?? '') . "/admin/invitations'>Ver Solicitações Pendentes</a></p>
+                    ";
+                    
+                    // Send email (if function exists)
+                    if (function_exists('sendEmail')) {
+                        sendEmail($admin['email'], $subject, $body);
+                    }
                 }
             }
         } catch (\Exception $e) {

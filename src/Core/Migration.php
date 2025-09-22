@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 13;
+    private const CURRENT_VERSION = 14;
 
     public function __construct()
     {
@@ -97,6 +97,11 @@ class Migration
                 // Version 13: Update Melhoria Continua system
                 $this->migration13();
                 $this->updateVersion(13);
+            }
+            if ($currentVersion < 14) {
+                // Version 14: Create user invitations table
+                $this->migration14();
+                $this->updateVersion(14);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -856,6 +861,29 @@ class Migration
             
             INDEX idx_melhoria_id (melhoria_id),
             FOREIGN KEY (melhoria_id) REFERENCES melhorias_continuas(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    }
+
+    private function migration14(): void
+    {
+        // Criar tabela de solicitações de acesso
+        $this->db->exec('CREATE TABLE IF NOT EXISTS user_invitations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            setor VARCHAR(255) NULL,
+            filial VARCHAR(255) NULL,
+            message TEXT NULL,
+            status ENUM("pending", "approved", "rejected") DEFAULT "pending",
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            approved_by INT NULL,
+            approved_at TIMESTAMP NULL,
+            
+            INDEX idx_email (email),
+            INDEX idx_status (status),
+            INDEX idx_created_at (created_at),
+            FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     }
 }
