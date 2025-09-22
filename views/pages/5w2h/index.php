@@ -13,11 +13,11 @@ if (!isset($_SESSION['user_id'])) {
             <h1 class="text-3xl font-bold text-gray-900">5W2H - Planos de Ação</h1>
             <p class="text-gray-600 mt-2">Gerencie seus planos de ação utilizando a metodologia 5W2H</p>
         </div>
-        <button onclick="document.getElementById('planoModal').style.display='block'; alert('Modal aberto!');" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+        <button onclick="toggleFormulario()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Novo Plano 5W2H
+            <span id="btnText">Novo Plano 5W2H</span>
         </button>
     </div>
 
@@ -64,6 +64,127 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </div>
 
+    <!-- Formulário Inline -->
+    <div id="formularioInline" class="bg-white rounded-lg shadow-sm border p-6 mb-6" style="display: none;">
+        <div class="border-b pb-4 mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Novo Plano 5W2H</h2>
+            <p class="text-gray-600 mt-1">Preencha os campos abaixo para criar um novo plano de ação</p>
+        </div>
+
+        <form id="planoForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- O QUE (What) -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        O QUE será feito? <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="what" name="what" rows="3" required 
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Descreva detalhadamente o que será realizado..."></textarea>
+                </div>
+
+                <!-- POR QUE (Why) -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        POR QUE será feito? <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="why" name="why" rows="3" required 
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Justifique a necessidade desta ação..."></textarea>
+                </div>
+
+                <!-- QUEM (Who) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        QUEM será o responsável? <span class="text-red-500">*</span>
+                    </label>
+                    <select id="who" name="who" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Selecione o responsável</option>
+                        <?php if (isset($usuarios) && is_array($usuarios)): ?>
+                            <?php foreach ($usuarios as $usuario): ?>
+                                <option value="<?= $usuario['id'] ?>"><?= htmlspecialchars($usuario['name']) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+
+                <!-- QUANDO (When) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        QUANDO será realizado? <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" id="when" name="when" required 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- ONDE (Where) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        ONDE será executado? <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="where" name="where" required 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Local de execução">
+                </div>
+
+                <!-- COMO (How) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        COMO será executado? <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="how" name="how" rows="3" required 
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Descreva o método de execução..."></textarea>
+                </div>
+
+                <!-- QUANTO CUSTA (How Much) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        QUANTO custará?
+                    </label>
+                    <input type="number" id="howMuch" name="howMuch" step="0.01" min="0"
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="0.00">
+                </div>
+
+                <!-- Departamento -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Departamento <span class="text-red-500">*</span>
+                    </label>
+                    <select id="departamento" name="departamento" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Selecione o departamento</option>
+                        <?php if (isset($departamentos) && is_array($departamentos)): ?>
+                            <?php foreach ($departamentos as $dept): ?>
+                                <option value="<?= $dept['id'] ?>"><?= htmlspecialchars($dept['nome']) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select id="status" name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="pendente">Pendente</option>
+                        <option value="em_andamento">Em Andamento</option>
+                        <option value="concluido">Concluído</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6 pt-6 border-t">
+                <button type="button" onclick="cancelarFormulario()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                    Cancelar
+                </button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    Salvar Plano
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- Lista de Planos -->
     <div class="bg-white rounded-lg shadow-sm border">
         <div class="p-4 border-b">
@@ -88,157 +209,6 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 </div>
 
-<!-- Modal Criar/Editar Plano -->
-<div id="planoModal" style="display: none;">
-    <style>
-        #planoModal {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
-            background-color: rgba(0,0,0,0.9) !important;
-            z-index: 999999 !important;
-        }
-        #planoModal .modal-content {
-            position: absolute !important;
-            top: 5% !important;
-            left: 5% !important;
-            width: 90% !important;
-            height: 90% !important;
-            background: white !important;
-            border: 3px solid red !important;
-            overflow-y: auto !important;
-            padding: 20px !important;
-        }
-    </style>
-    <div class="modal-content">
-            <div class="p-6 border-b">
-                <div class="flex justify-between items-center">
-                    <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Novo Plano 5W2H</h3>
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            
-            <form id="planoForm" class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- O QUE (What) -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            O QUE será feito? <span class="text-red-500">*</span>
-                        </label>
-                        <textarea id="what" name="what" rows="3" required 
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Descreva detalhadamente o que será realizado..."></textarea>
-                    </div>
-
-                    <!-- POR QUE (Why) -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            POR QUE será feito? <span class="text-red-500">*</span>
-                        </label>
-                        <textarea id="why" name="why" rows="3" required 
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Justifique a necessidade desta ação..."></textarea>
-                    </div>
-
-                    <!-- QUEM (Who) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            QUEM será o responsável? <span class="text-red-500">*</span>
-                        </label>
-                        <select id="who" name="who" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecione o responsável</option>
-                            <?php if (isset($usuarios) && is_array($usuarios)): ?>
-                                <?php foreach ($usuarios as $usuario): ?>
-                                    <option value="<?= $usuario['id'] ?>"><?= htmlspecialchars($usuario['name']) ?></option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-
-                    <!-- QUANDO (When) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            QUANDO será realizado? <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" id="when" name="when" required 
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    </div>
-
-                    <!-- ONDE (Where) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            ONDE será executado? <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" id="where" name="where" required 
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Local de execução">
-                    </div>
-
-                    <!-- COMO (How) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            COMO será executado? <span class="text-red-500">*</span>
-                        </label>
-                        <textarea id="how" name="how" rows="3" required 
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="Descreva o método de execução..."></textarea>
-                    </div>
-
-                    <!-- QUANTO CUSTA (How Much) -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            QUANTO custará?
-                        </label>
-                        <input type="number" id="howMuch" name="howMuch" step="0.01" min="0"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="0.00">
-                    </div>
-
-                    <!-- Departamento -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Departamento <span class="text-red-500">*</span>
-                        </label>
-                        <select id="departamento" name="departamento" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Selecione o departamento</option>
-                            <?php if (isset($departamentos) && is_array($departamentos)): ?>
-                                <?php foreach ($departamentos as $dept): ?>
-                                    <option value="<?= $dept['id'] ?>"><?= htmlspecialchars($dept['nome']) ?></option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select>
-                    </div>
-
-                    <!-- Status -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select id="status" name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="pendente">Pendente</option>
-                            <option value="em_andamento">Em Andamento</option>
-                            <option value="concluido">Concluído</option>
-                            <option value="cancelado">Cancelado</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-3 mt-6 pt-6 border-t">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Salvar Plano
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <script>
 // Variáveis globais
@@ -249,28 +219,35 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPlanos();
 });
 
-// Abrir modal para criar novo plano
-function openCreateModal() {
-    try {
+// Toggle formulário inline
+function toggleFormulario() {
+    const formulario = document.getElementById('formularioInline');
+    const btnText = document.getElementById('btnText');
+    
+    if (formulario.style.display === 'none' || formulario.style.display === '') {
+        // Mostrar formulário
+        formulario.style.display = 'block';
+        btnText.textContent = 'Cancelar';
         currentPlanoId = null;
-        document.getElementById('modalTitle').textContent = 'Novo Plano 5W2H';
         document.getElementById('planoForm').reset();
-        const modal = document.getElementById('planoModal');
-        modal.style.display = 'block';
-        // Prevenir scroll do body
-        document.body.style.overflow = 'hidden';
-    } catch (error) {
-        console.error('Erro ao abrir modal:', error);
-        alert('Erro ao abrir formulário: ' + error.message);
+        // Scroll suave para o formulário
+        formulario.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        // Esconder formulário
+        formulario.style.display = 'none';
+        btnText.textContent = 'Novo Plano 5W2H';
+        currentPlanoId = null;
     }
 }
 
-// Fechar modal
-function closeModal() {
-    document.getElementById('planoModal').style.display = 'none';
+// Cancelar formulário
+function cancelarFormulario() {
+    const formulario = document.getElementById('formularioInline');
+    const btnText = document.getElementById('btnText');
+    
+    formulario.style.display = 'none';
+    btnText.textContent = 'Novo Plano 5W2H';
     document.getElementById('planoForm').reset();
-    // Restaurar scroll do body
-    document.body.style.overflow = 'auto';
     currentPlanoId = null;
 }
 
