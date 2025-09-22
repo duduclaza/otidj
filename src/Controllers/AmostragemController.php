@@ -15,11 +15,28 @@ class AmostragemController
 
     public function index()
     {
+        $title = 'Amostragens - SGQ OTI DJ';
+        $amostragens = [];
+        $error = null;
+        
         try {
+            // Debug: verificar se chegou até aqui
+            error_log("AmostragemController::index() - Iniciando...");
+            
+            // Verificar se as tabelas existem
+            $stmt = $this->db->prepare("SHOW TABLES LIKE 'amostragens'");
+            $stmt->execute();
+            
+            if (!$stmt->fetch()) {
+                throw new \Exception("Tabela 'amostragens' não encontrada. Execute as migrations primeiro.");
+            }
+            
+            error_log("AmostragemController::index() - Tabela amostragens encontrada");
+            
             // Buscar amostragens com informações de evidências
             $stmt = $this->db->prepare("
                 SELECT a.*, 
-                       COUNT(e.id) as total_evidencias
+                       COALESCE(COUNT(e.id), 0) as total_evidencias
                 FROM amostragens a 
                 LEFT JOIN amostragens_evidencias e ON a.id = e.amostragem_id 
                 GROUP BY a.id 
@@ -33,21 +50,21 @@ class AmostragemController
                 // Decodificar responsáveis
                 if (!empty($amostragem['responsaveis'])) {
                     $amostragem['responsaveis_list'] = json_decode($amostragem['responsaveis'], true) ?: [];
+                } else {
+                    $amostragem['responsaveis_list'] = [];
                 }
+                
                 // Verificar se tem PDF
                 $amostragem['has_pdf'] = !empty($amostragem['arquivo_nf_blob']) || !empty($amostragem['arquivo_nf']);
             }
 
-            $title = 'Amostragens - SGQ OTI DJ';
-            $viewFile = __DIR__ . '/../../views/pages/toners/amostragens.php';
-            include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Exception $e) {
-            $title = 'Amostragens - SGQ OTI DJ';
             $error = 'Erro ao carregar amostragens: ' . $e->getMessage();
-            $amostragens = [];
-            $viewFile = __DIR__ . '/../../views/pages/toners/amostragens.php';
-            include __DIR__ . '/../../views/layouts/main.php';
+            error_log("AmostragemController::index() - " . $e->getMessage());
         }
+        
+        $viewFile = __DIR__ . '/../../views/pages/toners/amostragens.php';
+        include __DIR__ . '/../../views/layouts/main.php';
     }
 
     public function store()

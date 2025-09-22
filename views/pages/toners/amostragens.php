@@ -701,3 +701,5 @@ async function viewEvidencias(amostragemId) {
     alert('Erro ao carregar evidências.');
   }
 }
+
+</script>
