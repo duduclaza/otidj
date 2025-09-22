@@ -114,8 +114,8 @@ class AmostragemController
                 'evidencias' => $evidenciasData
             ]);
 
-            // Enviar emails para responsáveis
-            $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
+            // Enviar emails para responsáveis (temporariamente desabilitado para debug)
+            // $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
             
             echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!', 'id' => $amostragemId]);
             exit;
@@ -468,6 +468,20 @@ class AmostragemController
         } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao buscar evidências: ' . $e->getMessage()]);
+        }
+    }
+
+    // Debug endpoint para testar salvamento
+    public function testStore()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            echo json_encode(['success' => true, 'message' => 'Endpoint funcionando', 'timestamp' => date('Y-m-d H:i:s')]);
+            exit;
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            exit;
         }
     }
 }
