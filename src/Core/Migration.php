@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 10;
+    private const CURRENT_VERSION = 11;
 
     public function __construct()
     {
@@ -82,6 +82,11 @@ class Migration
                 // Version 10: Recreate amostragens system with MEDIUMBLOB
                 $this->migration10();
                 $this->updateVersion(10);
+            }
+            if ($currentVersion < 11) {
+                // Version 11: Create notifications system
+                $this->migration11();
+                $this->updateVersion(11);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -733,6 +738,27 @@ class Migration
             
             FOREIGN KEY (amostragem_id) REFERENCES amostragens(id) ON DELETE CASCADE,
             INDEX idx_amostragem_id (amostragem_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    }
+
+    private function migration11(): void
+    {
+        // Criar tabela de notificações
+        $this->db->exec('CREATE TABLE IF NOT EXISTS notifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            message TEXT NOT NULL,
+            type VARCHAR(50) NOT NULL DEFAULT "info",
+            related_type VARCHAR(50) NULL,
+            related_id INT NULL,
+            read_at TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            
+            INDEX idx_user_id (user_id),
+            INDEX idx_read_at (read_at),
+            INDEX idx_created_at (created_at),
+            INDEX idx_related (related_type, related_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     }
 }

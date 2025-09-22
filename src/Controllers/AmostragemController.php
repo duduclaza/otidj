@@ -114,8 +114,8 @@ class AmostragemController
                 'evidencias' => $evidenciasData
             ]);
 
-            // Enviar emails para responsáveis (desabilitado temporariamente)
-            // $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
+            // Criar notificações para responsáveis
+            $this->createNotificationsForResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
             
             echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!', 'id' => $amostragemId]);
             exit;
@@ -520,6 +520,48 @@ class AmostragemController
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao atualizar amostragem: ' . $e->getMessage()]);
             exit;
+        }
+    }
+
+    // Criar notificações para responsáveis
+    private function createNotificationsForResponsaveis(array $responsaveis, string $numero_nf, string $status, int $amostragemId): void
+    {
+        try {
+            // Extrair nomes dos responsáveis
+            $names = [];
+            foreach ($responsaveis as $resp) {
+                if (!empty($resp['name'])) {
+                    $names[] = $resp['name'];
+                }
+            }
+            
+            if (empty($names)) {
+                return;
+            }
+            
+            // Buscar IDs dos usuários pelos nomes
+            $placeholders = str_repeat('?,', count($names) - 1) . '?';
+            $stmt = $this->db->prepare("SELECT id, name FROM users WHERE name IN ($placeholders) AND status = 'active'");
+            $stmt->execute($names);
+            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Criar notificação para cada usuário encontrado
+            foreach ($users as $user) {
+                $title = "Nova Amostragem - NF: $numero_nf";
+                $message = "Você foi designado como responsável pela amostragem da NF $numero_nf com status: " . ucfirst($status);
+                
+                \App\Controllers\NotificationsController::create(
+                    $user['id'],
+                    $title,
+                    $message,
+                    'amostragem',
+                    'amostragem',
+                    $amostragemId
+                );
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the request
+            error_log("Erro ao criar notificações: " . $e->getMessage());
         }
     }
 

@@ -167,9 +167,9 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
   </nav>
   
   <!-- User Menu at bottom -->
-  <div class="p-3 border-t border-slate-700">
+  <div class="p-4 border-t border-slate-700">
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
+      <div class="flex-1">
         <a href="/profile" class="flex items-center gap-3 hover:bg-slate-700 rounded-lg p-1 transition-colors">
           <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
             <span class="text-white text-sm font-medium">
@@ -182,13 +182,33 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           </div>
         </a>
       </div>
-      <div class="flex items-center gap-1">
-        <a href="/profile" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" title="Perfil">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-          </svg>
-        </a>
-        <a href="/logout" class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition-colors" title="Logout">
+      <div class="flex items-center gap-2">
+        <!-- Sininho de Notificações -->
+        <div class="relative">
+          <button id="notificationBtn" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-700 transition-colors relative" title="Notificações">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+            <!-- Contador de notificações -->
+            <span id="notificationCount" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">0</span>
+          </button>
+          
+          <!-- Dropdown de Notificações -->
+          <div id="notificationDropdown" class="hidden absolute bottom-full right-0 mb-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 class="text-sm font-semibold text-gray-900">Notificações</h3>
+              <button id="markAllReadBtn" class="text-xs text-blue-600 hover:text-blue-800">Marcar todas como lidas</button>
+            </div>
+            <div id="notificationsList" class="max-h-64 overflow-y-auto">
+              <!-- Notificações serão carregadas aqui -->
+            </div>
+            <div class="p-3 border-t border-gray-200 text-center">
+              <span class="text-xs text-gray-500">Atualizando automaticamente...</span>
+            </div>
+          </div>
+        </div>
+        
+        <a href="/logout" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-700 transition-colors" title="Sair">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
           </svg>
@@ -291,5 +311,115 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         arrow.style.transform = 'rotate(180deg)';
       }
     });
+
+    // ===== Sistema de Notificações =====
+    let notificationInterval;
+
+    // Inicializar sistema de notificações
+    document.addEventListener('DOMContentLoaded', function() {
+      loadNotifications();
+      // Atualizar a cada 30 segundos
+      notificationInterval = setInterval(loadNotifications, 30000);
+      
+      // Event listeners
+      document.getElementById('notificationBtn')?.addEventListener('click', toggleNotifications);
+      document.getElementById('markAllReadBtn')?.addEventListener('click', markAllAsRead);
+      
+      // Fechar dropdown ao clicar fora
+      document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('notificationDropdown');
+        const btn = document.getElementById('notificationBtn');
+        if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    });
+
+    // Carregar notificações
+    async function loadNotifications() {
+      try {
+        const response = await fetch('/api/notifications');
+        const data = await response.json();
+        
+        if (data.success) {
+          updateNotificationCount(data.unread_count);
+          updateNotificationsList(data.notifications);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar notificações:', error);
+      }
+    }
+
+    // Atualizar contador
+    function updateNotificationCount(count) {
+      const counter = document.getElementById('notificationCount');
+      if (count > 0) {
+        counter.textContent = count > 99 ? '99+' : count;
+        counter.classList.remove('hidden');
+      } else {
+        counter.classList.add('hidden');
+      }
+    }
+
+    // Atualizar lista de notificações
+    function updateNotificationsList(notifications) {
+      const list = document.getElementById('notificationsList');
+      
+      if (notifications.length === 0) {
+        list.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhuma notificação</div>';
+        return;
+      }
+      
+      list.innerHTML = notifications.map(notification => `
+        <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="markAsRead(${notification.id})">
+          <div class="flex items-start gap-3">
+            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+            <div class="flex-1 min-w-0">
+              <h4 class="text-sm font-medium text-gray-900 truncate">${notification.title}</h4>
+              <p class="text-xs text-gray-600 mt-1">${notification.message}</p>
+              <span class="text-xs text-gray-400 mt-1">${formatDate(notification.created_at)}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Toggle dropdown
+    function toggleNotifications() {
+      const dropdown = document.getElementById('notificationDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    // Marcar como lida
+    async function markAsRead(notificationId) {
+      try {
+        await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+        loadNotifications(); // Recarregar
+      } catch (error) {
+        console.error('Erro ao marcar como lida:', error);
+      }
+    }
+
+    // Marcar todas como lidas
+    async function markAllAsRead() {
+      try {
+        await fetch('/api/notifications/read-all', { method: 'POST' });
+        loadNotifications(); // Recarregar
+      } catch (error) {
+        console.error('Erro ao marcar todas como lidas:', error);
+      }
+    }
+
+    // Formatar data
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diff = now - date;
+      
+      if (diff < 60000) return 'Agora';
+      if (diff < 3600000) return Math.floor(diff / 60000) + 'm';
+      if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
+      return Math.floor(diff / 86400000) + 'd';
+    }
   </script>
 </div>

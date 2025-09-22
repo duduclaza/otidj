@@ -118,6 +118,11 @@ $router->get('/api/users', [App\Controllers\UsersController::class, 'getUsers'])
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 $router->get('/api/toner', [App\Controllers\TonersController::class, 'getTonerData']);
 
+// Notifications routes
+$router->get('/api/notifications', [App\Controllers\NotificationsController::class, 'getNotifications']);
+$router->post('/api/notifications/{id}/read', [App\Controllers\NotificationsController::class, 'markAsRead']);
+$router->post('/api/notifications/read-all', [App\Controllers\NotificationsController::class, 'markAllAsRead']);
+
 // Dispatch
 try {
     $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
