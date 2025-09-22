@@ -214,6 +214,8 @@ class ConfigController
                 'pops_its_meus_registros',      // Aba 2: Meus Registros  
                 'pops_its_pendente_aprovacao',  // Aba 3: Pendente Aprovação (só admin)
                 'pops_its_visualizacao',        // Aba 4: Visualização
+                // 5W2H
+                '5w2h_planos',                  // Módulo 5W2H
                 // Registros
                 'registros_filiais','registros_departamentos','registros_fornecedores','registros_parametros',
                 // Administrativo

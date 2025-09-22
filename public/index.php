@@ -100,6 +100,16 @@ $router->get('/toners/amostragens/{id}/evidencias', [App\Controllers\AmostragemC
 $router->get('/toners/amostragens/{id}/evidencia/{evidenciaId}', [App\Controllers\AmostragemController::class, 'evidencia']);
 $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
 
+// Controle de Descartes routes
+$router->get('/controle-descartes', [App\Controllers\ControleDescartesController::class, 'index']);
+$router->get('/controle-descartes/list', [App\Controllers\ControleDescartesController::class, 'listDescartes']);
+$router->post('/controle-descartes/create', [App\Controllers\ControleDescartesController::class, 'create']);
+$router->post('/controle-descartes/update', [App\Controllers\ControleDescartesController::class, 'update']);
+$router->post('/controle-descartes/delete', [App\Controllers\ControleDescartesController::class, 'delete']);
+$router->get('/controle-descartes/{id}', [App\Controllers\ControleDescartesController::class, 'getDescarte']);
+$router->get('/controle-descartes/anexo/{id}', [App\Controllers\ControleDescartesController::class, 'downloadAnexo']);
+$router->get('/controle-descartes/relatorios', [App\Controllers\ControleDescartesController::class, 'relatorios']);
+
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);
