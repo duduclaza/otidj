@@ -160,6 +160,7 @@ if (session_status() === PHP_SESSION_NONE) {
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Processo</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsáveis</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Idealizador</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observação</th>
@@ -296,7 +297,7 @@ function renderMelhoriaTable() {
   const tbody = document.getElementById('melhoriaTableBody');
   
   if (melhoriaData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" class="px-4 py-8 text-center text-gray-500">Nenhuma melhoria encontrada</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" class="px-4 py-8 text-center text-gray-500">Nenhuma melhoria encontrada</td></tr>';
     return;
   }
   
@@ -312,6 +313,9 @@ function renderMelhoriaTable() {
       </td>
       <td class="px-4 py-3 text-sm">
         <div class="max-w-xs truncate" title="${item.responsaveis_nomes || 'N/A'}">${item.responsaveis_nomes || 'N/A'}</div>
+      </td>
+      <td class="px-4 py-3 text-sm">
+        <div class="max-w-xs truncate" title="${item.idealizador || 'N/A'}">${item.idealizador || 'N/A'}</div>
       </td>
       <td class="px-4 py-3 text-sm">
         ${isAdmin ? `
