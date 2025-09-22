@@ -19,8 +19,11 @@ class PopItsController
         try {
             $departamentos = $this->getDepartamentos();
             $titulos = $this->getTitulos();
-
-            include __DIR__ . '/../../views/pages/pops-its/index.php';
+            
+            // Usar o layout padrão com TailwindCSS
+            $title = 'POPs e ITs - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/pops-its/index.php';
+            include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Throwable $e) {
             // Logar erro para diagnóstico
             try {
