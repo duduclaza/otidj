@@ -4,7 +4,7 @@
   <!-- Formulário de Cadastro -->
   <div class="bg-white border rounded-lg p-4">
     <h2 class="text-lg font-medium mb-3">Cadastrar Nova Filial</h2>
-    <form method="post" action="/registros/filiais" class="flex flex-col sm:flex-row gap-3 items-start">
+    <form method="post" action="/registros/filiais/store" class="flex flex-col sm:flex-row gap-3 items-start">
       <input type="text" name="nome" placeholder="Nome da filial" class="border rounded px-3 py-2 w-full sm:w-80" required>
       <button class="px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700">Salvar</button>
     </form>
@@ -73,7 +73,7 @@ function saveRow(id) {
   
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = '/registros/filiais/edit';
+  form.action = '/registros/filiais/update';
   form.innerHTML = '<input type="hidden" name="id" value="' + id + '"><input type="hidden" name="nome" value="' + nome + '">';
   document.body.appendChild(form);
   form.submit();

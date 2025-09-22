@@ -4,7 +4,7 @@
   <!-- Formulário de Cadastro -->
   <div class="bg-white border rounded-lg p-4">
     <h2 class="text-lg font-medium mb-3">Cadastrar Novo Parâmetro</h2>
-    <form method="post" action="/registros/parametros" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+    <form method="post" action="/registros/parametros/store" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
       <input type="text" name="nome" placeholder="Nome do parâmetro" class="border rounded px-3 py-2" required>
       <input type="number" name="faixa_min" placeholder="Faixa mínima (%)" class="border rounded px-3 py-2" required>
       <input type="number" name="faixa_max" placeholder="Faixa máxima (%) (opcional)" class="border rounded px-3 py-2">
@@ -100,7 +100,7 @@ function saveRow(id) {
   
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = '/registros/parametros/edit';
+  form.action = '/registros/parametros/update';
   form.innerHTML = '<input type="hidden" name="id" value="' + id + '">' +
                    '<input type="hidden" name="nome" value="' + nome + '">' +
                    '<input type="hidden" name="faixa_min" value="' + faixa_min + '">' +

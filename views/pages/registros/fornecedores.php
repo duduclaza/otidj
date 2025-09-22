@@ -4,7 +4,7 @@
   <!-- Formulário de Cadastro -->
   <div class="bg-white border rounded-lg p-4">
     <h2 class="text-lg font-medium mb-3">Cadastrar Novo Fornecedor</h2>
-    <form method="post" action="/registros/fornecedores" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+    <form method="post" action="/registros/fornecedores/store" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
       <input type="text" name="nome" placeholder="Nome do fornecedor (obrigatório)" class="border rounded px-3 py-2" required>
       <input type="text" name="contato" placeholder="Contato (link/email/telefone)" class="border rounded px-3 py-2">
       <input type="text" name="rma" placeholder="RMA (link/email/telefone)" class="border rounded px-3 py-2">
@@ -92,7 +92,7 @@ function saveRow(id) {
   
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = '/registros/fornecedores/edit';
+  form.action = '/registros/fornecedores/update';
   form.innerHTML = '<input type="hidden" name="id" value="' + id + '">' +
                    '<input type="hidden" name="nome" value="' + nome + '">' +
                    '<input type="hidden" name="contato" value="' + contato + '">' +
