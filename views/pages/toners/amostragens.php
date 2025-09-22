@@ -727,10 +727,9 @@ async function updateStatus(id, newStatus) {
       // Se mudou para reprovado e não tem observação, abrir edição
       if (newStatus === 'reprovado' && !currentObs) {
         editObservacao(id);
-        alert('Status atualizado! Por favor, adicione uma observação para o status reprovado.');
-      } else {
-        alert('Status atualizado com sucesso!');
+        // Não mostrar alert, apenas abrir editor
       }
+      // Status atualizado silenciosamente - sem alert
     } else {
       alert('Erro: ' + result.message);
       // Reverter select
@@ -800,7 +799,7 @@ async function saveObservacao(id) {
       }
       
       cancelEditObservacao(id);
-      alert('Observação salva com sucesso!');
+      // Observação salva silenciosamente - sem alert
     } else {
       alert('Erro: ' + result.message);
     }

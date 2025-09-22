@@ -114,8 +114,8 @@ class AmostragemController
                 'evidencias' => $evidenciasData
             ]);
 
-            // Enviar emails para responsáveis
-            $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
+            // Enviar emails para responsáveis (desabilitado temporariamente)
+            // $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
             
             echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!', 'id' => $amostragemId]);
             exit;
@@ -508,13 +508,15 @@ class AmostragemController
             }
             
             // Atualizar amostragem
-            $stmt = $this->db->prepare("UPDATE amostragens SET status = ?, observacao = ?, updated_at = NOW() WHERE id = ?");
+            $stmt = $this->db->prepare("UPDATE amostragens SET status = ?, observacao = ? WHERE id = ?");
             $stmt->execute([$status, $observacao, $id]);
             
             echo json_encode(['success' => true, 'message' => 'Amostragem atualizada com sucesso!']);
             exit;
             
         } catch (\Exception $e) {
+            // Log do erro para debug
+            error_log("Erro update amostragem: " . $e->getMessage() . " - Linha: " . $e->getLine());
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao atualizar amostragem: ' . $e->getMessage()]);
             exit;
