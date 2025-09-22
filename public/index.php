@@ -118,6 +118,9 @@ $router->post('/5w2h/create', [App\Controllers\Planos5W2HController::class, 'cre
 $router->post('/5w2h/update', [App\Controllers\Planos5W2HController::class, 'update']);
 $router->post('/5w2h/delete', [App\Controllers\Planos5W2HController::class, 'delete']);
 $router->get('/5w2h/{id}', [App\Controllers\Planos5W2HController::class, 'getPlano']);
+$router->get('/5w2h/details/{id}', [App\Controllers\Planos5W2HController::class, 'details']);
+$router->get('/5w2h/print/{id}', [App\Controllers\Planos5W2HController::class, 'printPlano']);
+$router->get('/5w2h/anexos/{id}', [App\Controllers\Planos5W2HController::class, 'anexos']);
 $router->get('/5w2h/anexo/{id}', [App\Controllers\Planos5W2HController::class, 'downloadAnexo']);
 $router->get('/5w2h/relatorios', [App\Controllers\Planos5W2HController::class, 'relatorios']);
 

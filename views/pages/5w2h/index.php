@@ -182,6 +182,19 @@ if (!isset($_SESSION['user_id'])) {
                         <option value="cancelado">Cancelado</option>
                     </select>
                 </div>
+
+                <!-- Anexos -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        Anexos <span class="text-gray-400">(até 5 arquivos - JPG, PNG, GIF, PDF - máx 5MB cada)</span>
+                    </label>
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-4 bg-gray-700">
+                        <input type="file" id="anexos" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf" 
+                               class="w-full text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                        <div id="anexosPreview" class="mt-3 space-y-2"></div>
+                        <p class="text-xs text-gray-400 mt-2">Arraste arquivos aqui ou clique para selecionar</p>
+                    </div>
+                </div>
             </div>
 
             <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-600">
@@ -204,10 +217,11 @@ if (!isset($_SESSION['user_id'])) {
             <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">O Que</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prazo</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anexos</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                     </tr>
                 </thead>
@@ -293,13 +307,14 @@ function renderPlanos(planos) {
     tbody.innerHTML = planos.map(plano => `
         <tr class="hover:bg-gray-50">
             <td class="px-4 py-3">
-                <div class="text-sm font-medium text-gray-900">${plano.what || ''}</div>
+                <div class="text-sm font-medium text-gray-900">${plano.titulo || ''}</div>
+                <div class="text-xs text-gray-500">${(plano.what || '').substring(0, 50)}${(plano.what || '').length > 50 ? '...' : ''}</div>
             </td>
             <td class="px-4 py-3">
                 <div class="text-sm text-gray-900">${plano.responsavel_nome || ''}</div>
             </td>
             <td class="px-4 py-3">
-                <div class="text-sm text-gray-900">${formatDate(plano.when) || ''}</div>
+                <div class="text-sm text-gray-900">${formatDate(plano.when_inicio) || ''}</div>
             </td>
             <td class="px-4 py-3">
                 <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(plano.status)}">
@@ -307,8 +322,20 @@ function renderPlanos(planos) {
                 </span>
             </td>
             <td class="px-4 py-3">
-                <div class="flex gap-2">
-                    <button onclick="viewPlano(${plano.id})" class="text-blue-600 hover:text-blue-800" title="Visualizar">
+                <div class="flex gap-1">
+                    ${(plano.anexos_count || 0) > 0 ? `
+                        <button onclick="viewAnexos(${plano.id})" class="text-blue-600 hover:text-blue-800" title="${plano.anexos_count} anexo(s)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                            </svg>
+                        </button>
+                        <span class="text-xs text-gray-500">${plano.anexos_count}</span>
+                    ` : '<span class="text-xs text-gray-400">-</span>'}
+                </div>
+            </td>
+            <td class="px-4 py-3">
+                <div class="flex gap-1">
+                    <button onclick="viewPlano(${plano.id})" class="text-blue-600 hover:text-blue-800" title="Visualizar Detalhes">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -317,6 +344,11 @@ function renderPlanos(planos) {
                     <button onclick="editPlano(${plano.id})" class="text-green-600 hover:text-green-800" title="Editar">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </button>
+                    <button onclick="printPlano(${plano.id})" class="text-purple-600 hover:text-purple-800" title="Imprimir">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                         </svg>
                     </button>
                     <button onclick="deletePlano(${plano.id})" class="text-red-600 hover:text-red-800" title="Excluir">
@@ -398,15 +430,167 @@ function showNotification(message, type = 'info') {
     alert(message);
 }
 
-// Placeholder functions - implementar depois
+// Visualizar detalhes do plano
 function viewPlano(id) {
-    console.log('Visualizar plano:', id);
+    fetch(`/5w2h/details/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showPlanoDetails(data.plano);
+            } else {
+                showNotification(data.message || 'Erro ao carregar detalhes', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showNotification('Erro ao carregar detalhes', 'error');
+        });
 }
 
+// Editar plano
 function editPlano(id) {
-    console.log('Editar plano:', id);
+    fetch(`/5w2h/details/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadPlanoForEdit(data.plano);
+            } else {
+                showNotification(data.message || 'Erro ao carregar plano', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showNotification('Erro ao carregar plano', 'error');
+        });
 }
 
+// Imprimir plano
+function printPlano(id) {
+    window.open(`/5w2h/print/${id}`, '_blank');
+}
+
+// Visualizar anexos
+function viewAnexos(id) {
+    fetch(`/5w2h/anexos/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAnexosModal(data.anexos);
+            } else {
+                showNotification(data.message || 'Erro ao carregar anexos', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            showNotification('Erro ao carregar anexos', 'error');
+        });
+}
+
+// Carregar plano para edição
+function loadPlanoForEdit(plano) {
+    currentPlanoId = plano.id;
+    
+    // Preencher campos
+    document.getElementById('titulo').value = plano.titulo || '';
+    document.getElementById('what').value = plano.what || '';
+    document.getElementById('why').value = plano.why || '';
+    document.getElementById('who').value = plano.who_id || '';
+    document.getElementById('when').value = plano.when_inicio || '';
+    document.getElementById('where').value = plano.where_local || '';
+    document.getElementById('how').value = plano.how || '';
+    document.getElementById('howMuch').value = plano.how_much || '';
+    document.getElementById('departamento').value = plano.setor_id || '';
+    document.getElementById('status').value = plano.status || '';
+    
+    // Mostrar formulário
+    const formulario = document.getElementById('formularioInline');
+    const btnText = document.getElementById('btnText');
+    formulario.style.display = 'block';
+    btnText.textContent = 'Cancelar';
+    
+    // Scroll para o formulário
+    formulario.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Mostrar detalhes do plano em modal
+function showPlanoDetails(plano) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 z-50';
+    modal.innerHTML = `
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">Detalhes do Plano 5W2H</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <h4 class="font-semibold text-gray-900 mb-2">Título</h4>
+                            <p class="text-gray-700">${plano.titulo || ''}</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <h4 class="font-semibold text-gray-900 mb-2">O QUE será feito?</h4>
+                            <p class="text-gray-700">${plano.what || ''}</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <h4 class="font-semibold text-gray-900 mb-2">POR QUE será feito?</h4>
+                            <p class="text-gray-700">${plano.why || ''}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">QUEM é o responsável?</h4>
+                            <p class="text-gray-700">${plano.responsavel_nome || ''}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">QUANDO será realizado?</h4>
+                            <p class="text-gray-700">${formatDate(plano.when_inicio) || ''}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">ONDE será executado?</h4>
+                            <p class="text-gray-700">${plano.where_local || ''}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">COMO será executado?</h4>
+                            <p class="text-gray-700">${plano.how || ''}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">QUANTO custará?</h4>
+                            <p class="text-gray-700">R$ ${parseFloat(plano.how_much || 0).toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Status</h4>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(plano.status)}">
+                                ${getStatusText(plano.status)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 border-t">
+                    <div class="flex justify-end gap-3">
+                        <button onclick="printPlano(${plano.id})" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                            Imprimir
+                        </button>
+                        <button onclick="editPlano(${plano.id}); this.closest('.fixed').remove();" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Editar
+                        </button>
+                        <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// Excluir plano
 function deletePlano(id) {
     if (confirm('Tem certeza que deseja excluir este plano?')) {
         fetch(`/5w2h/delete`, {
@@ -430,5 +614,50 @@ function deletePlano(id) {
             showNotification('Erro ao excluir plano', 'error');
         });
     }
+}
+
+// Preview de arquivos
+document.getElementById('anexos').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    const preview = document.getElementById('anexosPreview');
+    
+    if (files.length > 5) {
+        alert('Máximo de 5 arquivos permitidos');
+        e.target.value = '';
+        return;
+    }
+    
+    preview.innerHTML = '';
+    files.forEach((file, index) => {
+        if (file.size > 5 * 1024 * 1024) {
+            alert(`Arquivo ${file.name} é muito grande (máx 5MB)`);
+            return;
+        }
+        
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between bg-gray-600 p-2 rounded text-sm';
+        div.innerHTML = `
+            <span class="text-gray-200">${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)</span>
+            <button type="button" onclick="removeFile(${index})" class="text-red-400 hover:text-red-300">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        `;
+        preview.appendChild(div);
+    });
+});
+
+function removeFile(index) {
+    const input = document.getElementById('anexos');
+    const dt = new DataTransfer();
+    const files = Array.from(input.files);
+    
+    files.forEach((file, i) => {
+        if (i !== index) dt.items.add(file);
+    });
+    
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
 }
 </script>

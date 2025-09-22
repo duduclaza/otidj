@@ -68,7 +68,8 @@ class Planos5W2HController
                        u.name as responsavel_nome,
                        d.nome as setor_nome,
                        uc.name as criado_por_nome,
-                       ua.name as atualizado_por_nome
+                       ua.name as atualizado_por_nome,
+                       (SELECT COUNT(*) FROM planos_5w2h_anexos a WHERE a.plano_id = p.id) as anexos_count
                 FROM planos_5w2h p
                 LEFT JOIN users u ON p.who_id = u.id
                 LEFT JOIN departamentos d ON p.setor_id = d.id
@@ -178,6 +179,11 @@ class Planos5W2HController
 
             $plano_id = $this->db->lastInsertId();
 
+            // Processar upload de arquivos se houver
+            if (!empty($_FILES['anexos']['name'][0])) {
+                $this->processarAnexos($plano_id, $_FILES['anexos']);
+            }
+
             // Registrar no histórico
             $this->registrarHistorico($plano_id, 'criacao', null, 'Plano criado', $_SESSION['user_id']);
 
@@ -193,7 +199,8 @@ class Planos5W2HController
         header('Content-Type: application/json');
         
         try {
-            $data = json_decode(file_get_contents('php://input'), true);
+            // Receber dados do FormData (POST)
+            $data = $_POST;
             $plano_id = $data['id'] ?? 0;
 
             if (!$plano_id) {
@@ -201,57 +208,52 @@ class Planos5W2HController
                 return;
             }
 
-            // Verificar se o plano existe e se o usuário pode editá-lo
-            $plano = $this->getPlanoById($plano_id);
-            if (!$plano) {
-                echo json_encode(['success' => false, 'message' => 'Plano não encontrado']);
-                return;
-            }
-
-            $user_id = $_SESSION['user_id'];
-            $isAdmin = PermissionService::isAdmin($user_id);
-            $canEdit = PermissionService::hasPermission($user_id, '5w2h_planos', 'edit');
-
-            if (!$canEdit) {
+            // Verificar permissão
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'edit')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para editar planos']);
                 return;
             }
 
-            // Se não é admin, só pode editar planos que criou
-            if (!$isAdmin && $plano['created_by'] != $user_id) {
-                echo json_encode(['success' => false, 'message' => 'Você só pode editar planos que criou']);
-                return;
-            }
-
-            // Preparar campos para atualização
-            $campos = ['titulo', 'what', 'why', 'where_local', 'when_inicio', 'when_fim', 'who_id', 'how', 'how_much', 'status', 'setor_id', 'observacoes'];
-            $updates = [];
-            $params = [];
-            
-            foreach ($campos as $campo) {
-                if (isset($data[$campo])) {
-                    $updates[] = "{$campo} = ?";
-                    $params[] = $data[$campo];
-                    
-                    // Registrar mudança no histórico
-                    if ($plano[$campo] != $data[$campo]) {
-                        $this->registrarHistorico($plano_id, $campo, $plano[$campo], $data[$campo], $user_id);
-                    }
+            // Validações
+            $required = ['titulo', 'what', 'why', 'who', 'when', 'where', 'how', 'departamento'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    echo json_encode(['success' => false, 'message' => "Campo '{$field}' é obrigatório"]);
+                    return;
                 }
             }
 
-            if (empty($updates)) {
-                echo json_encode(['success' => false, 'message' => 'Nenhum campo para atualizar']);
-                return;
+            // Atualizar plano
+            $stmt = $this->db->prepare("
+                UPDATE planos_5w2h SET
+                    titulo = ?, what = ?, why = ?, where_local = ?, when_inicio = ?,
+                    who_id = ?, how = ?, how_much = ?, status = ?, setor_id = ?,
+                    updated_by = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([
+                $data['titulo'],
+                $data['what'],
+                $data['why'],
+                $data['where'],
+                $data['when'],
+                $data['who'],
+                $data['how'],
+                $data['howMuch'] ?? 0.00,
+                $data['status'] ?? 'pendente',
+                $data['departamento'],
+                $_SESSION['user_id'],
+                $plano_id
+            ]);
+
+            // Processar upload de arquivos se houver
+            if (!empty($_FILES['anexos']['name'][0])) {
+                $this->processarAnexos($plano_id, $_FILES['anexos']);
             }
 
-            $updates[] = "updated_by = ?";
-            $params[] = $user_id;
-            $params[] = $plano_id;
-
-            $sql = "UPDATE planos_5w2h SET " . implode(', ', $updates) . " WHERE id = ?";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute($params);
+            // Registrar no histórico
+            $this->registrarHistorico($plano_id, 'edicao', null, 'Plano editado', $_SESSION['user_id']);
 
             echo json_encode(['success' => true, 'message' => 'Plano atualizado com sucesso!']);
         } catch (\Exception $e) {
@@ -448,6 +450,198 @@ class Planos5W2HController
         } catch (\Throwable $e) {
             http_response_code(500);
             echo 'Erro interno: ' . $e->getMessage();
+        }
+    }
+
+    // Detalhes do plano (para modal)
+    public function details($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar permissão
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para visualizar planos']);
+                return;
+            }
+
+            $plano = $this->getPlanoById($id);
+            if (!$plano) {
+                echo json_encode(['success' => false, 'message' => 'Plano não encontrado']);
+                return;
+            }
+
+            echo json_encode(['success' => true, 'plano' => $plano]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes: ' . $e->getMessage()]);
+        }
+    }
+
+    // Imprimir plano
+    public function printPlano($id)
+    {
+        try {
+            // Verificar permissão
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+                http_response_code(403);
+                include __DIR__ . '/../../views/errors/403.php';
+                return;
+            }
+
+            $plano = $this->getPlanoById($id);
+            if (!$plano) {
+                http_response_code(404);
+                echo 'Plano não encontrado';
+                return;
+            }
+
+            // Buscar anexos
+            $stmt = $this->db->prepare("
+                SELECT * FROM planos_5w2h_anexos 
+                WHERE plano_id = ? 
+                ORDER BY uploaded_at DESC
+            ");
+            $stmt->execute([$id]);
+            $anexos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $plano['anexos'] = $anexos;
+
+            // Página de impressão
+            include __DIR__ . '/../../views/pages/5w2h/print.php';
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo 'Erro interno: ' . $e->getMessage();
+        }
+    }
+
+    // Listar anexos de um plano
+    public function anexos($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar permissão
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para visualizar anexos']);
+                return;
+            }
+
+            $stmt = $this->db->prepare("
+                SELECT a.*, u.name as uploaded_by_nome
+                FROM planos_5w2h_anexos a
+                LEFT JOIN users u ON a.uploaded_by = u.id
+                WHERE a.plano_id = ?
+                ORDER BY a.uploaded_at DESC
+            ");
+            $stmt->execute([$id]);
+            $anexos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(['success' => true, 'anexos' => $anexos]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar anexos: ' . $e->getMessage()]);
+        }
+    }
+
+    // Download de anexo
+    public function downloadAnexo($id)
+    {
+        try {
+            // Verificar permissão
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+                http_response_code(403);
+                echo 'Sem permissão para baixar anexos';
+                return;
+            }
+
+            $stmt = $this->db->prepare("SELECT * FROM planos_5w2h_anexos WHERE id = ?");
+            $stmt->execute([$id]);
+            $anexo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$anexo) {
+                http_response_code(404);
+                echo 'Anexo não encontrado';
+                return;
+            }
+
+            $filePath = $anexo['caminho_arquivo'];
+            if (!file_exists($filePath)) {
+                http_response_code(404);
+                echo 'Arquivo não encontrado no servidor';
+                return;
+            }
+
+            // Headers para download
+            header('Content-Type: ' . $anexo['tipo_arquivo']);
+            header('Content-Disposition: attachment; filename="' . $anexo['nome_original'] . '"');
+            header('Content-Length: ' . filesize($filePath));
+            
+            readfile($filePath);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo 'Erro interno: ' . $e->getMessage();
+        }
+    }
+
+    // Processar upload de anexos
+    private function processarAnexos($plano_id, $files)
+    {
+        $uploadDir = __DIR__ . '/../../uploads/5w2h/';
+        
+        // Criar diretório se não existir
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            $fileName = $files['name'][$i];
+            $fileType = $files['type'][$i];
+            $fileSize = $files['size'][$i];
+            $fileTmpName = $files['tmp_name'][$i];
+
+            // Validações
+            if (!in_array($fileType, $allowedTypes)) {
+                throw new \Exception("Tipo de arquivo não permitido: {$fileName}");
+            }
+
+            if ($fileSize > $maxSize) {
+                throw new \Exception("Arquivo muito grande: {$fileName}");
+            }
+
+            // Gerar nome único
+            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+            $uniqueName = uniqid() . '_' . time() . '.' . $extension;
+            $filePath = $uploadDir . $uniqueName;
+
+            // Mover arquivo
+            if (move_uploaded_file($fileTmpName, $filePath)) {
+                // Salvar no banco
+                $stmt = $this->db->prepare("
+                    INSERT INTO planos_5w2h_anexos (
+                        plano_id, nome_original, nome_arquivo, tipo_arquivo, 
+                        tamanho_arquivo, caminho_arquivo, uploaded_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                ");
+                
+                $stmt->execute([
+                    $plano_id,
+                    $fileName,
+                    $uniqueName,
+                    $fileType,
+                    $fileSize,
+                    $filePath,
+                    $_SESSION['user_id']
+                ]);
+
+                // Registrar no histórico
+                $this->registrarHistorico($plano_id, 'anexo_add', null, "Anexo adicionado: {$fileName}", $_SESSION['user_id']);
+            }
         }
     }
 }
