@@ -194,7 +194,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           </button>
           
           <!-- Dropdown de Notificações -->
-          <div id="notificationDropdown" class="hidden absolute top-full right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div id="notificationDropdown" class="hidden absolute top-0 right-full mr-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
             <div class="p-4 border-b border-gray-200 flex justify-between items-center">
               <h3 class="text-sm font-semibold text-gray-900">Notificações</h3>
               <button id="markAllReadBtn" class="text-xs text-blue-600 hover:text-blue-800">Marcar todas como lidas</button>
@@ -314,9 +314,47 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
 
     // ===== Sistema de Notificações =====
     let notificationInterval;
+    let notificationSound;
+    let soundInterval;
+    let hasUnreadNotifications = false;
+
+    // Criar som de notificação usando Web Audio API
+    function createNotificationSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      
+      return function playNotificationSound() {
+        // Criar oscilador para um som suave
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Configurar som (frequência e tipo)
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Nota aguda
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1); // Nota mais grave
+        oscillator.type = 'sine'; // Som suave
+        
+        // Configurar volume (fade in/out)
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+        
+        // Tocar som
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      };
+    }
 
     // Inicializar sistema de notificações
     document.addEventListener('DOMContentLoaded', function() {
+      // Criar som de notificação
+      try {
+        notificationSound = createNotificationSound();
+      } catch (e) {
+        console.log('Web Audio API não suportada');
+      }
+      
       loadNotifications();
       // Atualizar a cada 30 segundos
       notificationInterval = setInterval(loadNotifications, 30000);
@@ -353,11 +391,48 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     // Atualizar contador
     function updateNotificationCount(count) {
       const counter = document.getElementById('notificationCount');
+      const previousCount = hasUnreadNotifications;
+      
       if (count > 0) {
         counter.textContent = count > 99 ? '99+' : count;
         counter.classList.remove('hidden');
+        hasUnreadNotifications = true;
+        
+        // Se há novas notificações, iniciar som
+        if (!previousCount && notificationSound) {
+          startNotificationSound();
+        }
       } else {
         counter.classList.add('hidden');
+        hasUnreadNotifications = false;
+        stopNotificationSound();
+      }
+    }
+
+    // Iniciar som de notificação contínuo
+    function startNotificationSound() {
+      if (soundInterval) return; // Já está tocando
+      
+      // Tocar som imediatamente
+      if (notificationSound) {
+        notificationSound();
+      }
+      
+      // Repetir a cada 5 segundos
+      soundInterval = setInterval(() => {
+        if (hasUnreadNotifications && notificationSound) {
+          notificationSound();
+        } else {
+          stopNotificationSound();
+        }
+      }, 5000);
+    }
+
+    // Parar som de notificação
+    function stopNotificationSound() {
+      if (soundInterval) {
+        clearInterval(soundInterval);
+        soundInterval = null;
       }
     }
 
@@ -387,7 +462,14 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     // Toggle dropdown
     function toggleNotifications() {
       const dropdown = document.getElementById('notificationDropdown');
+      const isHidden = dropdown.classList.contains('hidden');
+      
       dropdown.classList.toggle('hidden');
+      
+      // Se abriu o dropdown, parar o som (usuário viu as notificações)
+      if (isHidden) {
+        stopNotificationSound();
+      }
     }
 
     // Marcar como lida
@@ -404,6 +486,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     async function markAllAsRead() {
       try {
         await fetch('/api/notifications/read-all', { method: 'POST' });
+        stopNotificationSound(); // Parar som imediatamente
         loadNotifications(); // Recarregar
       } catch (error) {
         console.error('Erro ao marcar todas como lidas:', error);
