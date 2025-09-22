@@ -151,4 +151,27 @@ class ConfigController
         $layout = __DIR__ . '/../../views/layouts/main.php';
         include $layout;
     }
+
+    // Forçar execução das migrations
+    public function runMigrations(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $migration = new \App\Core\Migration();
+            $migration->runMigrations();
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Migrations executadas com sucesso!',
+                'current_version' => 10
+            ]);
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Erro ao executar migrations: ' . $e->getMessage()
+            ]);
+        }
+    }
 }
