@@ -20,9 +20,6 @@ class AmostragemController
         $error = null;
         
         try {
-            // Debug: verificar se chegou até aqui
-            error_log("AmostragemController::index() - Iniciando...");
-            
             // Verificar se as tabelas existem
             $stmt = $this->db->prepare("SHOW TABLES LIKE 'amostragens'");
             $stmt->execute();
@@ -30,8 +27,6 @@ class AmostragemController
             if (!$stmt->fetch()) {
                 throw new \Exception("Tabela 'amostragens' não encontrada. Execute as migrations primeiro.");
             }
-            
-            error_log("AmostragemController::index() - Tabela amostragens encontrada");
             
             // Buscar amostragens com informações de evidências
             $stmt = $this->db->prepare("
@@ -60,7 +55,6 @@ class AmostragemController
 
         } catch (\Exception $e) {
             $error = 'Erro ao carregar amostragens: ' . $e->getMessage();
-            error_log("AmostragemController::index() - " . $e->getMessage());
         }
         
         $viewFile = __DIR__ . '/../../views/pages/toners/amostragens.php';
@@ -69,6 +63,11 @@ class AmostragemController
 
     public function store()
     {
+        // Limpar qualquer output anterior
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         header('Content-Type: application/json');
         
         try {
@@ -102,11 +101,7 @@ class AmostragemController
             // Processar evidências (para qualquer status)
             $evidenciasData = [];
             if (isset($_FILES['evidencias'])) {
-                error_log("DEBUG: Evidências recebidas - " . print_r($_FILES['evidencias'], true));
                 $evidenciasData = $this->processEvidenciasUpload($_FILES['evidencias']);
-                error_log("DEBUG: Evidências processadas - " . count($evidenciasData) . " arquivos");
-            } else {
-                error_log("DEBUG: Nenhuma evidência recebida");
             }
 
             // Inserir amostragem no banco
@@ -123,10 +118,12 @@ class AmostragemController
             $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
             
             echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!', 'id' => $amostragemId]);
+            exit;
 
         } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()]);
+            exit;
         }
     }
 
@@ -272,31 +269,20 @@ class AmostragemController
     // Salvar evidências na tabela separada
     private function saveEvidenciasToDatabase(int $amostragemId, array $evidencias): void
     {
-        error_log("DEBUG: Salvando evidências - AmostragemID: $amostragemId, Total: " . count($evidencias));
-        
         if (empty($evidencias)) {
-            error_log("DEBUG: Nenhuma evidência para salvar");
             return;
         }
         
         $stmt = $this->db->prepare('INSERT INTO amostragens_evidencias (amostragem_id, image, name, type, size) VALUES (?, ?, ?, ?, ?)');
         
-        foreach ($evidencias as $index => $evidencia) {
-            error_log("DEBUG: Salvando evidência $index - Nome: {$evidencia['name']}, Tamanho: {$evidencia['size']}");
-            
-            $result = $stmt->execute([
+        foreach ($evidencias as $evidencia) {
+            $stmt->execute([
                 $amostragemId,
                 $evidencia['blob'],
                 $evidencia['name'],
                 $evidencia['type'],
                 $evidencia['size']
             ]);
-            
-            if ($result) {
-                error_log("DEBUG: Evidência $index salva com sucesso");
-            } else {
-                error_log("DEBUG: Erro ao salvar evidência $index");
-            }
         }
     }
 
@@ -357,8 +343,7 @@ class AmostragemController
                 }
             }
         } catch (\Exception $e) {
-            // Log error but don't fail the request
-            error_log("Erro ao enviar email para responsáveis: " . $e->getMessage());
+            // Log error but don't fail the request - silently continue
         }
     }
 
