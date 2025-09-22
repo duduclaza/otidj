@@ -44,15 +44,15 @@
           <label class="block text-sm font-medium text-gray-700 mb-3">Status *</label>
           <div class="flex space-x-4">
             <label class="flex items-center">
-              <input type="radio" name="status" value="pendente" class="mr-2" onchange="toggleStatusFields()" checked>
+              <input type="radio" name="status" value="pendente" class="mr-2" checked>
               <span class="text-sm font-medium text-yellow-700">Pendente</span>
             </label>
             <label class="flex items-center">
-              <input type="radio" name="status" value="aprovado" class="mr-2" onchange="toggleStatusFields()">
+              <input type="radio" name="status" value="aprovado" class="mr-2">
               <span class="text-sm font-medium text-green-700">Aprovado</span>
             </label>
             <label class="flex items-center">
-              <input type="radio" name="status" value="reprovado" class="mr-2" onchange="toggleStatusFields()">
+              <input type="radio" name="status" value="reprovado" class="mr-2">
               <span class="text-sm font-medium text-red-700">Reprovado</span>
             </label>
           </div>
@@ -68,11 +68,12 @@
           <div id="arquivo_nf_preview" class="mt-2"></div>
         </div>
 
-        <!-- Fotos -->
+        <!-- Evidências -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Fotos</label>
-          <input type="file" name="fotos[]" accept="image/*" multiple class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <p class="text-xs text-gray-500 mt-1">Selecione uma ou mais fotos (JPG, PNG, etc.)</p>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Evidências (Fotos)</label>
+          <input id="evidencias" type="file" name="evidencias[]" accept="image/*" multiple onchange="validateEvidenceFiles(this)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <p class="text-xs text-gray-500 mt-1">Selecione uma ou mais fotos como evidência (opcional)</p>
+          <div id="evidencias_preview" class="mt-2"></div>
         </div>
       </div>
 
@@ -87,21 +88,11 @@
         <p class="text-xs text-gray-500 mt-1">Selecione um ou mais responsáveis</p>
       </div>
 
-      <!-- Campos condicionais para reprovado -->
-      <div id="reprovadoFields" class="hidden space-y-4">
-        <!-- Observação -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Observação *</label>
-          <textarea name="observacao" rows="3" placeholder="Descreva o motivo da reprovação..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
-        </div>
-
-        <!-- Evidências -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Evidências (Fotos)</label>
-          <input id="evidencias" type="file" name="evidencias[]" accept="image/*" multiple onchange="validateEvidenceFiles(this)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <p class="text-xs text-gray-500 mt-1">Selecione uma ou mais fotos como evidência do problema</p>
-          <div id="evidencias_preview" class="mt-2"></div>
-        </div>
+      <!-- Observação -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Observação</label>
+        <textarea name="observacao" rows="3" placeholder="Observações sobre a amostragem (opcional)..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+        <p class="text-xs text-gray-500 mt-1">Campo obrigatório apenas para status "Reprovado"</p>
       </div>
 
       <!-- Botões -->
@@ -279,32 +270,12 @@ function closeAmostragemForm() {
     </svg>
     <span>Nova Amostragem</span>
   `;
-  // reset condicionais e previews
+  // reset status e previews
   document.querySelector('input[name="status"][value="pendente"]').checked = true;
-  toggleStatusFields();
   clearFilePreview('arquivo_nf');
   clearFilePreview('evidencias');
 }
 
-function toggleStatusFields() {
-  const status = document.querySelector('input[name="status"]:checked')?.value;
-  const reprovadoFields = document.getElementById('reprovadoFields');
-  logActivity('user_action', 'Status Changed', { status });
-  selectedStatus = status;
-  if (status === 'reprovado') {
-    reprovadoFields.classList.remove('hidden');
-    const obs = document.querySelector('textarea[name="observacao"]');
-    const evid = document.getElementById('evidencias');
-    if (obs) obs.required = true;
-    if (evid) evid.required = true;
-  } else {
-    reprovadoFields.classList.add('hidden');
-    const obs = document.querySelector('textarea[name="observacao"]');
-    const evid = document.getElementById('evidencias');
-    if (obs) obs.required = false;
-    if (evid) evid.required = false;
-  }
-}
 
 function loadUsers() {
   console.log('Iniciando carregamento de usuários...');
@@ -444,6 +415,12 @@ function submitAmostragem() {
     return;
   }
   
+  // Validar observação para status reprovado
+  if (statusSelected === 'reprovado' && !observacao.trim()) {
+    alert('Por favor, preencha a observação para amostragens reprovadas.');
+    return;
+  }
+  
   // Create FormData manually
   const formData = new FormData();
   formData.append('numero_nf', numeroNf);
@@ -562,7 +539,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Exports
 window.toggleAmostragemForm = toggleAmostragemForm;
 window.closeAmostragemForm = closeAmostragemForm;
-window.toggleStatusFields = toggleStatusFields;
 window.loadUsers = loadUsers;
 window.submitAmostragem = submitAmostragem;
 window.editAmostragem = editAmostragem;
