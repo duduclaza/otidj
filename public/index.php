@@ -30,16 +30,7 @@ if ($isDebug) {
     ini_set('log_errors', '1');
 }
 
-// Run migrations automatically
-try {
-    $migration = new \App\Core\Migration();
-    $migration->runMigrations();
-} catch (\Exception $e) {
-    // Skip migrations if connection limit exceeded or other issues
-    if (strpos($e->getMessage(), 'max_connections_per_hour') === false) {
-        error_log("Migration error: " . $e->getMessage());
-    }
-}
+// Migrations system removed - using direct queries now
 
 // Create router
 $router = new Router(__DIR__);
