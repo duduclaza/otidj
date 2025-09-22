@@ -81,6 +81,61 @@ class ConfigController
                 $results['status'] = 'error: ' . $e->getMessage();
             }
 
+            // 4) PDF em MEDIUMBLOB + metadados
+            try {
+                $this->db->exec("ALTER TABLE amostragens ADD COLUMN arquivo_nf_blob MEDIUMBLOB NULL AFTER arquivo_nf");
+                $results['arquivo_nf_blob'] = 'added';
+            } catch (\PDOException $e) {
+                if (stripos($e->getMessage(), 'Duplicate column name') !== false) {
+                    $results['arquivo_nf_blob'] = 'exists';
+                } else { $results['arquivo_nf_blob'] = 'error: ' . $e->getMessage(); }
+            }
+
+            try {
+                $this->db->exec("ALTER TABLE amostragens ADD COLUMN arquivo_nf_name VARCHAR(255) NULL AFTER arquivo_nf_blob");
+                $results['arquivo_nf_name'] = 'added';
+            } catch (\PDOException $e) {
+                if (stripos($e->getMessage(), 'Duplicate column name') !== false) {
+                    $results['arquivo_nf_name'] = 'exists';
+                } else { $results['arquivo_nf_name'] = 'error: ' . $e->getMessage(); }
+            }
+
+            try {
+                $this->db->exec("ALTER TABLE amostragens ADD COLUMN arquivo_nf_type VARCHAR(100) NULL AFTER arquivo_nf_name");
+                $results['arquivo_nf_type'] = 'added';
+            } catch (\PDOException $e) {
+                if (stripos($e->getMessage(), 'Duplicate column name') !== false) {
+                    $results['arquivo_nf_type'] = 'exists';
+                } else { $results['arquivo_nf_type'] = 'error: ' . $e->getMessage(); }
+            }
+
+            try {
+                $this->db->exec("ALTER TABLE amostragens ADD COLUMN arquivo_nf_size INT NULL AFTER arquivo_nf_type");
+                $results['arquivo_nf_size'] = 'added';
+            } catch (\PDOException $e) {
+                if (stripos($e->getMessage(), 'Duplicate column name') !== false) {
+                    $results['arquivo_nf_size'] = 'exists';
+                } else { $results['arquivo_nf_size'] = 'error: ' . $e->getMessage(); }
+            }
+
+            // 5) Tabela de evidências com MEDIUMBLOB
+            try {
+                $this->db->exec("CREATE TABLE IF NOT EXISTS amostragens_evidencias (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    amostragem_id INT NOT NULL,
+                    image MEDIUMBLOB NULL,
+                    name VARCHAR(255) NULL,
+                    type VARCHAR(100) NULL,
+                    size INT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (amostragem_id) REFERENCES amostragens(id) ON DELETE CASCADE,
+                    INDEX idx_amostragem_id (amostragem_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+                $results['evidencias_table'] = 'ok';
+            } catch (\PDOException $e) {
+                $results['evidencias_table'] = 'error: ' . $e->getMessage();
+            }
+
             echo json_encode(['success' => true, 'message' => 'Patch aplicado', 'results' => $results]);
         } catch (\Throwable $e) {
             http_response_code(500);
