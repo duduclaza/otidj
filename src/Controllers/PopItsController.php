@@ -64,6 +64,10 @@ class PopItsController
                 
                 return false;
             }
+            
+            // Debug da sessão
+            echo "Profile da sessão: " . ($_SESSION['profile'] ?? 'não definido') . "<br>";
+            echo "Permissões na sessão: " . (isset($_SESSION['permissions']) ? count($_SESSION['permissions']) : 'não definidas') . "<br>";
                 
             echo "Função hasPermission definida. Testando permissões...<br>";
                 
