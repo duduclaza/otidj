@@ -78,6 +78,9 @@ $router->post('/toners/amostragens', [App\Controllers\AmostragemController::clas
 $router->delete('/toners/amostragens/{id}', [App\Controllers\AmostragemController::class, 'delete']);
 $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
 
+// Admin/Config maintenance endpoints
+$router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
+
 // Profiles routes
 $router->get('/admin/profiles', [App\Controllers\ProfilesController::class, 'index']);
 $router->post('/admin/profiles/create', [App\Controllers\ProfilesController::class, 'create']);
