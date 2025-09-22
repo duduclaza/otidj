@@ -152,6 +152,8 @@ if (session_status() === PHP_SESSION_NONE) {
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsáveis</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observação</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resultado</th>
             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Anexos</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
           </tr>
@@ -302,21 +304,29 @@ function renderMelhoriaTable() {
         <div class="max-w-xs truncate" title="${item.responsaveis_nomes || 'N/A'}">${item.responsaveis_nomes || 'N/A'}</div>
       </td>
       <td class="px-4 py-3 text-sm">
-        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}">${getStatusText(item.status)}</span>
+        ${isAdmin ? `
+          <select class="editable-status text-xs border-0 bg-transparent cursor-pointer ${getStatusColor(item.status)} rounded-full px-2 py-1" data-id="${item.id}" onchange="updateStatusInline(${item.id}, this.value)">
+            <option value="pendente" ${item.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+            <option value="em_andamento" ${item.status === 'em_andamento' ? 'selected' : ''}>Em Andamento</option>
+            <option value="concluido" ${item.status === 'concluido' ? 'selected' : ''}>Concluído</option>
+            <option value="cancelado" ${item.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+          </select>
+        ` : `<span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(item.status)}">${getStatusText(item.status)}</span>`}
       </td>
       <td class="px-4 py-3 text-center text-sm font-medium">
-        ${isAdmin ? `<span class="editable-pontuacao cursor-pointer hover:bg-yellow-100 px-2 py-1 rounded" data-id="${item.id}">${item.pontuacao || '-'}</span>` : (item.pontuacao || '-')}
+        ${isAdmin ? `<input type="number" class="editable-pontuacao w-16 text-center border-0 bg-transparent cursor-pointer hover:bg-yellow-100 px-1 py-1 rounded" data-id="${item.id}" value="${item.pontuacao || ''}" min="0" max="100" onchange="updatePontuacaoInline(${item.id}, this.value)" placeholder="-">` : (item.pontuacao || '-')}
+      </td>
+      <td class="px-4 py-3 text-sm">
+        ${isAdmin ? `<textarea class="editable-observacao w-full text-xs border-0 bg-transparent cursor-pointer hover:bg-blue-50 px-1 py-1 rounded resize-none" data-id="${item.id}" rows="2" onchange="updateObservacaoInline(${item.id}, this.value)" placeholder="Clique para adicionar observação...">${item.observacao || ''}</textarea>` : `<div class="max-w-xs truncate" title="${item.observacao || 'N/A'}">${item.observacao || 'N/A'}</div>`}
+      </td>
+      <td class="px-4 py-3 text-sm">
+        ${isAdmin ? `<textarea class="editable-resultado w-full text-xs border-0 bg-transparent cursor-pointer hover:bg-green-50 px-1 py-1 rounded resize-none" data-id="${item.id}" rows="2" onchange="updateResultadoInline(${item.id}, this.value)" placeholder="Clique para adicionar resultado...">${item.resultado || ''}</textarea>` : `<div class="max-w-xs truncate" title="${item.resultado || 'N/A'}">${item.resultado || 'N/A'}</div>`}
       </td>
       <td class="px-4 py-3 text-center text-sm">
         ${item.total_anexos > 0 ? `<button onclick="viewAnexos(${item.id})" class="text-blue-600 hover:text-blue-800 underline">${item.total_anexos} arquivo(s)</button>` : '-'}
       </td>
       <td class="px-4 py-3 text-sm">
         <div class="flex space-x-2">
-          ${isAdmin ? `
-            <button onclick="editStatus(${item.id})" class="text-blue-600 hover:text-blue-800 text-xs">Status</button>
-            <button onclick="editObservacao(${item.id})" class="text-green-600 hover:text-green-800 text-xs">Obs</button>
-            <button onclick="editResultado(${item.id})" class="text-purple-600 hover:text-purple-800 text-xs">Result</button>
-          ` : ''}
           <button onclick="printMelhoria(${item.id})" class="text-gray-600 hover:text-gray-800 text-xs">Imprimir</button>
           <button onclick="deleteMelhoria(${item.id})" class="text-red-600 hover:text-red-800 text-xs">Excluir</button>
         </div>
@@ -324,14 +334,7 @@ function renderMelhoriaTable() {
     </tr>
   `).join('');
   
-  // Adicionar event listeners para edição inline de pontuação
-  if (isAdmin) {
-    document.querySelectorAll('.editable-pontuacao').forEach(el => {
-      el.addEventListener('click', function() {
-        editPontuacao(this.dataset.id, this.textContent.trim());
-      });
-    });
-  }
+  // Event listeners inline já estão nos elementos
 }
 
 // Cores do status
@@ -412,12 +415,21 @@ function clearFilters() {
   loadMelhoriaData();
 }
 
-// Editar pontuação (inline)
-function editPontuacao(id, currentValue) {
-  const newValue = prompt('Nova pontuação (0-100):', currentValue === '-' ? '' : currentValue);
-  if (newValue !== null) {
-    updatePontuacao(id, newValue);
-  }
+// Funções de edição inline
+function updateStatusInline(id, status) {
+  updateStatus(id, status);
+}
+
+function updatePontuacaoInline(id, pontuacao) {
+  updatePontuacao(id, pontuacao);
+}
+
+function updateObservacaoInline(id, observacao) {
+  updateObservacao(id, observacao);
+}
+
+function updateResultadoInline(id, resultado) {
+  updateResultado(id, resultado);
 }
 
 // Atualizar pontuação
@@ -434,9 +446,11 @@ async function updatePontuacao(id, pontuacao) {
     const result = await response.json();
     
     if (result.success) {
-      loadMelhoriaData();
+      // Não recarregar tabela - mudança já foi aplicada inline
+      console.log('Pontuação atualizada com sucesso');
     } else {
       alert('Erro: ' + result.message);
+      loadMelhoriaData(); // Recarregar apenas em caso de erro
     }
   } catch (error) {
     console.error('Erro ao atualizar pontuação:', error);
@@ -444,24 +458,7 @@ async function updatePontuacao(id, pontuacao) {
   }
 }
 
-// Editar status
-function editStatus(id) {
-  const newStatus = prompt('Novo status:\n1 - Pendente\n2 - Em Andamento\n3 - Concluído\n4 - Cancelado\n\nDigite o número:');
-  if (newStatus) {
-    const statusMap = {
-      '1': 'pendente',
-      '2': 'em_andamento', 
-      '3': 'concluido',
-      '4': 'cancelado'
-    };
-    
-    if (statusMap[newStatus]) {
-      updateStatus(id, statusMap[newStatus]);
-    } else {
-      alert('Status inválido');
-    }
-  }
-}
+// Função editStatus removida - agora usa select inline
 
 // Atualizar status
 async function updateStatus(id, status) {
@@ -477,9 +474,15 @@ async function updateStatus(id, status) {
     const result = await response.json();
     
     if (result.success) {
-      loadMelhoriaData();
+      // Atualizar cores do select baseado no novo status
+      const selectElement = document.querySelector(`select[data-id="${id}"]`);
+      if (selectElement) {
+        selectElement.className = `editable-status text-xs border-0 bg-transparent cursor-pointer ${getStatusColor(status)} rounded-full px-2 py-1`;
+      }
+      console.log('Status atualizado com sucesso');
     } else {
       alert('Erro: ' + result.message);
+      loadMelhoriaData(); // Recarregar apenas em caso de erro
     }
   } catch (error) {
     console.error('Erro ao atualizar status:', error);
@@ -487,13 +490,7 @@ async function updateStatus(id, status) {
   }
 }
 
-// Editar observação
-function editObservacao(id) {
-  const newObs = prompt('Nova observação:');
-  if (newObs !== null) {
-    updateObservacao(id, newObs);
-  }
-}
+// Função editObservacao removida - agora usa textarea inline
 
 // Atualizar observação
 async function updateObservacao(id, observacao) {
@@ -509,7 +506,7 @@ async function updateObservacao(id, observacao) {
     const result = await response.json();
     
     if (result.success) {
-      alert('Observação atualizada com sucesso');
+      console.log('Observação atualizada com sucesso');
     } else {
       alert('Erro: ' + result.message);
     }
@@ -519,13 +516,7 @@ async function updateObservacao(id, observacao) {
   }
 }
 
-// Editar resultado
-function editResultado(id) {
-  const newResult = prompt('Novo resultado:');
-  if (newResult !== null) {
-    updateResultado(id, newResult);
-  }
-}
+// Função editResultado removida - agora usa textarea inline
 
 // Atualizar resultado
 async function updateResultado(id, resultado) {
@@ -541,7 +532,7 @@ async function updateResultado(id, resultado) {
     const result = await response.json();
     
     if (result.success) {
-      alert('Resultado atualizado com sucesso');
+      console.log('Resultado atualizado com sucesso');
     } else {
       alert('Erro: ' + result.message);
     }
