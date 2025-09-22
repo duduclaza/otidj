@@ -34,7 +34,7 @@
       </button>
     </div>
     
-    <form id="fmeaForm" class="space-y-6">
+    <form id="fmeaForm" class="space-y-6" data-ajax="true">
       <input type="hidden" id="fmeaId" name="id">
       
       <div class="grid grid-cols-1 gap-6">
@@ -335,10 +335,20 @@ function calculateRPN() {
 async function submitFmea(e) {
   e.preventDefault();
   
-  const formData = new FormData(document.getElementById('fmeaForm'));
-  const url = editingId ? `/fmea/${editingId}/update` : '/fmea/store';
+  const overlay = document.getElementById('loadingOverlay');
+  const submitBtn = document.querySelector('#fmeaForm button[type="submit"]');
   
   try {
+    // Mostrar overlay e desabilitar botão
+    overlay.classList.add('active');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Salvando...';
+    }
+    
+    const formData = new FormData(document.getElementById('fmeaForm'));
+    const url = editingId ? `/fmea/${editingId}/update` : '/fmea/store';
+    
     const response = await fetch(url, {
       method: 'POST',
       body: formData
@@ -356,6 +366,13 @@ async function submitFmea(e) {
   } catch (error) {
     console.error('Erro ao salvar:', error);
     alert('Erro ao salvar registro');
+  } finally {
+    // Remover overlay e reabilitar botão
+    overlay.classList.remove('active');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = editingId ? 'Atualizar' : 'Salvar';
+    }
   }
 }
 

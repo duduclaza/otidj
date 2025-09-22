@@ -135,12 +135,20 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
         }
       });
 
-      // Handle form submissions with loading
+      // Handle form submissions with loading (only for non-AJAX forms)
       document.addEventListener('submit', function(e) {
         const form = e.target;
         if (form.tagName === 'FORM') {
-          const overlay = document.getElementById('loadingOverlay');
-          overlay.classList.add('active');
+          // Skip overlay for AJAX forms (they should handle it manually)
+          const isAjaxForm = form.hasAttribute('data-ajax') || 
+                           form.id === 'fmeaForm' || 
+                           form.id === 'solicitacaoForm' ||
+                           form.classList.contains('ajax-form');
+          
+          if (!isAjaxForm) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('active');
+          }
         }
       });
     });

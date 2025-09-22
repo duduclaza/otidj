@@ -18,7 +18,7 @@
       </button>
     </div>
 
-    <form id="solicitacaoForm" class="space-y-4" enctype="multipart/form-data">
+    <form id="solicitacaoForm" class="space-y-4" enctype="multipart/form-data" data-ajax="true">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label class="block text-xs font-medium text-gray-600">Data</label>
@@ -177,30 +177,48 @@ function updateFileList(){
 }
 
 async function createSolicitacao(e){
-  // Evita que o handler global de submit deixe o overlay preso
   e.preventDefault();
-  e.stopPropagation();
+  e.stopPropagation(); // Evita que o handler global de submit interfira
+  
   const overlay = document.getElementById('loadingOverlay');
-  if (overlay) overlay.classList.add('active');
-
   const form = document.getElementById('solicitacaoForm');
   const submitBtn = document.getElementById('submitBtn');
-  const fd = new FormData(form);
+  
   try {
-    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Enviando...'; }
-    const resp = await fetch('/melhoria-continua/solicitacoes/create', { method:'POST', body: fd });
-    const json = await resp.json().catch(()=>({success:false,message:'Erro no servidor'}));
-    alert(json.message || (json.success?'Sucesso':'Erro'));
-    if (json.success){
+    // Mostrar overlay e desabilitar botão
+    if (overlay) overlay.classList.add('active');
+    if (submitBtn) { 
+      submitBtn.disabled = true; 
+      submitBtn.textContent = 'Enviando...'; 
+    }
+    
+    const fd = new FormData(form);
+    const resp = await fetch('/melhoria-continua/solicitacoes/create', { 
+      method: 'POST', 
+      body: fd 
+    });
+    
+    const json = await resp.json().catch(() => ({
+      success: false, 
+      message: 'Erro no servidor'
+    }));
+    
+    alert(json.message || (json.success ? 'Sucesso' : 'Erro'));
+    
+    if (json.success) {
       cancelSolicitacaoForm();
       await loadGrid();
     }
-  } catch(err){
+  } catch(err) {
     console.error(err);
     alert('Falha ao enviar solicitação.');
   } finally {
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Enviar'; }
+    // Sempre remover overlay e reabilitar botão
     if (overlay) overlay.classList.remove('active');
+    if (submitBtn) { 
+      submitBtn.disabled = false; 
+      submitBtn.textContent = 'Enviar'; 
+    }
   }
 }
 
