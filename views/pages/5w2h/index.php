@@ -65,40 +65,50 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 
     <!-- Formulário Inline -->
-    <div id="formularioInline" class="bg-white rounded-lg shadow-sm border p-6 mb-6" style="display: none;">
-        <div class="border-b pb-4 mb-6">
-            <h2 class="text-xl font-semibold text-gray-900">Novo Plano 5W2H</h2>
-            <p class="text-gray-600 mt-1">Preencha os campos abaixo para criar um novo plano de ação</p>
+    <div id="formularioInline" class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 p-6 mb-6" style="display: none;">
+        <div class="border-b border-gray-600 pb-4 mb-6">
+            <h2 class="text-xl font-semibold text-white">Novo Plano 5W2H</h2>
+            <p class="text-gray-300 mt-1">Preencha os campos abaixo para criar um novo plano de ação</p>
         </div>
 
         <form id="planoForm" class="ajax-form">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- TÍTULO -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        Título do Plano <span class="text-red-400">*</span>
+                    </label>
+                    <input type="text" id="titulo" name="titulo" required 
+                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+                           placeholder="Digite um título resumido para o plano...">
+                </div>
+
                 <!-- O QUE (What) -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        O QUE será feito? <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        O QUE será feito? <span class="text-red-400">*</span>
                     </label>
                     <textarea id="what" name="what" rows="3" required 
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                             placeholder="Descreva detalhadamente o que será realizado..."></textarea>
                 </div>
 
                 <!-- POR QUE (Why) -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        POR QUE será feito? <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        POR QUE será feito? <span class="text-red-400">*</span>
                     </label>
                     <textarea id="why" name="why" rows="3" required 
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                             placeholder="Justifique a necessidade desta ação..."></textarea>
                 </div>
 
                 <!-- QUEM (Who) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        QUEM será o responsável? <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        QUEM será o responsável? <span class="text-red-400">*</span>
                     </label>
-                    <select id="who" name="who" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <select id="who" name="who" required class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Selecione o responsável</option>
                         <?php if (isset($usuarios) && is_array($usuarios)): ?>
                             <?php foreach ($usuarios as $usuario): ?>
@@ -110,49 +120,49 @@ if (!isset($_SESSION['user_id'])) {
 
                 <!-- QUANDO (When) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        QUANDO será realizado? <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        QUANDO será realizado? <span class="text-red-400">*</span>
                     </label>
                     <input type="date" id="when" name="when" required 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
 
                 <!-- ONDE (Where) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        ONDE será executado? <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        ONDE será executado? <span class="text-red-400">*</span>
                     </label>
                     <input type="text" id="where" name="where" required 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                            placeholder="Local de execução">
                 </div>
 
                 <!-- COMO (How) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        COMO será executado? <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        COMO será executado? <span class="text-red-400">*</span>
                     </label>
                     <textarea id="how" name="how" rows="3" required 
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                             placeholder="Descreva o método de execução..."></textarea>
                 </div>
 
                 <!-- QUANTO CUSTA (How Much) -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
                         QUANTO custará?
                     </label>
                     <input type="number" id="howMuch" name="howMuch" step="0.01" min="0"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                            placeholder="0.00">
                 </div>
 
                 <!-- Departamento -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Departamento <span class="text-red-500">*</span>
+                    <label class="block text-sm font-medium text-gray-200 mb-2">
+                        Departamento <span class="text-red-400">*</span>
                     </label>
-                    <select id="departamento" name="departamento" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <select id="departamento" name="departamento" required class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Selecione o departamento</option>
                         <?php if (isset($departamentos) && is_array($departamentos)): ?>
                             <?php foreach ($departamentos as $dept): ?>
@@ -164,8 +174,8 @@ if (!isset($_SESSION['user_id'])) {
 
                 <!-- Status -->
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select id="status" name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-sm font-medium text-gray-200 mb-2">Status</label>
+                    <select id="status" name="status" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="pendente">Pendente</option>
                         <option value="em_andamento">Em Andamento</option>
                         <option value="concluido">Concluído</option>
@@ -174,11 +184,11 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
 
-            <div class="flex justify-end gap-3 mt-6 pt-6 border-t">
-                <button type="button" onclick="cancelarFormulario()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-600">
+                <button type="button" onclick="cancelarFormulario()" class="px-4 py-2 text-gray-300 border border-gray-500 rounded-lg hover:bg-gray-700 hover:text-white transition-colors">
                     Cancelar
                 </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     Salvar Plano
                 </button>
             </div>
