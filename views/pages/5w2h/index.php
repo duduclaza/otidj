@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
             <h1 class="text-3xl font-bold text-gray-900">5W2H - Planos de Ação</h1>
             <p class="text-gray-600 mt-2">Gerencie seus planos de ação utilizando a metodologia 5W2H</p>
         </div>
-        <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+        <button onclick="openCreateModal(); console.log('Botão clicado');" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
@@ -89,7 +89,7 @@ if (!isset($_SESSION['user_id'])) {
 </div>
 
 <!-- Modal Criar/Editar Plano -->
-<div id="planoModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+<div id="planoModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50" style="display: none;">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div class="p-6 border-b">
@@ -230,15 +230,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Abrir modal para criar novo plano
 function openCreateModal() {
-    currentPlanoId = null;
-    document.getElementById('modalTitle').textContent = 'Novo Plano 5W2H';
-    document.getElementById('planoForm').reset();
-    document.getElementById('planoModal').classList.remove('hidden');
+    console.log('Abrindo modal...');
+    try {
+        currentPlanoId = null;
+        document.getElementById('modalTitle').textContent = 'Novo Plano 5W2H';
+        document.getElementById('planoForm').reset();
+        const modal = document.getElementById('planoModal');
+        console.log('Modal encontrado:', modal);
+        modal.style.display = 'block';
+        console.log('Modal aberto com sucesso');
+    } catch (error) {
+        console.error('Erro ao abrir modal:', error);
+        alert('Erro ao abrir formulário: ' + error.message);
+    }
 }
 
 // Fechar modal
 function closeModal() {
-    document.getElementById('planoModal').classList.add('hidden');
+    document.getElementById('planoModal').style.display = 'none';
     document.getElementById('planoForm').reset();
     currentPlanoId = null;
 }
