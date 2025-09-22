@@ -241,4 +241,46 @@ class ConfigController
             echo json_encode(['success' => false, 'message' => 'Falha ao sincronizar permissões: ' . $e->getMessage(), 'results' => $results]);
         }
     }
+
+    // Debug temporário para POPs e ITs
+    public function debugPopIts(): void
+    {
+        header('Content-Type: application/json');
+        
+        $debug = [
+            'session_user_id' => $_SESSION['user_id'] ?? 'NOT_SET',
+            'session_profile' => $_SESSION['profile'] ?? 'NOT_SET',
+            'session_user_profile' => $_SESSION['user_profile'] ?? 'NOT_SET',
+            'autoload_exists' => class_exists('App\Services\PermissionService'),
+            'database_connection' => 'OK',
+            'tables_check' => []
+        ];
+        
+        try {
+            // Verificar tabelas
+            $tables = ['pops_its_titulos', 'pops_its_registros', 'pops_its_departamentos_permitidos', 'departamentos', 'users', 'profiles', 'profile_permissions'];
+            foreach ($tables as $table) {
+                try {
+                    $stmt = $this->db->query("SELECT COUNT(*) FROM {$table}");
+                    $debug['tables_check'][$table] = $stmt->fetchColumn();
+                } catch (\Exception $e) {
+                    $debug['tables_check'][$table] = 'ERROR: ' . $e->getMessage();
+                }
+            }
+            
+            // Verificar permissões POPs e ITs
+            if (isset($_SESSION['user_id'])) {
+                try {
+                    $debug['is_admin'] = \App\Services\PermissionService::isAdmin($_SESSION['user_id']);
+                    $debug['user_permissions'] = \App\Services\PermissionService::getUserPermissions($_SESSION['user_id']);
+                } catch (\Exception $e) {
+                    $debug['permission_error'] = $e->getMessage();
+                }
+            }
+            
+            echo json_encode(['success' => true, 'debug' => $debug]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage(), 'debug' => $debug]);
+        }
+    }
 }

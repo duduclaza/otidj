@@ -106,6 +106,8 @@ $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::cla
 // Admin: sincronizar permissões do Administrador
 $router->post('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);
 $router->get('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);
+// Debug temporário POPs e ITs
+$router->get('/debug/pops-its', [App\Controllers\ConfigController::class, 'debugPopIts']);
 
 // Profiles routes
 $router->get('/admin/profiles', [App\Controllers\ProfilesController::class, 'index']);
