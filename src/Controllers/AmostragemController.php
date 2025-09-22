@@ -471,6 +471,56 @@ class AmostragemController
         }
     }
 
+    // Atualizar amostragem (status e observação)
+    public function update($id)
+    {
+        // Limpar qualquer output anterior
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        header('Content-Type: application/json');
+        
+        try {
+            $id = (int)$id;
+            $status = $_POST['status'] ?? '';
+            $observacao = trim($_POST['observacao'] ?? '');
+            
+            // Validações
+            if (!in_array($status, ['pendente', 'aprovado', 'reprovado'])) {
+                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+                exit;
+            }
+            
+            // Validar observação para status reprovado
+            if ($status === 'reprovado' && empty($observacao)) {
+                echo json_encode(['success' => false, 'message' => 'Observação é obrigatória para status reprovado']);
+                exit;
+            }
+            
+            // Verificar se a amostragem existe
+            $stmt = $this->db->prepare("SELECT id FROM amostragens WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
+                exit;
+            }
+            
+            // Atualizar amostragem
+            $stmt = $this->db->prepare("UPDATE amostragens SET status = ?, observacao = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$status, $observacao, $id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Amostragem atualizada com sucesso!']);
+            exit;
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar amostragem: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
     // Debug endpoint para testar salvamento
     public function testStore()
     {

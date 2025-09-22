@@ -170,21 +170,39 @@
                   ?>
                 </td>
                 <td class="px-4 py-2">
-                  <?php if ($amostragem['status'] === 'aprovado'): ?>
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Aprovado</span>
-                  <?php elseif ($amostragem['status'] === 'pendente'): ?>
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Pendente</span>
-                  <?php else: ?>
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Reprovado</span>
-                  <?php endif; ?>
+                  <select onchange="updateStatus(<?= $amostragem['id'] ?>, this.value)" class="text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 <?php 
+                    echo $amostragem['status'] === 'aprovado' ? 'bg-green-100 text-green-800' : 
+                         ($amostragem['status'] === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'); 
+                  ?>">
+                    <option value="pendente" <?= $amostragem['status'] === 'pendente' ? 'selected' : '' ?>>Pendente</option>
+                    <option value="aprovado" <?= $amostragem['status'] === 'aprovado' ? 'selected' : '' ?>>Aprovado</option>
+                    <option value="reprovado" <?= $amostragem['status'] === 'reprovado' ? 'selected' : '' ?>>Reprovado</option>
+                  </select>
                 </td>
                 <td class="px-4 py-2 text-sm text-gray-900"><?= date('d/m/Y', strtotime($amostragem['data_registro'])) ?></td>
                 <td class="px-4 py-2 text-sm text-gray-500">
-                  <?php if (!empty($amostragem['observacao'])): ?>
-                    <span title="<?= e($amostragem['observacao']) ?>"><?= e(substr($amostragem['observacao'], 0, 50)) ?><?= strlen($amostragem['observacao']) > 50 ? '...' : '' ?></span>
-                  <?php else: ?>
-                    -
-                  <?php endif; ?>
+                  <div class="flex items-center space-x-2">
+                    <span id="obs-text-<?= $amostragem['id'] ?>" class="flex-1 cursor-pointer" onclick="editObservacao(<?= $amostragem['id'] ?>)" title="Clique para editar">
+                      <?php if (!empty($amostragem['observacao'])): ?>
+                        <?= e(substr($amostragem['observacao'], 0, 50)) ?><?= strlen($amostragem['observacao']) > 50 ? '...' : '' ?>
+                      <?php else: ?>
+                        <span class="text-gray-400 italic">Clique para adicionar</span>
+                      <?php endif; ?>
+                    </span>
+                    <textarea id="obs-input-<?= $amostragem['id'] ?>" class="hidden flex-1 text-xs border border-gray-300 rounded px-2 py-1 resize-none" rows="2" placeholder="Digite a observação..."><?= e($amostragem['observacao']) ?></textarea>
+                    <div id="obs-buttons-<?= $amostragem['id'] ?>" class="hidden flex space-x-1">
+                      <button onclick="saveObservacao(<?= $amostragem['id'] ?>)" class="text-green-600 hover:text-green-800 text-xs">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                      </button>
+                      <button onclick="cancelEditObservacao(<?= $amostragem['id'] ?>)" class="text-red-600 hover:text-red-800 text-xs">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </td>
                 <td class="px-4 py-2 text-sm">
                   <div class="flex items-center space-x-2">
@@ -675,6 +693,120 @@ async function viewEvidencias(amostragemId) {
   } catch (error) {
     console.error('Erro ao carregar evidências:', error);
     alert('Erro ao carregar evidências.');
+  }
+}
+
+// ===== Edição Inline =====
+
+// Atualizar status
+async function updateStatus(id, newStatus) {
+  try {
+    const formData = new FormData();
+    formData.append('status', newStatus);
+    
+    // Buscar observação atual para validação
+    const obsInput = document.getElementById(`obs-input-${id}`);
+    const currentObs = obsInput ? obsInput.value.trim() : '';
+    formData.append('observacao', currentObs);
+    
+    const response = await fetch(`/toners/amostragens/${id}`, {
+      method: 'PUT',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Atualizar cor do select
+      const select = event.target;
+      select.className = `text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 ${
+        newStatus === 'aprovado' ? 'bg-green-100 text-green-800' : 
+        newStatus === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+      }`;
+      
+      // Se mudou para reprovado e não tem observação, abrir edição
+      if (newStatus === 'reprovado' && !currentObs) {
+        editObservacao(id);
+        alert('Status atualizado! Por favor, adicione uma observação para o status reprovado.');
+      } else {
+        alert('Status atualizado com sucesso!');
+      }
+    } else {
+      alert('Erro: ' + result.message);
+      // Reverter select
+      location.reload();
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error);
+    alert('Erro ao atualizar status');
+    location.reload();
+  }
+}
+
+// Editar observação
+function editObservacao(id) {
+  const textSpan = document.getElementById(`obs-text-${id}`);
+  const input = document.getElementById(`obs-input-${id}`);
+  const buttons = document.getElementById(`obs-buttons-${id}`);
+  
+  textSpan.classList.add('hidden');
+  input.classList.remove('hidden');
+  buttons.classList.remove('hidden');
+  input.focus();
+}
+
+// Cancelar edição de observação
+function cancelEditObservacao(id) {
+  const textSpan = document.getElementById(`obs-text-${id}`);
+  const input = document.getElementById(`obs-input-${id}`);
+  const buttons = document.getElementById(`obs-buttons-${id}`);
+  
+  textSpan.classList.remove('hidden');
+  input.classList.add('hidden');
+  buttons.classList.add('hidden');
+}
+
+// Salvar observação
+async function saveObservacao(id) {
+  try {
+    const input = document.getElementById(`obs-input-${id}`);
+    const observacao = input.value.trim();
+    
+    // Buscar status atual
+    const statusSelect = document.querySelector(`select[onchange*="${id}"]`);
+    const currentStatus = statusSelect.value;
+    
+    const formData = new FormData();
+    formData.append('status', currentStatus);
+    formData.append('observacao', observacao);
+    
+    const response = await fetch(`/toners/amostragens/${id}`, {
+      method: 'PUT',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Atualizar texto
+      const textSpan = document.getElementById(`obs-text-${id}`);
+      if (observacao) {
+        const displayText = observacao.length > 50 ? observacao.substring(0, 50) + '...' : observacao;
+        textSpan.innerHTML = displayText;
+        textSpan.title = observacao;
+      } else {
+        textSpan.innerHTML = '<span class="text-gray-400 italic">Clique para adicionar</span>';
+        textSpan.title = 'Clique para editar';
+      }
+      
+      cancelEditObservacao(id);
+      alert('Observação salva com sucesso!');
+    } else {
+      alert('Erro: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Erro ao salvar observação:', error);
+    alert('Erro ao salvar observação');
   }
 }
 
