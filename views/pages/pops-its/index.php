@@ -1,4 +1,39 @@
 <?php
+// Function to check if user has permission
+function hasPermission($module, $action = 'view') {
+    if (!isset($_SESSION['user_id'])) {
+        return false;
+    }
+    
+    // Admin has all permissions
+    if (isset($_SESSION['profile']) && $_SESSION['profile'] === 'Administrador') {
+        return true;
+    }
+    
+    if (!isset($_SESSION['permissions'])) {
+        return false;
+    }
+    
+    foreach ($_SESSION['permissions'] as $permission) {
+        if ($permission['module'] === $module) {
+            switch ($action) {
+                case 'view': return (bool)$permission['can_view'];
+                case 'edit': return (bool)$permission['can_edit'];
+                case 'delete': return (bool)$permission['can_delete'];
+                case 'import': return (bool)$permission['can_import'];
+                case 'export': return (bool)$permission['can_export'];
+            }
+        }
+    }
+    
+    return false;
+}
+
+// Function to escape HTML
+function e($value) {
+    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+}
+
 // Verificar permissões para cada aba
 $canViewCadastroTitulos = hasPermission('pops_its_cadastro_titulos', 'view');
 $canViewMeusRegistros = hasPermission('pops_its_meus_registros', 'view');
