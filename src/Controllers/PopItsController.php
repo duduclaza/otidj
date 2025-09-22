@@ -16,10 +16,18 @@ class PopItsController
     // Página principal com abas
     public function index()
     {
-        $departamentos = $this->getDepartamentos();
-        $titulos = $this->getTitulos();
-        
-        include __DIR__ . '/../../views/pages/pops-its/index.php';
+        try {
+            $departamentos = $this->getDepartamentos();
+            $titulos = $this->getTitulos();
+            
+            include __DIR__ . '/../../views/pages/pops-its/index.php';
+        } catch (\Exception $e) {
+            // Debug temporário
+            echo "Erro: " . $e->getMessage();
+            echo "<br>Arquivo: " . $e->getFile();
+            echo "<br>Linha: " . $e->getLine();
+            exit();
+        }
     }
 
     // ===== ABA 1: CADASTRO DE TÍTULOS =====
@@ -462,21 +470,31 @@ class PopItsController
 
     private function getDepartamentos(): array
     {
-        $stmt = $this->db->prepare("SELECT * FROM departamentos ORDER BY nome");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("SELECT * FROM departamentos ORDER BY nome");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            // Se tabela não existe, retorna array vazio
+            return [];
+        }
     }
 
     private function getTitulos(): array
     {
-        $stmt = $this->db->prepare("
-            SELECT t.*, d.nome as departamento_nome 
-            FROM pops_its_titulos t
-            JOIN departamentos d ON t.departamento_id = d.id
-            ORDER BY t.titulo
-        ");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->db->prepare("
+                SELECT t.*, d.nome as departamento_nome 
+                FROM pops_its_titulos t
+                JOIN departamentos d ON t.departamento_id = d.id
+                ORDER BY t.titulo
+            ");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            // Se tabela não existe, retorna array vazio
+            return [];
+        }
     }
 
     private function getUserDepartmentId($user_id): ?int
