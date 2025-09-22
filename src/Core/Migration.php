@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 19;
+    private const CURRENT_VERSION = 20;
 
     public function __construct()
     {
@@ -18,6 +18,117 @@ class Migration
             if (strpos($e->getMessage(), 'max_connections_per_hour') !== false) {
                 throw new \Exception('Database connection limit exceeded');
             }
+
+    private function migration20(): void
+    {
+        // Tabela principal de garantias
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS garantias (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                fornecedor_id INT NOT NULL,
+                origem ENUM('Amostragem','Homologação','Em Campo') NOT NULL,
+                status ENUM('Em andamento','Aguardando Fornecedor','Aguardando Recebimento','Aguardando Item Chegar ao laboratório','Aguardando Emissão de NF','Aguardando Despache','Aguardando Testes','Finalizado','Garantia Expirada','Garantia não coberta') NOT NULL DEFAULT 'Em andamento',
+                observacoes TEXT NULL,
+                nf_compra_numero VARCHAR(50) NULL,
+                nf_compra_blob MEDIUMBLOB NULL,
+                nf_compra_nome VARCHAR(255) NULL,
+                nf_compra_tipo VARCHAR(100) NULL,
+                nf_compra_tamanho INT NULL,
+                nf_remessa_simples_numero VARCHAR(50) NULL,
+                nf_remessa_simples_blob MEDIUMBLOB NULL,
+                nf_remessa_simples_nome VARCHAR(255) NULL,
+                nf_remessa_simples_tipo VARCHAR(100) NULL,
+                nf_remessa_simples_tamanho INT NULL,
+                nf_devolucao_numero VARCHAR(50) NULL,
+                nf_devolucao_blob MEDIUMBLOB NULL,
+                nf_devolucao_nome VARCHAR(255) NULL,
+                nf_devolucao_tipo VARCHAR(100) NULL,
+                nf_devolucao_tamanho INT NULL,
+                numero_serie VARCHAR(100) NULL,
+                numero_lote VARCHAR(100) NULL,
+                numero_ticket_os VARCHAR(100) NULL,
+                created_by INT NOT NULL,
+                updated_by INT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id) ON DELETE RESTRICT,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+                INDEX idx_fornecedor (fornecedor_id),
+                INDEX idx_status (status),
+                INDEX idx_origem (origem)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Registros de garantias'
+        ");
+
+        // Itens da garantia
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS garantias_itens (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                garantia_id INT NOT NULL,
+                item_descricao VARCHAR(255) NOT NULL,
+                quantidade INT NOT NULL,
+                valor_unitario DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+                defeito VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (garantia_id) REFERENCES garantias(id) ON DELETE CASCADE,
+                INDEX idx_garantia (garantia_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Itens vinculados à garantia'
+        ");
+
+        // Anexos diversos (até 5 por solicitação via aplicação)
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS garantias_anexos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                garantia_id INT NOT NULL,
+                tipo ENUM('outro','evidencia') NOT NULL DEFAULT 'outro',
+                arquivo_blob MEDIUMBLOB NOT NULL,
+                arquivo_nome VARCHAR(255) NOT NULL,
+                arquivo_tipo VARCHAR(100) NOT NULL,
+                arquivo_tamanho INT NOT NULL,
+                uploaded_by INT NOT NULL,
+                uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (garantia_id) REFERENCES garantias(id) ON DELETE CASCADE,
+                FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_garantia (garantia_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Anexos adicionais da garantia'
+        ");
+
+        // Permissões padrão
+        $this->updateGarantiasPermissions();
+    }
+
+    private function updateGarantiasPermissions(): void
+    {
+        $module = 'garantias';
+
+        // Administrador: total
+        $admin = $this->getProfileIdByName('Administrador');
+        if ($admin) {
+            $stmt = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 1, 1, 1, 1) ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=1, can_export=1");
+            $stmt->execute([$admin, $module]);
+        }
+
+        // Supervisor: CRUD e export
+        $supervisor = $this->getProfileIdByName('Supervisor');
+        if ($supervisor) {
+            $stmt = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 1, 1, 0, 1) ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=0, can_export=1");
+            $stmt->execute([$supervisor, $module]);
+        }
+
+        // Analista de Qualidade: criar/editar/visualizar e exportar
+        $analista = $this->getProfileIdByName('Analista de Qualidade');
+        if ($analista) {
+            $stmt = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 1, 1, 0, 1) ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=0, can_export=1");
+            $stmt->execute([$analista, $module]);
+        }
+
+        // Usuário Comum: visualizar e criar/editar próprios (controlado no controller)
+        $user = $this->getProfileIdByName('Usuário Comum');
+        if ($user) {
+            $stmt = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 1, 0, 0, 0) ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=0, can_import=0, can_export=0");
+            $stmt->execute([$user, $module]);
+        }
+    }
             throw $e;
         }
     }
@@ -127,6 +238,11 @@ class Migration
                 // Version 19: Create Auditorias system tables
                 $this->migration19();
                 $this->updateVersion(19);
+            }
+            if ($currentVersion < 20) {
+                // Version 20: Create Garantias system tables
+                $this->migration20();
+                $this->updateVersion(20);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded

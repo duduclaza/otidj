@@ -57,7 +57,7 @@ class AuthController
             if ($this->db === null) {
                 $this->db = Database::getInstance();
             }
-            $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
+            $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
             $stmt->execute([$email]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
             
@@ -321,7 +321,7 @@ class AuthController
     {
         try {
             // Get all admin users
-            $stmt = $this->db->prepare("SELECT id, email FROM users WHERE role = 'admin' AND status = 'active'");
+            $stmt = $this->db->prepare("SELECT id, email FROM users WHERE role = 'admin'");
             $stmt->execute();
             $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             

@@ -239,7 +239,7 @@ class MelhoriaContinuaController
         header('Content-Type: application/json');
         
         try {
-            $stmt = $this->db->prepare("SELECT id, name FROM users WHERE status = 'active' ORDER BY name");
+            $stmt = $this->db->prepare("SELECT id, name FROM users ORDER BY name");
             $stmt->execute();
             $usuarios = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             

@@ -21,7 +21,7 @@ class UsersController
         header('Access-Control-Allow-Headers: Content-Type');
         
         try {
-            $stmt = $this->db->prepare("SELECT id, name, email, setor, filial FROM users WHERE status = 'active' ORDER BY name ASC");
+            $stmt = $this->db->prepare("SELECT id, name, email, setor, filial FROM users ORDER BY name ASC");
             $stmt->execute();
             $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             

@@ -48,7 +48,7 @@ class PermissionService
             SELECT p.is_admin 
             FROM users u 
             LEFT JOIN profiles p ON u.profile_id = p.id 
-            WHERE u.id = ? AND u.status = 'active'
+            WHERE u.id = ?
         ");
         $stmt->execute([$userId]);
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -68,7 +68,7 @@ class PermissionService
             FROM users u
             LEFT JOIN profiles p ON u.profile_id = p.id
             LEFT JOIN profile_permissions pp ON p.id = pp.profile_id
-            WHERE u.id = ? AND u.status = 'active'
+            WHERE u.id = ?
         ");
         $stmt->execute([$userId]);
         $permissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -111,7 +111,7 @@ class PermissionService
             SELECT p.id, p.name, p.description, p.is_admin, p.is_default
             FROM users u
             LEFT JOIN profiles p ON u.profile_id = p.id
-            WHERE u.id = ? AND u.status = 'active'
+            WHERE u.id = ?
         ");
         $stmt->execute([$userId]);
         

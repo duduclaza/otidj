@@ -91,28 +91,6 @@ class PopItsController
         }
     }
 
-    public function listTitulos()
-    {
-        try {
-            $stmt = $this->db->prepare("
-                SELECT t.*, d.nome as departamento_nome, u.name as criador_nome
-                FROM pops_its_titulos t
-                JOIN departamentos d ON t.departamento_id = d.id
-                JOIN users u ON t.created_by = u.id
-                ORDER BY t.created_at DESC
-            ");
-            $stmt->execute();
-            $titulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            echo json_encode(['success' => true, 'data' => $titulos]);
-            exit();
-
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao listar títulos: ' . $e->getMessage()]);
-            exit();
-        }
-    }
-
     // ===== ABA 1: LISTAR TÍTULOS =====
     
     public function listTitulos()
