@@ -390,7 +390,8 @@ class Planos5W2HController
 
     private function getUsuarios()
     {
-        $stmt = $this->db->query("SELECT id, name FROM users WHERE active = 1 ORDER BY name");
+        // Removido filtro por coluna 'active' (inexistente em alguns ambientes)
+        $stmt = $this->db->query("SELECT id, name FROM users ORDER BY name");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
