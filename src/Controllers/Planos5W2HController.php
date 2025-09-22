@@ -124,7 +124,7 @@ class Planos5W2HController
             $stmt->execute($params);
             $planos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode(['success' => true, 'data' => $planos]);
+            echo json_encode(['success' => true, 'planos' => $planos]);
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar planos: ' . $e->getMessage()]);
         }
