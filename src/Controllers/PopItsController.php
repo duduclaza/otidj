@@ -113,6 +113,29 @@ class PopItsController
         }
     }
 
+    // ===== ABA 1: LISTAR TÍTULOS =====
+    
+    public function listTitulos()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("
+                SELECT t.*, d.nome as departamento_nome, u.name as criador_nome 
+                FROM pops_its_titulos t
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN users u ON t.created_by = u.id
+                ORDER BY t.created_at DESC
+            ");
+            $stmt->execute();
+            $titulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $titulos]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar títulos: ' . $e->getMessage()]);
+        }
+    }
+
     // ===== ABA 2: MEUS REGISTROS =====
 
     public function createRegistro()
@@ -190,6 +213,8 @@ class PopItsController
 
     public function listMeusRegistros()
     {
+        header('Content-Type: application/json');
+        
         try {
             $user_id = $_SESSION['user_id'];
             
@@ -309,6 +334,8 @@ class PopItsController
 
     public function listPendentesAprovacao()
     {
+        header('Content-Type: application/json');
+        
         try {
             $stmt = $this->db->prepare("
                 SELECT r.*, t.titulo, d.nome as departamento_nome, u.name as criador_nome
@@ -323,17 +350,22 @@ class PopItsController
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(['success' => true, 'data' => $registros]);
-            exit();
-
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao listar pendentes: ' . $e->getMessage()]);
-            exit();
         }
     }
 
     public function aprovarRegistro()
     {
+        header('Content-Type: application/json');
+        
         try {
+            // Verificar se é admin
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem aprovar registros.']);
+                return;
+            }
+            
             $registro_id = (int)($_POST['registro_id'] ?? 0);
             $user_id = $_SESSION['user_id'];
 
@@ -346,28 +378,33 @@ class PopItsController
 
             if ($stmt->rowCount() === 0) {
                 echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou já processado']);
-                exit();
+                return;
             }
 
             echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
-            exit();
-
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao aprovar registro: ' . $e->getMessage()]);
-            exit();
         }
     }
 
     public function reprovarRegistro()
     {
+        header('Content-Type: application/json');
+        
         try {
+            // Verificar se é admin
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem reprovar registros.']);
+                return;
+            }
+            
             $registro_id = (int)($_POST['registro_id'] ?? 0);
             $observacao = trim($_POST['observacao'] ?? '');
             $user_id = $_SESSION['user_id'];
 
             if (empty($observacao)) {
                 echo json_encode(['success' => false, 'message' => 'Observação da reprovação é obrigatória']);
-                exit();
+                return;
             }
 
             $stmt = $this->db->prepare("
@@ -379,15 +416,12 @@ class PopItsController
 
             if ($stmt->rowCount() === 0) {
                 echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou já processado']);
-                exit();
+                return;
             }
 
             echo json_encode(['success' => true, 'message' => 'Registro reprovado com sucesso!']);
-            exit();
-
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao reprovar registro: ' . $e->getMessage()]);
-            exit();
         }
     }
 
@@ -395,6 +429,8 @@ class PopItsController
 
     public function listVisualizacao()
     {
+        header('Content-Type: application/json');
+        
         try {
             $user_id = $_SESSION['user_id'];
             $user_dept_id = $this->getUserDepartmentId($user_id);
@@ -417,11 +453,8 @@ class PopItsController
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(['success' => true, 'data' => $registros]);
-            exit();
-
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao listar registros: ' . $e->getMessage()]);
-            exit();
         }
     }
 
