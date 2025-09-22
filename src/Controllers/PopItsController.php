@@ -17,15 +17,39 @@ class PopItsController
     public function index()
     {
         try {
+            // Log de debug
+            file_put_contents(__DIR__ . '/../../logs/pops_its_debug.log', 
+                date('Y-m-d H:i:s') . " - Iniciando index()\n", FILE_APPEND);
+            
             $departamentos = $this->getDepartamentos();
+            file_put_contents(__DIR__ . '/../../logs/pops_its_debug.log', 
+                date('Y-m-d H:i:s') . " - Departamentos carregados: " . count($departamentos) . "\n", FILE_APPEND);
+            
             $titulos = $this->getTitulos();
+            file_put_contents(__DIR__ . '/../../logs/pops_its_debug.log', 
+                date('Y-m-d H:i:s') . " - Títulos carregados: " . count($titulos) . "\n", FILE_APPEND);
+            
+            file_put_contents(__DIR__ . '/../../logs/pops_its_debug.log', 
+                date('Y-m-d H:i:s') . " - Incluindo view\n", FILE_APPEND);
             
             include __DIR__ . '/../../views/pages/pops-its/index.php';
+            
+            file_put_contents(__DIR__ . '/../../logs/pops_its_debug.log', 
+                date('Y-m-d H:i:s') . " - View incluída com sucesso\n", FILE_APPEND);
+                    
         } catch (\Exception $e) {
+            // Log do erro
+            $errorMsg = date('Y-m-d H:i:s') . " - ERRO: " . $e->getMessage() . 
+                       " | Arquivo: " . $e->getFile() . 
+                       " | Linha: " . $e->getLine() . "\n";
+            file_put_contents(__DIR__ . '/../../logs/pops_its_debug.log', $errorMsg, FILE_APPEND);
+            
             // Debug temporário
             echo "Erro: " . $e->getMessage();
             echo "<br>Arquivo: " . $e->getFile();
             echo "<br>Linha: " . $e->getLine();
+            echo "<br>Stack trace:<br>";
+            echo nl2br($e->getTraceAsString());
             exit();
         }
     }
