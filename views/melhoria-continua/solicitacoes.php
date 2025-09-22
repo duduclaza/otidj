@@ -10,10 +10,10 @@
     </button>
   </div>
 
-  <div id="solicitacaoFormContainer" class="hidden bg-white border border-gray-200 rounded-lg shadow-lg p-6">
+  <div id="solicitacaoFormContainer" class="hidden bg-gray-800 border border-gray-600 rounded-lg shadow-lg p-6">
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-900">Nova Solicitação de Melhoria</h3>
-      <button onclick="cancelSolicitacaoForm()" class="text-gray-400 hover:text-gray-600 transition-colors" title="Fechar">
+      <h3 class="text-lg font-semibold text-gray-100">Nova Solicitação de Melhoria</h3>
+      <button onclick="cancelSolicitacaoForm()" class="text-gray-400 hover:text-gray-200 transition-colors" title="Fechar">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
     </div>
@@ -21,12 +21,12 @@
     <form id="solicitacaoForm" class="space-y-4" enctype="multipart/form-data" data-ajax="true">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label class="block text-xs font-medium text-gray-600">Data</label>
-          <input type="text" value="<?= date('d/m/Y H:i') ?>" readonly class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100">
+          <label class="block text-xs font-medium text-gray-200">Data</label>
+          <input type="text" value="<?= date('d/m/Y H:i') ?>" readonly class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-gray-700 text-gray-200">
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-600">Setor *</label>
-          <select name="setor" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+          <label class="block text-xs font-medium text-gray-200">Setor *</label>
+          <select name="setor" required class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-gray-700 text-gray-200">
             <option value="">Selecione...</option>
             <?php foreach (($setores ?? []) as $setor): ?>
               <option value="<?= htmlspecialchars($setor) ?>"><?= htmlspecialchars($setor) ?></option>
@@ -34,54 +34,54 @@
           </select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-600">Status</label>
-          <input type="text" value="Pendente" readonly class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-yellow-50 text-yellow-800">
+          <label class="block text-xs font-medium text-gray-200">Status</label>
+          <input type="text" value="Pendente" readonly class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-yellow-900 text-yellow-200">
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-xs font-medium text-gray-600">Processo *</label>
-          <input type="text" name="processo" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Descreva o processo">
+          <label class="block text-xs font-medium text-gray-200">Processo *</label>
+          <input type="text" name="processo" required class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400" placeholder="Descreva o processo">
         </div>
         <div>
-          <label class="block text-xs font-medium text-gray-600">Resultado Esperado *</label>
-          <input type="text" name="resultado_esperado" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Resultado esperado">
+          <label class="block text-xs font-medium text-gray-200">Resultado Esperado *</label>
+          <input type="text" name="resultado_esperado" required class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400" placeholder="Resultado esperado">
         </div>
       </div>
 
       <div>
-        <label class="block text-xs font-medium text-gray-600">Descrição da Melhoria *</label>
-        <textarea name="descricao_melhoria" rows="3" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Descreva a melhoria..."></textarea>
+        <label class="block text-xs font-medium text-gray-200">Descrição da Melhoria *</label>
+        <textarea name="descricao_melhoria" rows="3" required class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400" placeholder="Descreva a melhoria..."></textarea>
       </div>
 
       <div>
-        <label class="block text-xs font-medium text-gray-600">Observações</label>
-        <textarea name="observacoes" rows="2" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Observações (opcional)"></textarea>
+        <label class="block text-xs font-medium text-gray-200">Observações</label>
+        <textarea name="observacoes" rows="2" class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400" placeholder="Observações (opcional)"></textarea>
       </div>
 
       <div>
-        <label class="block text-xs font-medium text-gray-600">Responsáveis *</label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 border border-gray-200 rounded p-3 bg-gray-50 max-h-48 overflow-auto">
+        <label class="block text-xs font-medium text-gray-200">Responsáveis *</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 border border-gray-600 rounded p-3 bg-gray-700 max-h-48 overflow-auto">
           <?php foreach (($usuarios ?? []) as $u): ?>
             <label class="flex items-center space-x-2">
-              <input type="checkbox" class="h-4 w-4" name="responsaveis[]" value="<?= (int)$u['id'] ?>" data-email="<?= htmlspecialchars($u['email']) ?>">
-              <span class="text-sm text-gray-800"><?= htmlspecialchars($u['name']) ?> <span class="text-gray-400 text-xs">(<?= htmlspecialchars($u['email']) ?>)</span></span>
+              <input type="checkbox" class="h-4 w-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500" name="responsaveis[]" value="<?= (int)$u['id'] ?>" data-email="<?= htmlspecialchars($u['email']) ?>">
+              <span class="text-sm text-gray-200"><?= htmlspecialchars($u['name']) ?> <span class="text-gray-400 text-xs">(<?= htmlspecialchars($u['email']) ?>)</span></span>
             </label>
           <?php endforeach; ?>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Os responsáveis selecionados receberão email de notificação.</p>
+        <p class="text-xs text-gray-400 mt-1">Os responsáveis selecionados receberão email de notificação.</p>
       </div>
 
       <div>
-        <label class="block text-xs font-medium text-gray-600">Anexos (até 5 arquivos, 5MB cada) - JPG, PNG, GIF, PDF</label>
-        <input id="fileInput" type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" onchange="updateFileList()">
-        <div id="fileList" class="mt-1 text-xs text-gray-600 space-y-1"></div>
+        <label class="block text-xs font-medium text-gray-200">Anexos (até 5 arquivos, 5MB cada) - JPG, PNG, GIF, PDF</label>
+        <input id="fileInput" type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf" class="w-full border border-gray-600 rounded px-3 py-2 text-sm bg-gray-700 text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700" onchange="updateFileList()">
+        <div id="fileList" class="mt-1 text-xs text-gray-400 space-y-1"></div>
       </div>
 
-      <div class="flex justify-end space-x-2 pt-2 border-t">
-        <button type="button" onclick="cancelSolicitacaoForm()" class="px-4 py-2 text-sm bg-gray-200 rounded">Cancelar</button>
-        <button id="submitBtn" type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded">Enviar</button>
+      <div class="flex justify-end space-x-2 pt-2 border-t border-gray-600">
+        <button type="button" onclick="cancelSolicitacaoForm()" class="px-4 py-2 text-sm bg-gray-600 text-gray-200 rounded hover:bg-gray-700">Cancelar</button>
+        <button id="submitBtn" type="submit" class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Enviar</button>
       </div>
     </form>
   </div>

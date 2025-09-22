@@ -156,6 +156,14 @@ $router->get('/api/toner', [App\Controllers\TonersController::class, 'getTonerDa
 $router->get('/api/setores', [App\Controllers\RegistrosController::class, 'getDepartamentos']);
 $router->get('/api/filiais', [App\Controllers\RegistrosController::class, 'getFiliais']);
 
+// Profile routes
+$router->get('/profile', [App\Controllers\ProfileController::class, 'index']);
+
+// Profile API routes
+$router->get('/api/profile', [App\Controllers\ProfileController::class, 'getProfile']);
+$router->post('/api/profile/password', [App\Controllers\ProfileController::class, 'changePassword']);
+$router->post('/api/profile/photo', [App\Controllers\ProfileController::class, 'uploadPhoto']);
+
 // Notifications routes
 $router->get('/api/notifications', [App\Controllers\NotificationsController::class, 'getNotifications']);
 $router->post('/api/notifications/{id}/read', [App\Controllers\NotificationsController::class, 'markAsRead']);
