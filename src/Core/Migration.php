@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 9;
+    private const CURRENT_VERSION = 10;
 
     public function __construct()
     {
@@ -77,6 +77,11 @@ class Migration
                 // Version 9: Create solicitacoes_melhorias system
                 $this->migration9();
                 $this->updateVersion(9);
+            }
+            if ($currentVersion < 10) {
+                // Version 10: Recreate amostragens system with MEDIUMBLOB
+                $this->migration10();
+                $this->updateVersion(10);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -675,5 +680,59 @@ class Migration
             ");
             $stmt->execute([$profile['id'], $canView, $canEdit, $canDelete]);
         }
+    }
+
+    private function migration10(): void
+    {
+        // Drop existing amostragens table if exists (fresh start)
+        $this->db->exec('DROP TABLE IF EXISTS amostragens_evidencias');
+        $this->db->exec('DROP TABLE IF EXISTS amostragens');
+
+        // Create new amostragens table with MEDIUMBLOB support
+        $this->db->exec('CREATE TABLE amostragens (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            numero_nf VARCHAR(100) NOT NULL,
+            status ENUM("pendente", "aprovado", "reprovado") NOT NULL DEFAULT "pendente",
+            observacao TEXT NULL,
+            
+            -- PDF storage in MEDIUMBLOB
+            arquivo_nf_blob MEDIUMBLOB NULL,
+            arquivo_nf_name VARCHAR(255) NULL,
+            arquivo_nf_type VARCHAR(100) NULL,
+            arquivo_nf_size INT NULL,
+            
+            -- Fallback filesystem path (compatibility)
+            arquivo_nf VARCHAR(255) NULL,
+            
+            -- Responsaveis as JSON
+            responsaveis JSON NULL,
+            
+            -- Legacy evidencias field (for filesystem fallback)
+            evidencias JSON NULL,
+            
+            -- Fotos as JSON (for filesystem fallback)
+            fotos JSON NULL,
+            
+            data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            
+            INDEX idx_numero_nf (numero_nf),
+            INDEX idx_status (status),
+            INDEX idx_data_registro (data_registro)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
+
+        // Create evidencias table with MEDIUMBLOB for images
+        $this->db->exec('CREATE TABLE amostragens_evidencias (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            amostragem_id INT NOT NULL,
+            image MEDIUMBLOB NOT NULL,
+            name VARCHAR(255) NULL,
+            type VARCHAR(100) NULL,
+            size INT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            
+            FOREIGN KEY (amostragem_id) REFERENCES amostragens(id) ON DELETE CASCADE,
+            INDEX idx_amostragem_id (amostragem_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;');
     }
 }
