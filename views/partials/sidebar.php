@@ -31,7 +31,7 @@ $menu = [
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
       ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪', 'module' => 'amostragens'],
       ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️', 'module' => 'garantias'],
-      ['label' => 'Controle de Descartes', 'href' => '/controle-de-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
+      ['label' => 'Controle de Descartes', 'href' => '/controle-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
     ]
   ],
   [
