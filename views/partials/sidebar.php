@@ -194,7 +194,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           </button>
           
           <!-- Dropdown de Notificações -->
-          <div id="notificationDropdown" class="hidden absolute bottom-full right-0 mb-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div id="notificationDropdown" class="hidden absolute bottom-12 right-0 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
             <div class="p-4 border-b border-gray-200 flex justify-between items-center">
               <h3 class="text-sm font-semibold text-gray-900">Notificações</h3>
               <button id="markAllReadBtn" class="text-xs text-blue-600 hover:text-blue-800">Marcar todas como lidas</button>
