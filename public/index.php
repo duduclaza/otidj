@@ -18,6 +18,10 @@ $dotenv->safeLoad();
 
 // Error reporting
 $isDebug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+// Permitir forçar debug via query string (?debug=1)
+if (isset($_GET['debug']) && $_GET['debug'] == '1') {
+    $isDebug = true;
+}
 if ($isDebug) {
     ini_set('display_errors', '1');
     error_reporting(E_ALL);

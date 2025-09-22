@@ -16,10 +16,33 @@ class PopItsController
     // Página principal com abas
     public function index()
     {
-        $departamentos = $this->getDepartamentos();
-        $titulos = $this->getTitulos();
-        
-        include __DIR__ . '/../../views/pages/pops-its/index.php';
+        try {
+            $departamentos = $this->getDepartamentos();
+            $titulos = $this->getTitulos();
+
+            include __DIR__ . '/../../views/pages/pops-its/index.php';
+        } catch (\Throwable $e) {
+            // Logar erro para diagnóstico
+            try {
+                $logDir = __DIR__ . '/../../logs';
+                if (!is_dir($logDir)) { @mkdir($logDir, 0777, true); }
+                $msg = date('Y-m-d H:i:s') . ' POPs-ITs index ERRO: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine() . "\n";
+                file_put_contents($logDir . '/pops_its_debug.log', $msg, FILE_APPEND);
+            } catch (\Throwable $ignored) {}
+
+            // Exibir detalhes somente se APP_DEBUG=true ou ?debug=1
+            $appDebug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+            $reqDebug = isset($_GET['debug']) && $_GET['debug'] == '1';
+            if ($appDebug || $reqDebug) {
+                echo 'Erro: ' . htmlspecialchars($e->getMessage());
+                echo '<br>Arquivo: ' . htmlspecialchars($e->getFile());
+                echo '<br>Linha: ' . (int)$e->getLine();
+                echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+                exit;
+            }
+            // Caso contrário, lançar novamente para página 500 padrão
+            throw $e;
+        }
     }
 
 
