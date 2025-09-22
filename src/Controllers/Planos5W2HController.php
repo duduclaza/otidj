@@ -142,10 +142,11 @@ class Planos5W2HController
                 return;
             }
 
-            $data = json_decode(file_get_contents('php://input'), true);
+            // Receber dados do FormData (POST)
+            $data = $_POST;
             
             // Validações
-            $required = ['titulo', 'what', 'why'];
+            $required = ['titulo', 'what', 'why', 'who', 'when', 'where', 'how', 'departamento'];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
                     echo json_encode(['success' => false, 'message' => "Campo '{$field}' é obrigatório"]);
