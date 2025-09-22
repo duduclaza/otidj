@@ -5,16 +5,18 @@ function hasPermission($module, $action = 'view') {
         return false;
     }
     
-    // Admin has all permissions
-    if (isset($_SESSION['profile']) && $_SESSION['profile'] === 'Administrador') {
+    // Admin has all permissions - verificar ambos os formatos
+    $profile = $_SESSION['profile'] ?? $_SESSION['user_profile']['profile_name'] ?? null;
+    if ($profile === 'Administrador') {
         return true;
     }
     
-    if (!isset($_SESSION['permissions'])) {
+    $permissions = $_SESSION['permissions'] ?? $_SESSION['user_profile']['permissions'] ?? [];
+    if (empty($permissions)) {
         return false;
     }
     
-    foreach ($_SESSION['permissions'] as $permission) {
+    foreach ($permissions as $permission) {
         if ($permission['module'] === $module) {
             switch ($action) {
                 case 'view': return (bool)$permission['can_view'];

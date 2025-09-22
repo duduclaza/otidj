@@ -16,95 +16,12 @@ class PopItsController
     // Página principal com abas
     public function index()
     {
-        try {
-            // Garantir que a sessão está iniciada
-            if (session_status() === PHP_SESSION_NONE) {
-                session_start();
-            }
-            
-            echo "Controller POPs e ITs carregado com sucesso!<br>";
-            echo "Sessão iniciada. User ID: " . ($_SESSION['user_id'] ?? 'não definido') . "<br>";
-            
-            $departamentos = $this->getDepartamentos();
-            echo "Departamentos carregados: " . count($departamentos) . "<br>";
-            
-            $titulos = $this->getTitulos();
-            echo "Títulos carregados: " . count($titulos) . "<br>";
-            echo "Dados carregados com sucesso. Testando view...<br>";
-                
-            // Teste da view por partes
-            echo "Testando função hasPermission...<br>";
-                
-            // Testar função hasPermission diretamente
-            function hasPermission($module, $action = 'view') {
-                if (!isset($_SESSION['user_id'])) {
-                    return false;
-                }
-                
-                // Admin has all permissions - verificar ambos os formatos
-                $profile = $_SESSION['profile'] ?? $_SESSION['user_profile']['profile_name'] ?? null;
-                if ($profile === 'Administrador') {
-                    return true;
-                }
-                
-                $permissions = $_SESSION['permissions'] ?? $_SESSION['user_profile']['permissions'] ?? [];
-                if (empty($permissions)) {
-                    return false;
-                }
-                
-                foreach ($permissions as $permission) {
-                    if ($permission['module'] === $module) {
-                        switch ($action) {
-                            case 'view': return (bool)$permission['can_view'];
-                            case 'edit': return (bool)$permission['can_edit'];
-                            case 'delete': return (bool)$permission['can_delete'];
-                            case 'import': return (bool)$permission['can_import'];
-                            case 'export': return (bool)$permission['can_export'];
-                        }
-                    }
-                }
-                
-                return false;
-            }
-            
-            // Debug da sessão
-            echo "Profile da sessão (profile): " . ($_SESSION['profile'] ?? 'não definido') . "<br>";
-            echo "Profile da sessão (user_profile): " . ($_SESSION['user_profile']['profile_name'] ?? 'não definido') . "<br>";
-            echo "Permissões na sessão (permissions): " . (isset($_SESSION['permissions']) ? count($_SESSION['permissions']) : 'não definidas') . "<br>";
-            echo "Permissões na sessão (user_profile): " . (isset($_SESSION['user_profile']['permissions']) ? count($_SESSION['user_profile']['permissions']) : 'não definidas') . "<br>";
-                
-            echo "Função hasPermission definida. Testando permissões...<br>";
-                
-            $canViewCadastroTitulos = hasPermission('pops_its_cadastro_titulos', 'view');
-            echo "Permissão Cadastro Títulos: " . ($canViewCadastroTitulos ? 'SIM' : 'NÃO') . "<br>";
-                
-            $canViewMeusRegistros = hasPermission('pops_its_meus_registros', 'view');
-            echo "Permissão Meus Registros: " . ($canViewMeusRegistros ? 'SIM' : 'NÃO') . "<br>";
-                
-            $canViewPendenteAprovacao = hasPermission('pops_its_pendente_aprovacao', 'view');
-            echo "Permissão Pendente Aprovação: " . ($canViewPendenteAprovacao ? 'SIM' : 'NÃO') . "<br>";
-                
-            $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
-            echo "Permissão Visualização: " . ($canViewVisualizacao ? 'SIM' : 'NÃO') . "<br>";
-                
-            echo "Permissões testadas. Incluindo view simplificada...<br>";
-                
-            // View simplificada para teste
-            echo '<h1>POPs e ITs - Teste</h1>';
-            echo '<p>View carregada com sucesso!</p>';
-                
-            echo "View testada com sucesso!<br>";
-                    
-        } catch (\Exception $e) {
-            // Debug temporário
-            echo "Erro: " . $e->getMessage();
-            echo "<br>Arquivo: " . $e->getFile();
-            echo "<br>Linha: " . $e->getLine();
-            echo "<br>Stack trace:<br>";
-            echo nl2br($e->getTraceAsString());
-            exit();
-        }
+        $departamentos = $this->getDepartamentos();
+        $titulos = $this->getTitulos();
+        
+        include __DIR__ . '/../../views/pages/pops-its/index.php';
     }
+
 
     // ===== ABA 1: CADASTRO DE TÍTULOS =====
     
