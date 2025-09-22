@@ -1,9 +1,12 @@
 <?php
-// Function to check if user has permission
+// Function to check if user has permission (only declare if not already defined globally)
+if (!function_exists('hasPermission')) {
 function hasPermission($module, $action = 'view') {
     if (!isset($_SESSION['user_id'])) {
         return false;
     }
+}
+    
     
     // 1) Admin: acesso total (robusto, consulta direto no serviço)
     try {
@@ -51,9 +54,11 @@ function hasPermission($module, $action = 'view') {
     }
 }
 
-// Function to escape HTML
-function e($value) {
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+// Function to escape HTML (only declare if not already defined globally)
+if (!function_exists('e')) {
+    function e($value) {
+        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+    }
 }
 
 // Verificar permissões para cada aba
