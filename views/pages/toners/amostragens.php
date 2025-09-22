@@ -206,12 +206,12 @@
                       </a>
                     <?php endif; ?>
                     <?php if ($amostragem['total_evidencias'] > 0): ?>
-                      <span class="text-green-600 text-xs bg-green-50 px-2 py-1 rounded">
+                      <button onclick="viewEvidencias(<?= $amostragem['id'] ?>)" class="text-green-600 text-xs bg-green-50 px-2 py-1 rounded hover:bg-green-100 transition-colors">
                         <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
                         </svg>
                         <?= $amostragem['total_evidencias'] ?> foto(s)
-                      </span>
+                      </button>
                     <?php endif; ?>
                     <button onclick="excluirAmostragem(<?= $amostragem['id'] ?>, '<?= e($amostragem['numero_nf']) ?>')" 
                             class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-md font-medium transition-colors duration-200 shadow-sm hover:shadow-md">
@@ -649,4 +649,55 @@ function clearFilePreview(inputName) {
   if (input) input.value='';
   if (preview) preview.innerHTML='';
 }
-</script>
+
+// Visualizar evidências de uma amostragem
+async function viewEvidencias(amostragemId) {
+  try {
+    const response = await fetch(`/toners/amostragens/${amostragemId}/evidencias`);
+    const data = await response.json();
+    
+    if (data.success && data.evidencias.length > 0) {
+      let html = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="this.remove()">
+          <div class="bg-white rounded-lg p-6 max-w-4xl max-h-[80vh] overflow-y-auto" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold">Evidências - Amostragem #${amostragemId}</h3>
+              <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      `;
+      
+      data.evidencias.forEach(evidencia => {
+        html += `
+          <div class="border rounded-lg overflow-hidden">
+            <img src="/toners/amostragens/${amostragemId}/evidencia/${evidencia.id}" 
+                 alt="${evidencia.name}" 
+                 class="w-full h-32 object-cover cursor-pointer"
+                 onclick="window.open('/toners/amostragens/${amostragemId}/evidencia/${evidencia.id}', '_blank')">
+            <div class="p-2">
+              <p class="text-xs font-medium truncate" title="${evidencia.name}">${evidencia.name}</p>
+              <p class="text-xs text-gray-500">${(evidencia.size/1024).toFixed(1)} KB</p>
+            </div>
+          </div>
+        `;
+      });
+      
+      html += `
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.insertAdjacentHTML('beforeend', html);
+    } else {
+      alert('Nenhuma evidência encontrada para esta amostragem.');
+    }
+  } catch (error) {
+    console.error('Erro ao carregar evidências:', error);
+    alert('Erro ao carregar evidências.');
+  }
+}

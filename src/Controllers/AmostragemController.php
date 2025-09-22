@@ -82,9 +82,9 @@ class AmostragemController
             // Processar PDF da NF
             $pdfData = $this->processPdfUpload($_FILES['arquivo_nf'] ?? null);
 
-            // Processar evidências (apenas para status reprovado)
+            // Processar evidências (para qualquer status)
             $evidenciasData = [];
-            if ($status === 'reprovado' && isset($_FILES['evidencias'])) {
+            if (isset($_FILES['evidencias'])) {
                 $evidenciasData = $this->processEvidenciasUpload($_FILES['evidencias']);
             }
 
@@ -427,6 +427,26 @@ class AmostragemController
         } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao buscar evidência: ' . $e->getMessage()]);
+        }
+    }
+
+    // Listar evidências de uma amostragem
+    public function getEvidencias($amostragemId)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $amostragemId = (int)$amostragemId;
+            
+            $stmt = $this->db->prepare("SELECT id, name, type, size FROM amostragens_evidencias WHERE amostragem_id = ? ORDER BY id");
+            $stmt->execute([$amostragemId]);
+            $evidencias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'evidencias' => $evidencias]);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao buscar evidências: ' . $e->getMessage()]);
         }
     }
 }
