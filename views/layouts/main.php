@@ -51,26 +51,7 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
       scroll-behavior: smooth;
     }
     
-    /* Loading overlay */
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(30, 41, 59, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.2s ease-in-out;
-    }
-    .loading-overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
+    /* Loading overlay removido - causava problemas globais */
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -95,13 +76,7 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
     </div>
   </div>
 
-  <!-- Loading overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="text-white text-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-      <div class="text-sm">Carregando...</div>
-    </div>
-  </div>
+  <!-- Loading overlay removido - causava problemas em todos os módulos -->
 
   <script>
     // Page transition and smooth navigation
@@ -112,45 +87,8 @@ $sidebar = __DIR__ . '/../partials/sidebar.php';
         setTimeout(() => pageContent.classList.add('loaded'), 100);
       }
 
-      // Handle page navigation with smooth transitions
-      document.addEventListener('click', function(e) {
-        const link = e.target.closest('.page-link');
-        if (link && link.href && !link.href.includes('#')) {
-          e.preventDefault();
-          
-          // Show loading overlay
-          const overlay = document.getElementById('loadingOverlay');
-          overlay.classList.add('active');
-          
-          // Add fade out effect
-          const currentContent = document.querySelector('.page-transition');
-          if (currentContent) {
-            currentContent.classList.remove('loaded');
-          }
-          
-          // Navigate after short delay
-          setTimeout(() => {
-            window.location.href = link.href;
-          }, 200);
-        }
-      });
-
-      // Handle form submissions with loading (only for non-AJAX forms)
-      document.addEventListener('submit', function(e) {
-        const form = e.target;
-        if (form.tagName === 'FORM') {
-          // Skip overlay for AJAX forms (they should handle it manually)
-          const isAjaxForm = form.hasAttribute('data-ajax') || 
-                           form.id === 'fmeaForm' || 
-                           form.id === 'solicitacaoForm' ||
-                           form.classList.contains('ajax-form');
-          
-          if (!isAjaxForm) {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.add('active');
-          }
-        }
-      });
+      // Navegação simples sem loading global (removido para evitar problemas)
+      // Cada módulo pode implementar seu próprio loading se necessário
     });
   </script>
   
