@@ -307,7 +307,7 @@ class AmostragemController
             $users = [];
             if (empty($emails) && !empty($names)) {
                 $placeholders = str_repeat('?,', count($names) - 1) . '?';
-                $stmt = $this->db->prepare("SELECT name, email FROM users WHERE name IN ($placeholders) AND status = 'active'");
+                $stmt = $this->db->prepare("SELECT name, email FROM users WHERE name IN ($placeholders)");
                 $stmt->execute($names);
                 $users = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
             }
@@ -541,7 +541,7 @@ class AmostragemController
             
             // Buscar IDs dos usuários pelos nomes
             $placeholders = str_repeat('?,', count($names) - 1) . '?';
-            $stmt = $this->db->prepare("SELECT id, name FROM users WHERE name IN ($placeholders) AND status = 'active'");
+            $stmt = $this->db->prepare("SELECT id, name FROM users WHERE name IN ($placeholders)");
             $stmt->execute($names);
             $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             

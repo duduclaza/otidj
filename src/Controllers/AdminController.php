@@ -971,7 +971,7 @@ class AdminController
         $stats = [];
         
         // Total users
-        $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE status = 'active'");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM users");
         $stats['active_users'] = $stmt->fetchColumn();
         
         // Pending invitations
