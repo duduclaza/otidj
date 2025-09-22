@@ -251,9 +251,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Carregar lista de descartes
+// Carregar lista de descartes - v2.0 (sem loading)
 function carregarDescartes() {
-    // Remover loading - carregar diretamente
+    console.log('Carregando descartes - versão sem loading');
+    // Loading removido - carregamento direto
     document.getElementById('no-data').classList.add('hidden');
     
     const params = new URLSearchParams();
