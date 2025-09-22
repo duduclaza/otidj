@@ -164,10 +164,15 @@
                 <td class="px-4 py-2 text-sm text-gray-900"><?= e($amostragem['numero_nf']) ?></td>
                 <td class="px-4 py-2 text-sm text-gray-500">
                   <?php 
-                  $responsaveis = !empty($amostragem['responsaveis']) ? json_decode($amostragem['responsaveis'], true) : [];
-                  if (!empty($responsaveis)) {
-                    echo implode(', ', array_slice($responsaveis, 0, 2));
-                    if (count($responsaveis) > 2) echo ' +' . (count($responsaveis) - 2);
+                  if (!empty($amostragem['responsaveis_list'])) {
+                    $names = array_column($amostragem['responsaveis_list'], 'name');
+                    $names = array_filter($names); // Remove empty names
+                    if (!empty($names)) {
+                      echo implode(', ', array_slice($names, 0, 2));
+                      if (count($names) > 2) echo ' +' . (count($names) - 2);
+                    } else {
+                      echo '-';
+                    }
                   } else {
                     echo '-';
                   }
@@ -192,8 +197,21 @@
                 </td>
                 <td class="px-4 py-2 text-sm">
                   <div class="flex items-center space-x-2">
-                    <?php if (!empty($amostragem['arquivo_nf'])): ?>
-                      <a href="/uploads/<?= e($amostragem['arquivo_nf']) ?>" target="_blank" class="text-blue-600 hover:text-blue-800 text-xs">PDF</a>
+                    <?php if ($amostragem['has_pdf']): ?>
+                      <a href="/toners/amostragens/<?= $amostragem['id'] ?>/pdf" target="_blank" class="text-blue-600 hover:text-blue-800 text-xs bg-blue-50 px-2 py-1 rounded">
+                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                        </svg>
+                        PDF
+                      </a>
+                    <?php endif; ?>
+                    <?php if ($amostragem['total_evidencias'] > 0): ?>
+                      <span class="text-green-600 text-xs bg-green-50 px-2 py-1 rounded">
+                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                        </svg>
+                        <?= $amostragem['total_evidencias'] ?> foto(s)
+                      </span>
                     <?php endif; ?>
                     <button onclick="excluirAmostragem(<?= $amostragem['id'] ?>, '<?= e($amostragem['numero_nf']) ?>')" 
                             class="bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded-md font-medium transition-colors duration-200 shadow-sm hover:shadow-md">

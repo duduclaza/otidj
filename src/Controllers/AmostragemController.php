@@ -16,15 +16,37 @@ class AmostragemController
     public function index()
     {
         try {
-            $stmt = $this->db->prepare("SELECT * FROM amostragens ORDER BY data_registro DESC");
+            // Buscar amostragens com informações de evidências
+            $stmt = $this->db->prepare("
+                SELECT a.*, 
+                       COUNT(e.id) as total_evidencias
+                FROM amostragens a 
+                LEFT JOIN amostragens_evidencias e ON a.id = e.amostragem_id 
+                GROUP BY a.id 
+                ORDER BY a.data_registro DESC
+            ");
             $stmt->execute();
             $amostragens = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Processar dados para exibição
+            foreach ($amostragens as &$amostragem) {
+                // Decodificar responsáveis
+                if (!empty($amostragem['responsaveis'])) {
+                    $amostragem['responsaveis_list'] = json_decode($amostragem['responsaveis'], true) ?: [];
+                }
+                // Verificar se tem PDF
+                $amostragem['has_pdf'] = !empty($amostragem['arquivo_nf_blob']) || !empty($amostragem['arquivo_nf']);
+            }
 
             $title = 'Amostragens - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/toners/amostragens.php';
             include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Exception $e) {
-            echo view('pages/toners/amostragens', ['error' => 'Erro ao carregar amostragens: ' . $e->getMessage()]);
+            $title = 'Amostragens - SGQ OTI DJ';
+            $error = 'Erro ao carregar amostragens: ' . $e->getMessage();
+            $amostragens = [];
+            $viewFile = __DIR__ . '/../../views/pages/toners/amostragens.php';
+            include __DIR__ . '/../../views/layouts/main.php';
         }
     }
 
@@ -33,183 +55,234 @@ class AmostragemController
         header('Content-Type: application/json');
         
         try {
-            
-            $numero_nf = $_POST['numero_nf'] ?? '';
+            $numero_nf = trim($_POST['numero_nf'] ?? '');
             $status = $_POST['status'] ?? 'pendente';
-            $observacao = $_POST['observacao'] ?? '';
+            $observacao = trim($_POST['observacao'] ?? '');
             $responsaveisRaw = $_POST['responsaveis'] ?? [];
 
-            // Parse responsaveis (can be names or JSON strings {name,email})
-            $responsaveisParsed = [];
-            $responsaveisNomes = [];
-            foreach ($responsaveisRaw as $r) {
-                $decoded = json_decode($r, true);
-                if (is_array($decoded) && isset($decoded['name'])) {
-                    $name = trim((string)$decoded['name']);
-                    $email = isset($decoded['email']) ? trim((string)$decoded['email']) : '';
-                    $responsaveisParsed[] = ['name' => $name, 'email' => $email];
-                    if ($name !== '') { $responsaveisNomes[] = $name; }
-                } else {
-                    $name = trim((string)$r);
-                    $responsaveisParsed[] = ['name' => $name, 'email' => ''];
-                    if ($name !== '') { $responsaveisNomes[] = $name; }
-                }
-            }
-            
-            if (empty($numero_nf) || empty($status)) {
-                echo json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
+            // Validações básicas
+            if (empty($numero_nf)) {
+                echo json_encode(['success' => false, 'message' => 'Número da NF é obrigatório']);
                 return;
             }
             
-            if (empty($responsaveisParsed)) {
+            if (empty($responsaveisRaw)) {
                 echo json_encode(['success' => false, 'message' => 'Pelo menos um responsável deve ser selecionado']);
                 return;
             }
 
-            // Handle file upload for NF PDF - salvar em MEDIUMBLOB
-            $arquivo_nf = '';
-            $pdfBlob = null; $pdfName = null; $pdfType = null; $pdfSize = null;
-            if (isset($_FILES['arquivo_nf']) && $_FILES['arquivo_nf']['error'] === UPLOAD_ERR_OK) {
-                // Salvar em BLOB se coluna existir
-                if ($this->hasColumn('amostragens', 'arquivo_nf_blob')) {
-                    $pdfBlob = file_get_contents($_FILES['arquivo_nf']['tmp_name']);
-                    $pdfName = $_FILES['arquivo_nf']['name'];
-                    $pdfType = $_FILES['arquivo_nf']['type'] ?? 'application/pdf';
-                    $pdfSize = $_FILES['arquivo_nf']['size'];
-                } else {
-                    // Fallback filesystem
-                    $uploadDir = 'uploads/nf/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-                    $fileName = uniqid() . '_' . $_FILES['arquivo_nf']['name'];
-                    $uploadPath = $uploadDir . $fileName;
-                    if (move_uploaded_file($_FILES['arquivo_nf']['tmp_name'], $uploadPath)) {
-                        $arquivo_nf = 'nf/' . $fileName;
-                    }
-                }
+            // Parse responsáveis
+            $responsaveisParsed = $this->parseResponsaveis($responsaveisRaw);
+            
+            if (empty($responsaveisParsed)) {
+                echo json_encode(['success' => false, 'message' => 'Responsáveis inválidos']);
+                return;
             }
 
-            // Handle evidence files for rejected samples
-            $evidencias = [];
+            // Processar PDF da NF
+            $pdfData = $this->processPdfUpload($_FILES['arquivo_nf'] ?? null);
+
+            // Processar evidências (apenas para status reprovado)
+            $evidenciasData = [];
             if ($status === 'reprovado' && isset($_FILES['evidencias'])) {
-                $uploadDir = 'uploads/evidencias/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-                
-                foreach ($_FILES['evidencias']['tmp_name'] as $key => $tmpName) {
-                    if ($_FILES['evidencias']['error'][$key] === UPLOAD_ERR_OK) {
-                        $fileName = uniqid() . '_' . $_FILES['evidencias']['name'][$key];
-                        $uploadPath = $uploadDir . $fileName;
-                        
-                        if (move_uploaded_file($tmpName, $uploadPath)) {
-                            $evidencias[] = 'evidencias/' . $fileName;
-                        }
-                    }
-                }
-            }
-            
-            // Handle fotos upload
-            $fotos = [];
-            if (isset($_FILES['fotos'])) {
-                $uploadDir = 'uploads/fotos/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-                
-                foreach ($_FILES['fotos']['tmp_name'] as $key => $tmpName) {
-                    if ($_FILES['fotos']['error'][$key] === UPLOAD_ERR_OK) {
-                        $fileName = uniqid() . '_' . $_FILES['fotos']['name'][$key];
-                        $uploadPath = $uploadDir . $fileName;
-                        
-                        if (move_uploaded_file($tmpName, $uploadPath)) {
-                            $fotos[] = 'fotos/' . $fileName;
-                        }
-                    }
-                }
+                $evidenciasData = $this->processEvidenciasUpload($_FILES['evidencias']);
             }
 
-            // Build INSERT based on existing columns (produção pode não ter colunas novas)
-            $hasResponsaveis = $this->hasColumn('amostragens', 'responsaveis');
-            $hasFotos = $this->hasColumn('amostragens', 'fotos');
-            $hasPdfBlob = $this->hasColumn('amostragens', 'arquivo_nf_blob');
-            $hasEvidTable = $this->hasTable('amostragens_evidencias');
+            // Inserir amostragem no banco
+            $amostragemId = $this->insertAmostragem([
+                'numero_nf' => $numero_nf,
+                'status' => $status,
+                'observacao' => $observacao,
+                'responsaveis' => $responsaveisParsed,
+                'pdf' => $pdfData,
+                'evidencias' => $evidenciasData
+            ]);
 
-            $columns = ['numero_nf', 'status', 'observacao'];
-            $placeholders = [':numero_nf', ':status', ':observacao'];
+            // Enviar emails para responsáveis
+            $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
             
-            // PDF: BLOB ou filesystem
-            if ($hasPdfBlob && $pdfBlob) {
-                $columns[] = 'arquivo_nf_blob'; $placeholders[] = ':arquivo_nf_blob';
-                if ($this->hasColumn('amostragens', 'arquivo_nf_name')) { $columns[] = 'arquivo_nf_name'; $placeholders[] = ':arquivo_nf_name'; }
-                if ($this->hasColumn('amostragens', 'arquivo_nf_type')) { $columns[] = 'arquivo_nf_type'; $placeholders[] = ':arquivo_nf_type'; }
-                if ($this->hasColumn('amostragens', 'arquivo_nf_size')) { $columns[] = 'arquivo_nf_size'; $placeholders[] = ':arquivo_nf_size'; }
-            } else {
-                $columns[] = 'arquivo_nf'; $placeholders[] = ':arquivo_nf';
-            }
-            
-            $columns[] = 'evidencias'; $placeholders[] = ':evidencias';
-            if ($hasResponsaveis) { $columns[] = 'responsaveis'; $placeholders[] = ':responsaveis'; }
-            if ($hasFotos) { $columns[] = 'fotos'; $placeholders[] = ':fotos'; }
-            $columns[] = 'data_registro';
-            $valuesSql = implode(', ', $placeholders) . ', NOW()';
-            $columnsSql = implode(', ', $columns);
-
-            $sql = "INSERT INTO amostragens ($columnsSql) VALUES ($valuesSql)";
-            $stmt = $this->db->prepare($sql);
-
-            $params = [
-                ':numero_nf' => $numero_nf,
-                ':status' => $status,
-                ':observacao' => $observacao,
-                ':evidencias' => json_encode($evidencias)
-            ];
-            
-            // PDF params
-            if ($hasPdfBlob && $pdfBlob) {
-                $params[':arquivo_nf_blob'] = $pdfBlob;
-                if ($this->hasColumn('amostragens', 'arquivo_nf_name')) { $params[':arquivo_nf_name'] = $pdfName; }
-                if ($this->hasColumn('amostragens', 'arquivo_nf_type')) { $params[':arquivo_nf_type'] = $pdfType; }
-                if ($this->hasColumn('amostragens', 'arquivo_nf_size')) { $params[':arquivo_nf_size'] = $pdfSize; }
-            } else {
-                $params[':arquivo_nf'] = $arquivo_nf;
-            }
-            
-            if ($hasResponsaveis) { $params[':responsaveis'] = json_encode($responsaveisParsed); }
-            if ($hasFotos) { $params[':fotos'] = json_encode($fotos); }
-
-            $stmt->execute($params);
-            $amostragemId = $this->db->lastInsertId();
-
-            // Salvar evidências em tabela separada se existir
-            if ($hasEvidTable && !empty($evidencias) && $amostragemId) {
-                $this->saveEvidenciasToTable($amostragemId, $_FILES['evidencias'] ?? []);
-            }
-
-            // Build names and emails arrays
-            $names = [];
-            $emails = [];
-            foreach ($responsaveisParsed as $rp) {
-                if (!empty($rp['name'])) { $names[] = $rp['name']; }
-                if (!empty($rp['email'])) { $emails[] = $rp['email']; }
-            }
-
-            // Send email to responsaveis
-            $this->sendEmailToResponsaveis($names, $emails, $numero_nf, $status, $arquivo_nf, $fotos);
-            
-            echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!'], JSON_UNESCAPED_SLASHES);
+            echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!', 'id' => $amostragemId]);
 
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()], JSON_UNESCAPED_SLASHES);
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao salvar amostragem: ' . $e->getMessage()]);
         }
     }
 
-    private function sendEmailToResponsaveis(array $names, array $emails, string $numero_nf, string $status, string $arquivo_nf, array $fotos)
+    // Parse responsáveis do formulário
+    private function parseResponsaveis(array $responsaveisRaw): array
+    {
+        $responsaveisParsed = [];
+        
+        foreach ($responsaveisRaw as $r) {
+            $decoded = json_decode($r, true);
+            if (is_array($decoded) && isset($decoded['name'])) {
+                $name = trim((string)$decoded['name']);
+                $email = isset($decoded['email']) ? trim((string)$decoded['email']) : '';
+                if (!empty($name)) {
+                    $responsaveisParsed[] = ['name' => $name, 'email' => $email];
+                }
+            } else {
+                $name = trim((string)$r);
+                if (!empty($name)) {
+                    $responsaveisParsed[] = ['name' => $name, 'email' => ''];
+                }
+            }
+        }
+        
+        return $responsaveisParsed;
+    }
+
+    // Processar upload de PDF
+    private function processPdfUpload(?array $file): array
+    {
+        $result = ['blob' => null, 'name' => null, 'type' => null, 'size' => null, 'path' => null];
+        
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            return $result;
+        }
+        
+        // Validar tipo de arquivo
+        $allowedTypes = ['application/pdf'];
+        if (!in_array($file['type'], $allowedTypes)) {
+            throw new \Exception('Apenas arquivos PDF são permitidos');
+        }
+        
+        // Validar tamanho (10MB max)
+        if ($file['size'] > 10 * 1024 * 1024) {
+            throw new \Exception('Arquivo PDF deve ter no máximo 10MB');
+        }
+        
+        // Salvar em BLOB (preferencial)
+        $result['blob'] = file_get_contents($file['tmp_name']);
+        $result['name'] = $file['name'];
+        $result['type'] = $file['type'];
+        $result['size'] = $file['size'];
+        
+        return $result;
+    }
+
+    // Processar upload de evidências
+    private function processEvidenciasUpload(array $files): array
+    {
+        $evidencias = [];
+        
+        if (empty($files['tmp_name'])) {
+            return $evidencias;
+        }
+        
+        foreach ($files['tmp_name'] as $key => $tmpName) {
+            if ($files['error'][$key] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            
+            // Validar tipo de imagem
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($files['type'][$key], $allowedTypes)) {
+                continue; // Pular arquivos inválidos
+            }
+            
+            // Validar tamanho (5MB max por imagem)
+            if ($files['size'][$key] > 5 * 1024 * 1024) {
+                continue; // Pular arquivos muito grandes
+            }
+            
+            $evidencias[] = [
+                'blob' => file_get_contents($tmpName),
+                'name' => $files['name'][$key],
+                'type' => $files['type'][$key],
+                'size' => $files['size'][$key]
+            ];
+        }
+        
+        return $evidencias;
+    }
+
+    // Inserir amostragem no banco
+    private function insertAmostragem(array $data): int
+    {
+        // Preparar dados para inserção
+        $params = [
+            ':numero_nf' => $data['numero_nf'],
+            ':status' => $data['status'],
+            ':observacao' => $data['observacao'],
+            ':responsaveis' => json_encode($data['responsaveis'])
+        ];
+        
+        // Campos base
+        $columns = ['numero_nf', 'status', 'observacao', 'responsaveis'];
+        $placeholders = [':numero_nf', ':status', ':observacao', ':responsaveis'];
+        
+        // PDF em BLOB
+        if (!empty($data['pdf']['blob'])) {
+            $columns[] = 'arquivo_nf_blob';
+            $columns[] = 'arquivo_nf_name';
+            $columns[] = 'arquivo_nf_type';
+            $columns[] = 'arquivo_nf_size';
+            $placeholders[] = ':arquivo_nf_blob';
+            $placeholders[] = ':arquivo_nf_name';
+            $placeholders[] = ':arquivo_nf_type';
+            $placeholders[] = ':arquivo_nf_size';
+            
+            $params[':arquivo_nf_blob'] = $data['pdf']['blob'];
+            $params[':arquivo_nf_name'] = $data['pdf']['name'];
+            $params[':arquivo_nf_type'] = $data['pdf']['type'];
+            $params[':arquivo_nf_size'] = $data['pdf']['size'];
+        }
+        
+        // Timestamp
+        $columns[] = 'data_registro';
+        $placeholders[] = 'NOW()';
+        
+        $sql = 'INSERT INTO amostragens (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        
+        $amostragemId = (int)$this->db->lastInsertId();
+        
+        // Salvar evidências em tabela separada
+        if (!empty($data['evidencias']) && $amostragemId) {
+            $this->saveEvidenciasToDatabase($amostragemId, $data['evidencias']);
+        }
+        
+        return $amostragemId;
+    }
+
+    // Salvar evidências na tabela separada
+    private function saveEvidenciasToDatabase(int $amostragemId, array $evidencias): void
+    {
+        $stmt = $this->db->prepare('INSERT INTO amostragens_evidencias (amostragem_id, image, name, type, size) VALUES (?, ?, ?, ?, ?)');
+        
+        foreach ($evidencias as $evidencia) {
+            $stmt->execute([
+                $amostragemId,
+                $evidencia['blob'],
+                $evidencia['name'],
+                $evidencia['type'],
+                $evidencia['size']
+            ]);
+        }
+    }
+
+    // Enviar emails para responsáveis
+    private function sendEmailToResponsaveis(array $responsaveis, string $numero_nf, string $status, int $amostragemId): void
     {
         try {
+            // Extrair nomes e emails
+            $names = [];
+            $emails = [];
+            
+            foreach ($responsaveis as $resp) {
+                if (!empty($resp['name'])) {
+                    $names[] = $resp['name'];
+                }
+                if (!empty($resp['email'])) {
+                    $emails[] = $resp['email'];
+                }
+            }
+            
+            // Se não temos emails, buscar no banco pelos nomes
             $users = [];
-            // If we don't have emails, try to resolve by names in DB
             if (empty($emails) && !empty($names)) {
                 $placeholders = str_repeat('?,', count($names) - 1) . '?';
                 $stmt = $this->db->prepare("SELECT name, email FROM users WHERE name IN ($placeholders) AND status = 'active'");
@@ -225,152 +298,91 @@ class AmostragemController
                 <p><strong>Status:</strong> " . ucfirst($status) . "</p>
                 <p><strong>Responsáveis:</strong> " . implode(', ', $names) . "</p>
                 <p><strong>Data de Registro:</strong> " . date('d/m/Y H:i') . "</p>
-            ";
-
-            if (!empty($arquivo_nf)) {
-                $message .= "<p><strong>Anexo PDF:</strong> Disponível no sistema</p>";
-            }
-
-            if (!empty($fotos)) {
-                $message .= "<p><strong>Fotos:</strong> " . count($fotos) . " foto(s) anexada(s)</p>";
-            }
-
-            $message .= "
                 <br>
                 <p>Acesse o sistema para visualizar todos os detalhes e anexos.</p>
                 <p><em>Este é um e-mail automático do Sistema SGQ-OTI DJ</em></p>
             ";
 
-            // Use EmailService if available
+            // Usar EmailService se disponível
             if (class_exists('\\App\\Services\\EmailService')) {
                 $emailService = new \App\Services\EmailService();
 
-                // Prefer direct emails provided in request
+                // Preferir emails diretos
                 if (!empty($emails)) {
                     foreach ($emails as $email) {
-                        $emailService->send(
-                            $email,
-                            '',
-                            $subject,
-                            $message
-                        );
+                        $emailService->send($email, '', $subject, $message);
                     }
                 } elseif (!empty($users)) {
                     foreach ($users as $user) {
                         if (!empty($user['email'])) {
-                            $emailService->send(
-                                $user['email'],
-                                $user['name'] ?? '',
-                                $subject,
-                                $message
-                            );
+                            $emailService->send($user['email'], $user['name'] ?? '', $subject, $message);
                         }
                     }
                 }
             }
         } catch (\Exception $e) {
+            // Log error but don't fail the request
             error_log("Erro ao enviar email para responsáveis: " . $e->getMessage());
         }
     }
 
-    public function update($id)
-    {
-        header('Content-Type: application/json');
-        
-        try {
-            $numero_nf = $_POST['numero_nf'] ?? '';
-            $status = $_POST['status'] ?? '';
-            $observacao = $_POST['observacao'] ?? '';
-            
-            if (empty($numero_nf) || empty($status)) {
-                echo json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
-                return;
-            }
-
-            $stmt = $this->db->prepare("
-                UPDATE amostragens 
-                SET numero_nf = :numero_nf, status = :status, observacao = :observacao 
-                WHERE id = :id
-            ");
-
-            $stmt->execute([
-                ':numero_nf' => $numero_nf,
-                ':status' => $status,
-                ':observacao' => $observacao,
-                ':id' => $id
-            ]);
-
-            echo json_encode(['success' => true, 'message' => 'Amostragem atualizada com sucesso!']);
-
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar amostragem: ' . $e->getMessage()]);
-        }
-    }
-
+    // Deletar amostragem
     public function delete($id)
     {
         header('Content-Type: application/json');
         
         try {
-            // Get file paths before deletion
-            $stmt = $this->db->prepare("SELECT arquivo_nf, evidencias FROM amostragens WHERE id = :id");
-            $stmt->execute([':id' => $id]);
-            $amostragem = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-            if ($amostragem) {
-                // Delete files
-                if (!empty($amostragem['arquivo_nf']) && file_exists($amostragem['arquivo_nf'])) {
-                    unlink($amostragem['arquivo_nf']);
-                }
-
-                if (!empty($amostragem['evidencias'])) {
-                    $evidencias = json_decode($amostragem['evidencias'], true);
-                    if (is_array($evidencias)) {
-                        foreach ($evidencias as $evidencia) {
-                            if (file_exists($evidencia)) {
-                                unlink($evidencia);
-                            }
-                        }
-                    }
-                }
+            $id = (int)$id;
+            
+            // Verificar se existe
+            $stmt = $this->db->prepare("SELECT id FROM amostragens WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
+                return;
             }
-
-            // Delete record
-            $stmt = $this->db->prepare("DELETE FROM amostragens WHERE id = :id");
-            $stmt->execute([':id' => $id]);
-
+            
+            // Deletar (CASCADE vai remover evidências automaticamente)
+            $stmt = $this->db->prepare("DELETE FROM amostragens WHERE id = ?");
+            $stmt->execute([$id]);
+            
             echo json_encode(['success' => true, 'message' => 'Amostragem excluída com sucesso!']);
-
+            
         } catch (\Exception $e) {
+            http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao excluir amostragem: ' . $e->getMessage()]);
         }
     }
 
+    // Servir PDF
     public function show($id)
     {
-        header('Content-Type: application/json');
-        
         try {
-            $stmt = $this->db->prepare("SELECT * FROM amostragens WHERE id = :id");
-            $stmt->execute([':id' => $id]);
+            $id = (int)$id;
+            
+            $stmt = $this->db->prepare("SELECT arquivo_nf_blob, arquivo_nf_name, arquivo_nf_type, arquivo_nf, numero_nf FROM amostragens WHERE id = ?");
+            $stmt->execute([$id]);
             $amostragem = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$amostragem) {
+                http_response_code(404);
                 echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
                 return;
             }
 
-            // Serve PDF file: preferir BLOB
+            // Servir PDF do BLOB
             if (!empty($amostragem['arquivo_nf_blob'])) {
                 $filename = $amostragem['arquivo_nf_name'] ?? ('NF_' . $amostragem['numero_nf'] . '.pdf');
                 $type = $amostragem['arquivo_nf_type'] ?? 'application/pdf';
+                
                 header('Content-Type: ' . $type);
                 header('Content-Disposition: attachment; filename="' . $filename . '"');
                 echo $amostragem['arquivo_nf_blob'];
                 exit;
             }
             
-            // Fallback: filesystem
+            // Fallback: filesystem (se ainda existir)
             if (!empty($amostragem['arquivo_nf']) && file_exists($amostragem['arquivo_nf'])) {
                 header('Content-Type: application/pdf');
                 header('Content-Disposition: attachment; filename="NF_' . $amostragem['numero_nf'] . '.pdf"');
@@ -378,60 +390,22 @@ class AmostragemController
                 exit;
             }
 
+            http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Arquivo PDF não encontrado']);
 
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao buscar amostragem: ' . $e->getMessage()]);
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao buscar PDF: ' . $e->getMessage()]);
         }
     }
 
-    // Helper: verifica se a coluna existe na tabela
-    private function hasColumn(string $table, string $column): bool
-    {
-        try {
-            $stmt = $this->db->prepare("SHOW COLUMNS FROM `{$table}` LIKE ?");
-            $stmt->execute([$column]);
-            return (bool)$stmt->fetch();
-        } catch (\PDOException $e) {
-            return false;
-        }
-    }
-
-    // Helper: verifica se a tabela existe
-    private function hasTable(string $table): bool
-    {
-        try {
-            $stmt = $this->db->prepare("SHOW TABLES LIKE ?");
-            $stmt->execute([$table]);
-            return (bool)$stmt->fetch();
-        } catch (\PDOException $e) {
-            return false;
-        }
-    }
-
-    // Salva evidências na tabela separada
-    private function saveEvidenciasToTable(int $amostragemId, array $files): void
-    {
-        if (empty($files['tmp_name'])) return;
-        
-        $stmt = $this->db->prepare("INSERT INTO amostragens_evidencias (amostragem_id, image, name, type, size) VALUES (?, ?, ?, ?, ?)");
-        
-        foreach ($files['tmp_name'] as $key => $tmpName) {
-            if ($files['error'][$key] === UPLOAD_ERR_OK) {
-                $imageBlob = file_get_contents($tmpName);
-                $name = $files['name'][$key] ?? null;
-                $type = $files['type'][$key] ?? null;
-                $size = $files['size'][$key] ?? 0;
-                
-                $stmt->execute([$amostragemId, $imageBlob, $name, $type, $size]);
-            }
-        }
-    }
-
-    // Endpoint para servir evidências do banco
+    // Servir evidência
     public function evidencia($amostragemId, $evidenciaId)
     {
         try {
+            $amostragemId = (int)$amostragemId;
+            $evidenciaId = (int)$evidenciaId;
+            
             $stmt = $this->db->prepare("SELECT image, name, type FROM amostragens_evidencias WHERE id = ? AND amostragem_id = ?");
             $stmt->execute([$evidenciaId, $amostragemId]);
             $evidencia = $stmt->fetch(\PDO::FETCH_ASSOC);

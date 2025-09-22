@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Sistema de Amostragens</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste Sistema de Amostragens - MEDIUMBLOB</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Checklist de Testes</h3>
+        <ul>
+            <li>✅ Migration 10 executada (tabelas recriadas)</li>
+            <li>✅ AmostragemController reescrito</li>
+            <li>✅ View atualizada</li>
+            <li>✅ Rotas configuradas</li>
+            <li>🔄 Teste de API de usuários</li>
+            <li>🔄 Teste de salvamento com BLOB</li>
+            <li>🔄 Teste de download de PDF</li>
+            <li>🔄 Teste de evidências</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>1. Testar API de Usuários</h3>
+        <button onclick="testUsersAPI()">Testar /api/users</button>
+        <div id="users-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Testar Estrutura do Banco</h3>
+        <button onclick="testDatabaseStructure()">Verificar Tabelas</button>
+        <div id="db-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Instruções para Teste Manual</h3>
+        <ol>
+            <li><strong>Deletar banco atual:</strong> Execute no MySQL: <code>DROP DATABASE sgqoti;</code></li>
+            <li><strong>Recriar banco:</strong> <code>CREATE DATABASE sgqoti;</code></li>
+            <li><strong>Acessar sistema:</strong> As migrations vão recriar tudo automaticamente</li>
+            <li><strong>Ir para Amostragens:</strong> Menu → Amostragens</li>
+            <li><strong>Criar nova amostragem:</strong> 
+                <ul>
+                    <li>Preencher número da NF</li>
+                    <li>Selecionar responsáveis</li>
+                    <li>Anexar PDF (será salvo em MEDIUMBLOB)</li>
+                    <li>Se status = reprovado, anexar fotos (MEDIUMBLOB)</li>
+                </ul>
+            </li>
+            <li><strong>Verificar:</strong> PDF e fotos devem ser servidos diretamente do banco</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Comandos SQL para Verificação</h3>
+        <pre>-- Verificar estrutura da tabela amostragens
+DESCRIBE amostragens;
+
+-- Verificar estrutura da tabela amostragens_evidencias  
+DESCRIBE amostragens_evidencias;
+
+-- Ver amostragens com tamanho dos BLOBs
+SELECT id, numero_nf, status, 
+       LENGTH(arquivo_nf_blob) as pdf_size,
+       arquivo_nf_name,
+       (SELECT COUNT(*) FROM amostragens_evidencias WHERE amostragem_id = a.id) as evidencias_count
+FROM amostragens a;
+
+-- Ver evidências com tamanho das imagens
+SELECT id, amostragem_id, name, type, LENGTH(image) as image_size 
+FROM amostragens_evidencias;</pre>
+    </div>
+
+    <div class="test-section">
+        <h3>5. URLs de Teste</h3>
+        <ul>
+            <li><strong>Página de Amostragens:</strong> <a href="/toners/amostragens" target="_blank">/toners/amostragens</a></li>
+            <li><strong>API de Usuários:</strong> <a href="/api/users" target="_blank">/api/users</a></li>
+            <li><strong>PDF de Amostragem:</strong> /toners/amostragens/{id}/pdf</li>
+            <li><strong>Evidência:</strong> /toners/amostragens/{id}/evidencia/{evidenciaId}</li>
+        </ul>
+    </div>
+
+    <script>
+        async function testUsersAPI() {
+            const resultDiv = document.getElementById('users-result');
+            resultDiv.innerHTML = '<p>🔄 Testando...</p>';
+            
+            try {
+                const response = await fetch('/api/users');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ API de Usuários funcionando!</h4>
+                            <p><strong>Usuários encontrados:</strong> ${data.length}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Erro na API</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Erro de conexão</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testDatabaseStructure() {
+            const resultDiv = document.getElementById('db-result');
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <h4>📋 Para verificar a estrutura do banco:</h4>
+                    <ol>
+                        <li>Acesse o phpMyAdmin ou MySQL</li>
+                        <li>Execute: <code>SHOW TABLES;</code></li>
+                        <li>Verifique se existem: <code>amostragens</code> e <code>amostragens_evidencias</code></li>
+                        <li>Execute: <code>DESCRIBE amostragens;</code></li>
+                        <li>Verifique se há colunas: <code>arquivo_nf_blob</code>, <code>arquivo_nf_name</code>, etc.</li>
+                    </ol>
+                </div>
+            `;
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            console.log('🧪 Sistema de Amostragens - Teste iniciado');
+            console.log('📋 Checklist:');
+            console.log('✅ Migration 10 - Tabelas recriadas com MEDIUMBLOB');
+            console.log('✅ AmostragemController - Reescrito do zero');
+            console.log('✅ View - Atualizada para nova estrutura');
+            console.log('✅ Rotas - Configuradas para PDF e evidências');
+            console.log('🔄 Pronto para testes manuais!');
+        };
+    </script>
+</body>
+</html>

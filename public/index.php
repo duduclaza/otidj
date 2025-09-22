@@ -76,6 +76,7 @@ $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class
 // Amostragens actions
 $router->post('/toners/amostragens', [App\Controllers\AmostragemController::class, 'store']);
 $router->delete('/toners/amostragens/{id}', [App\Controllers\AmostragemController::class, 'delete']);
+$router->get('/toners/amostragens/{id}/pdf', [App\Controllers\AmostragemController::class, 'show']);
 $router->get('/toners/amostragens/{id}/evidencia/{evidenciaId}', [App\Controllers\AmostragemController::class, 'evidencia']);
 $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
 
