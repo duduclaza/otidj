@@ -709,8 +709,8 @@ async function updateStatus(id, newStatus) {
     const currentObs = obsInput ? obsInput.value.trim() : '';
     formData.append('observacao', currentObs);
     
-    const response = await fetch(`/toners/amostragens/${id}`, {
-      method: 'PUT',
+    const response = await fetch(`/toners/amostragens/${id}/update`, {
+      method: 'POST',
       body: formData
     });
     
@@ -780,8 +780,8 @@ async function saveObservacao(id) {
     formData.append('status', currentStatus);
     formData.append('observacao', observacao);
     
-    const response = await fetch(`/toners/amostragens/${id}`, {
-      method: 'PUT',
+    const response = await fetch(`/toners/amostragens/${id}/update`, {
+      method: 'POST',
       body: formData
     });
     

@@ -114,8 +114,8 @@ class AmostragemController
                 'evidencias' => $evidenciasData
             ]);
 
-            // Enviar emails para responsáveis (temporariamente desabilitado para debug)
-            // $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
+            // Enviar emails para responsáveis
+            $this->sendEmailToResponsaveis($responsaveisParsed, $numero_nf, $status, $amostragemId);
             
             echo json_encode(['success' => true, 'message' => 'Amostragem registrada com sucesso!', 'id' => $amostragemId]);
             exit;
