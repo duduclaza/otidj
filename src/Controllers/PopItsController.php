@@ -30,10 +30,62 @@ class PopItsController
             
             $titulos = $this->getTitulos();
             echo "Títulos carregados: " . count($titulos) . "<br>";
-            
-            echo "Dados carregados com sucesso. Incluindo view...<br>";
-            
-            include __DIR__ . '/../../views/pages/pops-its/index.php';
+            echo "Dados carregados com sucesso. Testando view...<br>";
+                
+            // Teste da view por partes
+            echo "Testando função hasPermission...<br>";
+                
+            // Testar função hasPermission diretamente
+            function hasPermission($module, $action = 'view') {
+                if (!isset($_SESSION['user_id'])) {
+                    return false;
+                }
+                
+                // Admin has all permissions
+                if (isset($_SESSION['profile']) && $_SESSION['profile'] === 'Administrador') {
+                    return true;
+                }
+                
+                if (!isset($_SESSION['permissions'])) {
+                    return false;
+                }
+                
+                foreach ($_SESSION['permissions'] as $permission) {
+                    if ($permission['module'] === $module) {
+                        switch ($action) {
+                            case 'view': return (bool)$permission['can_view'];
+                            case 'edit': return (bool)$permission['can_edit'];
+                            case 'delete': return (bool)$permission['can_delete'];
+                            case 'import': return (bool)$permission['can_import'];
+                            case 'export': return (bool)$permission['can_export'];
+                        }
+                    }
+                }
+                
+                return false;
+            }
+                
+            echo "Função hasPermission definida. Testando permissões...<br>";
+                
+            $canViewCadastroTitulos = hasPermission('pops_its_cadastro_titulos', 'view');
+            echo "Permissão Cadastro Títulos: " . ($canViewCadastroTitulos ? 'SIM' : 'NÃO') . "<br>";
+                
+            $canViewMeusRegistros = hasPermission('pops_its_meus_registros', 'view');
+            echo "Permissão Meus Registros: " . ($canViewMeusRegistros ? 'SIM' : 'NÃO') . "<br>";
+                
+            $canViewPendenteAprovacao = hasPermission('pops_its_pendente_aprovacao', 'view');
+            echo "Permissão Pendente Aprovação: " . ($canViewPendenteAprovacao ? 'SIM' : 'NÃO') . "<br>";
+                
+            $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
+            echo "Permissão Visualização: " . ($canViewVisualizacao ? 'SIM' : 'NÃO') . "<br>";
+                
+            echo "Permissões testadas. Incluindo view simplificada...<br>";
+                
+            // View simplificada para teste
+            echo '<h1>POPs e ITs - Teste</h1>';
+            echo '<p>View carregada com sucesso!</p>';
+                
+            echo "View testada com sucesso!<br>";
                     
         } catch (\Exception $e) {
             // Debug temporário
