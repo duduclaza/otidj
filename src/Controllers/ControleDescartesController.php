@@ -120,6 +120,8 @@ class ControleDescartesController
     // Criar novo descarte
     public function create()
     {
+        // Limpar qualquer output anterior
+        ob_clean();
         header('Content-Type: application/json');
         
         try {
@@ -198,7 +200,11 @@ class ControleDescartesController
             $descarte_id = $this->db->lastInsertId();
 
             echo json_encode(['success' => true, 'message' => 'Descarte registrado com sucesso!', 'descarte_id' => $descarte_id]);
+        } catch (\PDOException $e) {
+            error_log('Erro PDO no controle de descartes: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro de banco de dados: ' . $e->getMessage()]);
         } catch (\Exception $e) {
+            error_log('Erro geral no controle de descartes: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao registrar descarte: ' . $e->getMessage()]);
         }
     }
@@ -206,6 +212,8 @@ class ControleDescartesController
     // Atualizar descarte
     public function update()
     {
+        // Limpar qualquer output anterior
+        ob_clean();
         header('Content-Type: application/json');
         
         try {
@@ -306,6 +314,8 @@ class ControleDescartesController
     // Excluir descarte
     public function delete()
     {
+        // Limpar qualquer output anterior
+        ob_clean();
         header('Content-Type: application/json');
         
         try {
