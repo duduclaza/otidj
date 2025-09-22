@@ -120,6 +120,16 @@ $router->get('/auditorias/{id}', [App\Controllers\AuditoriasController::class, '
 $router->get('/auditorias/anexo/{id}', [App\Controllers\AuditoriasController::class, 'downloadAnexo']);
 $router->get('/auditorias/relatorios', [App\Controllers\AuditoriasController::class, 'relatorios']);
 
+// 5W2H routes
+$router->get('/5w2h', [App\Controllers\Planos5W2HController::class, 'index']);
+$router->get('/5w2h/list', [App\Controllers\Planos5W2HController::class, 'listPlanos']);
+$router->post('/5w2h/create', [App\Controllers\Planos5W2HController::class, 'create']);
+$router->post('/5w2h/update', [App\Controllers\Planos5W2HController::class, 'update']);
+$router->post('/5w2h/delete', [App\Controllers\Planos5W2HController::class, 'delete']);
+$router->get('/5w2h/{id}', [App\Controllers\Planos5W2HController::class, 'getPlano']);
+$router->get('/5w2h/anexo/{id}', [App\Controllers\Planos5W2HController::class, 'downloadAnexo']);
+$router->get('/5w2h/relatorios', [App\Controllers\Planos5W2HController::class, 'relatorios']);
+
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);
