@@ -47,10 +47,10 @@ if (session_status() === PHP_SESSION_NONE) {
   </div>
 
   <!-- Formulário Inline -->
-  <div id="melhoriaFormContainer" class="hidden bg-white border rounded-lg p-6">
+  <div id="melhoriaFormContainer" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-lg font-semibold text-gray-900">Nova Melhoria Contínua</h2>
-      <button id="closeMelhoriaFormBtn" class="text-gray-400 hover:text-gray-600">
+      <h2 class="text-lg font-semibold text-gray-100">Nova Melhoria Contínua</h2>
+      <button id="closeMelhoriaFormBtn" class="text-gray-400 hover:text-gray-200">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -61,14 +61,14 @@ if (session_status() === PHP_SESSION_NONE) {
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Data Automática -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Data de Registro</label>
-          <input type="text" readonly value="<?= date('d/m/Y H:i') ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+          <label class="block text-sm font-medium text-gray-200 mb-1">Data de Registro</label>
+          <input type="text" readonly value="<?= date('d/m/Y H:i') ?>" class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 cursor-not-allowed">
         </div>
 
         <!-- Departamento -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Departamento *</label>
-          <select id="departamento" name="departamento_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <label class="block text-sm font-medium text-gray-200 mb-1">Departamento *</label>
+          <select id="departamento" name="departamento_id" required class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
             <option value="">Selecione o departamento...</option>
             <!-- Carregado via JavaScript -->
           </select>
@@ -77,59 +77,59 @@ if (session_status() === PHP_SESSION_NONE) {
 
       <!-- Processo -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Processo *</label>
-        <input type="text" id="processo" name="processo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nome do processo a ser melhorado...">
+        <label class="block text-sm font-medium text-gray-200 mb-1">Processo *</label>
+        <input type="text" id="processo" name="processo" required class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nome do processo a ser melhorado...">
       </div>
 
       <!-- Descrição da Melhoria -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Descrição da Melhoria *</label>
-        <textarea id="descricaoMelhoria" name="descricao_melhoria" rows="4" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Descrição da Melhoria *</label>
+        <textarea id="descricaoMelhoria" name="descricao_melhoria" rows="4" required class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
       </div>
 
       <!-- Responsáveis -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Responsáveis pela Melhoria *</label>
-        <select id="responsaveis" name="responsaveis[]" multiple required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" style="min-height: 100px;">
+        <label class="block text-sm font-medium text-gray-200 mb-1">Responsáveis pela Melhoria *</label>
+        <select id="responsaveis" name="responsaveis[]" multiple required class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" style="min-height: 100px;">
           <!-- Carregado via JavaScript -->
         </select>
-        <p class="text-xs text-gray-500 mt-1">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplos responsáveis</p>
+        <p class="text-xs text-gray-400 mt-1">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplos responsáveis</p>
       </div>
 
       <!-- Status (readonly) -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-        <input type="text" readonly value="Pendente" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed">
+        <label class="block text-sm font-medium text-gray-200 mb-1">Status</label>
+        <input type="text" readonly value="Pendente" class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-yellow-900 text-yellow-200 cursor-not-allowed">
       </div>
 
       <!-- Pontuação (apenas para admins) -->
       <div id="pontuacaoContainer" class="hidden">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Pontuação (Admin)</label>
-        <input type="number" id="pontuacao" name="pontuacao" min="0" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0-100">
+        <label class="block text-sm font-medium text-gray-200 mb-1">Pontuação (Admin)</label>
+        <input type="number" id="pontuacao" name="pontuacao" min="0" max="100" class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0-100">
       </div>
 
       <!-- Observação -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Observação</label>
-        <textarea id="observacao" name="observacao" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Observações adicionais (opcional)..."></textarea>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Observação</label>
+        <textarea id="observacao" name="observacao" rows="3" class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Observações adicionais (opcional)..."></textarea>
       </div>
 
       <!-- Resultado -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Resultado</label>
-        <textarea id="resultado" name="resultado" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Resultado esperado ou obtido (opcional)..."></textarea>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Resultado</label>
+        <textarea id="resultado" name="resultado" rows="3" class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Resultado esperado ou obtido (opcional)..."></textarea>
       </div>
 
       <!-- Anexos -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Anexos (Imagens e PDFs)</label>
-        <input type="file" id="anexos" name="anexos[]" multiple accept="image/*,.pdf" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-        <p class="text-xs text-gray-500 mt-1">Máximo 10 arquivos, 10MB cada. Formatos: JPG, PNG, GIF, PDF</p>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Anexos (Imagens e PDFs)</label>
+        <input type="file" id="anexos" name="anexos[]" multiple accept="image/*,.pdf" class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <p class="text-xs text-gray-400 mt-1">Máximo 10 arquivos, 10MB cada. Formatos: JPG, PNG, GIF, PDF</p>
       </div>
 
       <!-- Botões -->
-      <div class="flex justify-end space-x-4 pt-4 border-t">
-        <button type="button" onclick="closeMelhoriaForm()" class="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+      <div class="flex justify-end space-x-4 pt-4 border-t border-gray-600">
+        <button type="button" onclick="closeMelhoriaForm()" class="px-6 py-2 text-sm font-medium text-gray-200 bg-gray-600 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors">
           Cancelar
         </button>
         <button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 transition-colors">
