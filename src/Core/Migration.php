@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 14;
+    private const CURRENT_VERSION = 15;
 
     public function __construct()
     {
@@ -102,6 +102,11 @@ class Migration
                 // Version 14: Create user invitations table
                 $this->migration14();
                 $this->updateVersion(14);
+            }
+            if ($currentVersion < 15) {
+                // Version 15: Update profile permissions for current modules
+                $this->migration15();
+                $this->updateVersion(15);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -515,7 +520,6 @@ class Migration
             'pops_its' => 'POPs e ITs',
             'fluxogramas' => 'Fluxogramas',
             'melhoria_continua' => 'Melhoria Contínua',
-            'solicitacao_melhorias' => 'Solicitação de Melhorias',
             'controle_rc' => 'Controle de RC',
             'registros_filiais' => 'Filiais',
             'registros_departamentos' => 'Departamentos',
@@ -551,8 +555,8 @@ class Migration
         $supervisorModules = [
             'dashboard', 'toners_cadastro', 'toners_retornados', 'amostragens', 
             'homologacoes', 'garantias', 'controle_descartes', 'femea', 
-            'pops_its', 'fluxogramas', 'registros_filiais', 'registros_departamentos', 
-            'registros_fornecedores', 'profile'
+            'pops_its', 'fluxogramas', 'melhoria_continua', 'registros_filiais', 
+            'registros_departamentos', 'registros_fornecedores', 'profile'
         ];
         foreach ($supervisorModules as $module) {
             $canEdit = in_array($module, [
@@ -582,13 +586,13 @@ class Migration
         // Analista de Qualidade permissions (foco em qualidade e análises)
         $analistaModules = [
             'dashboard', 'homologacoes', 'amostragens', 'garantias', 'femea', 
-            'pops_its', 'fluxogramas', 'melhoria_continua', 'solicitacao_melhorias', 
-            'controle_rc', 'toners_cadastro', 'toners_retornados', 'profile'
+            'pops_its', 'fluxogramas', 'melhoria_continua', 'controle_rc', 
+            'toners_cadastro', 'toners_retornados', 'profile'
         ];
         foreach ($analistaModules as $module) {
             $canEdit = in_array($module, [
                 'homologacoes', 'amostragens', 'femea', 'pops_its', 'fluxogramas', 
-                'melhoria_continua', 'solicitacao_melhorias', 'controle_rc', 'profile'
+                'melhoria_continua', 'controle_rc', 'profile'
             ]) ? 1 : 0;
             $canDelete = in_array($module, ['amostragens', 'homologacoes']) ? 1 : 0;
             $canExport = 1; // Analistas podem exportar dados para análise
@@ -885,5 +889,42 @@ class Migration
             INDEX idx_created_at (created_at),
             FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    }
+
+    private function migration15(): void
+    {
+        // Limpar permissões antigas do módulo solicitacao_melhorias que não existe mais
+        $this->db->exec("DELETE FROM profile_permissions WHERE module = 'solicitacao_melhorias'");
+        
+        // Adicionar permissão de melhoria_continua para perfis que não têm
+        $profiles = ['Supervisor', 'Analista de Qualidade'];
+        
+        foreach ($profiles as $profileName) {
+            $profileId = $this->getProfileIdByName($profileName);
+            if ($profileId) {
+                // Verificar se já existe a permissão
+                $stmt = $this->db->prepare("SELECT COUNT(*) FROM profile_permissions WHERE profile_id = ? AND module = 'melhoria_continua'");
+                $stmt->execute([$profileId]);
+                
+                if ($stmt->fetchColumn() == 0) {
+                    // Adicionar permissão de melhoria_continua
+                    $canEdit = ($profileName === 'Analista de Qualidade') ? 1 : 0;
+                    $stmt = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, 'melhoria_continua', 1, ?, 0, 0, 1)");
+                    $stmt->execute([$profileId, $canEdit]);
+                }
+            }
+        }
+        
+        // Atualizar permissões do usuário comum para incluir melhoria_continua (apenas visualização)
+        $userProfileId = $this->getProfileIdByName('Usuário Comum');
+        if ($userProfileId) {
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM profile_permissions WHERE profile_id = ? AND module = 'melhoria_continua'");
+            $stmt->execute([$userProfileId]);
+            
+            if ($stmt->fetchColumn() == 0) {
+                $stmt = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, 'melhoria_continua', 1, 1, 0, 0, 0)");
+                $stmt->execute([$userProfileId]);
+            }
+        }
     }
 }
