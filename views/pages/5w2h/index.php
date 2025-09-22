@@ -71,7 +71,7 @@ if (!isset($_SESSION['user_id'])) {
             <p class="text-gray-600 mt-1">Preencha os campos abaixo para criar um novo plano de ação</p>
         </div>
 
-        <form id="planoForm">
+        <form id="planoForm" class="ajax-form">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- O QUE (What) -->
                 <div class="md:col-span-2">
