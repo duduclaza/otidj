@@ -593,12 +593,12 @@ function showPlanoDetails(plano) {
 // Excluir plano
 function deletePlano(id) {
     if (confirm('Tem certeza que deseja excluir este plano?')) {
+        const formData = new FormData();
+        formData.append('id', id);
+        
         fetch(`/5w2h/delete`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id: id })
+            body: formData
         })
         .then(response => response.json())
         .then(data => {
