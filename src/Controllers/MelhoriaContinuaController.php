@@ -422,6 +422,61 @@ class MelhoriaContinuaController
         }
     }
 
+    // Buscar anexos de uma melhoria
+    public function getAnexos($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("
+                SELECT id, nome_arquivo, tipo_arquivo, tamanho_arquivo, created_at
+                FROM melhorias_continuas_anexos
+                WHERE melhoria_id = ?
+                ORDER BY created_at
+            ");
+            $stmt->execute([(int)$id]);
+            $anexos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $anexos]);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar anexos: ' . $e->getMessage()]);
+        }
+    }
+
+    // Download de anexo
+    public function downloadAnexo($anexoId)
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT nome_arquivo, tipo_arquivo, arquivo
+                FROM melhorias_continuas_anexos
+                WHERE id = ?
+            ");
+            $stmt->execute([(int)$anexoId]);
+            $anexo = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$anexo) {
+                http_response_code(404);
+                echo 'Anexo não encontrado';
+                return;
+            }
+            
+            // Headers para download
+            header('Content-Type: ' . $anexo['tipo_arquivo']);
+            header('Content-Disposition: attachment; filename="' . $anexo['nome_arquivo'] . '"');
+            header('Content-Length: ' . strlen($anexo['arquivo']));
+            
+            // Enviar arquivo
+            echo $anexo['arquivo'];
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo 'Erro ao baixar anexo: ' . $e->getMessage();
+        }
+    }
+
     // Verificar se é admin
     private function isAdmin()
     {

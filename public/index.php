@@ -147,6 +147,8 @@ $router->post('/melhoria-continua/{id}/observacao', [App\Controllers\MelhoriaCon
 $router->post('/melhoria-continua/{id}/resultado', [App\Controllers\MelhoriaContinuaController::class, 'updateResultado']);
 $router->delete('/melhoria-continua/{id}/delete', [App\Controllers\MelhoriaContinuaController::class, 'delete']);
 $router->get('/melhoria-continua/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
+$router->get('/melhoria-continua/{id}/anexos', [App\Controllers\MelhoriaContinuaController::class, 'getAnexos']);
+$router->get('/melhoria-continua/anexo/{anexoId}', [App\Controllers\MelhoriaContinuaController::class, 'downloadAnexo']);
 
 // Dispatch
 try {

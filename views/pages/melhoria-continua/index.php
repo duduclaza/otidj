@@ -1,3 +1,8 @@
+<?php 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
 <?php if (isset($error)): ?>
   <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
     <?= e($error) ?>
@@ -171,6 +176,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // Verificar se é admin
   isAdmin = checkIfAdmin();
   
+  // Debug: verificar se admin foi detectado
+  console.log('Admin detectado:', isAdmin);
+  
   // Mostrar campo de pontuação para admins
   if (isAdmin) {
     document.getElementById('pontuacaoContainer').classList.remove('hidden');
@@ -190,9 +198,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Verificar se é admin
 function checkIfAdmin() {
-  // Esta função deve verificar o papel do usuário na sessão
-  // Por enquanto, retorna false - implementar conforme necessário
-  return false;
+  // Verificar se o usuário é admin através da sessão PHP
+  <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
+    return true;
+  <?php else: ?>
+    return false;
+  <?php endif; ?>
 }
 
 // Carregar departamentos
@@ -297,7 +308,7 @@ function renderMelhoriaTable() {
         ${isAdmin ? `<span class="editable-pontuacao cursor-pointer hover:bg-yellow-100 px-2 py-1 rounded" data-id="${item.id}">${item.pontuacao || '-'}</span>` : (item.pontuacao || '-')}
       </td>
       <td class="px-4 py-3 text-center text-sm">
-        ${item.total_anexos > 0 ? `<span class="text-blue-600">${item.total_anexos} arquivo(s)</span>` : '-'}
+        ${item.total_anexos > 0 ? `<button onclick="viewAnexos(${item.id})" class="text-blue-600 hover:text-blue-800 underline">${item.total_anexos} arquivo(s)</button>` : '-'}
       </td>
       <td class="px-4 py-3 text-sm">
         <div class="flex space-x-2">
@@ -562,6 +573,59 @@ async function deleteMelhoria(id) {
   } catch (error) {
     console.error('Erro ao excluir:', error);
     alert('Erro ao excluir melhoria');
+  }
+}
+
+// Visualizar anexos
+async function viewAnexos(id) {
+  try {
+    const response = await fetch(`/melhoria-continua/${id}/anexos`);
+    const result = await response.json();
+    
+    if (result.success && result.data.length > 0) {
+      let anexosHtml = '<div class="space-y-2">';
+      result.data.forEach(anexo => {
+        const size = (anexo.tamanho_arquivo / 1024 / 1024).toFixed(2);
+        anexosHtml += `
+          <div class="flex items-center justify-between p-3 border rounded">
+            <div>
+              <div class="font-medium">${anexo.nome_arquivo}</div>
+              <div class="text-sm text-gray-500">${anexo.tipo_arquivo} - ${size} MB</div>
+            </div>
+            <a href="/melhoria-continua/anexo/${anexo.id}" 
+               class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+               download>
+              Baixar
+            </a>
+          </div>
+        `;
+      });
+      anexosHtml += '</div>';
+      
+      // Criar modal simples
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+      modal.innerHTML = `
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Anexos da Melhoria</h3>
+            <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          ${anexosHtml}
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+    } else {
+      alert('Nenhum anexo encontrado');
+    }
+  } catch (error) {
+    console.error('Erro ao carregar anexos:', error);
+    alert('Erro ao carregar anexos');
   }
 }
 </script>
