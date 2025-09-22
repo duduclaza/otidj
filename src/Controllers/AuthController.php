@@ -117,6 +117,14 @@ class AuthController
     /**
      * Process registration (invitation request)
      */
+    public function processRegister()
+    {
+        return $this->requestInvitation();
+    }
+    
+    /**
+     * Process registration (invitation request)
+     */
     public function requestInvitation()
     {
         header('Content-Type: application/json');
@@ -138,6 +146,11 @@ class AuthController
         }
         
         try {
+            // Ensure DB connection (lazy)
+            if ($this->db === null) {
+                $this->db = Database::getInstance();
+            }
+            
             // Check if user already exists
             $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
             $stmt->execute([$email]);

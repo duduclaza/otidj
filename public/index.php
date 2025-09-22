@@ -46,6 +46,8 @@ $router = new Router(__DIR__);
 $router->get('/login', [App\Controllers\AuthController::class, 'login']);
 $router->post('/auth/login', [App\Controllers\AuthController::class, 'authenticate']);
 $router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
+$router->get('/register', [App\Controllers\AuthController::class, 'register']);
+$router->post('/auth/register', [App\Controllers\AuthController::class, 'processRegister']);
 
 // Lightweight root: redirect unauthenticated users to /login to avoid heavy controller
 $router->get('/', function() {
