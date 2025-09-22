@@ -18,6 +18,153 @@ class Migration
             if (strpos($e->getMessage(), 'max_connections_per_hour') !== false) {
                 throw new \Exception('Database connection limit exceeded');
             }
+            throw $e;
+        }
+
+        $this->runMigrations();
+    }
+
+    public function runMigrations(): void
+    {
+        try {
+            $this->createMigrationsTable();
+            $currentVersion = $this->getCurrentVersion();
+
+            if ($currentVersion < 1) {
+                // Version 1: Initial setup
+                $this->migration1();
+                $this->updateVersion(1);
+            }
+            if ($currentVersion < 2) {
+                // Version 2: Add profiles and permissions
+                $this->migration2();
+                $this->updateVersion(2);
+            }
+            if ($currentVersion < 3) {
+                // Version 3: Add user invitations
+                $this->migration3();
+                $this->updateVersion(3);
+            }
+            if ($currentVersion < 4) {
+                // Version 4: Add toners table
+                $this->migration4();
+                $this->updateVersion(4);
+            }
+            if ($currentVersion < 5) {
+                // Version 5: Add retornados table
+                $this->migration5();
+                $this->updateVersion(5);
+            }
+            if ($currentVersion < 6) {
+                // Version 6: Add amostragens system
+                $this->migration6();
+                $this->updateVersion(6);
+            }
+            if ($currentVersion < 7) {
+                // Version 7: Add notifications system
+                $this->migration7();
+                $this->updateVersion(7);
+            }
+            if ($currentVersion < 8) {
+                // Version 8: Add melhorias system
+                $this->migration8();
+                $this->updateVersion(8);
+            }
+            if ($currentVersion < 9) {
+                // Version 9: Add departamentos and filiais
+                $this->migration9();
+                $this->updateVersion(9);
+            }
+            if ($currentVersion < 10) {
+                // Version 10: Add fornecedores
+                $this->migration10();
+                $this->updateVersion(10);
+            }
+            if ($currentVersion < 11) {
+                // Version 11: Add parametros_retornados
+                $this->migration11();
+                $this->updateVersion(11);
+            }
+            if ($currentVersion < 12) {
+                // Version 12: Add homologacoes system
+                $this->migration12();
+                $this->updateVersion(12);
+            }
+            if ($currentVersion < 13) {
+                // Version 13: Add FEMEA system
+                $this->migration13();
+                $this->updateVersion(13);
+            }
+            if ($currentVersion < 14) {
+                // Version 14: Add POPs e ITs system
+                $this->migration14();
+                $this->updateVersion(14);
+            }
+            if ($currentVersion < 15) {
+                // Version 15: Add Fluxogramas system
+                $this->migration15();
+                $this->updateVersion(15);
+            }
+            if ($currentVersion < 16) {
+                // Version 16: Add Controle RC system
+                $this->migration16();
+                $this->updateVersion(16);
+            }
+            if ($currentVersion < 17) {
+                // Version 17: Create 5W2H system tables
+                $this->migration17();
+                $this->updateVersion(17);
+            }
+            if ($currentVersion < 18) {
+                // Version 18: Create Controle de Descartes system tables
+                $this->migration18();
+                $this->updateVersion(18);
+            }
+            if ($currentVersion < 19) {
+                // Version 19: Create Auditorias system tables
+                $this->migration19();
+                $this->updateVersion(19);
+            }
+            if ($currentVersion < 20) {
+                // Version 20: Create Garantias system tables
+                $this->migration20();
+                $this->updateVersion(20);
+            }
+        } catch (\PDOException $e) {
+            // Skip migrations if connection limit exceeded
+            if (strpos($e->getMessage(), 'max_connections_per_hour') !== false) {
+                return;
+            }
+            throw $e;
+        }
+    }
+
+    private function createMigrationsTable(): void
+    {
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS migrations (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                version INT NOT NULL UNIQUE,
+                executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ");
+    }
+
+    private function getCurrentVersion(): int
+    {
+        try {
+            $stmt = $this->db->query("SELECT MAX(version) FROM migrations");
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            return 0;
+        }
+    }
+
+    private function updateVersion(int $version): void
+    {
+        $stmt = $this->db->prepare("INSERT INTO migrations (version) VALUES (?)");
+        $stmt->execute([$version]);
+    }
 
     private function migration20(): void
     {
