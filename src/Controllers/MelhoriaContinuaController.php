@@ -101,6 +101,7 @@ class MelhoriaContinuaController
             $departamento_id = (int)($_POST['departamento_id'] ?? 0);
             $processo = trim($_POST['processo'] ?? '');
             $descricao_melhoria = trim($_POST['descricao_melhoria'] ?? '');
+            $idealizador = trim($_POST['idealizador'] ?? '');
             $responsaveis = $_POST['responsaveis'] ?? [];
             $observacao = trim($_POST['observacao'] ?? '');
             $resultado = trim($_POST['resultado'] ?? '');
@@ -130,14 +131,15 @@ class MelhoriaContinuaController
             
             // Inserir melhoria
             $stmt = $this->db->prepare("
-                INSERT INTO melhorias_continuas (departamento_id, processo, descricao_melhoria, observacao, resultado, created_by) 
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO melhorias_continuas (departamento_id, processo, descricao_melhoria, idealizador, observacao, resultado, created_by) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
             
             $stmt->execute([
                 $departamento_id,
                 $processo,
                 $descricao_melhoria,
+                $idealizador,
                 $observacao,
                 $resultado,
                 $_SESSION['user_id'] ?? null

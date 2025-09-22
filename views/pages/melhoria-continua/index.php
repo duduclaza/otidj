@@ -87,13 +87,23 @@ if (session_status() === PHP_SESSION_NONE) {
         <textarea id="descricaoMelhoria" name="descricao_melhoria" rows="4" required class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
       </div>
 
-      <!-- Responsáveis -->
-      <div>
-        <label class="block text-sm font-medium text-gray-200 mb-1">Responsáveis pela Melhoria *</label>
-        <select id="responsaveis" name="responsaveis[]" multiple required class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" style="min-height: 100px;">
-          <!-- Carregado via JavaScript -->
-        </select>
-        <p class="text-xs text-gray-400 mt-1">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplos responsáveis</p>
+      <!-- Responsáveis e Idealizador -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Responsáveis -->
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Responsáveis pela Melhoria *</label>
+          <select id="responsaveis" name="responsaveis[]" multiple required class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" style="min-height: 100px;">
+            <!-- Carregado via JavaScript -->
+          </select>
+          <p class="text-xs text-gray-400 mt-1">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar múltiplos responsáveis</p>
+        </div>
+
+        <!-- Idealizador -->
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Idealizador</label>
+          <input type="text" id="idealizador" name="idealizador" class="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nome do idealizador da melhoria...">
+          <p class="text-xs text-gray-400 mt-1">Pessoa que idealizou ou sugeriu a melhoria</p>
+        </div>
       </div>
 
       <!-- Status (readonly) -->
