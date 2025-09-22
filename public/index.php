@@ -133,6 +133,7 @@ $router->get('/5w2h/relatorios', [App\Controllers\Planos5W2HController::class, '
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);
+$router->get('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);
 // Admin: sincronizar permissões do Administrador
 $router->post('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);
 $router->get('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);

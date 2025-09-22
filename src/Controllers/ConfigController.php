@@ -164,7 +164,7 @@ class ConfigController
             echo json_encode([
                 'success' => true, 
                 'message' => 'Migrations executadas com sucesso!',
-                'current_version' => 10
+                'current_version' => 19
             ]);
         } catch (\Exception $e) {
             http_response_code(500);
