@@ -110,6 +110,16 @@ $router->get('/controle-descartes/{id}', [App\Controllers\ControleDescartesContr
 $router->get('/controle-descartes/anexo/{id}', [App\Controllers\ControleDescartesController::class, 'downloadAnexo']);
 $router->get('/controle-descartes/relatorios', [App\Controllers\ControleDescartesController::class, 'relatorios']);
 
+// Auditorias routes
+$router->get('/auditorias', [App\Controllers\AuditoriasController::class, 'index']);
+$router->get('/auditorias/list', [App\Controllers\AuditoriasController::class, 'listAuditorias']);
+$router->post('/auditorias/create', [App\Controllers\AuditoriasController::class, 'create']);
+$router->post('/auditorias/update', [App\Controllers\AuditoriasController::class, 'update']);
+$router->post('/auditorias/delete', [App\Controllers\AuditoriasController::class, 'delete']);
+$router->get('/auditorias/{id}', [App\Controllers\AuditoriasController::class, 'getAuditoria']);
+$router->get('/auditorias/anexo/{id}', [App\Controllers\AuditoriasController::class, 'downloadAnexo']);
+$router->get('/auditorias/relatorios', [App\Controllers\AuditoriasController::class, 'relatorios']);
+
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);

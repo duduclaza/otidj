@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 18;
+    private const CURRENT_VERSION = 19;
 
     public function __construct()
     {
@@ -122,6 +122,11 @@ class Migration
                 // Version 18: Create Controle de Descartes system tables
                 $this->migration18();
                 $this->updateVersion(18);
+            }
+            if ($currentVersion < 19) {
+                // Version 19: Create Auditorias system tables
+                $this->migration19();
+                $this->updateVersion(19);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -1290,6 +1295,98 @@ class Migration
                 INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
                 VALUES (?, ?, 1, 1, 0, 0, 0)
                 ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=0, can_import=0, can_export=0
+            ");
+            $stmt->execute([$operadorProfileId, $module]);
+        }
+
+        // Usuário Comum: apenas visualização
+        $userProfileId = $this->getProfileIdByName('Usuário Comum');
+        if ($userProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 0, 0, 0, 0)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=0, can_delete=0, can_import=0, can_export=0
+            ");
+            $stmt->execute([$userProfileId, $module]);
+        }
+    }
+
+    private function migration19(): void
+    {
+        // Criar tabela de auditorias
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS auditorias (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                filial_id INT NOT NULL,
+                data_auditoria_inicio DATE NOT NULL COMMENT 'Data de início da auditoria',
+                data_auditoria_fim DATE NOT NULL COMMENT 'Data de fim da auditoria',
+                anexo_auditoria_blob MEDIUMBLOB NULL COMMENT 'Arquivo PDF/DOC da auditoria',
+                anexo_auditoria_nome VARCHAR(255) NULL COMMENT 'Nome original do arquivo',
+                anexo_auditoria_tipo VARCHAR(100) NULL COMMENT 'Tipo MIME do arquivo',
+                anexo_auditoria_tamanho INT NULL COMMENT 'Tamanho do arquivo em bytes',
+                observacoes TEXT NULL,
+                created_by INT NOT NULL COMMENT 'Usuário que criou o registro',
+                updated_by INT NULL COMMENT 'Último usuário que atualizou',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (filial_id) REFERENCES filiais(id) ON DELETE RESTRICT,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL,
+                INDEX idx_filial_id (filial_id),
+                INDEX idx_data_auditoria (data_auditoria_inicio, data_auditoria_fim),
+                INDEX idx_created_by (created_by)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Auditorias por Filial'
+        ");
+
+        // Atualizar permissões para incluir módulo Auditorias
+        $this->updateAuditoriasPermissions();
+    }
+
+    private function updateAuditoriasPermissions(): void
+    {
+        // Módulo Auditorias
+        $module = 'auditorias';
+
+        // Administrador: acesso total
+        $adminProfileId = $this->getProfileIdByName('Administrador');
+        if ($adminProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 1, 1, 1, 1)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=1, can_export=1
+            ");
+            $stmt->execute([$adminProfileId, $module]);
+        }
+
+        // Supervisor: pode criar, editar e visualizar auditorias
+        $supervisorProfileId = $this->getProfileIdByName('Supervisor');
+        if ($supervisorProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 1, 1, 0, 1)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=0, can_export=1
+            ");
+            $stmt->execute([$supervisorProfileId, $module]);
+        }
+
+        // Analista de Qualidade: pode criar, editar e visualizar auditorias (foco em qualidade)
+        $analistaProfileId = $this->getProfileIdByName('Analista de Qualidade');
+        if ($analistaProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 1, 1, 0, 1)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=1, can_delete=1, can_import=0, can_export=1
+            ");
+            $stmt->execute([$analistaProfileId, $module]);
+        }
+
+        // Operador de Toners: pode visualizar auditorias
+        $operadorProfileId = $this->getProfileIdByName('Operador de Toners');
+        if ($operadorProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, ?, 1, 0, 0, 0, 0)
+                ON DUPLICATE KEY UPDATE can_view=1, can_edit=0, can_delete=0, can_import=0, can_export=0
             ");
             $stmt->execute([$operadorProfileId, $module]);
         }
