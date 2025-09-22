@@ -123,6 +123,16 @@ $router->get('/api/notifications', [App\Controllers\NotificationsController::cla
 $router->post('/api/notifications/{id}/read', [App\Controllers\NotificationsController::class, 'markAsRead']);
 $router->post('/api/notifications/read-all', [App\Controllers\NotificationsController::class, 'markAllAsRead']);
 
+// FMEA routes
+$router->get('/fmea', [App\Controllers\FMEAController::class, 'index']);
+$router->get('/fmea/list', [App\Controllers\FMEAController::class, 'list']);
+$router->post('/fmea/store', [App\Controllers\FMEAController::class, 'store']);
+$router->get('/fmea/{id}', [App\Controllers\FMEAController::class, 'show']);
+$router->post('/fmea/{id}/update', [App\Controllers\FMEAController::class, 'update']);
+$router->delete('/fmea/{id}/delete', [App\Controllers\FMEAController::class, 'delete']);
+$router->get('/fmea/charts', [App\Controllers\FMEAController::class, 'chartData']);
+$router->get('/fmea/{id}/print', [App\Controllers\FMEAController::class, 'print']);
+
 // Dispatch
 try {
     $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);

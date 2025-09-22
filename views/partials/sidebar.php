@@ -39,10 +39,10 @@ $menu = [
     'href' => '#', 
     'icon' => '📊', 
     'category' => true,
-    'modules' => ['homologacoes', 'femea', 'pops_its', 'fluxogramas', 'melhoria_continua', 'controle_rc'],
+    'modules' => ['homologacoes', 'fmea', 'pops_its', 'fluxogramas', 'melhoria_continua', 'controle_rc'],
     'submenu' => [
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
-      ['label' => 'FEMEA', 'href' => '/femea', 'icon' => '📈', 'module' => 'femea'],
+      ['label' => 'FMEA', 'href' => '/fmea', 'icon' => '📈', 'module' => 'fmea'],
       ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
       ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
       // Melhoria Contínua (com abas internas)

@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 11;
+    private const CURRENT_VERSION = 12;
 
     public function __construct()
     {
@@ -87,6 +87,11 @@ class Migration
                 // Version 11: Create notifications system
                 $this->migration11();
                 $this->updateVersion(11);
+            }
+            if ($currentVersion < 12) {
+                // Version 12: Create FMEA system
+                $this->migration12();
+                $this->updateVersion(12);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -759,6 +764,37 @@ class Migration
             INDEX idx_read_at (read_at),
             INDEX idx_created_at (created_at),
             INDEX idx_related (related_type, related_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    }
+
+    private function migration12(): void
+    {
+        // Criar tabela FMEA
+        $this->db->exec('CREATE TABLE IF NOT EXISTS fmea (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            modo_falha TEXT NOT NULL,
+            efeito_falha TEXT NOT NULL,
+            severidade INT NOT NULL CHECK (severidade >= 0 AND severidade <= 10),
+            ocorrencia INT NOT NULL CHECK (ocorrencia >= 0 AND ocorrencia <= 10),
+            deteccao INT NOT NULL CHECK (deteccao >= 0 AND deteccao <= 10),
+            rpn INT GENERATED ALWAYS AS (severidade * ocorrencia * deteccao) STORED,
+            risco VARCHAR(50) GENERATED ALWAYS AS (
+                CASE 
+                    WHEN (severidade * ocorrencia * deteccao) < 40 THEN "Não Crítico"
+                    WHEN (severidade * ocorrencia * deteccao) < 100 THEN "Risco Moderado"
+                    WHEN (severidade * ocorrencia * deteccao) < 200 THEN "Risco Alto"
+                    ELSE "Risco Crítico"
+                END
+            ) STORED,
+            acao_sugerida TEXT NOT NULL,
+            data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_by INT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            
+            INDEX idx_rpn (rpn),
+            INDEX idx_risco (risco),
+            INDEX idx_data_registro (data_registro),
+            INDEX idx_created_by (created_by)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     }
 }

@@ -118,7 +118,7 @@ const modules = [
   { key: 'amostragens', name: 'Amostragens' },
   { key: 'garantias', name: 'Garantias' },
   { key: 'controle_descartes', name: 'Controle de Descartes' },
-  { key: 'femea', name: 'FEMEA' },
+  { key: 'fmea', name: 'FMEA' },
   { key: 'pops_its', name: 'POPs e ITs' },
   { key: 'fluxogramas', name: 'Fluxogramas' },
   { key: 'melhoria_continua', name: 'Melhoria Contínua' },
