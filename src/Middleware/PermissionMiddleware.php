@@ -28,8 +28,21 @@ class PermissionMiddleware
         '/garantias' => 'garantias',
         '/controle-de-descartes' => 'controle_descartes',
         '/femea' => 'femea',
-        '/pops-e-its' => 'pops_its',
+        '/pops-e-its' => 'pops_its_visualizacao', // Rota principal vai para visualização (todos podem ver)
         '/fluxogramas' => 'fluxogramas',
+        
+        // POPs e ITs - Rotas específicas por aba
+        '/pops-its/titulo/create' => 'pops_its_cadastro_titulos',
+        '/pops-its/titulos/list' => 'pops_its_cadastro_titulos',
+        '/pops-its/registro/create' => 'pops_its_meus_registros',
+        '/pops-its/registros/meus' => 'pops_its_meus_registros',
+        '/pops-its/registro/update' => 'pops_its_meus_registros',
+        '/pops-its/registro/delete' => 'pops_its_meus_registros',
+        '/pops-its/pendentes/list' => 'pops_its_pendente_aprovacao',
+        '/pops-its/registro/aprovar' => 'pops_its_pendente_aprovacao',
+        '/pops-its/registro/reprovar' => 'pops_its_pendente_aprovacao',
+        '/pops-its/visualizacao/list' => 'pops_its_visualizacao',
+        '/pops-its/arquivo' => 'pops_its_visualizacao', // Download de arquivos
         // Melhoria Contínua
         '/melhoria-continua' => 'melhoria_continua',
         '/melhoria-continua/list' => 'melhoria_continua',

@@ -137,6 +137,25 @@ $router->delete('/fmea/{id}/delete', [App\Controllers\FMEAController::class, 'de
 $router->get('/fmea/charts', [App\Controllers\FMEAController::class, 'chartData']);
 $router->get('/fmea/{id}/print', [App\Controllers\FMEAController::class, 'print']);
 
+// POPs e ITs routes
+$router->get('/pops-e-its', [App\Controllers\PopItsController::class, 'index']);
+// Aba 1: Cadastro de Títulos
+$router->post('/pops-its/titulo/create', [App\Controllers\PopItsController::class, 'createTitulo']);
+$router->get('/pops-its/titulos/list', [App\Controllers\PopItsController::class, 'listTitulos']);
+// Aba 2: Meus Registros
+$router->post('/pops-its/registro/create', [App\Controllers\PopItsController::class, 'createRegistro']);
+$router->get('/pops-its/registros/meus', [App\Controllers\PopItsController::class, 'listMeusRegistros']);
+$router->post('/pops-its/registro/update', [App\Controllers\PopItsController::class, 'updateRegistro']);
+$router->post('/pops-its/registro/delete', [App\Controllers\PopItsController::class, 'deleteRegistro']);
+// Aba 3: Pendente Aprovação
+$router->get('/pops-its/pendentes/list', [App\Controllers\PopItsController::class, 'listPendentesAprovacao']);
+$router->post('/pops-its/registro/aprovar', [App\Controllers\PopItsController::class, 'aprovarRegistro']);
+$router->post('/pops-its/registro/reprovar', [App\Controllers\PopItsController::class, 'reprovarRegistro']);
+// Aba 4: Visualização
+$router->get('/pops-its/visualizacao/list', [App\Controllers\PopItsController::class, 'listVisualizacao']);
+// Download de arquivos
+$router->get('/pops-its/arquivo/{id}', [App\Controllers\PopItsController::class, 'downloadArquivo']);
+
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
 $router->get('/melhoria-continua/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);

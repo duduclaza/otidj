@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 15;
+    private const CURRENT_VERSION = 16;
 
     public function __construct()
     {
@@ -107,6 +107,11 @@ class Migration
                 // Version 15: Update profile permissions for current modules
                 $this->migration15();
                 $this->updateVersion(15);
+            }
+            if ($currentVersion < 16) {
+                // Version 16: Create POPs and ITs system tables
+                $this->migration16();
+                $this->updateVersion(16);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -925,6 +930,145 @@ class Migration
                 $stmt = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, 'melhoria_continua', 1, 1, 0, 0, 0)");
                 $stmt->execute([$userProfileId]);
             }
+        }
+    }
+
+    private function migration16(): void
+    {
+        // Criar tabela de títulos de POPs e ITs
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS pops_its_titulos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                titulo VARCHAR(255) NOT NULL,
+                departamento_id INT NOT NULL,
+                created_by INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (departamento_id) REFERENCES departamentos(id) ON DELETE CASCADE,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_departamento (departamento_id),
+                INDEX idx_created_by (created_by)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+
+        // Criar tabela de registros de POPs e ITs
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS pops_its_registros (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                titulo_id INT NOT NULL,
+                versao VARCHAR(10) NOT NULL,
+                arquivo_blob MEDIUMBLOB NOT NULL,
+                arquivo_name VARCHAR(255) NOT NULL,
+                arquivo_type VARCHAR(100) NOT NULL,
+                arquivo_size INT NOT NULL,
+                visibilidade ENUM('publico', 'departamentos') NOT NULL DEFAULT 'departamentos',
+                status ENUM('pendente', 'aprovado', 'reprovado') NOT NULL DEFAULT 'pendente',
+                observacao_reprovacao TEXT NULL,
+                created_by INT NOT NULL,
+                approved_by INT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                approved_at TIMESTAMP NULL,
+                FOREIGN KEY (titulo_id) REFERENCES pops_its_titulos(id) ON DELETE CASCADE,
+                FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
+                INDEX idx_titulo (titulo_id),
+                INDEX idx_status (status),
+                INDEX idx_created_by (created_by),
+                INDEX idx_visibilidade (visibilidade)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+
+        // Criar tabela de departamentos permitidos para visualização
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS pops_its_departamentos_permitidos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                registro_id INT NOT NULL,
+                departamento_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (registro_id) REFERENCES pops_its_registros(id) ON DELETE CASCADE,
+                FOREIGN KEY (departamento_id) REFERENCES departamentos(id) ON DELETE CASCADE,
+                UNIQUE KEY unique_registro_departamento (registro_id, departamento_id),
+                INDEX idx_registro (registro_id),
+                INDEX idx_departamento (departamento_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+
+        // Atualizar permissões para incluir POPs e ITs com permissões granulares
+        $this->updatePopItsPermissions();
+    }
+
+    private function updatePopItsPermissions(): void
+    {
+        // Remover permissões antigas se existirem
+        $this->db->exec("DELETE FROM profile_permissions WHERE module LIKE 'pops_its%'");
+
+        // Definir permissões específicas para cada aba
+        $popItsModules = [
+            'pops_its_cadastro_titulos',    // Aba 1: Cadastro de Títulos
+            'pops_its_meus_registros',      // Aba 2: Meus Registros  
+            'pops_its_pendente_aprovacao',  // Aba 3: Pendente Aprovação
+            'pops_its_visualizacao'         // Aba 4: Visualização (todos podem ver)
+        ];
+
+        // Administrador: acesso total a todas as abas
+        $adminProfileId = $this->getProfileIdByName('Administrador');
+        if ($adminProfileId) {
+            foreach ($popItsModules as $module) {
+                $stmt = $this->db->prepare("
+                    INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                    VALUES (?, ?, 1, 1, 1, 1, 1)
+                ");
+                $stmt->execute([$adminProfileId, $module]);
+            }
+        }
+
+        // Analista de Qualidade: pode cadastrar títulos, ver seus registros, aprovar/reprovar, visualizar
+        $analistaProfileId = $this->getProfileIdByName('Analista de Qualidade');
+        if ($analistaProfileId) {
+            $analistaPermissions = [
+                'pops_its_cadastro_titulos' => ['view' => 1, 'edit' => 1, 'delete' => 0],
+                'pops_its_meus_registros' => ['view' => 1, 'edit' => 1, 'delete' => 1],
+                'pops_its_pendente_aprovacao' => ['view' => 1, 'edit' => 1, 'delete' => 0],
+                'pops_its_visualizacao' => ['view' => 1, 'edit' => 0, 'delete' => 0]
+            ];
+            
+            foreach ($analistaPermissions as $module => $perms) {
+                $stmt = $this->db->prepare("
+                    INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                    VALUES (?, ?, ?, ?, ?, 0, 1)
+                ");
+                $stmt->execute([$analistaProfileId, $module, $perms['view'], $perms['edit'], $perms['delete']]);
+            }
+        }
+
+        // Supervisor: pode cadastrar títulos, ver seus registros, visualizar
+        $supervisorProfileId = $this->getProfileIdByName('Supervisor');
+        if ($supervisorProfileId) {
+            $supervisorPermissions = [
+                'pops_its_cadastro_titulos' => ['view' => 1, 'edit' => 1, 'delete' => 0],
+                'pops_its_meus_registros' => ['view' => 1, 'edit' => 1, 'delete' => 1],
+                'pops_its_pendente_aprovacao' => ['view' => 0, 'edit' => 0, 'delete' => 0],
+                'pops_its_visualizacao' => ['view' => 1, 'edit' => 0, 'delete' => 0]
+            ];
+            
+            foreach ($supervisorPermissions as $module => $perms) {
+                $stmt = $this->db->prepare("
+                    INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                    VALUES (?, ?, ?, ?, ?, 0, 1)
+                ");
+                $stmt->execute([$supervisorProfileId, $module, $perms['view'], $perms['edit'], $perms['delete']]);
+            }
+        }
+
+        // Usuário Comum: apenas visualização
+        $userProfileId = $this->getProfileIdByName('Usuário Comum');
+        if ($userProfileId) {
+            $stmt = $this->db->prepare("
+                INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                VALUES (?, 'pops_its_visualizacao', 1, 0, 0, 0, 0)
+            ");
+            $stmt->execute([$userProfileId]);
         }
     }
 }
