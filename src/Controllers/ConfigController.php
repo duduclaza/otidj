@@ -209,14 +209,17 @@ class ConfigController
             $modules = [
                 // Operacionais/Qualidade
                 'dashboard','toners_cadastro','toners_retornados','amostragens','homologacoes','garantias','controle_descartes','femea','fluxogramas','melhoria_continua','controle_rc',
-                // POPs e ITs (granular)
-                'pops_its_cadastro_titulos','pops_its_meus_registros','pops_its_pendente_aprovacao','pops_its_visualizacao',
+                // POPs e ITs (granular - 4 abas separadas)
+                'pops_its_cadastro_titulos',    // Aba 1: Cadastro de Títulos
+                'pops_its_meus_registros',      // Aba 2: Meus Registros  
+                'pops_its_pendente_aprovacao',  // Aba 3: Pendente Aprovação (só admin)
+                'pops_its_visualizacao',        // Aba 4: Visualização
                 // Registros
                 'registros_filiais','registros_departamentos','registros_fornecedores','registros_parametros',
                 // Administrativo
                 'configuracoes_gerais','admin_usuarios','admin_perfis','admin_convites','admin_painel',
                 // Outros
-                'profile','email_config','solicitacao_melhorias'
+                'profile','email_config','solicitacao_melhorias','melhorias_pendentes','historico_melhorias'
             ];
 
             // Remover duplicadas para esse profile e reinserir full access
