@@ -7,7 +7,7 @@ use PDO;
 class Migration
 {
     private PDO $db;
-    private const CURRENT_VERSION = 12;
+    private const CURRENT_VERSION = 13;
 
     public function __construct()
     {
@@ -92,6 +92,11 @@ class Migration
                 // Version 12: Create FMEA system
                 $this->migration12();
                 $this->updateVersion(12);
+            }
+            if ($currentVersion < 13) {
+                // Version 13: Update Melhoria Continua system
+                $this->migration13();
+                $this->updateVersion(13);
             }
         } catch (\PDOException $e) {
             // Skip migrations if connection limit exceeded
@@ -795,6 +800,62 @@ class Migration
             INDEX idx_risco (risco),
             INDEX idx_data_registro (data_registro),
             INDEX idx_created_by (created_by)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    }
+
+    private function migration13(): void
+    {
+        // Recriar tabela de melhorias contínuas com nova estrutura
+        $this->db->exec('DROP TABLE IF EXISTS melhorias_continuas_anexos');
+        $this->db->exec('DROP TABLE IF EXISTS melhorias_continuas_responsaveis');
+        $this->db->exec('DROP TABLE IF EXISTS melhorias_continuas');
+        
+        // Criar tabela principal de melhorias contínuas
+        $this->db->exec('CREATE TABLE melhorias_continuas (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            departamento_id INT NOT NULL,
+            processo VARCHAR(255) NOT NULL,
+            descricao_melhoria TEXT NOT NULL,
+            status ENUM("pendente", "em_andamento", "concluido", "cancelado") DEFAULT "pendente",
+            pontuacao INT NULL,
+            observacao TEXT NULL,
+            resultado TEXT NULL,
+            created_by INT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            
+            INDEX idx_status (status),
+            INDEX idx_data_registro (data_registro),
+            INDEX idx_departamento (departamento_id),
+            INDEX idx_created_by (created_by),
+            FOREIGN KEY (departamento_id) REFERENCES departamentos(id),
+            FOREIGN KEY (created_by) REFERENCES users(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+        
+        // Criar tabela de responsáveis (many-to-many)
+        $this->db->exec('CREATE TABLE melhorias_continuas_responsaveis (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            melhoria_id INT NOT NULL,
+            user_id INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            
+            UNIQUE KEY unique_melhoria_user (melhoria_id, user_id),
+            FOREIGN KEY (melhoria_id) REFERENCES melhorias_continuas(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+        
+        // Criar tabela de anexos (MEDIUMBLOB)
+        $this->db->exec('CREATE TABLE melhorias_continuas_anexos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            melhoria_id INT NOT NULL,
+            arquivo MEDIUMBLOB NOT NULL,
+            nome_arquivo VARCHAR(255) NOT NULL,
+            tipo_arquivo VARCHAR(100) NOT NULL,
+            tamanho_arquivo INT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            
+            INDEX idx_melhoria_id (melhoria_id),
+            FOREIGN KEY (melhoria_id) REFERENCES melhorias_continuas(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
     }
 }

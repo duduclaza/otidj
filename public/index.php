@@ -133,6 +133,19 @@ $router->delete('/fmea/{id}/delete', [App\Controllers\FMEAController::class, 'de
 $router->get('/fmea/charts', [App\Controllers\FMEAController::class, 'chartData']);
 $router->get('/fmea/{id}/print', [App\Controllers\FMEAController::class, 'print']);
 
+// Melhoria Contínua routes
+$router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
+$router->get('/melhoria-continua/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
+$router->get('/melhoria-continua/departamentos', [App\Controllers\MelhoriaContinuaController::class, 'getDepartamentos']);
+$router->get('/melhoria-continua/usuarios', [App\Controllers\MelhoriaContinuaController::class, 'getUsuarios']);
+$router->post('/melhoria-continua/store', [App\Controllers\MelhoriaContinuaController::class, 'store']);
+$router->post('/melhoria-continua/{id}/status', [App\Controllers\MelhoriaContinuaController::class, 'updateStatus']);
+$router->post('/melhoria-continua/{id}/pontuacao', [App\Controllers\MelhoriaContinuaController::class, 'updatePontuacao']);
+$router->post('/melhoria-continua/{id}/observacao', [App\Controllers\MelhoriaContinuaController::class, 'updateObservacao']);
+$router->post('/melhoria-continua/{id}/resultado', [App\Controllers\MelhoriaContinuaController::class, 'updateResultado']);
+$router->delete('/melhoria-continua/{id}/delete', [App\Controllers\MelhoriaContinuaController::class, 'delete']);
+$router->get('/melhoria-continua/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
+
 // Dispatch
 try {
     $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);

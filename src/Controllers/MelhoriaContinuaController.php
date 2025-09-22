@@ -12,397 +12,419 @@ class MelhoriaContinuaController
         $this->db = Database::getInstance();
     }
 
-    private function render(string $view, array $data = []): void
+    // Página principal de Melhoria Contínua
+    public function index()
     {
-        extract($data);
-        $viewFile = __DIR__ . '/../../views/melhoria-continua/' . $view . '.php';
-        $layout = __DIR__ . '/../../views/layouts/main.php';
-        include $layout;
+        $title = 'Melhoria Contínua - SGQ OTI DJ';
+        $viewFile = __DIR__ . '/../../views/pages/melhoria-continua/index.php';
+        include __DIR__ . '/../../views/layouts/main.php';
     }
 
-    // Página com ABAS
-    public function index(): void
-    {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        
-        // Forçar recarregamento das permissões (limpar cache)
-        $user = $this->getCurrentUser();
-        \App\Services\PermissionService::clearUserPermissions($user['id']);
-        
-        // Carregar permissões do usuário para o frontend
-        $permissions = \App\Services\PermissionService::getUserPermissions($user['id']);
-        
-        // Se for admin, dar todas as permissões
-        if (\App\Services\PermissionService::isAdmin($user['id'])) {
-            $permissions = array_merge($permissions, [
-                'solicitacao_melhorias' => ['view' => true, 'edit' => true, 'delete' => true],
-                'melhorias_pendentes' => ['view' => true, 'edit' => true, 'delete' => true],
-                'historico_melhorias' => ['view' => true, 'edit' => true, 'delete' => true],
-            ]);
-        }
-        
-        error_log('Permissions loaded for user ' . $user['id'] . ': ' . json_encode($permissions));
-        
-        // Simplificar permissões para o frontend (só view)
-        $simplePermissions = [];
-        foreach ($permissions as $module => $perms) {
-            $simplePermissions[$module] = $perms['view'] ?? false;
-        }
-        
-        $_SESSION['user_permissions'] = $simplePermissions;
-        
-        $setores = $this->getSetores();
-        $usuarios = $this->getUsuarios();
-        $this->render('index', compact('setores','usuarios'));
-    }
-
-    // Páginas
-    public function solicitacoes(): void
-    {
-        // Carregar dados básicos para selects
-        $setores = $this->getSetores();
-        $usuarios = $this->getUsuarios();
-        $this->render('solicitacoes', compact('setores','usuarios'));
-    }
-
-    public function pendentes(): void
-    {
-        $this->render('pendentes');
-    }
-
-    public function historico(): void
-    {
-        $this->render('historico');
-    }
-
-    // APIs (stubs para não quebrar enquanto banco não está pronto)
-    public function apiListSolicitacoes(): void
+    // Listar melhorias (AJAX)
+    public function list()
     {
         header('Content-Type: application/json');
+        
         try {
-            $user = $this->getCurrentUser();
-
-            $stmt = $this->db->prepare("SELECT id, data_solicitacao, processo, setor, status FROM solicitacoes_melhorias WHERE usuario_id = ? ORDER BY id DESC");
-            $stmt->execute([$user['id']]);
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-
-            $respStmt = $this->db->prepare("SELECT usuario_nome FROM solicitacoes_melhorias_responsaveis WHERE solicitacao_id = ? ORDER BY usuario_nome");
-            foreach ($rows as &$r) {
-                $respStmt->execute([$r['id']]);
-                $r['responsaveis'] = array_column($respStmt->fetchAll(\PDO::FETCH_ASSOC), 'usuario_nome');
-                $r['data'] = date('d/m/Y H:i', strtotime($r['data_solicitacao'] ?? 'now'));
+            $search = $_GET['search'] ?? '';
+            $dataInicio = $_GET['data_inicio'] ?? '';
+            $dataFim = $_GET['data_fim'] ?? '';
+            
+            $sql = "
+                SELECT m.*, d.nome as departamento_nome,
+                       GROUP_CONCAT(u.name SEPARATOR ', ') as responsaveis_nomes,
+                       COUNT(a.id) as total_anexos
+                FROM melhorias_continuas m
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                LEFT JOIN melhorias_continuas_responsaveis mr ON m.id = mr.melhoria_id
+                LEFT JOIN users u ON mr.user_id = u.id
+                LEFT JOIN melhorias_continuas_anexos a ON m.id = a.melhoria_id
+                WHERE 1=1
+            ";
+            
+            $params = [];
+            
+            if (!empty($search)) {
+                $sql .= " AND (m.processo LIKE ? OR m.descricao_melhoria LIKE ?)";
+                $params[] = "%$search%";
+                $params[] = "%$search%";
             }
-
-            echo json_encode(['success'=>true, 'data'=>$rows]);
-        } catch (\Throwable $e) {
-            echo json_encode(['success'=>false, 'message'=>'Erro ao listar: '.$e->getMessage()]);
-        }
-    }
-
-    public function apiCreateSolicitacao(): void
-    {
-        header('Content-Type: application/json');
-        try {
-            if (session_status() === PHP_SESSION_NONE) session_start();
-            $user = $this->getCurrentUser();
-
-            $setor = trim($_POST['setor'] ?? '');
-            $processo = trim($_POST['processo'] ?? '');
-            $descricao = trim($_POST['descricao_melhoria'] ?? '');
-            $resultado = trim($_POST['resultado_esperado'] ?? '');
-            $observacoes = trim($_POST['observacoes'] ?? '');
-            $responsaveis = $_POST['responsaveis'] ?? [];
-
-            if ($setor === '' || $processo === '' || $descricao === '' || $resultado === '' || empty($responsaveis)) {
-                echo json_encode(['success'=>false,'message'=>'Preencha todos os campos obrigatórios e selecione ao menos um responsável.']);
-                return;
+            
+            if (!empty($dataInicio)) {
+                $sql .= " AND DATE(m.data_registro) >= ?";
+                $params[] = $dataInicio;
             }
-
-            $stmt = $this->db->prepare("INSERT INTO solicitacoes_melhorias (usuario_id, usuario_nome, setor, processo, descricao_melhoria, resultado_esperado, observacoes) VALUES (?,?,?,?,?,?,?)");
-            $stmt->execute([$user['id'], $user['name'], $setor, $processo, $descricao, $resultado, $observacoes]);
-            $solicitacaoId = (int)$this->db->lastInsertId();
-
-            // Inserir responsáveis
-            $in = implode(',', array_fill(0, count($responsaveis), '?'));
-            $usrStmt = $this->db->prepare("SELECT id, name, email FROM users WHERE id IN ($in)");
-            $usrStmt->execute(array_map('intval', $responsaveis));
-            $list = $usrStmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-            $ins = $this->db->prepare("INSERT INTO solicitacoes_melhorias_responsaveis (solicitacao_id, usuario_id, usuario_nome, usuario_email) VALUES (?,?,?,?)");
-            foreach ($list as $u) {
-                $ins->execute([$solicitacaoId, (int)$u['id'], $u['name'], $u['email']]);
+            
+            if (!empty($dataFim)) {
+                $sql .= " AND DATE(m.data_registro) <= ?";
+                $params[] = $dataFim;
             }
-
-            // Uploads
-            $this->handleUploads($solicitacaoId, $_FILES['anexos'] ?? null);
-
-            // Log
-            $this->logAcao($solicitacaoId, $user, 'criar', 'Solicitação criada');
-
-            echo json_encode(['success'=>true,'message'=>'Solicitação registrada com sucesso.']);
-        } catch (\Throwable $e) {
-            echo json_encode(['success'=>false,'message'=>'Erro ao criar: '.$e->getMessage()]);
-        }
-    }
-
-    public function apiListPendentes(): void
-    {
-        header('Content-Type: application/json');
-        try {
-            $user = $this->getCurrentUser();
-            $sql = "SELECT s.id, s.data_solicitacao, s.processo, s.setor, s.status, s.observacoes
-                    FROM solicitacoes_melhorias s
-                    INNER JOIN solicitacoes_melhorias_responsaveis r ON r.solicitacao_id = s.id
-                    WHERE r.usuario_id = ? AND s.status IN ('pendente','em_analise')
-                    ORDER BY s.id DESC";
+            
+            $sql .= " GROUP BY m.id ORDER BY m.data_registro DESC";
+            
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([$user['id']]);
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-            foreach ($rows as &$r) { $r['data'] = date('d/m/Y H:i', strtotime($r['data_solicitacao'] ?? 'now')); }
-            echo json_encode(['success'=>true,'data'=>$rows]);
-        } catch (\Throwable $e) {
-            echo json_encode(['success'=>false,'message'=>'Erro ao listar pendentes: '.$e->getMessage()]);
+            $stmt->execute($params);
+            $melhorias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $melhorias]);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar melhorias: ' . $e->getMessage()]);
         }
     }
 
-    public function apiUpdateStatus(): void
+    // Buscar departamentos
+    public function getDepartamentos()
     {
         header('Content-Type: application/json');
+        
         try {
-            if (session_status() === PHP_SESSION_NONE) session_start();
-            $user = $this->getCurrentUser();
-            $id = (int)($_POST['id'] ?? 0);
-            $status = trim($_POST['status'] ?? '');
-            $observacoes = trim($_POST['observacoes'] ?? '');
-            if ($id <= 0 || $status === '' || $observacoes === '') {
-                echo json_encode(['success'=>false,'message'=>'Informe ID, status e observação.']);
+            $stmt = $this->db->prepare("SELECT id, nome FROM departamentos ORDER BY nome");
+            $stmt->execute();
+            $departamentos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $departamentos]);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar departamentos: ' . $e->getMessage()]);
+        }
+    }
+
+    // Criar nova melhoria
+    public function store()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $departamento_id = (int)($_POST['departamento_id'] ?? 0);
+            $processo = trim($_POST['processo'] ?? '');
+            $descricao_melhoria = trim($_POST['descricao_melhoria'] ?? '');
+            $responsaveis = $_POST['responsaveis'] ?? [];
+            $observacao = trim($_POST['observacao'] ?? '');
+            $resultado = trim($_POST['resultado'] ?? '');
+            
+            // Validações
+            if ($departamento_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Departamento é obrigatório']);
                 return;
             }
-            $stmt = $this->db->prepare("UPDATE solicitacoes_melhorias SET status = ?, observacoes = ?, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$status, $observacoes, $id]);
-            $this->logAcao($id, $user, 'atualizar_status', 'Status: '.$status.' | Obs: '.$observacoes);
-            echo json_encode(['success'=>true,'message'=>'Status atualizado com sucesso.']);
-        } catch (\Throwable $e) {
-            echo json_encode(['success'=>false,'message'=>'Erro ao atualizar: '.$e->getMessage()]);
-        }
-    }
-
-    public function apiDelete(): void
-    {
-        header('Content-Type: application/json');
-        try {
-            $id = (int)($_POST['id'] ?? 0);
-            if ($id <= 0) { echo json_encode(['success'=>false,'message'=>'ID inválido']); return; }
-            // Somente o criador pode excluir (ou ajuste aqui se tiver checagem de admin)
-            $user = $this->getCurrentUser();
-            $chk = $this->db->prepare("SELECT usuario_id FROM solicitacoes_melhorias WHERE id = ?");
-            $chk->execute([$id]);
-            $ownerId = (int)($chk->fetchColumn() ?: 0);
-            if ($ownerId !== (int)$user['id']) {
-                echo json_encode(['success'=>false,'message'=>'Sem permissão para excluir esta solicitação.']);
+            
+            if (empty($processo)) {
+                echo json_encode(['success' => false, 'message' => 'Processo é obrigatório']);
                 return;
             }
-            $this->deleteUploadsDirectory($id);
-            $stmt = $this->db->prepare("DELETE FROM solicitacoes_melhorias WHERE id = ?");
-            $stmt->execute([$id]);
-            echo json_encode(['success'=>true,'message'=>'Solicitação excluída com sucesso.']);
-        } catch (\Throwable $e) {
-            echo json_encode(['success'=>false,'message'=>'Erro ao excluir: '.$e->getMessage()]);
-        }
-    }
-
-    public function apiLogs(): void
-    {
-        header('Content-Type: application/json');
-        try {
-            $stmt = $this->db->query("SELECT created_at as data, solicitacao_id, usuario_nome as usuario, acao, detalhes FROM melhorias_logs ORDER BY id DESC LIMIT 500");
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-            foreach ($rows as &$r) { $r['data'] = date('d/m/Y H:i', strtotime($r['data'] ?? 'now')); }
-            echo json_encode(['success'=>true,'data'=>$rows]);
-        } catch (\Throwable $e) {
-            echo json_encode(['success'=>false,'data'=>[], 'message'=>'Erro ao carregar logs: '.$e->getMessage()]);
-        }
-    }
-
-    public function details($params = []): void
-    {
-        header('Content-Type: application/json');
-        $id = $params['id'] ?? null;
-        echo json_encode(['success'=>true,'data'=>['id'=>$id]]);
-    }
-
-    public function print($params = []): void
-    {
-        $id = $params['id'] ?? null;
-        echo '<html><head><title>Impressão Solicitação #'.htmlspecialchars((string)$id)."</title></head><body>";
-        echo '<h1>Solicitação #'.htmlspecialchars((string)$id).'</h1>';
-        echo '<p>Esta é uma página de impressão (stub).</p>';
-        echo '</body></html>';
-    }
-
-    // Anexos
-    public function apiListAnexos($params = []): void
-    {
-        header('Content-Type: application/json');
-        try {
-            $id = (int)($params['id'] ?? ($_GET['id'] ?? 0));
-            if ($id <= 0) { echo json_encode(['success'=>false,'data'=>[]]); return; }
-            $stmt = $this->db->prepare("SELECT id, nome_original, nome_arquivo, tipo_arquivo, tamanho_arquivo FROM solicitacoes_melhorias_anexos WHERE solicitacao_id = ? ORDER BY id");
-            $stmt->execute([$id]);
-            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-            echo json_encode(['success'=>true,'data'=>$rows]);
-        } catch (\Throwable $e) {
-            echo json_encode(['success'=>false,'data'=>[], 'message'=>$e->getMessage()]);
-        }
-    }
-
-    public function downloadAnexo($params = []): void
-    {
-        $anexoId = (int)($params['id'] ?? 0);
-        if ($anexoId <= 0) { http_response_code(404); echo 'Arquivo não encontrado'; return; }
-        $stmt = $this->db->prepare("SELECT nome_original, caminho_arquivo, tipo_arquivo FROM solicitacoes_melhorias_anexos WHERE id = ?");
-        $stmt->execute([$anexoId]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        if (!$row || !is_file($row['caminho_arquivo'])) { http_response_code(404); echo 'Arquivo não encontrado'; return; }
-        header('Content-Description: File Transfer');
-        header('Content-Type: '.($row['tipo_arquivo'] ?: 'application/octet-stream'));
-        header('Content-Disposition: attachment; filename="'.basename($row['nome_original']).'"');
-        header('Content-Length: '.filesize($row['caminho_arquivo']));
-        readfile($row['caminho_arquivo']);
-        exit;
-    }
-
-    public function viewAnexos($params = []): void
-    {
-        $id = (int)($params['id'] ?? 0);
-        if ($id <= 0) { 
-            error_log("viewAnexos: ID inválido recebido: " . print_r($params, true));
-            http_response_code(404); echo 'Solicitação inválida - ID não fornecido'; return; 
-        }
-        
-        // Verificar se a solicitação existe
-        $checkStmt = $this->db->prepare("SELECT id FROM solicitacoes_melhorias WHERE id = ?");
-        $checkStmt->execute([$id]);
-        if (!$checkStmt->fetchColumn()) {
-            error_log("viewAnexos: Solicitação não encontrada para ID: " . $id);
-            http_response_code(404); echo 'Solicitação não encontrada'; return;
-        }
-        
-        $stmt = $this->db->prepare("SELECT id, nome_original, tamanho_arquivo, tipo_arquivo FROM solicitacoes_melhorias_anexos WHERE solicitacao_id = ? ORDER BY id");
-        $stmt->execute([$id]);
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-        error_log("viewAnexos: Encontrados " . count($rows) . " anexos para solicitação " . $id);
-
-        // Se houver apenas um arquivo, já redireciona para download direto
-        if (count($rows) === 1) {
-            $only = $rows[0];
-            header('Location: /melhoria-continua/anexos/'.(int)$only['id'].'/download');
-            return;
-        }
-
-        echo '<!doctype html><html lang="pt-br"><head><meta charset="utf-8"><title>Anexos Solicitação #'.(int)$id.'</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></head><body class="p-6 bg-gray-50">';
-        echo '<div class="max-w-3xl mx-auto bg-white border rounded-lg shadow">';
-        echo '<div class="px-6 py-4 border-b"><h1 class="text-lg font-semibold">Anexos da Solicitação #'.htmlspecialchars((string)$id).'</h1></div>';
-        echo '<div class="p-6">';
-        if (empty($rows)) {
-            echo '<div class="text-gray-600">Nenhum anexo encontrado.</div>';
-        } else {
-            echo '<table class="min-w-full text-sm">';
-            echo '<thead class="bg-gray-50"><tr><th class="text-left px-3 py-2">Arquivo</th><th class="text-left px-3 py-2">Tamanho</th><th class="text-left px-3 py-2">Ação</th></tr></thead>';
-            echo '<tbody class="divide-y">';
-            foreach ($rows as $r) {
-                $url = '/melhoria-continua/anexos/'.(int)$r['id'].'/download';
-                $size = isset($r['tamanho_arquivo']) ? (round(((int)$r['tamanho_arquivo'])/1024/1024, 2).' MB') : '-';
-                echo '<tr>';
-                echo '<td class="px-3 py-2">'.htmlspecialchars($r['nome_original']).'</td>';
-                echo '<td class="px-3 py-2 text-gray-600">'.$size.'</td>';
-                echo '<td class="px-3 py-2"><a class="inline-flex items-center px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" href="'.$url.'">Baixar</a></td>';
-                echo '</tr>';
-            }
-            echo '</tbody></table>';
-        }
-        echo '</div></div>';
-        echo '</body></html>';
-    }
-
-    // Helpers
-    private function getSetores(): array
-    {
-        try {
-            // Primeiro tenta buscar da tabela departments
-            $stmt = $this->db->query("SELECT name FROM departments WHERE name IS NOT NULL AND name <> '' ORDER BY name");
-            $setores = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
             
-            // Se não encontrar, busca dos usuários como fallback
-            if (empty($setores)) {
-                $stmt = $this->db->query("SELECT DISTINCT setor FROM users WHERE setor IS NOT NULL AND setor <> '' ORDER BY setor");
-                $setores = $stmt->fetchAll(\PDO::FETCH_COLUMN) ?: [];
+            if (empty($descricao_melhoria)) {
+                echo json_encode(['success' => false, 'message' => 'Descrição da melhoria é obrigatória']);
+                return;
             }
             
-            return $setores;
-        } catch (\Throwable $e) { return []; }
-    }
-
-    private function getUsuarios(): array
-    {
-        try {
-            $stmt = $this->db->query("SELECT id, name, email FROM users WHERE status = 'active' ORDER BY name");
-            return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
-        } catch (\Throwable $e) { return []; }
-    }
-
-    private function getCurrentUser(): array
-    {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        // Em produção, virá da autenticação. Aqui garantimos defaults para evitar quebras.
-        $id = $_SESSION['user_id'] ?? 1;
-        $name = $_SESSION['user_name'] ?? 'Usuário';
-        $email = $_SESSION['user_email'] ?? 'user@example.com';
-        return ['id'=>(int)$id,'name'=>$name,'email'=>$email];
-    }
-
-    private function handleUploads(int $solicitacaoId, $files): void
-    {
-        if (!$files || !isset($files['name']) || !is_array($files['name'])) return;
-        $maxFiles = 5; $maxSize = 5 * 1024 * 1024; // 5MB
-        $allowed = ['image/jpeg','image/png','image/gif','application/pdf'];
-
-        $basePath = dirname(__DIR__, 2);
-        $dir = $basePath . '/storage/uploads/melhorias/' . $solicitacaoId;
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
-
-        $count = count($files['name']);
-        if ($count > $maxFiles) $count = $maxFiles;
-
-        $ins = $this->db->prepare("INSERT INTO solicitacoes_melhorias_anexos (solicitacao_id, nome_arquivo, nome_original, tipo_arquivo, tamanho_arquivo, caminho_arquivo) VALUES (?,?,?,?,?,?)");
-        for ($i=0; $i<$count; $i++) {
-            if (($files['error'][$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) continue;
-            $name = $files['name'][$i];
-            $type = $files['type'][$i];
-            $size = (int)$files['size'][$i];
-            $tmp  = $files['tmp_name'][$i];
-            if ($size > $maxSize) continue;
-            if (!in_array($type, $allowed, true)) continue;
-
-            $safe = preg_replace('/[^a-zA-Z0-9_\.-]/','_', $name);
-            $dest = $dir . '/' . uniqid('anx_') . '_' . $safe;
-            if (@move_uploaded_file($tmp, $dest)) {
-                $ins->execute([$solicitacaoId, basename($dest), $name, $type, $size, $dest]);
+            if (empty($responsaveis)) {
+                echo json_encode(['success' => false, 'message' => 'Pelo menos um responsável deve ser selecionado']);
+                return;
             }
+            
+            $this->db->beginTransaction();
+            
+            // Inserir melhoria
+            $stmt = $this->db->prepare("
+                INSERT INTO melhorias_continuas (departamento_id, processo, descricao_melhoria, observacao, resultado, created_by) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            
+            $stmt->execute([
+                $departamento_id,
+                $processo,
+                $descricao_melhoria,
+                $observacao,
+                $resultado,
+                $_SESSION['user_id'] ?? null
+            ]);
+            
+            $melhoriaId = $this->db->lastInsertId();
+            
+            // Inserir responsáveis
+            foreach ($responsaveis as $userId) {
+                $stmt = $this->db->prepare("INSERT INTO melhorias_continuas_responsaveis (melhoria_id, user_id) VALUES (?, ?)");
+                $stmt->execute([$melhoriaId, (int)$userId]);
+            }
+            
+            // Processar anexos
+            if (!empty($_FILES['anexos']['name'][0])) {
+                $this->processAnexos($melhoriaId, $_FILES['anexos']);
+            }
+            
+            $this->db->commit();
+            
+            // Enviar notificações e emails
+            $this->sendNotificationsAndEmails($melhoriaId, $responsaveis, $processo, $descricao_melhoria);
+            
+            echo json_encode(['success' => true, 'message' => 'Melhoria registrada com sucesso!', 'id' => $melhoriaId]);
+            
+        } catch (\Exception $e) {
+            $this->db->rollBack();
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao registrar melhoria: ' . $e->getMessage()]);
         }
     }
 
-    private function deleteUploadsDirectory(int $solicitacaoId): void
+    // Processar anexos
+    private function processAnexos($melhoriaId, $files)
     {
-        $basePath = dirname(__DIR__, 2);
-        $dir = $basePath . '/storage/uploads/melhorias/' . $solicitacaoId;
-        if (!is_dir($dir)) return;
-        foreach (glob($dir.'/*') as $f) { @unlink($f); }
-        @rmdir($dir);
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        $maxFiles = 10;
+        
+        if (count($files['name']) > $maxFiles) {
+            throw new \Exception("Máximo de $maxFiles arquivos permitidos");
+        }
+        
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            
+            $fileName = $files['name'][$i];
+            $fileType = $files['type'][$i];
+            $fileSize = $files['size'][$i];
+            $fileTmpName = $files['tmp_name'][$i];
+            
+            if (!in_array($fileType, $allowedTypes)) {
+                throw new \Exception("Tipo de arquivo não permitido: $fileName");
+            }
+            
+            if ($fileSize > $maxSize) {
+                throw new \Exception("Arquivo muito grande: $fileName");
+            }
+            
+            $fileContent = file_get_contents($fileTmpName);
+            
+            $stmt = $this->db->prepare("
+                INSERT INTO melhorias_continuas_anexos (melhoria_id, arquivo, nome_arquivo, tipo_arquivo, tamanho_arquivo) 
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            
+            $stmt->execute([$melhoriaId, $fileContent, $fileName, $fileType, $fileSize]);
+        }
+    }
+    
+    // Enviar notificações e emails
+    private function sendNotificationsAndEmails($melhoriaId, $responsaveis, $processo, $descricao)
+    {
+        try {
+            foreach ($responsaveis as $userId) {
+                // Criar notificação
+                \App\Controllers\NotificationsController::create(
+                    $userId,
+                    "Nova Melhoria sob sua Responsabilidade - Pendente",
+                    "Processo: $processo - $descricao",
+                    'melhoria',
+                    'melhoria_continua',
+                    $melhoriaId
+                );
+                
+                // TODO: Implementar envio de email com anexos
+                // $this->sendEmailToResponsavel($userId, $processo, $descricao, $melhoriaId);
+            }
+        } catch (\Exception $e) {
+            error_log("Erro ao enviar notificações: " . $e->getMessage());
+        }
     }
 
-    private function logAcao(int $solicitacaoId, array $user, string $acao, string $detalhes=''): void
+    // Buscar usuários para responsáveis
+    public function getUsuarios()
     {
-        $stmt = $this->db->prepare("INSERT INTO melhorias_logs (solicitacao_id, usuario_id, usuario_nome, acao, detalhes) VALUES (?,?,?,?,?)");
-        $stmt->execute([$solicitacaoId, $user['id'] ?? null, $user['name'] ?? null, $acao, $detalhes]);
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("SELECT id, name FROM users WHERE status = 'active' ORDER BY name");
+            $stmt->execute();
+            $usuarios = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $usuarios]);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar usuários: ' . $e->getMessage()]);
+        }
+    }
+
+    // Atualizar status (apenas admins)
+    public function updateStatus($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar se é admin
+            if (!$this->isAdmin()) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
+            $status = $_POST['status'] ?? '';
+            $validStatuses = ['pendente', 'em_andamento', 'concluido', 'cancelado'];
+            
+            if (!in_array($status, $validStatuses)) {
+                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+                return;
+            }
+            
+            $stmt = $this->db->prepare("UPDATE melhorias_continuas SET status = ? WHERE id = ?");
+            $stmt->execute([$status, (int)$id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso']);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar status: ' . $e->getMessage()]);
+        }
+    }
+
+    // Atualizar pontuação (apenas admins)
+    public function updatePontuacao($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!$this->isAdmin()) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
+            $pontuacao = (int)($_POST['pontuacao'] ?? 0);
+            
+            $stmt = $this->db->prepare("UPDATE melhorias_continuas SET pontuacao = ? WHERE id = ?");
+            $stmt->execute([$pontuacao, (int)$id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Pontuação atualizada com sucesso']);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar pontuação: ' . $e->getMessage()]);
+        }
+    }
+
+    // Atualizar observação (apenas admins)
+    public function updateObservacao($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!$this->isAdmin()) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
+            $observacao = trim($_POST['observacao'] ?? '');
+            
+            $stmt = $this->db->prepare("UPDATE melhorias_continuas SET observacao = ? WHERE id = ?");
+            $stmt->execute([$observacao, (int)$id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Observação atualizada com sucesso']);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar observação: ' . $e->getMessage()]);
+        }
+    }
+
+    // Atualizar resultado (apenas admins)
+    public function updateResultado($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!$this->isAdmin()) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
+            $resultado = trim($_POST['resultado'] ?? '');
+            
+            $stmt = $this->db->prepare("UPDATE melhorias_continuas SET resultado = ? WHERE id = ?");
+            $stmt->execute([$resultado, (int)$id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Resultado atualizado com sucesso']);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar resultado: ' . $e->getMessage()]);
+        }
+    }
+
+    // Excluir melhoria
+    public function delete($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("DELETE FROM melhorias_continuas WHERE id = ?");
+            $stmt->execute([(int)$id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Melhoria excluída com sucesso']);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir melhoria: ' . $e->getMessage()]);
+        }
+    }
+
+    // Imprimir melhoria
+    public function print($id)
+    {
+        try {
+            // Buscar dados da melhoria
+            $stmt = $this->db->prepare("
+                SELECT m.*, d.nome as departamento_nome, u.name as created_by_name
+                FROM melhorias_continuas m
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                LEFT JOIN users u ON m.created_by = u.id
+                WHERE m.id = ?
+            ");
+            $stmt->execute([(int)$id]);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$melhoria) {
+                http_response_code(404);
+                echo 'Melhoria não encontrada';
+                return;
+            }
+            
+            // Buscar responsáveis
+            $stmt = $this->db->prepare("
+                SELECT u.name, u.email
+                FROM melhorias_continuas_responsaveis mr
+                JOIN users u ON mr.user_id = u.id
+                WHERE mr.melhoria_id = ?
+                ORDER BY u.name
+            ");
+            $stmt->execute([(int)$id]);
+            $melhoria['responsaveis'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Buscar anexos
+            $stmt = $this->db->prepare("
+                SELECT nome_arquivo, tipo_arquivo, tamanho_arquivo, created_at
+                FROM melhorias_continuas_anexos
+                WHERE melhoria_id = ?
+                ORDER BY created_at
+            ");
+            $stmt->execute([(int)$id]);
+            $melhoria['anexos'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Renderizar página de impressão
+            include __DIR__ . '/../../views/pages/melhoria-continua/print.php';
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo 'Erro ao gerar impressão: ' . $e->getMessage();
+        }
+    }
+
+    // Verificar se é admin
+    private function isAdmin()
+    {
+        return ($_SESSION['user_role'] ?? '') === 'admin';
     }
 }
