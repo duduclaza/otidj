@@ -277,6 +277,8 @@ class RegistrosController
         }
     }
 
+
+
     private function render(string $view, array $data = []): void
     {
         extract($data);

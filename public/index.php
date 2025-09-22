@@ -210,10 +210,24 @@ $router->get('/registros/filiais', [App\Controllers\RegistrosController::class, 
 $router->get('/registros/departamentos', [App\Controllers\RegistrosController::class, 'departamentos']);
 $router->get('/registros/fornecedores', [App\Controllers\RegistrosController::class, 'fornecedores']);
 $router->get('/registros/parametros', [App\Controllers\RegistrosController::class, 'parametros']);
+
+// Store routes
 $router->post('/registros/filiais/store', [App\Controllers\RegistrosController::class, 'storeFilial']);
 $router->post('/registros/departamentos/store', [App\Controllers\RegistrosController::class, 'storeDepartamento']);
 $router->post('/registros/fornecedores/store', [App\Controllers\RegistrosController::class, 'storeFornecedor']);
 $router->post('/registros/parametros/store', [App\Controllers\RegistrosController::class, 'storeParametro']);
+
+// Update routes
+$router->post('/registros/filiais/update', [App\Controllers\RegistrosController::class, 'updateFilial']);
+$router->post('/registros/departamentos/update', [App\Controllers\RegistrosController::class, 'updateDepartamento']);
+$router->post('/registros/fornecedores/update', [App\Controllers\RegistrosController::class, 'updateFornecedor']);
+$router->post('/registros/parametros/update', [App\Controllers\RegistrosController::class, 'updateParametro']);
+
+// Delete routes
+$router->post('/registros/filiais/delete', [App\Controllers\RegistrosController::class, 'deleteFilial']);
+$router->post('/registros/departamentos/delete', [App\Controllers\RegistrosController::class, 'deleteDepartamento']);
+$router->post('/registros/fornecedores/delete', [App\Controllers\RegistrosController::class, 'deleteFornecedor']);
+$router->post('/registros/parametros/delete', [App\Controllers\RegistrosController::class, 'deleteParametro']);
 
 // Dispatch
 try {
