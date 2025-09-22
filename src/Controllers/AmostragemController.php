@@ -33,9 +33,6 @@ class AmostragemController
         header('Content-Type: application/json');
         
         try {
-            // Debug incoming POST data
-            error_log("POST data received: " . print_r($_POST, true));
-            error_log("FILES data received: " . print_r($_FILES, true));
             
             $numero_nf = $_POST['numero_nf'] ?? '';
             $status = $_POST['status'] ?? 'pendente';
@@ -59,8 +56,6 @@ class AmostragemController
                 }
             }
             
-            error_log("Parsed values - numero_nf: '$numero_nf', status: '$status'");
-            
             if (empty($numero_nf) || empty($status)) {
                 echo json_encode(['success' => false, 'message' => 'Número da NF e status são obrigatórios']);
                 return;
@@ -71,19 +66,27 @@ class AmostragemController
                 return;
             }
 
-            // Handle file upload for NF PDF
+            // Handle file upload for NF PDF - salvar em MEDIUMBLOB
             $arquivo_nf = '';
+            $pdfBlob = null; $pdfName = null; $pdfType = null; $pdfSize = null;
             if (isset($_FILES['arquivo_nf']) && $_FILES['arquivo_nf']['error'] === UPLOAD_ERR_OK) {
-                $uploadDir = 'uploads/nf/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-                
-                $fileName = uniqid() . '_' . $_FILES['arquivo_nf']['name'];
-                $uploadPath = $uploadDir . $fileName;
-                
-                if (move_uploaded_file($_FILES['arquivo_nf']['tmp_name'], $uploadPath)) {
-                    $arquivo_nf = 'nf/' . $fileName;
+                // Salvar em BLOB se coluna existir
+                if ($this->hasColumn('amostragens', 'arquivo_nf_blob')) {
+                    $pdfBlob = file_get_contents($_FILES['arquivo_nf']['tmp_name']);
+                    $pdfName = $_FILES['arquivo_nf']['name'];
+                    $pdfType = $_FILES['arquivo_nf']['type'] ?? 'application/pdf';
+                    $pdfSize = $_FILES['arquivo_nf']['size'];
+                } else {
+                    // Fallback filesystem
+                    $uploadDir = 'uploads/nf/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    $fileName = uniqid() . '_' . $_FILES['arquivo_nf']['name'];
+                    $uploadPath = $uploadDir . $fileName;
+                    if (move_uploaded_file($_FILES['arquivo_nf']['tmp_name'], $uploadPath)) {
+                        $arquivo_nf = 'nf/' . $fileName;
+                    }
                 }
             }
 
@@ -130,9 +133,23 @@ class AmostragemController
             // Build INSERT based on existing columns (produção pode não ter colunas novas)
             $hasResponsaveis = $this->hasColumn('amostragens', 'responsaveis');
             $hasFotos = $this->hasColumn('amostragens', 'fotos');
+            $hasPdfBlob = $this->hasColumn('amostragens', 'arquivo_nf_blob');
+            $hasEvidTable = $this->hasTable('amostragens_evidencias');
 
-            $columns = ['numero_nf', 'status', 'observacao', 'arquivo_nf', 'evidencias'];
-            $placeholders = [':numero_nf', ':status', ':observacao', ':arquivo_nf', ':evidencias'];
+            $columns = ['numero_nf', 'status', 'observacao'];
+            $placeholders = [':numero_nf', ':status', ':observacao'];
+            
+            // PDF: BLOB ou filesystem
+            if ($hasPdfBlob && $pdfBlob) {
+                $columns[] = 'arquivo_nf_blob'; $placeholders[] = ':arquivo_nf_blob';
+                if ($this->hasColumn('amostragens', 'arquivo_nf_name')) { $columns[] = 'arquivo_nf_name'; $placeholders[] = ':arquivo_nf_name'; }
+                if ($this->hasColumn('amostragens', 'arquivo_nf_type')) { $columns[] = 'arquivo_nf_type'; $placeholders[] = ':arquivo_nf_type'; }
+                if ($this->hasColumn('amostragens', 'arquivo_nf_size')) { $columns[] = 'arquivo_nf_size'; $placeholders[] = ':arquivo_nf_size'; }
+            } else {
+                $columns[] = 'arquivo_nf'; $placeholders[] = ':arquivo_nf';
+            }
+            
+            $columns[] = 'evidencias'; $placeholders[] = ':evidencias';
             if ($hasResponsaveis) { $columns[] = 'responsaveis'; $placeholders[] = ':responsaveis'; }
             if ($hasFotos) { $columns[] = 'fotos'; $placeholders[] = ':fotos'; }
             $columns[] = 'data_registro';
@@ -146,13 +163,29 @@ class AmostragemController
                 ':numero_nf' => $numero_nf,
                 ':status' => $status,
                 ':observacao' => $observacao,
-                ':arquivo_nf' => $arquivo_nf,
                 ':evidencias' => json_encode($evidencias)
             ];
+            
+            // PDF params
+            if ($hasPdfBlob && $pdfBlob) {
+                $params[':arquivo_nf_blob'] = $pdfBlob;
+                if ($this->hasColumn('amostragens', 'arquivo_nf_name')) { $params[':arquivo_nf_name'] = $pdfName; }
+                if ($this->hasColumn('amostragens', 'arquivo_nf_type')) { $params[':arquivo_nf_type'] = $pdfType; }
+                if ($this->hasColumn('amostragens', 'arquivo_nf_size')) { $params[':arquivo_nf_size'] = $pdfSize; }
+            } else {
+                $params[':arquivo_nf'] = $arquivo_nf;
+            }
+            
             if ($hasResponsaveis) { $params[':responsaveis'] = json_encode($responsaveisParsed); }
             if ($hasFotos) { $params[':fotos'] = json_encode($fotos); }
 
             $stmt->execute($params);
+            $amostragemId = $this->db->lastInsertId();
+
+            // Salvar evidências em tabela separada se existir
+            if ($hasEvidTable && !empty($evidencias) && $amostragemId) {
+                $this->saveEvidenciasToTable($amostragemId, $_FILES['evidencias'] ?? []);
+            }
 
             // Build names and emails arrays
             $names = [];
@@ -327,7 +360,17 @@ class AmostragemController
                 return;
             }
 
-            // Serve PDF file
+            // Serve PDF file: preferir BLOB
+            if (!empty($amostragem['arquivo_nf_blob'])) {
+                $filename = $amostragem['arquivo_nf_name'] ?? ('NF_' . $amostragem['numero_nf'] . '.pdf');
+                $type = $amostragem['arquivo_nf_type'] ?? 'application/pdf';
+                header('Content-Type: ' . $type);
+                header('Content-Disposition: attachment; filename="' . $filename . '"');
+                echo $amostragem['arquivo_nf_blob'];
+                exit;
+            }
+            
+            // Fallback: filesystem
             if (!empty($amostragem['arquivo_nf']) && file_exists($amostragem['arquivo_nf'])) {
                 header('Content-Type: application/pdf');
                 header('Content-Disposition: attachment; filename="NF_' . $amostragem['numero_nf'] . '.pdf"');
@@ -351,6 +394,65 @@ class AmostragemController
             return (bool)$stmt->fetch();
         } catch (\PDOException $e) {
             return false;
+        }
+    }
+
+    // Helper: verifica se a tabela existe
+    private function hasTable(string $table): bool
+    {
+        try {
+            $stmt = $this->db->prepare("SHOW TABLES LIKE ?");
+            $stmt->execute([$table]);
+            return (bool)$stmt->fetch();
+        } catch (\PDOException $e) {
+            return false;
+        }
+    }
+
+    // Salva evidências na tabela separada
+    private function saveEvidenciasToTable(int $amostragemId, array $files): void
+    {
+        if (empty($files['tmp_name'])) return;
+        
+        $stmt = $this->db->prepare("INSERT INTO amostragens_evidencias (amostragem_id, image, name, type, size) VALUES (?, ?, ?, ?, ?)");
+        
+        foreach ($files['tmp_name'] as $key => $tmpName) {
+            if ($files['error'][$key] === UPLOAD_ERR_OK) {
+                $imageBlob = file_get_contents($tmpName);
+                $name = $files['name'][$key] ?? null;
+                $type = $files['type'][$key] ?? null;
+                $size = $files['size'][$key] ?? 0;
+                
+                $stmt->execute([$amostragemId, $imageBlob, $name, $type, $size]);
+            }
+        }
+    }
+
+    // Endpoint para servir evidências do banco
+    public function evidencia($amostragemId, $evidenciaId)
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT image, name, type FROM amostragens_evidencias WHERE id = ? AND amostragem_id = ?");
+            $stmt->execute([$evidenciaId, $amostragemId]);
+            $evidencia = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$evidencia || empty($evidencia['image'])) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Evidência não encontrada']);
+                return;
+            }
+
+            $filename = $evidencia['name'] ?? 'evidencia.jpg';
+            $type = $evidencia['type'] ?? 'image/jpeg';
+            
+            header('Content-Type: ' . $type);
+            header('Content-Disposition: inline; filename="' . $filename . '"');
+            echo $evidencia['image'];
+            exit;
+
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao buscar evidência: ' . $e->getMessage()]);
         }
     }
 }
