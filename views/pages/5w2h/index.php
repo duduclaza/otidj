@@ -353,7 +353,7 @@ document.getElementById('planoForm').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            closeModal();
+            cancelarFormulario();
             loadPlanos();
             showNotification('Plano salvo com sucesso!', 'success');
         } else {
