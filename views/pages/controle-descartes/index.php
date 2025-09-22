@@ -226,7 +226,7 @@ $canExport = hasPermission('controle_descartes', 'export');
                     <button type="button" onclick="fecharModalDescarte()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md">
                         Cancelar
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
+                    <button type="button" id="btn-salvar-descarte" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
                         Salvar
                     </button>
                 </div>
@@ -406,7 +406,8 @@ function excluirDescarte(id) {
     
     fetch('/controle-descartes/delete', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin'
     })
     .then(response => response.json())
     .then(data => {
@@ -423,25 +424,35 @@ function excluirDescarte(id) {
     });
 }
 
-// Submit do formulário
-document.getElementById('form-descarte').addEventListener('submit', function(e) {
+// Ação explícita de salvar (evita submissão nativa e qualquer navegação)
+document.getElementById('btn-salvar-descarte').addEventListener('click', function(e) {
     e.preventDefault();
-    
-    const formData = new FormData(this);
+    e.stopPropagation();
+    const form = document.getElementById('form-descarte');
+    const formData = new FormData(form);
     const isEdit = document.getElementById('descarte-id').value !== '';
     const url = isEdit ? '/controle-descartes/update' : '/controle-descartes/create';
-    
+
     fetch(url, {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin',
+        redirect: 'manual' // evita seguir qualquer redirect (ex: login)
     })
-    .then(response => response.json())
+    .then(async (response) => {
+        // Se o servidor tentar redirecionar (ex: sessão expirada), response.type pode ser 'opaqueredirect'
+        if (response.type === 'opaqueredirect' || (response.status >= 300 && response.status < 400)) {
+            alert('Sua sessão pode ter expirado. Por favor, faça login novamente.');
+            return { success: false };
+        }
+        try { return await response.json(); } catch (_) { return { success: false, message: 'Resposta inválida do servidor' }; }
+    })
     .then(data => {
-        if (data.success) {
-            alert(data.message);
+        if (data && data.success) {
+            alert(data.message || 'Registro salvo com sucesso!');
             fecharModalDescarte();
             carregarDescartes();
-        } else {
+        } else if (data && data.message) {
             alert('Erro: ' + data.message);
         }
     })
