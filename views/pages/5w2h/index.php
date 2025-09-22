@@ -660,4 +660,87 @@ function removeFile(index) {
     input.files = dt.files;
     input.dispatchEvent(new Event('change'));
 }
+
+// Mostrar modal de anexos
+function showAnexosModal(anexos) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 z-50';
+    modal.innerHTML = `
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <div class="p-6 border-b">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-900">Anexos do Plano (${anexos.length})</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6">
+                    ${anexos.length === 0 ? 
+                        '<p class="text-gray-500 text-center py-8">Nenhum anexo encontrado</p>' :
+                        anexos.map(anexo => `
+                            <div class="flex items-center justify-between p-3 border rounded-lg mb-3 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        ${getFileIcon(anexo.tipo_arquivo)}
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">${anexo.nome_original}</p>
+                                        <p class="text-xs text-gray-500">
+                                            ${(anexo.tamanho_arquivo / 1024 / 1024).toFixed(2)} MB • 
+                                            Enviado por ${anexo.uploaded_by_nome} • 
+                                            ${formatDate(anexo.uploaded_at)}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="downloadAnexo(${anexo.id})" 
+                                            class="text-blue-600 hover:text-blue-800 p-1" title="Baixar">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+                <div class="p-6 border-t">
+                    <div class="flex justify-end">
+                        <button onclick="this.closest('.fixed').remove()" 
+                                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+// Ícone do arquivo baseado no tipo
+function getFileIcon(tipo) {
+    if (tipo.includes('image')) {
+        return `<svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>`;
+    } else if (tipo.includes('pdf')) {
+        return `<svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>`;
+    } else {
+        return `<svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>`;
+    }
+}
+
+// Download de anexo
+function downloadAnexo(anexoId) {
+    window.open(`/5w2h/anexo/${anexoId}`, '_blank');
+}
 </script>

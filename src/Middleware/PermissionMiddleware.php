@@ -58,6 +58,18 @@ class PermissionMiddleware
         '/melhoria-continua/historico' => 'historico_melhorias',
         '/controle-de-rc' => 'controle_rc',
         
+        // 5W2H - Planos de Ação
+        '/5w2h' => '5w2h_planos',
+        '/5w2h/list' => '5w2h_planos',
+        '/5w2h/create' => '5w2h_planos',
+        '/5w2h/update' => '5w2h_planos',
+        '/5w2h/delete' => '5w2h_planos',
+        '/5w2h/details' => '5w2h_planos',
+        '/5w2h/print' => '5w2h_planos',
+        '/5w2h/anexos' => '5w2h_planos',
+        '/5w2h/anexo' => '5w2h_planos',
+        '/5w2h/relatorios' => '5w2h_planos',
+        
         // Registros
         '/registros/filiais' => 'registros_filiais',
         '/registros/departamentos' => 'registros_departamentos',
@@ -259,6 +271,10 @@ class PermissionMiddleware
         // Lista de módulos em ordem de prioridade
         $moduleUrls = [
             'toners_cadastro' => '/toners/cadastro',
+            '5w2h_planos' => '/5w2h',
+            'homologacoes' => '/homologacoes',
+            'amostragens' => '/amostragens',
+            'garantias' => '/garantias',
             'registros_fornecedores' => '/registros/fornecedores',
             'registros_parametros' => '/registros/parametros',
             'configuracoes_gerais' => '/configuracoes',

@@ -404,13 +404,13 @@ class Planos5W2HController
         return $result['departamento_id'] ?? null;
     }
 
-    private function registrarHistorico($plano_id, $campo, $valor_anterior, $valor_novo, $user_id)
+    private function registrarHistorico($plano_id, $acao, $valor_anterior, $observacao, $user_id)
     {
         $stmt = $this->db->prepare("
-            INSERT INTO planos_5w2h_historico (plano_id, campo_alterado, valor_anterior, valor_novo, alterado_por)
+            INSERT INTO planos_5w2h_historico (plano_id, acao, valor_anterior, observacao, alterado_por)
             VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$plano_id, $campo, $valor_anterior, $valor_novo, $user_id]);
+        $stmt->execute([$plano_id, $acao, $valor_anterior, $observacao, $user_id]);
     }
 
     // Relatórios
