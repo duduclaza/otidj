@@ -102,7 +102,11 @@ class AmostragemController
             // Processar evidências (para qualquer status)
             $evidenciasData = [];
             if (isset($_FILES['evidencias'])) {
+                error_log("DEBUG: Evidências recebidas - " . print_r($_FILES['evidencias'], true));
                 $evidenciasData = $this->processEvidenciasUpload($_FILES['evidencias']);
+                error_log("DEBUG: Evidências processadas - " . count($evidenciasData) . " arquivos");
+            } else {
+                error_log("DEBUG: Nenhuma evidência recebida");
             }
 
             // Inserir amostragem no banco
@@ -268,16 +272,31 @@ class AmostragemController
     // Salvar evidências na tabela separada
     private function saveEvidenciasToDatabase(int $amostragemId, array $evidencias): void
     {
+        error_log("DEBUG: Salvando evidências - AmostragemID: $amostragemId, Total: " . count($evidencias));
+        
+        if (empty($evidencias)) {
+            error_log("DEBUG: Nenhuma evidência para salvar");
+            return;
+        }
+        
         $stmt = $this->db->prepare('INSERT INTO amostragens_evidencias (amostragem_id, image, name, type, size) VALUES (?, ?, ?, ?, ?)');
         
-        foreach ($evidencias as $evidencia) {
-            $stmt->execute([
+        foreach ($evidencias as $index => $evidencia) {
+            error_log("DEBUG: Salvando evidência $index - Nome: {$evidencia['name']}, Tamanho: {$evidencia['size']}");
+            
+            $result = $stmt->execute([
                 $amostragemId,
                 $evidencia['blob'],
                 $evidencia['name'],
                 $evidencia['type'],
                 $evidencia['size']
             ]);
+            
+            if ($result) {
+                error_log("DEBUG: Evidência $index salva com sucesso");
+            } else {
+                error_log("DEBUG: Erro ao salvar evidência $index");
+            }
         }
     }
 

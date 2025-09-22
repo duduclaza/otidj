@@ -413,7 +413,7 @@ function submitAmostragem() {
   
   // Get files
   const arquivoNf = document.querySelector('input[name="arquivo_nf"]')?.files[0];
-  const fotos = document.querySelector('input[name="fotos[]"]')?.files;
+  const evidencias = document.querySelector('input[name="evidencias[]"]')?.files;
   
   console.log('Valores capturados:');
   console.log('numero_nf:', numeroNf);
@@ -421,7 +421,7 @@ function submitAmostragem() {
   console.log('observacao:', observacao);
   console.log('responsaveis:', responsaveis);
   console.log('arquivo_nf:', arquivoNf);
-  console.log('fotos:', fotos);
+  console.log('evidencias:', evidencias);
   
   // Validate required fields
   if (!numeroNf) {
@@ -460,9 +460,9 @@ function submitAmostragem() {
     formData.append('arquivo_nf', arquivoNf);
   }
   
-  if (fotos && fotos.length > 0) {
-    for (let i = 0; i < fotos.length; i++) {
-      formData.append('fotos[]', fotos[i]);
+  if (evidencias && evidencias.length > 0) {
+    for (let i = 0; i < evidencias.length; i++) {
+      formData.append('evidencias[]', evidencias[i]);
     }
   }
   
