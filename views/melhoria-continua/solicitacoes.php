@@ -86,6 +86,48 @@
     </form>
   </div>
 
+  <!-- Filtros -->
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Setor</label>
+        <select id="filtroSetor" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Todos os setores</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+        <select id="filtroStatus" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Todos os status</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Em Análise">Em Análise</option>
+          <option value="Aprovado">Aprovado</option>
+          <option value="Rejeitado">Rejeitado</option>
+          <option value="Implementado">Implementado</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Processo</label>
+        <input type="text" id="filtroProcesso" placeholder="Buscar por processo..." class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Responsável</label>
+        <select id="filtroResponsavel" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Todos os responsáveis</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex justify-end space-x-2 mt-4">
+      <button onclick="limparFiltros()" class="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+        Limpar Filtros
+      </button>
+      <button onclick="aplicarFiltros()" class="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+        Aplicar Filtros
+      </button>
+    </div>
+  </div>
+
   <div class="bg-white rounded-lg shadow overflow-hidden">
     <div class="px-4 py-3 border-b"><h3 class="font-medium">Minhas Solicitações</h3></div>
     <div class="overflow-x-auto">
@@ -162,33 +204,165 @@ async function createSolicitacao(e){
   }
 }
 
+let todasAsSolicitacoes = []; // Armazena todas as solicitações para filtrar localmente
+let setoresUnicos = new Set(); // Para popular o dropdown de setores
+let responsaveisUnicos = new Set(); // Para popular o dropdown de responsáveis
+
 async function loadGrid(){
   let overlay = document.getElementById('loadingOverlay');
   try {
     const resp = await fetch('/melhoria-continua/solicitacoes/list');
     const json = await resp.json().catch(()=>({success:false,data:[]}));
-    const body = document.getElementById('gridBody');
-    body.innerHTML = '';
-    if (!json.data || json.data.length === 0){
-      body.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Sem registros</td></tr>';
-      return;
+    
+    if (json.data && json.data.length > 0) {
+      todasAsSolicitacoes = json.data;
+      
+      // Popular dropdowns
+      setoresUnicos.clear();
+      responsaveisUnicos.clear();
+      
+      json.data.forEach(row => {
+        if (row.setor) setoresUnicos.add(row.setor);
+        if (row.responsaveis && Array.isArray(row.responsaveis)) {
+          row.responsaveis.forEach(resp => responsaveisUnicos.add(resp));
+        }
+      });
+      
+      // Popular dropdown de setores
+      const selectSetor = document.getElementById('filtroSetor');
+      while (selectSetor.children.length > 1) {
+        selectSetor.removeChild(selectSetor.lastChild);
+      }
+      Array.from(setoresUnicos).sort().forEach(setor => {
+        const option = document.createElement('option');
+        option.value = setor;
+        option.textContent = setor;
+        selectSetor.appendChild(option);
+      });
+      
+      // Popular dropdown de responsáveis
+      const selectResponsavel = document.getElementById('filtroResponsavel');
+      while (selectResponsavel.children.length > 1) {
+        selectResponsavel.removeChild(selectResponsavel.lastChild);
+      }
+      Array.from(responsaveisUnicos).sort().forEach(responsavel => {
+        const option = document.createElement('option');
+        option.value = responsavel;
+        option.textContent = responsavel;
+        selectResponsavel.appendChild(option);
+      });
     }
-    json.data.forEach(row=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="px-3 py-2">${row.id}</td>
-        <td class="px-3 py-2">${row.data || ''}</td>
-        <td class="px-3 py-2">${row.processo || ''}</td>
-        <td class="px-3 py-2">${row.setor || ''}</td>
-        <td class="px-3 py-2">${row.status || ''}</td>
-        <td class="px-3 py-2"><a class="text-blue-600 hover:underline" href="/melhoria-continua/solicitacoes/${row.id}/anexos" target="_blank">Ver anexos</a></td>
-        <td class="px-3 py-2">${(row.responsaveis||[]).join(', ')}</td>
-        <td class="px-3 py-2 space-x-2"><button class="px-2 py-1 text-xs bg-red-600 text-white rounded" onclick="excluir(${row.id})">Excluir</button></td>`;
-      body.appendChild(tr);
-    });
+    
+    renderizarTabela(todasAsSolicitacoes);
   } finally {
     if (overlay) overlay.classList.remove('active');
   }
+}
+
+function renderizarTabela(dados) {
+  const body = document.getElementById('gridBody');
+  body.innerHTML = '';
+  
+  if (!dados || dados.length === 0) {
+    body.innerHTML = '<tr><td colspan="8" class="px-3 py-4 text-center text-gray-500">Sem registros encontrados</td></tr>';
+    return;
+  }
+  
+  dados.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="px-3 py-2">${row.id}</td>
+      <td class="px-3 py-2">${row.data || ''}</td>
+      <td class="px-3 py-2">${row.processo || ''}</td>
+      <td class="px-3 py-2">${row.setor || ''}</td>
+      <td class="px-3 py-2">
+        <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(row.status)}">
+          ${row.status || ''}
+        </span>
+      </td>
+      <td class="px-3 py-2"><a class="text-blue-600 hover:underline" href="/melhoria-continua/solicitacoes/${row.id}/anexos" target="_blank">Ver anexos</a></td>
+      <td class="px-3 py-2">${(row.responsaveis||[]).join(', ')}</td>
+      <td class="px-3 py-2 space-x-2"><button class="px-2 py-1 text-xs bg-red-600 text-white rounded" onclick="excluir(${row.id})">Excluir</button></td>`;
+    body.appendChild(tr);
+  });
+}
+
+function getStatusColor(status) {
+  switch(status) {
+    case 'Pendente': return 'bg-yellow-100 text-yellow-800';
+    case 'Em Análise': return 'bg-blue-100 text-blue-800';
+    case 'Aprovado': return 'bg-green-100 text-green-800';
+    case 'Rejeitado': return 'bg-red-100 text-red-800';
+    case 'Implementado': return 'bg-purple-100 text-purple-800';
+    default: return 'bg-gray-100 text-gray-800';
+  }
+}
+
+function aplicarFiltros() {
+  const setor = document.getElementById('filtroSetor').value;
+  const status = document.getElementById('filtroStatus').value;
+  const processo = document.getElementById('filtroProcesso').value.toLowerCase();
+  const responsavel = document.getElementById('filtroResponsavel').value;
+  
+  let dadosFiltrados = [...todasAsSolicitacoes];
+  
+  // Filtro por setor
+  if (setor) {
+    dadosFiltrados = dadosFiltrados.filter(row => row.setor === setor);
+  }
+  
+  // Filtro por status
+  if (status) {
+    dadosFiltrados = dadosFiltrados.filter(row => row.status === status);
+  }
+  
+  // Filtro por processo
+  if (processo) {
+    dadosFiltrados = dadosFiltrados.filter(row => 
+      row.processo && row.processo.toLowerCase().includes(processo)
+    );
+  }
+  
+  // Filtro por responsável
+  if (responsavel) {
+    dadosFiltrados = dadosFiltrados.filter(row => 
+      row.responsaveis && row.responsaveis.includes(responsavel)
+    );
+  }
+  
+  renderizarTabela(dadosFiltrados);
+  
+  // Feedback visual
+  const totalFiltrados = dadosFiltrados.length;
+  const totalOriginal = todasAsSolicitacoes.length;
+  
+  if (totalFiltrados !== totalOriginal) {
+    const mensagem = `Mostrando ${totalFiltrados} de ${totalOriginal} solicitações`;
+    console.log(mensagem);
+    
+    // Adicionar indicador visual de filtro ativo
+    const header = document.querySelector('.bg-white.rounded-lg.shadow.overflow-hidden .px-4.py-3.border-b');
+    let indicador = header.querySelector('.filtro-ativo');
+    if (!indicador) {
+      indicador = document.createElement('div');
+      indicador.className = 'filtro-ativo text-xs text-blue-600 font-medium';
+      header.appendChild(indicador);
+    }
+    indicador.textContent = mensagem;
+  }
+}
+
+function limparFiltros() {
+  document.getElementById('filtroSetor').value = '';
+  document.getElementById('filtroStatus').value = '';
+  document.getElementById('filtroProcesso').value = '';
+  document.getElementById('filtroResponsavel').value = '';
+  
+  // Remover indicador de filtro ativo
+  const indicador = document.querySelector('.filtro-ativo');
+  if (indicador) indicador.remove();
+  
+  renderizarTabela(todasAsSolicitacoes);
 }
 
 async function excluir(id){
