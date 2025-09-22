@@ -157,24 +157,22 @@ class Planos5W2HController
             // Inserir plano
             $stmt = $this->db->prepare("
                 INSERT INTO planos_5w2h (
-                    titulo, what, why, where_local, when_inicio, when_fim, 
-                    who_id, how, how_much, status, setor_id, observacoes, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    titulo, what, why, where_local, when_inicio, 
+                    who_id, how, how_much, status, setor_id, created_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
             $stmt->execute([
                 $data['titulo'],
                 $data['what'],
                 $data['why'],
-                $data['where_local'] ?? null,
-                $data['when_inicio'] ?? null,
-                $data['when_fim'] ?? null,
-                $data['who_id'] ?? null,
-                $data['how'] ?? null,
-                $data['how_much'] ?? 0.00,
-                $data['status'] ?? 'Aberto',
-                $data['setor_id'] ?? null,
-                $data['observacoes'] ?? null,
+                $data['where'],
+                $data['when'],
+                $data['who'],
+                $data['how'],
+                $data['howMuch'] ?? 0.00,
+                $data['status'] ?? 'pendente',
+                $data['departamento'],
                 $_SESSION['user_id']
             ]);
 
