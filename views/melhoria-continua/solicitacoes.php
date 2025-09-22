@@ -86,9 +86,11 @@
     </form>
   </div>
 
-  <!-- Filtros -->
-  <div class="bg-white rounded-lg shadow p-4 mb-6">
-    <h3 class="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
+  <!-- Filtros e Grid sempre juntos -->
+  <div class="space-y-6">
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Filtros</h3>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Setor</label>
@@ -126,9 +128,9 @@
         Aplicar Filtros
       </button>
     </div>
-  </div>
-
-  <div class="bg-white rounded-lg shadow overflow-hidden">
+    
+    <!-- Grid de Solicitações -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
     <div class="px-4 py-3 border-b"><h3 class="font-medium">Minhas Solicitações</h3></div>
     <div class="overflow-x-auto">
       <table class="min-w-full text-sm">
@@ -148,6 +150,7 @@
           <tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Sem registros</td></tr>
         </tbody>
       </table>
+    </div>
     </div>
   </div>
 </section>
