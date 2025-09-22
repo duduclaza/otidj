@@ -1,64 +1,49 @@
 <?php
-// Function to check if user has permission (only declare if not already defined globally)
+// Helpers protegidos contra redeclaração (servidor já carrega helpers.php)
 if (!function_exists('hasPermission')) {
-function hasPermission($module, $action = 'view') {
-    if (!isset($_SESSION['user_id'])) {
-        return false;
-    }
-}
-    
-    
-    // 1) Admin: acesso total (robusto, consulta direto no serviço)
-    try {
-        if (\App\Services\PermissionService::isAdmin((int)$_SESSION['user_id'])) {
-            return true;
+    function hasPermission($module, $action = 'view') {
+        if (!isset($_SESSION['user_id'])) {
+            return false;
         }
-    } catch (\Throwable $e) {
-        // Se o autoload/serviço não estiver acessível aqui, seguimos para as próximas checagens
-    }
+        // Admin tem acesso total
+        try {
+            if (\App\Services\PermissionService::isAdmin((int)$_SESSION['user_id'])) {
+                return true;
+            }
+        } catch (\Throwable $e) {}
 
-    // 2) Sessão: tentar ler perfil/permissões em diferentes formatos
-    $profile = $_SESSION['profile'] ?? ($_SESSION['user_profile']['profile_name'] ?? null);
-    if ($profile === 'Administrador') {
-        return true;
-    }
+        // Fallback via sessão
+        $profile = $_SESSION['profile'] ?? ($_SESSION['user_profile']['profile_name'] ?? null);
+        if ($profile === 'Administrador') { return true; }
 
-    $permissions = $_SESSION['permissions'] ?? ($_SESSION['user_profile']['permissions'] ?? []);
-    if (!empty($permissions)) {
-        foreach ($permissions as $permission) {
-            if (($permission['module'] ?? null) === $module) {
-                switch ($action) {
-                    case 'view': return (bool)$permission['can_view'];
-                    case 'edit': return (bool)$permission['can_edit'];
-                    case 'delete': return (bool)$permission['can_delete'];
-                    case 'import': return (bool)$permission['can_import'];
-                    case 'export': return (bool)$permission['can_export'];
+        $permissions = $_SESSION['permissions'] ?? ($_SESSION['user_profile']['permissions'] ?? []);
+        if (!empty($permissions)) {
+            foreach ($permissions as $permission) {
+                if (($permission['module'] ?? null) === $module) {
+                    switch ($action) {
+                        case 'view': return (bool)$permission['can_view'];
+                        case 'edit': return (bool)$permission['can_edit'];
+                        case 'delete': return (bool)$permission['can_delete'];
+                        case 'import': return (bool)$permission['can_import'];
+                        case 'export': return (bool)$permission['can_export'];
+                    }
                 }
             }
         }
-    }
 
-    // 3) Fallback: consultar diretamente o PermissionService
-    try {
-        $map = [
-            'view' => 'view',
-            'edit' => 'edit',
-            'delete' => 'delete',
-            'import' => 'import',
-            'export' => 'export',
-        ];
-        $actionKey = $map[$action] ?? 'view';
-        return \App\Services\PermissionService::hasPermission((int)$_SESSION['user_id'], $module, $actionKey);
-    } catch (\Throwable $e) {
-        return false;
+        // Fallback final: consultar serviço
+        try {
+            $map = ['view'=>'view','edit'=>'edit','delete'=>'delete','import'=>'import','export'=>'export'];
+            $actionKey = $map[$action] ?? 'view';
+            return \App\Services\PermissionService::hasPermission((int)$_SESSION['user_id'], $module, $actionKey);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }
 
-// Function to escape HTML (only declare if not already defined globally)
 if (!function_exists('e')) {
-    function e($value) {
-        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-    }
+    function e($value) { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
 }
 
 // Verificar permissões para cada aba
