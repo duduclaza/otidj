@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
             <h1 class="text-3xl font-bold text-gray-900">5W2H - Planos de Ação</h1>
             <p class="text-gray-600 mt-2">Gerencie seus planos de ação utilizando a metodologia 5W2H</p>
         </div>
-        <button onclick="alert('Botão clicado!'); openCreateModal();" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+        <button onclick="openCreateModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
@@ -89,9 +89,8 @@ if (!isset($_SESSION['user_id'])) {
 </div>
 
 <!-- Modal Criar/Editar Plano -->
-<div id="planoModal" style="display: none;">
-    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); z-index: 10000;">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+<div id="planoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.8); z-index: 999999;">
+    <div style="position: absolute; top: 10%; left: 50%; transform: translateX(-50%); background: white; border: 2px solid #333; width: 90%; max-width: 900px; max-height: 80vh; overflow-y: auto;">
             <div class="p-6 border-b">
                 <div class="flex justify-between items-center">
                     <h3 id="modalTitle" class="text-lg font-semibold text-gray-900">Novo Plano 5W2H</h3>
@@ -230,24 +229,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Abrir modal para criar novo plano
 function openCreateModal() {
-    alert('Função openCreateModal chamada!');
     try {
         currentPlanoId = null;
-        
-        const modal = document.getElementById('planoModal');
-        alert('Modal encontrado: ' + (modal ? 'SIM' : 'NÃO'));
-        
-        if (!modal) {
-            alert('ERRO: Modal não encontrado!');
-            return;
-        }
-        
         document.getElementById('modalTitle').textContent = 'Novo Plano 5W2H';
         document.getElementById('planoForm').reset();
-        
+        const modal = document.getElementById('planoModal');
         modal.style.display = 'block';
-        alert('Modal deve estar visível agora!');
-        
         // Prevenir scroll do body
         document.body.style.overflow = 'hidden';
     } catch (error) {
