@@ -41,16 +41,18 @@ class PopItsController
                     return false;
                 }
                 
-                // Admin has all permissions
-                if (isset($_SESSION['profile']) && $_SESSION['profile'] === 'Administrador') {
+                // Admin has all permissions - verificar ambos os formatos
+                $profile = $_SESSION['profile'] ?? $_SESSION['user_profile']['profile_name'] ?? null;
+                if ($profile === 'Administrador') {
                     return true;
                 }
                 
-                if (!isset($_SESSION['permissions'])) {
+                $permissions = $_SESSION['permissions'] ?? $_SESSION['user_profile']['permissions'] ?? [];
+                if (empty($permissions)) {
                     return false;
                 }
                 
-                foreach ($_SESSION['permissions'] as $permission) {
+                foreach ($permissions as $permission) {
                     if ($permission['module'] === $module) {
                         switch ($action) {
                             case 'view': return (bool)$permission['can_view'];
@@ -66,8 +68,10 @@ class PopItsController
             }
             
             // Debug da sessão
-            echo "Profile da sessão: " . ($_SESSION['profile'] ?? 'não definido') . "<br>";
-            echo "Permissões na sessão: " . (isset($_SESSION['permissions']) ? count($_SESSION['permissions']) : 'não definidas') . "<br>";
+            echo "Profile da sessão (profile): " . ($_SESSION['profile'] ?? 'não definido') . "<br>";
+            echo "Profile da sessão (user_profile): " . ($_SESSION['user_profile']['profile_name'] ?? 'não definido') . "<br>";
+            echo "Permissões na sessão (permissions): " . (isset($_SESSION['permissions']) ? count($_SESSION['permissions']) : 'não definidas') . "<br>";
+            echo "Permissões na sessão (user_profile): " . (isset($_SESSION['user_profile']['permissions']) ? count($_SESSION['user_profile']['permissions']) : 'não definidas') . "<br>";
                 
             echo "Função hasPermission definida. Testando permissões...<br>";
                 
