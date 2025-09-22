@@ -119,6 +119,8 @@ $router->post('/melhoria-continua/solicitacoes/update-status', [App\Controllers\
 $router->get('/api/users', [App\Controllers\UsersController::class, 'getUsers']);
 $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getProfilesList']);
 $router->get('/api/toner', [App\Controllers\TonersController::class, 'getTonerData']);
+$router->get('/api/setores', [App\Controllers\RegistrosController::class, 'getDepartamentos']);
+$router->get('/api/filiais', [App\Controllers\RegistrosController::class, 'getFiliais']);
 
 // Notifications routes
 $router->get('/api/notifications', [App\Controllers\NotificationsController::class, 'getNotifications']);
@@ -149,6 +151,16 @@ $router->delete('/melhoria-continua/{id}/delete', [App\Controllers\MelhoriaConti
 $router->get('/melhoria-continua/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
 $router->get('/melhoria-continua/{id}/anexos', [App\Controllers\MelhoriaContinuaController::class, 'getAnexos']);
 $router->get('/melhoria-continua/anexo/{anexoId}', [App\Controllers\MelhoriaContinuaController::class, 'downloadAnexo']);
+
+// Registros routes
+$router->get('/registros/filiais', [App\Controllers\RegistrosController::class, 'filiais']);
+$router->get('/registros/departamentos', [App\Controllers\RegistrosController::class, 'departamentos']);
+$router->get('/registros/fornecedores', [App\Controllers\RegistrosController::class, 'fornecedores']);
+$router->get('/registros/parametros', [App\Controllers\RegistrosController::class, 'parametros']);
+$router->post('/registros/filiais/store', [App\Controllers\RegistrosController::class, 'storeFilial']);
+$router->post('/registros/departamentos/store', [App\Controllers\RegistrosController::class, 'storeDepartamento']);
+$router->post('/registros/fornecedores/store', [App\Controllers\RegistrosController::class, 'storeFornecedor']);
+$router->post('/registros/parametros/store', [App\Controllers\RegistrosController::class, 'storeParametro']);
 
 // Dispatch
 try {

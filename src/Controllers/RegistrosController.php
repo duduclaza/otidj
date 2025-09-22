@@ -232,6 +232,51 @@ class RegistrosController
         redirect('/registros/parametros');
     }
 
+    // API Methods
+    public function getDepartamentos(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare('SELECT id, nome as name FROM departamentos ORDER BY nome');
+            $stmt->execute();
+            $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $departamentos,
+                'count' => count($departamentos)
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao carregar departamentos: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getFiliais(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare('SELECT id, nome as name FROM filiais ORDER BY nome');
+            $stmt->execute();
+            $filiais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $filiais,
+                'count' => count($filiais)
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao carregar filiais: ' . $e->getMessage()
+            ]);
+        }
+    }
+
     private function render(string $view, array $data = []): void
     {
         extract($data);
