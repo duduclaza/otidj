@@ -174,4 +174,68 @@ class ConfigController
             ]);
         }
     }
+
+    // Sincroniza e garante que o perfil Administrador tenha acesso total e que usuários admin estejam associados a ele
+    public function syncAdminPermissions(): void
+    {
+        header('Content-Type: application/json');
+        $results = [
+            'profile' => null,
+            'assigned_users' => 0,
+            'permissions_inserted' => 0,
+        ];
+        try {
+            // 1) Garantir perfil Administrador (is_admin=1)
+            $stmt = $this->db->prepare("SELECT id FROM profiles WHERE name = 'Administrador'");
+            $stmt->execute();
+            $adminProfileId = $stmt->fetchColumn();
+            if (!$adminProfileId) {
+                $ins = $this->db->prepare("INSERT INTO profiles (name, description, is_admin, is_default) VALUES ('Administrador', 'Perfil com acesso total ao sistema', 1, 0)");
+                $ins->execute();
+                $adminProfileId = (int)$this->db->lastInsertId();
+                $results['profile'] = 'created';
+            } else {
+                // Garantir flag is_admin
+                $this->db->prepare("UPDATE profiles SET is_admin = 1 WHERE id = ?")->execute([$adminProfileId]);
+                $results['profile'] = 'updated';
+            }
+
+            // 2) Atribuir perfil Administrador para usuários com role='admin'
+            $upd = $this->db->prepare("UPDATE users SET profile_id = ? WHERE role = 'admin' AND (profile_id IS NULL OR profile_id <> ?)");
+            $upd->execute([$adminProfileId, $adminProfileId]);
+            $results['assigned_users'] = $upd->rowCount();
+
+            // 3) Garantir permissões completas para TODOS módulos
+            $modules = [
+                // Operacionais/Qualidade
+                'dashboard','toners_cadastro','toners_retornados','amostragens','homologacoes','garantias','controle_descartes','femea','fluxogramas','melhoria_continua','controle_rc',
+                // POPs e ITs (granular)
+                'pops_its_cadastro_titulos','pops_its_meus_registros','pops_its_pendente_aprovacao','pops_its_visualizacao',
+                // Registros
+                'registros_filiais','registros_departamentos','registros_fornecedores','registros_parametros',
+                // Administrativo
+                'configuracoes_gerais','admin_usuarios','admin_perfis','admin_convites','admin_painel',
+                // Outros
+                'profile','email_config','solicitacao_melhorias'
+            ];
+
+            // Remover duplicadas para esse profile e reinserir full access
+            $this->db->prepare("DELETE FROM profile_permissions WHERE profile_id = ?")
+                ->execute([$adminProfileId]);
+
+            $insPerm = $this->db->prepare("INSERT INTO profile_permissions (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) VALUES (?, ?, 1, 1, 1, 1, 1)");
+            foreach ($modules as $module) {
+                $insPerm->execute([$adminProfileId, $module]);
+                $results['permissions_inserted']++;
+            }
+
+            // 4) Limpar cache de permissões
+            \App\Services\PermissionService::clearAllPermissions();
+
+            echo json_encode(['success' => true, 'message' => 'Permissões do Administrador sincronizadas com sucesso.', 'results' => $results]);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Falha ao sincronizar permissões: ' . $e->getMessage(), 'results' => $results]);
+        }
+    }
 }

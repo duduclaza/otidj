@@ -5,30 +5,50 @@ function hasPermission($module, $action = 'view') {
         return false;
     }
     
-    // Admin has all permissions - verificar ambos os formatos
-    $profile = $_SESSION['profile'] ?? $_SESSION['user_profile']['profile_name'] ?? null;
+    // 1) Admin: acesso total (robusto, consulta direto no serviço)
+    try {
+        if (\App\Services\PermissionService::isAdmin((int)$_SESSION['user_id'])) {
+            return true;
+        }
+    } catch (\Throwable $e) {
+        // Se o autoload/serviço não estiver acessível aqui, seguimos para as próximas checagens
+    }
+
+    // 2) Sessão: tentar ler perfil/permissões em diferentes formatos
+    $profile = $_SESSION['profile'] ?? ($_SESSION['user_profile']['profile_name'] ?? null);
     if ($profile === 'Administrador') {
         return true;
     }
-    
-    $permissions = $_SESSION['permissions'] ?? $_SESSION['user_profile']['permissions'] ?? [];
-    if (empty($permissions)) {
-        return false;
-    }
-    
-    foreach ($permissions as $permission) {
-        if ($permission['module'] === $module) {
-            switch ($action) {
-                case 'view': return (bool)$permission['can_view'];
-                case 'edit': return (bool)$permission['can_edit'];
-                case 'delete': return (bool)$permission['can_delete'];
-                case 'import': return (bool)$permission['can_import'];
-                case 'export': return (bool)$permission['can_export'];
+
+    $permissions = $_SESSION['permissions'] ?? ($_SESSION['user_profile']['permissions'] ?? []);
+    if (!empty($permissions)) {
+        foreach ($permissions as $permission) {
+            if (($permission['module'] ?? null) === $module) {
+                switch ($action) {
+                    case 'view': return (bool)$permission['can_view'];
+                    case 'edit': return (bool)$permission['can_edit'];
+                    case 'delete': return (bool)$permission['can_delete'];
+                    case 'import': return (bool)$permission['can_import'];
+                    case 'export': return (bool)$permission['can_export'];
+                }
             }
         }
     }
-    
-    return false;
+
+    // 3) Fallback: consultar diretamente o PermissionService
+    try {
+        $map = [
+            'view' => 'view',
+            'edit' => 'edit',
+            'delete' => 'delete',
+            'import' => 'import',
+            'export' => 'export',
+        ];
+        $actionKey = $map[$action] ?? 'view';
+        return \App\Services\PermissionService::hasPermission((int)$_SESSION['user_id'], $module, $actionKey);
+    } catch (\Throwable $e) {
+        return false;
+    }
 }
 
 // Function to escape HTML

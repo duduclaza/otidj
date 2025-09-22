@@ -99,6 +99,9 @@ $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);
+// Admin: sincronizar permissões do Administrador
+$router->post('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);
+$router->get('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);
 
 // Profiles routes
 $router->get('/admin/profiles', [App\Controllers\ProfilesController::class, 'index']);
