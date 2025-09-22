@@ -17,8 +17,13 @@ class PopItsController
     public function index()
     {
         try {
-            // Teste simples primeiro
+            // Garantir que a sessão está iniciada
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
             echo "Controller POPs e ITs carregado com sucesso!<br>";
+            echo "Sessão iniciada. User ID: " . ($_SESSION['user_id'] ?? 'não definido') . "<br>";
             
             $departamentos = $this->getDepartamentos();
             echo "Departamentos carregados: " . count($departamentos) . "<br>";
