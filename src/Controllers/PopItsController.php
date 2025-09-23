@@ -431,69 +431,67 @@ class PopItsController
     // ===== ABA 3: PENDENTE APROVAÇÃO =====
 
     public function listPendentesAprovacao()
-    {
-        // Iniciar sessão se não estiver iniciada
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        // Forçar headers e limpar buffer
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-header('Content-Type: application/json');
-header('Cache-Control: no-cache');
-        
-try {
-$stmt = $this->db->prepare("
-    SELECT r.*, 
-           COALESCE(t.titulo, 'Título não encontrado') as titulo, 
-           COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome, 
-           COALESCE(u.name, 'Usuário não encontrado') as criador_nome
-    FROM pops_its_registros r
-    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
-    LEFT JOIN departamentos d ON t.departamento_id = d.id
-    LEFT JOIN users u ON r.created_by = u.id
-    WHERE r.status = 'pendente'
-    ORDER BY r.created_at ASC
-");
-$stmt->execute();
-$registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Garantir sessão
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
 
-echo json_encode(['success' => true, 'data' => $registros]);
-exit();
-} catch (\Exception $e) {
-echo json_encode(['success' => false, 'message' => 'Erro ao listar pendentes: ' . $e->getMessage()]);
-exit();
-}
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache');
+
+    $debug = isset($_GET['debug']) && $_GET['debug'] == '1';
+    $logDir = __DIR__ . '/../../logs';
+    if (!is_dir($logDir)) { @mkdir($logDir, 0777, true); }
+
+    try {
+        $stmt = $this->db->prepare(
+            "SELECT r.*, 
+                    COALESCE(t.titulo, 'Título não encontrado') as titulo, 
+                    COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome, 
+                    COALESCE(u.name, 'Usuário não encontrado') as criador_nome
+             FROM pops_its_registros r
+             LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+             LEFT JOIN departamentos d ON t.departamento_id = d.id
+             LEFT JOIN users u ON r.created_by = u.id
+             WHERE r.status = 'pendente'
+             ORDER BY r.created_at ASC"
+        );
+        $stmt->execute();
+        $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if ($debug) {
+            @file_put_contents($logDir . '/pops_its_debug.log',
+                date('Y-m-d H:i:s') . " listPendentesAprovacao reached. count=" . count($registros) . "\n",
+                FILE_APPEND
+            );
+            echo json_encode([
+                'success' => true,
+                'reached'  => true,
+                'count'    => count($registros),
+                'data'     => $registros,
+                'time'     => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            echo json_encode(['success' => true, 'data' => $registros]);
+        }
+    } catch (\Exception $e) {
+        @file_put_contents($logDir . '/pops_its_debug.log',
+            date('Y-m-d H:i:s') . ' listPendentesAprovacao ERROR: ' . $e->getMessage() . "\n",
+            FILE_APPEND
+        );
+        echo json_encode(['success' => false, 'message' => 'Erro ao listar pendentes: ' . $e->getMessage()]);
+    }
+    exit();
 }
 
 public function aprovarRegistro()
 {
-header('Content-Type: application/json');
-        header('Content-Type: application/json');
-        
-        try {
-            // Verificar se é admin
-            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
-                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem aprovar registros.']);
-                return;
-            }
-            
-            $registro_id = (int)($_POST['registro_id'] ?? 0);
-            $user_id = $_SESSION['user_id'];
-
-            $stmt = $this->db->prepare("
-                UPDATE pops_its_registros 
-                SET status = 'aprovado', approved_by = ?, approved_at = NOW()
-                WHERE id = ? AND status = 'pendente'
-            ");
-            $stmt->execute([$user_id, $registro_id]);
-
-            if ($stmt->rowCount() === 0) {
-                echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou já processado']);
-                return;
+    header('Content-Type: application/json');
+    try {
+        // Verificar se é admin
+        if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+            echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem aprovar registros.']);
+            return;
             }
 
             echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
