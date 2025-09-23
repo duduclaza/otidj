@@ -34,7 +34,7 @@
   <div class="mt-6 text-center">
     <p class="text-blue-100 text-sm">
       Não tem uma conta? 
-      <a href="/register" class="text-blue-300 font-semibold hover:text-blue-200 transition-colors">
+      <a href="/request-access" class="text-blue-300 font-semibold hover:text-blue-200 transition-colors">
         Solicitar Acesso
       </a>
     </p>

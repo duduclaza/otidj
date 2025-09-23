@@ -44,6 +44,17 @@ $router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
 $router->get('/register', [App\Controllers\AuthController::class, 'register']);
 $router->post('/auth/register', [App\Controllers\AuthController::class, 'processRegister']);
 
+// Access Request routes
+$router->get('/request-access', [App\Controllers\AccessRequestController::class, 'requestAccess']);
+$router->post('/access-request/process', [App\Controllers\AccessRequestController::class, 'processRequest']);
+
+// Admin Access Request routes
+$router->get('/admin/access-requests', [App\Controllers\AccessRequestController::class, 'index']);
+$router->get('/admin/access-requests/list', [App\Controllers\AccessRequestController::class, 'listPendingRequests']);
+$router->get('/admin/access-requests/profiles', [App\Controllers\AccessRequestController::class, 'listProfiles']);
+$router->post('/admin/access-requests/approve', [App\Controllers\AccessRequestController::class, 'approveRequest']);
+$router->post('/admin/access-requests/reject', [App\Controllers\AccessRequestController::class, 'rejectRequest']);
+
 // Lightweight root: redirect unauthenticated users to /login to avoid heavy controller
 $router->get('/', function() {
     if (!isset($_SESSION['user_id'])) {
