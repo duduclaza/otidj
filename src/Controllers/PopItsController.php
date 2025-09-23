@@ -159,7 +159,7 @@ class PopItsController
             // Inserir registro
             $stmt = $this->db->prepare("
                 INSERT INTO pops_its_registros 
-                (titulo_id, versao, arquivo_blob, arquivo_name, arquivo_type, arquivo_size, visibilidade, created_by) 
+                (titulo_id, versao, arquivo_conteudo, arquivo_nome, arquivo_tipo, arquivo_tamanho, visibilidade, created_by) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
@@ -277,7 +277,7 @@ class PopItsController
             
             $stmt = $this->db->prepare("
                 UPDATE pops_its_registros 
-                SET arquivo_blob = ?, arquivo_name = ?, arquivo_type = ?, arquivo_size = ?, 
+                SET arquivo_conteudo = ?, arquivo_nome = ?, arquivo_tipo = ?, arquivo_tamanho = ?, 
                     status = 'pendente', observacao_reprovacao = NULL, updated_at = NOW()
                 WHERE id = ?
             ");
@@ -485,11 +485,11 @@ class PopItsController
             }
 
             // Servir arquivo
-            header('Content-Type: ' . $registro['arquivo_type']);
-            header('Content-Length: ' . $registro['arquivo_size']);
-            header('Content-Disposition: inline; filename="' . $registro['arquivo_name'] . '"');
+            header('Content-Type: ' . $registro['arquivo_tipo']);
+            header('Content-Length: ' . $registro['arquivo_tamanho']);
+            header('Content-Disposition: inline; filename="' . $registro['arquivo_nome'] . '"');
             
-            echo $registro['arquivo_blob'];
+            echo $registro['arquivo_conteudo'];
             exit();
 
         } catch (\Exception $e) {
