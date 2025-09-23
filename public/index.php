@@ -199,6 +199,11 @@ $router->get('/pops-its/visualizacao/list', [App\Controllers\PopItsController::c
 $router->get('/pops-its/arquivo/{id}', [App\Controllers\PopItsController::class, 'downloadArquivo']);
 // Endpoint de teste
 $router->get('/pops-its/test', [App\Controllers\PopItsController::class, 'testEndpoint']);
+// Sistema de Solicitações
+$router->post('/pops-its/solicitacao/create', [App\Controllers\PopItsController::class, 'createSolicitacao']);
+$router->get('/pops-its/solicitacoes/list', [App\Controllers\PopItsController::class, 'listSolicitacoes']);
+$router->post('/pops-its/solicitacao/aprovar', [App\Controllers\PopItsController::class, 'aprovarSolicitacao']);
+$router->post('/pops-its/solicitacao/reprovar', [App\Controllers\PopItsController::class, 'reprovarSolicitacao']);
 
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);

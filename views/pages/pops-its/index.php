@@ -231,15 +231,15 @@ $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
         <h3 class="text-lg font-medium text-gray-900 mb-4">Registros Pendentes de Aprovação</h3>
         
         <div class="overflow-x-auto">
-          <table class="min-w-full text-sm bg-white rounded-lg">
+          <table class="min-w-full text-sm bg-white rounded-lg shadow">
             <thead class="bg-gray-100">
               <tr>
                 <th class="px-3 py-2 text-left">Título</th>
                 <th class="px-3 py-2 text-left">Versão</th>
                 <th class="px-3 py-2 text-left">Status</th>
-                <th class="px-3 py-2 text-left">Criado por</th>
-                <th class="px-3 py-2 text-left">Data</th>
                 <th class="px-3 py-2 text-left">Arquivo</th>
+                <th class="px-3 py-2 text-left">Tamanho</th>
+                <th class="px-3 py-2 text-left">Data Criação</th>
                 <th class="px-3 py-2 text-left">Ações</th>
               </tr>
             </thead>
@@ -273,24 +273,44 @@ $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
             </tbody>
           </table>
         </div>
+      <!-- ABA 5: SOLICITAÇÕES DE EXCLUSÃO -->
+      <?php if ($canViewSolicitacoes): ?>
+      <div id="content-solicitacoes" class="tab-content hidden">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Solicitações de Exclusão</h3>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm bg-white rounded-lg shadow">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-3 py-2 text-left">Título</th>
+                <th class="px-3 py-2 text-left">Versão</th>
+                <th class="px-3 py-2 text-left">Status</th>
+                <th class="px-3 py-2 text-left">Solicitante</th>
+                <th class="px-3 py-2 text-left">Data</th>
+                <th class="px-3 py-2 text-left">Tipo</th>
+                <th class="px-3 py-2 text-left">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="listaSolicitacoes" class="divide-y">
+              <tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <?php endif; ?>
-    </div>
-  </div>
-</section>
 
-<!-- Modal de Reprovação -->
-<div id="modalReprovacao" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+<!-- Modal de Reprovação de Solicitação -->
+<div id="modalReprovarSolicitacao" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
   <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-    <h3 class="text-lg font-medium text-gray-900 mb-4">Reprovar Registro</h3>
-    <form id="formReprovacao">
-      <input type="hidden" id="reprovarRegistroId" name="registro_id">
+    <h3 class="text-lg font-medium text-gray-900 mb-4">Reprovar Solicitação</h3>
+    <form id="formReprovarSolicitacao">
+      <input type="hidden" id="reprovarSolicitacaoId" name="solicitacao_id">
       <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 mb-2">Observação da Reprovação *</label>
         <textarea name="observacao" required rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Descreva o motivo da reprovação..."></textarea>
       </div>
       <div class="flex justify-end space-x-2">
-        <button type="button" onclick="fecharModalReprovacao()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">Cancelar</button>
+        <button type="button" onclick="fecharModalReprovarSolicitacao()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">Cancelar</button>
         <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Reprovar</button>
       </div>
     </form>
@@ -360,6 +380,9 @@ function loadTabData(tabId) {
     case 'visualizacao':
       loadVisualizacao();
       break;
+    case 'solicitacoes':
+      loadSolicitacoes();
+      break;
   }
 }
 
@@ -423,31 +446,31 @@ function setupForms() {
     });
   }
   
-  // Form Reprovação
-  const formReprovacao = document.getElementById('formReprovacao');
-  if (formReprovacao) {
-    formReprovacao.addEventListener('submit', async (e) => {
+  // Form Reprovação de Solicitação
+  const formReprovarSolicitacao = document.getElementById('formReprovarSolicitacao');
+  if (formReprovarSolicitacao) {
+    formReprovarSolicitacao.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       try {
-        const formData = new FormData(formReprovacao);
-        const response = await fetch('/pops-its/registro/reprovar', {
+        const formData = new FormData(formReprovarSolicitacao);
+        const response = await fetch('/pops-its/solicitacao/reprovar', {
           method: 'POST',
           body: formData
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
-          alert('Registro reprovado com sucesso!');
-          fecharModalReprovacao();
-          loadPendentesAprovacao(); // Atualizar lista de pendentes
+          alert('Solicitação reprovada com sucesso!');
+          fecharModalReprovarSolicitacao();
+          loadSolicitacoes(); // Atualizar lista de solicitações
         } else {
           alert('Erro: ' + result.message);
         }
       } catch (error) {
-        console.error('Erro ao reprovar registro:', error);
-        alert('Erro ao reprovar registro');
+        console.error('Erro ao reprovar solicitação:', error);
+        alert('Erro ao reprovar solicitação');
       }
     });
   }
@@ -612,39 +635,59 @@ async function loadPendentesAprovacao() {
     }
     
     const tbody = document.getElementById('listaPendentes');
-    if (!result.success || !result.data.length) {
+    if (!result.success) {
+      console.error('Erro na resposta:', result.message);
+      tbody.innerHTML = `<tr><td colspan="7" class="px-3 py-4 text-center text-red-500">Erro: ${result.message}</td></tr>`;
+      return;
+    }
+
+    if (!result.data || result.data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Nenhum registro pendente</td></tr>';
       return;
     }
-    
-    tbody.innerHTML = result.data.map(registro => `
-      <tr>
-        <td class="px-3 py-2">${registro.titulo}</td>
-        <td class="px-3 py-2">${registro.versao}</td>
-        <td class="px-3 py-2">
-          <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(registro.status)}">
-            ${getStatusText(registro.status)}
-          </span>
-        </td>
-        <td class="px-3 py-2">${registro.criador_nome}</td>
-        <td class="px-3 py-2">${formatDate(registro.created_at)}</td>
-        <td class="px-3 py-2">
-          <a href="/pops-its/arquivo/${registro.id}" target="_blank" class="text-blue-600 hover:underline">Baixar</a>
-        </td>
-        <td class="px-3 py-2 space-x-1">
-          <button onclick="aprovarRegistro(${registro.id})" class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Aprovar</button>
-          <button onclick="abrirModalReprovacao(${registro.id})" class="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Reprovar</button>
-        </td>
-      </tr>
-    `).join('');
+
+    tbody.innerHTML = result.data.map(registro => {
+      // Formatar tamanho do arquivo
+      const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      };
+
+      return `
+        <tr>
+          <td class="px-3 py-2">${registro.titulo || 'Título não encontrado'}</td>
+          <td class="px-3 py-2">${registro.versao || 'N/A'}</td>
+          <td class="px-3 py-2">
+            <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(registro.status)}">
+              ${getStatusText(registro.status)}
+            </span>
+          </td>
+          <td class="px-3 py-2">
+            <div class="flex flex-col">
+              <span class="font-medium">${registro.arquivo_nome || 'Arquivo não informado'}</span>
+              <span class="text-xs text-gray-500">${registro.arquivo_tipo || 'Tipo desconhecido'}</span>
+            </div>
+          </td>
+          <td class="px-3 py-2">${formatFileSize(registro.arquivo_tamanho || 0)}</td>
+          <td class="px-3 py-2">${formatDate(registro.created_at)}</td>
+          <td class="px-3 py-2 space-x-1">
+            <button onclick="aprovarRegistro(${registro.id})" class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Aprovar</button>
+            <button onclick="abrirModalReprovacao(${registro.id})" class="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Reprovar</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
   } catch (error) {
     console.error('Erro ao carregar pendentes:', error);
   }
 }
 
-async function loadVisualizacao() {
+async function loadSolicitacoes() {
   try {
-    const response = await fetch('/pops-its/visualizacao/list', {
+    const response = await fetch('/pops-its/solicitacoes/list', {
       credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -658,27 +701,52 @@ async function loadVisualizacao() {
     } catch (e) {
       result = { success: false, message: 'Resposta não é JSON válido', raw: text };
     }
-    
-    const tbody = document.getElementById('listaVisualizacao');
-    if (!result.success || !result.data.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-gray-500">Nenhum documento disponível</td></tr>';
+
+    const tbody = document.getElementById('listaSolicitacoes');
+    if (!result.success) {
+      console.error('Erro na resposta:', result.message);
+      tbody.innerHTML = `<tr><td colspan="7" class="px-3 py-4 text-center text-red-500">Erro: ${result.message}</td></tr>`;
       return;
     }
-    
-    tbody.innerHTML = result.data.map(registro => `
-      <tr>
-        <td class="px-3 py-2">${registro.titulo}</td>
-        <td class="px-3 py-2">${registro.versao}</td>
-        <td class="px-3 py-2">${registro.departamento_nome}</td>
-        <td class="px-3 py-2">${registro.criador_nome}</td>
-        <td class="px-3 py-2">${formatDate(registro.approved_at)}</td>
-        <td class="px-3 py-2">
-          <a href="/pops-its/arquivo/${registro.id}" target="_blank" class="text-blue-600 hover:underline">Ver Documento</a>
-        </td>
-      </tr>
-    `).join('');
+
+    if (!result.data || result.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Nenhuma solicitação pendente</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = result.data.map(solicitacao => {
+      const statusColor = solicitacao.status === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800';
+      const statusText = solicitacao.status === 'pendente' ? 'Pendente' : 'Processada';
+
+      return `
+        <tr>
+          <td class="px-3 py-2">${solicitacao.titulo || 'Título não encontrado'}</td>
+          <td class="px-3 py-2">${solicitacao.versao || 'N/A'}</td>
+          <td class="px-3 py-2">
+            <span class="px-2 py-1 text-xs rounded-full ${statusColor}">
+              ${statusText}
+            </span>
+          </td>
+          <td class="px-3 py-2">${solicitacao.solicitante_nome}</td>
+          <td class="px-3 py-2">${formatDate(solicitacao.created_at)}</td>
+          <td class="px-3 py-2">
+            <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+              ${solicitacao.tipo_solicitacao === 'exclusao' ? 'Exclusão' : solicitacao.tipo_solicitacao}
+            </span>
+          </td>
+          <td class="px-3 py-2 space-x-1">
+            ${solicitacao.status === 'pendente' ? `
+              <button onclick="aprovarSolicitacao(${solicitacao.id})" class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Aprovar</button>
+              <button onclick="abrirModalReprovarSolicitacao(${solicitacao.id})" class="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Reprovar</button>
+            ` : 'Processada'}
+          </td>
+        </tr>
+      `;
+    }).join('');
   } catch (error) {
-    console.error('Erro ao carregar visualização:', error);
+    console.error('Erro ao carregar solicitações:', error);
+    const tbody = document.getElementById('listaSolicitacoes');
+    tbody.innerHTML = `<tr><td colspan="7" class="px-3 py-4 text-center text-red-500">Erro ao carregar: ${error.message}</td></tr>`;
   }
 }
 
@@ -730,6 +798,7 @@ async function aprovarRegistro(id) {
       alert('Registro aprovado com sucesso!');
       loadPendentesAprovacao(); // Atualizar lista de pendentes
       loadVisualizacao(); // Atualizar lista de visualização
+      loadMeusRegistros(); // Atualizar lista de meus registros (sincronizar status)
     } else {
       alert('Erro: ' + result.message);
     }
@@ -739,39 +808,116 @@ async function aprovarRegistro(id) {
   }
 }
 
-function abrirModalReprovacao(id) {
-  document.getElementById('reprovarRegistroId').value = id;
-  document.getElementById('modalReprovacao').classList.remove('hidden');
-}
+async function aprovarSolicitacao(id) {
+  if (!confirm('Tem certeza que deseja APROVAR esta solicitação? Esta ação excluirá o registro permanentemente.')) return;
 
-function fecharModalReprovacao() {
-  document.getElementById('modalReprovacao').classList.add('hidden');
-  document.getElementById('formReprovacao').reset();
-}
-
-async function excluirRegistro(id) {
-  if (!confirm('Tem certeza que deseja excluir este registro?')) return;
-  
   try {
     const formData = new FormData();
-    formData.append('registro_id', id);
-    
-    const response = await fetch('/pops-its/registro/delete', {
+    formData.append('solicitacao_id', id);
+
+    const response = await fetch('/pops-its/solicitacao/aprovar', {
       method: 'POST',
       body: formData
     });
-    
+
     const result = await response.json();
-    
+
     if (result.success) {
-      alert('Registro excluído com sucesso!');
-      loadMeusRegistros(); // Atualizar lista de meus registros
+      alert('Solicitação aprovada e executada com sucesso!');
+      loadSolicitacoes(); // Atualizar lista de solicitações
+      loadMeusRegistros(); // Atualizar lista de meus registros (caso tenha excluído algum)
     } else {
       alert('Erro: ' + result.message);
     }
   } catch (error) {
-    console.error('Erro ao excluir registro:', error);
-    alert('Erro ao excluir registro');
+    console.error('Erro ao aprovar solicitação:', error);
+    alert('Erro ao aprovar solicitação');
+  }
+}
+
+function fecharModalReprovarSolicitacao() {
+  document.getElementById('modalReprovarSolicitacao').classList.add('hidden');
+  document.getElementById('formReprovarSolicitacao').reset();
+}
+
+async function excluirRegistro(id) {
+  try {
+    // Primeiro, buscar informações do registro para verificar o status
+    const response = await fetch(`/pops-its/registros/meus`, {
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    });
+
+    const text = await response.text();
+    let result;
+    try {
+      result = text ? JSON.parse(text) : { success: false, message: 'Resposta vazia do servidor' };
+    } catch (e) {
+      result = { success: false, message: 'Resposta não é JSON válido', raw: text };
+    }
+
+    if (!result.success || !result.data) {
+      alert('Erro ao verificar status do registro');
+      return;
+    }
+
+    const registro = result.data.find(r => r.id === id);
+    if (!registro) {
+      alert('Registro não encontrado');
+      return;
+    }
+
+    // Verificar se é reprovado (pode excluir diretamente) ou aprovado (solicitar exclusão)
+    if (registro.status === 'reprovado') {
+      // Exclusão direta para reprovados
+      if (!confirm('Tem certeza que deseja excluir este registro reprovado?')) return;
+
+      const formData = new FormData();
+      formData.append('registro_id', id);
+
+      const deleteResponse = await fetch('/pops-its/registro/delete', {
+        method: 'POST',
+        body: formData
+      });
+
+      const deleteResult = await deleteResponse.json();
+
+      if (deleteResult.success) {
+        alert('Registro excluído com sucesso!');
+        loadMeusRegistros(); // Atualizar lista
+      } else {
+        alert('Erro: ' + deleteResult.message);
+      }
+    } else if (registro.status === 'aprovado') {
+      // Solicitar exclusão para aprovados
+      if (!confirm('Este registro está APROVADO. Deseja solicitar exclusão ao administrador?')) return;
+
+      const formData = new FormData();
+      formData.append('registro_id', id);
+      formData.append('tipo_solicitacao', 'exclusao');
+      formData.append('justificativa', 'Solicitação de exclusão pelo usuário');
+
+      const solicitacaoResponse = await fetch('/pops-its/solicitacao/create', {
+        method: 'POST',
+        body: formData
+      });
+
+      const solicitacaoResult = await solicitacaoResponse.json();
+
+      if (solicitacaoResult.success) {
+        alert('Solicitação de exclusão enviada! Aguardando aprovação do administrador.');
+      } else {
+        alert('Erro: ' + solicitacaoResult.message);
+      }
+    } else {
+      alert('Não é possível excluir registros com status PENDENTE. Aguarde a aprovação ou reprovação.');
+    }
+  } catch (error) {
+    console.error('Erro ao processar exclusão:', error);
+    alert('Erro ao processar exclusão');
   }
 }
 

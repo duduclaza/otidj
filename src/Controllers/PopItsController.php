@@ -661,11 +661,173 @@ class PopItsController
         }
     }
 
-    private function getUserDepartmentId($user_id): ?int
+    // ===== SISTEMA DE SOLICITAÇÕES =====
+
+    public function createSolicitacao()
     {
-        $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
-        $stmt->execute([$user_id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? (int)$result['departamento_id'] : null;
+        header('Content-Type: application/json');
+
+        try {
+            // Verificar se usuário está logado
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+
+            $registro_id = (int)($_POST['registro_id'] ?? 0);
+            $tipo_solicitacao = $_POST['tipo_solicitacao'] ?? '';
+            $justificativa = trim($_POST['justificativa'] ?? '');
+            $user_id = $_SESSION['user_id'];
+
+            if (empty($tipo_solicitacao)) {
+                echo json_encode(['success' => false, 'message' => 'Tipo de solicitação é obrigatório']);
+                return;
+            }
+
+            if (empty($justificativa)) {
+                echo json_encode(['success' => false, 'message' => 'Justificativa é obrigatória']);
+                return;
+            }
+
+            // Verificar se o registro pertence ao usuário
+            $stmt = $this->db->prepare("SELECT * FROM pops_its_registros WHERE id = ? AND created_by = ?");
+            $stmt->execute([$registro_id, $user_id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou sem permissão']);
+                return;
+            }
+
+            // Inserir solicitação
+            $stmt = $this->db->prepare("
+                INSERT INTO pops_its_solicitacoes (
+                    registro_id, solicitante_id, tipo_solicitacao, justificativa,
+                    status, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, 'pendente', NOW(), NOW())
+            ");
+            $stmt->execute([$registro_id, $user_id, $tipo_solicitacao, $justificativa]);
+
+            echo json_encode(['success' => true, 'message' => 'Solicitação criada com sucesso!']);
+
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao criar solicitação: ' . $e->getMessage()]);
+        }
     }
-}
+
+    public function listSolicitacoes()
+    {
+        header('Content-Type: application/json');
+
+        try {
+            // Verificar se é admin
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem ver solicitações.']);
+                return;
+            }
+
+            $stmt = $this->db->prepare("
+                SELECT s.*, r.titulo, r.versao, r.status as registro_status,
+                       u_solicitante.name as solicitante_nome,
+                       u_solicitante.email as solicitante_email
+                FROM pops_its_solicitacoes s
+                JOIN pops_its_registros r ON s.registro_id = r.id
+                JOIN users u_solicitante ON s.solicitante_id = u_solicitante.id
+                WHERE s.status = 'pendente'
+                ORDER BY s.created_at DESC
+            ");
+            $stmt->execute();
+            $solicitacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(['success' => true, 'data' => $solicitacoes]);
+
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao listar solicitações: ' . $e->getMessage()]);
+        }
+    }
+
+    public function aprovarSolicitacao()
+    {
+        header('Content-Type: application/json');
+
+        try {
+            // Verificar se é admin
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem aprovar solicitações.']);
+                return;
+            }
+
+            $solicitacao_id = (int)($_POST['solicitacao_id'] ?? 0);
+            $admin_id = $_SESSION['user_id'];
+
+            // Buscar solicitação
+            $stmt = $this->db->prepare("SELECT * FROM pops_its_solicitacoes WHERE id = ? AND status = 'pendente'");
+            $stmt->execute([$solicitacao_id]);
+            $solicitacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$solicitacao) {
+                echo json_encode(['success' => false, 'message' => 'Solicitação não encontrada ou já processada']);
+                return;
+            }
+
+            // Executar ação baseada no tipo de solicitação
+            if ($solicitacao['tipo_solicitacao'] === 'exclusao') {
+                // Excluir o registro
+                $stmt = $this->db->prepare("DELETE FROM pops_its_registros WHERE id = ?");
+                $stmt->execute([$solicitacao['registro_id']]);
+            }
+
+            // Marcar solicitação como aprovada
+            $stmt = $this->db->prepare("
+                UPDATE pops_its_solicitacoes
+                SET status = 'aprovada', aprovada_por = ?, aprovada_em = NOW(), updated_at = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$admin_id, $solicitacao_id]);
+
+            echo json_encode(['success' => true, 'message' => 'Solicitação aprovada e executada com sucesso!']);
+
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao aprovar solicitação: ' . $e->getMessage()]);
+        }
+    }
+
+    public function reprovarSolicitacao()
+    {
+        header('Content-Type: application/json');
+
+        try {
+            // Verificar se é admin
+            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem reprovar solicitações.']);
+                return;
+            }
+
+            $solicitacao_id = (int)($_POST['solicitacao_id'] ?? 0);
+            $observacao = trim($_POST['observacao'] ?? '');
+            $admin_id = $_SESSION['user_id'];
+
+            if (empty($observacao)) {
+                echo json_encode(['success' => false, 'message' => 'Observação é obrigatória']);
+                return;
+            }
+
+            // Marcar solicitação como reprovada
+            $stmt = $this->db->prepare("
+                UPDATE pops_its_solicitacoes
+                SET status = 'reprovada', observacao_reprovacao = ?, aprovada_por = ?, aprovada_em = NOW(), updated_at = NOW()
+                WHERE id = ? AND status = 'pendente'
+            ");
+            $stmt->execute([$observacao, $admin_id, $solicitacao_id]);
+
+            if ($stmt->rowCount() === 0) {
+                echo json_encode(['success' => false, 'message' => 'Solicitação não encontrada ou já processada']);
+                return;
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Solicitação reprovada com sucesso!']);
+
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao reprovar solicitação: ' . $e->getMessage()]);
+        }
+    }
