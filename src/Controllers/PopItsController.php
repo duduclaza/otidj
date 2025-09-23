@@ -202,6 +202,9 @@ class PopItsController
             
             $user_id = $_SESSION['user_id'];
             
+            // Debug: verificar user_id
+            error_log("POPs ITs - listMeusRegistros - User ID: " . $user_id);
+            
             // Verificar se as tabelas existem
             $stmt = $this->db->prepare("SHOW TABLES LIKE 'pops_its_registros'");
             $stmt->execute();
@@ -209,6 +212,12 @@ class PopItsController
                 echo json_encode(['success' => false, 'message' => 'Tabela pops_its_registros não existe']);
                 exit();
             }
+            
+            // Primeiro, verificar se há registros para este usuário
+            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM pops_its_registros WHERE created_by = ?");
+            $stmt->execute([$user_id]);
+            $count = $stmt->fetch(PDO::FETCH_ASSOC);
+            error_log("POPs ITs - Total de registros para user $user_id: " . $count['total']);
             
             $stmt = $this->db->prepare("
                 SELECT r.*, t.titulo, d.nome as departamento_nome
@@ -220,11 +229,14 @@ class PopItsController
             ");
             $stmt->execute([$user_id]);
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            error_log("POPs ITs - Registros encontrados: " . count($registros));
 
-            echo json_encode(['success' => true, 'data' => $registros]);
+            echo json_encode(['success' => true, 'data' => $registros, 'debug' => ['user_id' => $user_id, 'total_count' => $count['total']]]);
             exit();
 
         } catch (\Exception $e) {
+            error_log("POPs ITs - Erro: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao listar registros: ' . $e->getMessage()]);
             exit();
         }

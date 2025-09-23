@@ -518,19 +518,33 @@ async function loadTitulos() {
 
 async function loadMeusRegistros() {
   try {
+    console.log('Carregando meus registros...');
     const response = await fetch('/pops-its/registros/meus');
+    console.log('Response status:', response.status);
+    
     const result = await response.json();
+    console.log('Result:', result);
     
     const tbody = document.getElementById('listaMeusRegistros');
-    if (!result.success || !result.data.length) {
+    
+    if (!result.success) {
+      console.error('Erro na resposta:', result.message);
+      tbody.innerHTML = `<tr><td colspan="5" class="px-3 py-4 text-center text-red-500">Erro: ${result.message}</td></tr>`;
+      return;
+    }
+    
+    if (!result.data || result.data.length === 0) {
+      console.log('Nenhum registro encontrado');
       tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
       return;
     }
     
+    console.log('Registros encontrados:', result.data.length);
+    
     tbody.innerHTML = result.data.map(registro => `
       <tr>
-        <td class="px-3 py-2">${registro.titulo}</td>
-        <td class="px-3 py-2">${registro.versao}</td>
+        <td class="px-3 py-2">${registro.titulo || 'N/A'}</td>
+        <td class="px-3 py-2">${registro.versao || 'N/A'}</td>
         <td class="px-3 py-2">
           <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(registro.status)}">
             ${getStatusText(registro.status)}
@@ -547,6 +561,8 @@ async function loadMeusRegistros() {
     `).join('');
   } catch (error) {
     console.error('Erro ao carregar registros:', error);
+    const tbody = document.getElementById('listaMeusRegistros');
+    tbody.innerHTML = `<tr><td colspan="5" class="px-3 py-4 text-center text-red-500">Erro ao carregar: ${error.message}</td></tr>`;
   }
 }
 
