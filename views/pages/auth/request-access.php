@@ -67,20 +67,28 @@
                     </div>
                 </div>
 
-                <!-- Setor -->
+                <!-- Departamento -->
                 <div>
-                    <label for="setor" class="block text-sm font-medium text-gray-700">Setor</label>
-                    <input id="setor" name="setor" type="text" 
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                           placeholder="Seu setor de trabalho">
+                    <label for="setor" class="block text-sm font-medium text-gray-700">Departamento</label>
+                    <select id="setor" name="setor" 
+                            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm">
+                        <option value="">Selecione um departamento</option>
+                        <?php foreach ($departamentos as $dept): ?>
+                            <option value="<?= htmlspecialchars($dept['nome']) ?>"><?= htmlspecialchars($dept['nome']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <!-- Filial -->
                 <div>
                     <label for="filial" class="block text-sm font-medium text-gray-700">Filial</label>
-                    <input id="filial" name="filial" type="text" 
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                           placeholder="Sua filial">
+                    <select id="filial" name="filial" 
+                            class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm">
+                        <option value="">Selecione uma filial</option>
+                        <?php foreach ($filiais as $filial): ?>
+                            <option value="<?= htmlspecialchars($filial['nome']) ?>"><?= htmlspecialchars($filial['nome']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
 
                 <!-- Justificativa -->

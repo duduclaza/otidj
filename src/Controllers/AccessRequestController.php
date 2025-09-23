@@ -19,6 +19,24 @@ class AccessRequestController
     // Página de solicitação de acesso
     public function requestAccess()
     {
+        // Buscar filiais
+        try {
+            $stmt = $this->db->prepare("SELECT id, nome FROM filiais ORDER BY nome");
+            $stmt->execute();
+            $filiais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $filiais = [];
+        }
+
+        // Buscar departamentos
+        try {
+            $stmt = $this->db->prepare("SELECT id, nome FROM departamentos ORDER BY nome");
+            $stmt->execute();
+            $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            $departamentos = [];
+        }
+
         $title = 'Solicitar Acesso - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/pages/auth/request-access.php';
         include __DIR__ . '/../../views/layouts/auth.php';
@@ -307,5 +325,37 @@ class AccessRequestController
             return false;
         }
         */
+    }
+
+    // Endpoint para buscar filiais
+    public function getFiliais()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("SELECT id, nome FROM filiais ORDER BY nome");
+            $stmt->execute();
+            $filiais = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $filiais]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar filiais: ' . $e->getMessage()]);
+        }
+    }
+
+    // Endpoint para buscar departamentos
+    public function getDepartamentos()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("SELECT id, nome FROM departamentos ORDER BY nome");
+            $stmt->execute();
+            $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $departamentos]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar departamentos: ' . $e->getMessage()]);
+        }
     }
 }

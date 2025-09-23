@@ -47,6 +47,8 @@ $router->post('/auth/register', [App\Controllers\AuthController::class, 'process
 // Access Request routes
 $router->get('/request-access', [App\Controllers\AccessRequestController::class, 'requestAccess']);
 $router->post('/access-request/process', [App\Controllers\AccessRequestController::class, 'processRequest']);
+$router->get('/access-request/filiais', [App\Controllers\AccessRequestController::class, 'getFiliais']);
+$router->get('/access-request/departamentos', [App\Controllers\AccessRequestController::class, 'getDepartamentos']);
 
 // Admin Access Request routes
 $router->get('/admin/access-requests', [App\Controllers\AccessRequestController::class, 'index']);

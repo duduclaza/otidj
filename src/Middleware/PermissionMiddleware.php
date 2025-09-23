@@ -88,7 +88,7 @@ class PermissionMiddleware
         // Rotas que não precisam de verificação de permissão
         $publicRoutes = [
             '/login', '/auth/login', '/register', '/auth/register', '/logout',
-            '/request-access', '/access-request/process',
+            '/request-access', '/access-request/process', '/access-request/filiais', '/access-request/departamentos',
             '/email/test-connection', '/email/send-test'
         ];
         
