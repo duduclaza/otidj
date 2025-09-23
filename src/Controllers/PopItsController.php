@@ -191,6 +191,20 @@ class PopItsController
 
     public function listMeusRegistros()
     {
+        // Forçar headers e limpar buffer
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        header('Content-Type: application/json');
+        header('Cache-Control: no-cache');
+        
+        // Teste básico primeiro
+        echo json_encode(['success' => true, 'message' => 'Método funcionando', 'data' => []]);
+        die();
+        
+        /*
+        // Código original comentado temporariamente
         // Iniciar sessão se não estiver iniciada
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -265,6 +279,7 @@ class PopItsController
             ]);
             exit();
         }
+        */
     }
 
     public function updateRegistro()
