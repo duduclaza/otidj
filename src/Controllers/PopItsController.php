@@ -442,33 +442,36 @@ class PopItsController
             ob_end_clean();
         }
         
-        header('Content-Type: application/json');
-        header('Cache-Control: no-cache');
+header('Content-Type: application/json');
+header('Cache-Control: no-cache');
         
-        try {
-            $stmt = $this->db->prepare("
-                SELECT r.*, 
-                       COALESCE(t.titulo, 'Título não encontrado') as titulo, 
-                       COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome, 
-                       COALESCE(u.name, 'Usuário não encontrado') as criador_nome
-                FROM pops_its_registros r
-                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
-                LEFT JOIN departamentos d ON t.departamento_id = d.id
-                LEFT JOIN users u ON r.created_by = u.id
-                WHERE r.status = 'pendente'
-                ORDER BY r.created_at ASC
-            ");
-            $stmt->execute();
-            $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+try {
+$stmt = $this->db->prepare("
+    SELECT r.*, 
+           COALESCE(t.titulo, 'Título não encontrado') as titulo, 
+           COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome, 
+           COALESCE(u.name, 'Usuário não encontrado') as criador_nome
+    FROM pops_its_registros r
+    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+    LEFT JOIN departamentos d ON t.departamento_id = d.id
+    LEFT JOIN users u ON r.created_by = u.id
+    WHERE r.status = 'pendente'
+    ORDER BY r.created_at ASC
+");
+$stmt->execute();
+$registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode(['success' => true, 'data' => $registros]);
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao listar pendentes: ' . $e->getMessage()]);
-        }
-    }
+echo json_encode(['success' => true, 'data' => $registros]);
+exit();
+} catch (\Exception $e) {
+echo json_encode(['success' => false, 'message' => 'Erro ao listar pendentes: ' . $e->getMessage()]);
+exit();
+}
+}
 
-    public function aprovarRegistro()
-    {
+public function aprovarRegistro()
+{
+header('Content-Type: application/json');
         header('Content-Type: application/json');
         
         try {
