@@ -191,12 +191,22 @@ class PopItsController
 
     public function listMeusRegistros()
     {
+        // Iniciar sessão se não estiver iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Limpar qualquer output anterior
+        ob_clean();
         header('Content-Type: application/json');
         
         try {
+            // Debug: verificar sessão
+            error_log("POPs ITs - Session data: " . print_r($_SESSION, true));
+            
             // Verificar se usuário está logado
             if (!isset($_SESSION['user_id'])) {
-                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado', 'session_debug' => $_SESSION]);
                 exit();
             }
             
@@ -239,7 +249,20 @@ class PopItsController
 
         } catch (\Exception $e) {
             error_log("POPs ITs - Erro: " . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao listar registros: ' . $e->getMessage()]);
+            error_log("POPs ITs - Stack trace: " . $e->getTraceAsString());
+            
+            // Limpar qualquer output anterior em caso de erro
+            ob_clean();
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Erro ao listar registros: ' . $e->getMessage(),
+                'error_details' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ]);
             exit();
         }
     }

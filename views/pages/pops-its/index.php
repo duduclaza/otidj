@@ -521,8 +521,25 @@ async function loadMeusRegistros() {
     console.log('Carregando meus registros...');
     const response = await fetch('/pops-its/registros/meus');
     console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
     
-    const result = await response.json();
+    // Verificar o texto da resposta antes de tentar fazer parse JSON
+    const responseText = await response.text();
+    console.log('Response text:', responseText);
+    
+    if (!responseText) {
+      throw new Error('Resposta vazia do servidor');
+    }
+    
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Erro ao fazer parse do JSON:', parseError);
+      console.error('Texto da resposta:', responseText);
+      throw new Error('Resposta não é um JSON válido: ' + responseText.substring(0, 100));
+    }
+    
     console.log('Result:', result);
     
     const tbody = document.getElementById('listaMeusRegistros');
