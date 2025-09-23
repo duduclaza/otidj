@@ -289,17 +289,54 @@ class PopItsController
             echo $json;
             return;
         }
+    }
+
     public function testEndpoint()
     {
+        // Iniciar sessão se necessário
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         header('Content-Type: application/json');
-        echo json_encode([
-            'success' => true,
-            'message' => 'Endpoint funcionando',
-            'user_id' => $_SESSION['user_id'] ?? null,
-            'session_status' => session_status()
-        ]);
+        header('Cache-Control: no-cache');
+
+        try {
+            // Teste básico de conexão com banco
+            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM pops_its_registros");
+            $stmt->execute();
+            $totalRegistros = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+            // Teste de permissões
+            $userId = $_SESSION['user_id'] ?? null;
+            $isLogged = isset($_SESSION['user_id']);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Endpoint funcionando perfeitamente!',
+                'data' => [
+                    'php_version' => phpversion(),
+                    'session_status' => session_status(),
+                    'is_logged_in' => $isLogged,
+                    'user_id' => $userId,
+                    'total_registros_no_banco' => $totalRegistros,
+                    'current_time' => date('Y-m-d H:i:s')
+                ]
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro no teste: ' . $e->getMessage(),
+                'error_details' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]
+            ]);
+        }
         exit();
     }
+
+    public function updateRegistro()
     {
         try {
             $registro_id = (int)($_POST['registro_id'] ?? 0);
