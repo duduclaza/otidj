@@ -92,6 +92,7 @@ $router->get('/toners/amostragens/{id}/evidencia/{evidenciaId}', [App\Controller
 // Garantias routes
 $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
 $router->get('/garantias/list', [App\Controllers\GarantiasController::class, 'list']);
+$router->get('/garantias/fornecedores', [App\Controllers\GarantiasController::class, 'listFornecedores']);
 $router->post('/garantias/create', [App\Controllers\GarantiasController::class, 'create']);
 $router->get('/garantias/{id}', [App\Controllers\GarantiasController::class, 'show']);
 $router->post('/garantias/{id}/update', [App\Controllers\GarantiasController::class, 'update']);
