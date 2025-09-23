@@ -194,7 +194,21 @@ class PopItsController
         header('Content-Type: application/json');
         
         try {
+            // Verificar se usuário está logado
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                exit();
+            }
+            
             $user_id = $_SESSION['user_id'];
+            
+            // Verificar se as tabelas existem
+            $stmt = $this->db->prepare("SHOW TABLES LIKE 'pops_its_registros'");
+            $stmt->execute();
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Tabela pops_its_registros não existe']);
+                exit();
+            }
             
             $stmt = $this->db->prepare("
                 SELECT r.*, t.titulo, d.nome as departamento_nome
