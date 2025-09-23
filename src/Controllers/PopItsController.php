@@ -191,6 +191,11 @@ class PopItsController
 
     public function listMeusRegistros()
     {
+        // Iniciar sessão se não estiver iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
         // Forçar headers e limpar buffer
         while (ob_get_level()) {
             ob_end_clean();
@@ -199,49 +204,14 @@ class PopItsController
         header('Content-Type: application/json');
         header('Cache-Control: no-cache');
         
-        // Teste básico primeiro
-        echo json_encode(['success' => true, 'message' => 'Método funcionando', 'data' => []]);
-        die();
-        
-        /*
-        // Código original comentado temporariamente
-        // Iniciar sessão se não estiver iniciada
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        // Limpar qualquer output anterior
-        ob_clean();
-        header('Content-Type: application/json');
-        
         try {
-            // Debug: verificar sessão
-            error_log("POPs ITs - Session data: " . print_r($_SESSION, true));
-            
             // Verificar se usuário está logado
             if (!isset($_SESSION['user_id'])) {
-                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado', 'session_debug' => $_SESSION]);
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
                 exit();
             }
             
             $user_id = $_SESSION['user_id'];
-            
-            // Debug: verificar user_id
-            error_log("POPs ITs - listMeusRegistros - User ID: " . $user_id);
-            
-            // Verificar se as tabelas existem
-            $stmt = $this->db->prepare("SHOW TABLES LIKE 'pops_its_registros'");
-            $stmt->execute();
-            if (!$stmt->fetch()) {
-                echo json_encode(['success' => false, 'message' => 'Tabela pops_its_registros não existe']);
-                exit();
-            }
-            
-            // Primeiro, verificar se há registros para este usuário
-            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM pops_its_registros WHERE created_by = ?");
-            $stmt->execute([$user_id]);
-            $count = $stmt->fetch(PDO::FETCH_ASSOC);
-            error_log("POPs ITs - Total de registros para user $user_id: " . $count['total']);
             
             $stmt = $this->db->prepare("
                 SELECT r.*, 
@@ -255,31 +225,17 @@ class PopItsController
             ");
             $stmt->execute([$user_id]);
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            error_log("POPs ITs - Registros encontrados: " . count($registros));
 
-            echo json_encode(['success' => true, 'data' => $registros, 'debug' => ['user_id' => $user_id, 'total_count' => $count['total']]]);
+            echo json_encode(['success' => true, 'data' => $registros]);
             exit();
 
         } catch (\Exception $e) {
-            error_log("POPs ITs - Erro: " . $e->getMessage());
-            error_log("POPs ITs - Stack trace: " . $e->getTraceAsString());
-            
-            // Limpar qualquer output anterior em caso de erro
-            ob_clean();
-            header('Content-Type: application/json');
             echo json_encode([
                 'success' => false, 
-                'message' => 'Erro ao listar registros: ' . $e->getMessage(),
-                'error_details' => [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
-                ]
+                'message' => 'Erro ao listar registros: ' . $e->getMessage()
             ]);
             exit();
         }
-        */
     }
 
     public function updateRegistro()
@@ -378,15 +334,29 @@ class PopItsController
 
     public function listPendentesAprovacao()
     {
+        // Iniciar sessão se não estiver iniciada
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Forçar headers e limpar buffer
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
         header('Content-Type: application/json');
+        header('Cache-Control: no-cache');
         
         try {
             $stmt = $this->db->prepare("
-                SELECT r.*, t.titulo, d.nome as departamento_nome, u.name as criador_nome
+                SELECT r.*, 
+                       COALESCE(t.titulo, 'Título não encontrado') as titulo, 
+                       COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome, 
+                       COALESCE(u.name, 'Usuário não encontrado') as criador_nome
                 FROM pops_its_registros r
-                JOIN pops_its_titulos t ON r.titulo_id = t.id
-                JOIN departamentos d ON t.departamento_id = d.id
-                JOIN users u ON r.created_by = u.id
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN users u ON r.created_by = u.id
                 WHERE r.status = 'pendente'
                 ORDER BY r.created_at ASC
             ");

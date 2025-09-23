@@ -234,6 +234,7 @@ $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
               <tr>
                 <th class="px-3 py-2 text-left">Título</th>
                 <th class="px-3 py-2 text-left">Versão</th>
+                <th class="px-3 py-2 text-left">Status</th>
                 <th class="px-3 py-2 text-left">Criado por</th>
                 <th class="px-3 py-2 text-left">Data</th>
                 <th class="px-3 py-2 text-left">Arquivo</th>
@@ -241,7 +242,7 @@ $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
               </tr>
             </thead>
             <tbody id="listaPendentes" class="divide-y">
-              <tr><td colspan="6" class="px-3 py-4 text-center text-gray-500">Carregando...</td></tr>
+              <tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -518,29 +519,8 @@ async function loadTitulos() {
 
 async function loadMeusRegistros() {
   try {
-    console.log('Carregando meus registros...');
     const response = await fetch('/pops-its/registros/meus');
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
-    
-    // Verificar o texto da resposta antes de tentar fazer parse JSON
-    const responseText = await response.text();
-    console.log('Response text:', responseText);
-    
-    if (!responseText) {
-      throw new Error('Resposta vazia do servidor');
-    }
-    
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Erro ao fazer parse do JSON:', parseError);
-      console.error('Texto da resposta:', responseText);
-      throw new Error('Resposta não é um JSON válido: ' + responseText.substring(0, 100));
-    }
-    
-    console.log('Result:', result);
+    const result = await response.json();
     
     const tbody = document.getElementById('listaMeusRegistros');
     
@@ -551,12 +531,9 @@ async function loadMeusRegistros() {
     }
     
     if (!result.data || result.data.length === 0) {
-      console.log('Nenhum registro encontrado');
       tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
       return;
     }
-    
-    console.log('Registros encontrados:', result.data.length);
     
     tbody.innerHTML = result.data.map(registro => `
       <tr>
@@ -590,7 +567,7 @@ async function loadPendentesAprovacao() {
     
     const tbody = document.getElementById('listaPendentes');
     if (!result.success || !result.data.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="px-3 py-4 text-center text-gray-500">Nenhum registro pendente</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Nenhum registro pendente</td></tr>';
       return;
     }
     
@@ -598,6 +575,11 @@ async function loadPendentesAprovacao() {
       <tr>
         <td class="px-3 py-2">${registro.titulo}</td>
         <td class="px-3 py-2">${registro.versao}</td>
+        <td class="px-3 py-2">
+          <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(registro.status)}">
+            ${getStatusText(registro.status)}
+          </span>
+        </td>
         <td class="px-3 py-2">${registro.criador_nome}</td>
         <td class="px-3 py-2">${formatDate(registro.created_at)}</td>
         <td class="px-3 py-2">
