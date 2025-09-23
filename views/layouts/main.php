@@ -2,6 +2,13 @@
 $title = $title ?? 'SGQ OTI - DJ';
 $viewFile = $viewFile ?? __DIR__ . '/../pages/home.php';
 $sidebar = __DIR__ . '/../partials/sidebar.php';
+// Safe helper fallbacks in case global helpers are not loaded
+if (!function_exists('e')) {
+  function e($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
+}
+if (!function_exists('flash')) {
+  function flash($key) { return null; }
+}
 ?>
 <!doctype html>
 <html lang="pt-br">

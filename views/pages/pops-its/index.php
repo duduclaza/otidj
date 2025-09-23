@@ -51,6 +51,27 @@ $canViewCadastroTitulos = hasPermission('pops_its_cadastro_titulos', 'view');
 $canViewMeusRegistros = hasPermission('pops_its_meus_registros', 'view');
 $canViewPendenteAprovacao = hasPermission('pops_its_pendente_aprovacao', 'view');
 $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
+// Detectar admin de forma robusta para garantir acesso
+$isAdmin = false;
+try {
+    if (isset($_SESSION['user_id']) && \App\Services\PermissionService::isAdmin((int)$_SESSION['user_id'])) {
+        $isAdmin = true;
+    }
+} catch (\Throwable $e) {
+    // Ignorar e tentar via sessão
+}
+$profileName = $_SESSION['profile'] ?? ($_SESSION['user_profile']['profile_name'] ?? null);
+if (!$isAdmin && $profileName) {
+    $isAdmin = in_array(strtolower($profileName), ['administrador','admin','administrator']);
+}
+
+// Aba de solicitações visível apenas para admin
+$canViewSolicitacoes = $isAdmin;
+
+// Se nenhuma aba estiver liberada (por algum motivo de permissão), habilitar Meus Registros como fallback
+if (!$canViewCadastroTitulos && !$canViewMeusRegistros && !$canViewPendenteAprovacao && !$canViewVisualizacao) {
+    $canViewMeusRegistros = true;
+}
 ?>
 
 <section class="space-y-6">
@@ -273,6 +294,9 @@ $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
             </tbody>
           </table>
         </div>
+      </div>
+      <?php endif; ?>
+
       <!-- ABA 5: SOLICITAÇÕES DE EXCLUSÃO -->
       <?php if ($canViewSolicitacoes): ?>
       <div id="content-solicitacoes" class="tab-content hidden">
@@ -352,11 +376,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Carregar primeira aba ativa
-  const firstTab = document.querySelector('.tab-button.active');
+  // Carregar primeira aba ativa (fallback para a primeira visível caso nenhuma esteja ativa)
+  let firstTab = document.querySelector('.tab-button.active');
   if (firstTab) {
     const tabId = firstTab.id.replace('tab-', '');
     loadTabData(tabId);
+  } else {
+    const firstVisible = document.querySelector('.tab-button');
+    if (firstVisible) {
+      firstVisible.classList.add('active', 'border-blue-500', 'text-blue-600');
+      firstVisible.classList.remove('border-transparent', 'text-gray-500');
+      const tabId = firstVisible.id.replace('tab-', '');
+      const activeContent = document.getElementById(`content-${tabId}`);
+      if (activeContent) activeContent.classList.remove('hidden');
+      loadTabData(tabId);
+    }
   }
   
   // Configurar formulários
