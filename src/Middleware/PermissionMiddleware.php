@@ -75,6 +75,7 @@ class PermissionMiddleware
         '/admin/profiles' => 'admin_perfis',
         '/admin/invitations' => 'admin_convites',
         '/admin' => 'admin_painel',
+        '/admin/dashboard/data' => 'dashboard',
         
         // Perfil
         '/profile' => 'profile',

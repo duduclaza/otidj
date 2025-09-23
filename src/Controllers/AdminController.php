@@ -1013,22 +1013,77 @@ class AdminController
         header('Content-Type: application/json');
         
         try {
+            // Debug: verificar se a tabela existe
+            $tableExists = $this->checkTableExists();
+            if (!$tableExists) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Tabela retornados não encontrada',
+                    'debug' => ['table_exists' => false]
+                ]);
+                exit;
+            }
+            
             $filial = $_GET['filial'] ?? '';
             $dataInicial = $_GET['data_inicial'] ?? '';
             $dataFinal = $_GET['data_final'] ?? '';
+            
+            // Debug: verificar estrutura da tabela
+            $tableStructure = $this->getTableStructure();
             
             $data = [
                 'retornados_mes' => $this->getRetornadosPorMes($filial, $dataInicial, $dataFinal),
                 'retornados_destino' => $this->getRetornadosPorDestino($filial, $dataInicial, $dataFinal),
                 'toners_recuperados' => $this->getTonersRecuperados($filial, $dataInicial, $dataFinal),
-                'filiais' => $this->getFiliaisFromRetornados()
+                'filiais' => $this->getFiliaisFromRetornados(),
+                'debug' => [
+                    'table_exists' => true,
+                    'columns' => $tableStructure,
+                    'date_column' => $this->getDateColumn(),
+                    'filial_column' => $this->getFilialColumn(),
+                    'destino_column' => $this->getDestinoColumn(),
+                    'valor_column' => $this->getValorColumn()
+                ]
             ];
             
             echo json_encode(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            echo json_encode([
+                'success' => false, 
+                'message' => $e->getMessage(),
+                'debug' => [
+                    'error_file' => $e->getFile(),
+                    'error_line' => $e->getLine()
+                ]
+            ]);
         }
         exit;
+    }
+
+    /**
+     * Check if retornados table exists
+     */
+    private function checkTableExists()
+    {
+        try {
+            $stmt = $this->db->query("SHOW TABLES LIKE 'retornados'");
+            return $stmt->rowCount() > 0;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get table structure for debugging
+     */
+    private function getTableStructure()
+    {
+        try {
+            $stmt = $this->db->query("DESCRIBE retornados");
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            return [];
+        }
     }
 
     /**
