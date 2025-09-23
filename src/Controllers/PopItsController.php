@@ -191,25 +191,18 @@ class PopItsController
 
     public function listMeusRegistros()
     {
-        // Iniciar sessão se não estiver iniciada
+        // Iniciar sessão
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-        // Limpar buffer atual (apenas se existir)
-        if (ob_get_level() > 0) {
-            ob_clean();
+        // Limpar qualquer output anterior
+        while (ob_get_level() > 0) {
+            ob_end_clean();
         }
 
         header('Content-Type: application/json');
         header('Cache-Control: no-cache');
-
-        // Log de início
-        try {
-            $logDir = __DIR__ . '/../../logs';
-            if (!is_dir($logDir)) { @mkdir($logDir, 0777, true); }
-            @file_put_contents($logDir . '/pops_its_debug.log', date('Y-m-d H:i:s') . " listMeusRegistros: start\n", FILE_APPEND);
-        } catch (\Throwable $e) {}
 
         try {
             // Verificar se usuário está logado
@@ -219,45 +212,94 @@ class PopItsController
                 echo $json;
                 return;
             }
-            
+
             $user_id = $_SESSION['user_id'];
-            
+
+            // Teste simples primeiro
+            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM pops_its_registros WHERE created_by = ?");
+            $stmt->execute([$user_id]);
+            $count = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Query simplificada para buscar registros
             $stmt = $this->db->prepare("
-                SELECT r.*, 
-                       COALESCE(t.titulo, 'Título não encontrado') as titulo, 
-                       COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome
-                FROM pops_its_registros r
-                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
-                LEFT JOIN departamentos d ON t.departamento_id = d.id
-                WHERE r.created_by = ?
-                ORDER BY r.created_at DESC
+                SELECT id, titulo_id, versao, status, observacao_reprovacao,
+                       arquivo_nome, arquivo_tipo, arquivo_tamanho,
+                       created_at, updated_at, created_by
+                FROM pops_its_registros
+                WHERE created_by = ?
+                ORDER BY created_at DESC
             ");
             $stmt->execute([$user_id]);
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $json = json_encode(['success' => true, 'data' => $registros]);
+            // Adicionar informações do título para cada registro
+            foreach ($registros as &$registro) {
+                try {
+                    $stmtTitulo = $this->db->prepare("
+                        SELECT titulo, departamento_id
+                        FROM pops_its_titulos
+                        WHERE id = ?
+                    ");
+                    $stmtTitulo->execute([$registro['titulo_id']]);
+                    $titulo = $stmtTitulo->fetch(PDO::FETCH_ASSOC);
+
+                    if ($titulo) {
+                        $registro['titulo'] = $titulo['titulo'];
+
+                        // Buscar nome do departamento
+                        $stmtDepto = $this->db->prepare("
+                            SELECT nome FROM departamentos WHERE id = ?
+                        ");
+                        $stmtDepto->execute([$titulo['departamento_id']]);
+                        $depto = $stmtDepto->fetch(PDO::FETCH_ASSOC);
+
+                        $registro['departamento_nome'] = $depto ? $depto['nome'] : 'Departamento não encontrado';
+                    } else {
+                        $registro['titulo'] = 'Título não encontrado';
+                        $registro['departamento_nome'] = 'Departamento não encontrado';
+                    }
+                } catch (\Exception $e) {
+                    $registro['titulo'] = 'Erro ao carregar título';
+                    $registro['departamento_nome'] = 'Erro ao carregar departamento';
+                }
+            }
+
+            $json = json_encode([
+                'success' => true,
+                'data' => $registros,
+                'count' => count($registros),
+                'debug' => [
+                    'user_id' => $user_id,
+                    'total_registros' => $count['total']
+                ]
+            ]);
+
             header('Content-Length: ' . strlen($json));
             echo $json;
             return;
 
         } catch (\Exception $e) {
-            try {
-                $logDir = __DIR__ . '/../../logs';
-                if (!is_dir($logDir)) { @mkdir($logDir, 0777, true); }
-                @file_put_contents($logDir . '/pops_its_debug.log', date('Y-m-d H:i:s') . ' listMeusRegistros ERROR: ' . $e->getMessage() . "\n", FILE_APPEND);
-            } catch (\Throwable $t) {}
-
             $json = json_encode([
                 'success' => false,
-                'message' => 'Erro ao listar registros: ' . $e->getMessage()
+                'message' => 'Erro ao listar registros: ' . $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
             header('Content-Length: ' . strlen($json));
             echo $json;
             return;
         }
+    public function testEndpoint()
+    {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Endpoint funcionando',
+            'user_id' => $_SESSION['user_id'] ?? null,
+            'session_status' => session_status()
+        ]);
+        exit();
     }
-
-    public function updateRegistro()
     {
         try {
             $registro_id = (int)($_POST['registro_id'] ?? 0);

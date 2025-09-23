@@ -204,18 +204,20 @@ $canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
         <div class="bg-gray-50 rounded-lg p-4">
           <h4 class="font-medium text-gray-900 mb-3">Meus Registros</h4>
           <div class="overflow-x-auto">
-            <table class="min-w-full text-sm">
+            <table class="min-w-full text-sm bg-white rounded-lg shadow">
               <thead class="bg-gray-100">
                 <tr>
                   <th class="px-3 py-2 text-left">Título</th>
                   <th class="px-3 py-2 text-left">Versão</th>
                   <th class="px-3 py-2 text-left">Status</th>
-                  <th class="px-3 py-2 text-left">Data</th>
+                  <th class="px-3 py-2 text-left">Arquivo</th>
+                  <th class="px-3 py-2 text-left">Tamanho</th>
+                  <th class="px-3 py-2 text-left">Data Criação</th>
                   <th class="px-3 py-2 text-left">Ações</th>
                 </tr>
               </thead>
               <tbody id="listaMeusRegistros" class="divide-y">
-                <tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">Carregando...</td></tr>
+                <tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Carregando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -538,37 +540,57 @@ async function loadMeusRegistros() {
     
     if (!result.success) {
       console.error('Erro na resposta:', result.message);
-      tbody.innerHTML = `<tr><td colspan="5" class="px-3 py-4 text-center text-red-500">Erro: ${result.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="px-3 py-4 text-center text-red-500">Erro: ${result.message}</td></tr>`;
       return;
     }
-    
+
     if (!result.data || result.data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="px-3 py-4 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
       return;
     }
-    
-    tbody.innerHTML = result.data.map(registro => `
-      <tr>
-        <td class="px-3 py-2">${registro.titulo || 'N/A'}</td>
-        <td class="px-3 py-2">${registro.versao || 'N/A'}</td>
-        <td class="px-3 py-2">
-          <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(registro.status)}">
-            ${getStatusText(registro.status)}
-          </span>
-          ${registro.observacao_reprovacao ? `<br><small class="text-red-600">${registro.observacao_reprovacao}</small>` : ''}
-        </td>
-        <td class="px-3 py-2">${formatDate(registro.created_at)}</td>
-        <td class="px-3 py-2 space-x-1">
-          <a href="/pops-its/arquivo/${registro.id}" target="_blank" class="text-blue-600 hover:underline text-xs">Ver</a>
-          ${registro.status === 'reprovado' ? `<button onclick="atualizarRegistro(${registro.id})" class="text-green-600 hover:underline text-xs">Atualizar</button>` : ''}
-          <button onclick="excluirRegistro(${registro.id})" class="text-red-600 hover:underline text-xs">Excluir</button>
-        </td>
-      </tr>
-    `).join('');
+
+    tbody.innerHTML = result.data.map(registro => {
+      // Formatar tamanho do arquivo
+      const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      };
+
+      return `
+        <tr>
+          <td class="px-3 py-2">${registro.titulo || 'Título não encontrado'}</td>
+          <td class="px-3 py-2">${registro.versao || 'N/A'}</td>
+          <td class="px-3 py-2">
+            <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(registro.status)}">
+              ${getStatusText(registro.status)}
+            </span>
+            ${registro.observacao_reprovacao ? `<br><small class="text-red-600">${registro.observacao_reprovacao}</small>` : ''}
+          </td>
+          <td class="px-3 py-2">
+            <div class="flex flex-col">
+              <span class="font-medium">${registro.arquivo_nome || 'Arquivo não informado'}</span>
+              <span class="text-xs text-gray-500">${registro.arquivo_tipo || 'Tipo desconhecido'}</span>
+            </div>
+          </td>
+          <td class="px-3 py-2">${formatFileSize(registro.arquivo_tamanho || 0)}</td>
+          <td class="px-3 py-2">${formatDate(registro.created_at)}</td>
+          <td class="px-3 py-2 space-x-1">
+            <a href="/pops-its/arquivo/${registro.id}" target="_blank" class="text-blue-600 hover:underline text-xs">
+              Ver/Download
+            </a>
+            ${registro.status === 'reprovado' ? `<br><button onclick="atualizarRegistro(${registro.id})" class="text-green-600 hover:underline text-xs mt-1">Atualizar</button>` : ''}
+            <br><button onclick="excluirRegistro(${registro.id})" class="text-red-600 hover:underline text-xs mt-1">Excluir</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
   } catch (error) {
     console.error('Erro ao carregar registros:', error);
     const tbody = document.getElementById('listaMeusRegistros');
-    tbody.innerHTML = `<tr><td colspan="5" class="px-3 py-4 text-center text-red-500">Erro ao carregar: ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="px-3 py-4 text-center text-red-500">Erro ao carregar: ${error.message}</td></tr>`;
   }
 }
 
