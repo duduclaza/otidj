@@ -1,16 +1,17 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-blue-100">
-                <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="glass-effect rounded-2xl shadow-2xl p-8">
+        <!-- Logo/Header -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center m-0">
+                <img src="/assets/logo.png" alt="DJ Logo" class="w-30 h-30 object-contain">
             </div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h1 class="text-4xl font-bold text-white mb-3">SGQ OTI</h1>
+            <p class="text-blue-100 text-lg mb-4">Sistema de Gestão da Qualidade</p>
+            <h2 class="text-2xl font-bold text-white">
                 Solicitar Acesso
             </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                Preencha os dados abaixo para solicitar acesso ao SGQ OTI DJ
+            <p class="mt-2 text-center text-sm text-blue-100">
+                Preencha os dados abaixo para solicitar acesso ao sistema
             </p>
         </div>
         
@@ -18,17 +19,17 @@
             <div class="space-y-4">
                 <!-- Nome -->
                 <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Nome Completo *</label>
+                    <label for="name" class="block text-white text-sm font-medium mb-2">Nome Completo *</label>
                     <input id="name" name="name" type="text" required 
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
                            placeholder="Seu nome completo">
                 </div>
 
                 <!-- Email -->
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email *</label>
+                    <label for="email" class="block text-white text-sm font-medium mb-2">Email *</label>
                     <input id="email" name="email" type="email" required 
-                           class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
                            placeholder="seu.email@exemplo.com">
                 </div>
 
@@ -102,7 +103,7 @@
 
             <div>
                 <button type="submit" id="submitBtn"
-                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="btn-primary group relative w-full flex justify-center disabled:opacity-50 disabled:cursor-not-allowed">
                     <span id="submitText">Enviar Solicitação</span>
                     <span id="submitLoading" class="hidden">
                         <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -139,8 +140,75 @@
     </div>
 </div>
 
+<style>
+/* Estilos personalizados para formulário de solicitação */
+.request-form label {
+    color: white !important;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.875rem;
+}
+
+.request-form input,
+.request-form select,
+.request-form textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.request-form input::placeholder,
+.request-form textarea::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.request-form input:focus,
+.request-form select:focus,
+.request-form textarea:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: rgba(255, 255, 255, 0.5);
+    border-color: transparent;
+}
+
+.request-form select option {
+    background: #1e40af;
+    color: white;
+}
+
+.request-form .btn-primary {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: none;
+    box-shadow: 0 4px 15px 0 rgba(37, 99, 235, 0.3);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.request-form .btn-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px 0 rgba(37, 99, 235, 0.4);
+}
+
+.request-form .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Adicionar classe ao formulário
+    document.getElementById('requestForm').classList.add('request-form');
     const form = document.getElementById('requestForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
