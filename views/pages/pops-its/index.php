@@ -519,8 +519,19 @@ async function loadTitulos() {
 
 async function loadMeusRegistros() {
   try {
-    const response = await fetch('/pops-its/registros/meus');
-    const result = await response.json();
+    const response = await fetch('/pops-its/registros/meus', {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    });
+    const text = await response.text();
+    let result;
+    try {
+      result = text ? JSON.parse(text) : { success: false, message: 'Resposta vazia do servidor' };
+    } catch (e) {
+      result = { success: false, message: 'Resposta não é JSON válido', raw: text };
+    }
     
     const tbody = document.getElementById('listaMeusRegistros');
     
@@ -562,8 +573,19 @@ async function loadMeusRegistros() {
 
 async function loadPendentesAprovacao() {
   try {
-    const response = await fetch('/pops-its/pendentes/list');
-    const result = await response.json();
+    const response = await fetch('/pops-its/pendentes/list', {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    });
+    const text = await response.text();
+    let result;
+    try {
+      result = text ? JSON.parse(text) : { success: false, message: 'Resposta vazia do servidor' };
+    } catch (e) {
+      result = { success: false, message: 'Resposta não é JSON válido', raw: text };
+    }
     
     const tbody = document.getElementById('listaPendentes');
     if (!result.success || !result.data.length) {
@@ -598,8 +620,19 @@ async function loadPendentesAprovacao() {
 
 async function loadVisualizacao() {
   try {
-    const response = await fetch('/pops-its/visualizacao/list');
-    const result = await response.json();
+    const response = await fetch('/pops-its/visualizacao/list', {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    });
+    const text = await response.text();
+    let result;
+    try {
+      result = text ? JSON.parse(text) : { success: false, message: 'Resposta vazia do servidor' };
+    } catch (e) {
+      result = { success: false, message: 'Resposta não é JSON válido', raw: text };
+    }
     
     const tbody = document.getElementById('listaVisualizacao');
     if (!result.success || !result.data.length) {
