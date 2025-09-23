@@ -118,8 +118,8 @@
         </form>
 
         <!-- Link para login -->
-        <div class="mt-6 text-center">
-            <a href="/login" class="font-medium text-blue-600 hover:text-blue-500 underline">
+        <div class="mt-6 text-center relative z-50">
+            <a href="/login" class="login-link" id="loginLink">
                 Já tem acesso? Faça login
             </a>
         </div>
@@ -203,12 +203,42 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Link para login */
+.login-link {
+    position: relative !important;
+    z-index: 9999 !important;
+    display: inline-block !important;
+    color: #93c5fd !important;
+    text-decoration: underline !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 1rem !important;
+    margin: 1rem 0 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.login-link:hover {
+    color: #dbeafe !important;
+    transform: translateY(-1px) !important;
+}
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Adicionar classe ao formulário
     document.getElementById('requestForm').classList.add('request-form');
+    
+    // Garantir que o link de login funcione
+    const loginLink = document.getElementById('loginLink');
+    if (loginLink) {
+        loginLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Clicou no link de login');
+            window.location.href = '/login';
+        });
+    }
     const form = document.getElementById('requestForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
