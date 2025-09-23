@@ -220,10 +220,12 @@ class PopItsController
             error_log("POPs ITs - Total de registros para user $user_id: " . $count['total']);
             
             $stmt = $this->db->prepare("
-                SELECT r.*, t.titulo, d.nome as departamento_nome
+                SELECT r.*, 
+                       COALESCE(t.titulo, 'Título não encontrado') as titulo, 
+                       COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome
                 FROM pops_its_registros r
-                JOIN pops_its_titulos t ON r.titulo_id = t.id
-                JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
                 WHERE r.created_by = ?
                 ORDER BY r.created_at DESC
             ");
