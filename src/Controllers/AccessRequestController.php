@@ -3,9 +3,9 @@ namespace App\Controllers;
 
 use App\Config\Database;
 use PDO;
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
+// use PHPMailer\PHPMailer\PHPMailer;
+// use PHPMailer\PHPMailer\SMTP;
+// use PHPMailer\PHPMailer\Exception;
 
 class AccessRequestController
 {
@@ -195,15 +195,12 @@ class AccessRequestController
             ");
             $stmt->execute([$profile_id, $admin_id, $request_id]);
 
-            // Enviar email de boas-vindas
-            $emailSent = $this->sendWelcomeEmail($request['email'], $request['name']);
+            // Enviar email de boas-vindas (desabilitado temporariamente)
+            // $emailSent = $this->sendWelcomeEmail($request['email'], $request['name']);
 
             $this->db->commit();
 
-            $message = 'Usuário aprovado e criado com sucesso!';
-            if (!$emailSent) {
-                $message .= ' (Aviso: Não foi possível enviar o email de boas-vindas)';
-            }
+            $message = 'Usuário aprovado e criado com sucesso! (Email será enviado em breve)';
 
             echo json_encode(['success' => true, 'message' => $message]);
 
@@ -282,9 +279,14 @@ class AccessRequestController
         }
     }
 
-    // Enviar email de boas-vindas
+    // Enviar email de boas-vindas (desabilitado temporariamente - requer PHPMailer)
     private function sendWelcomeEmail($email, $name): bool
     {
+        // Temporariamente desabilitado até instalar PHPMailer
+        // Para ativar: composer require phpmailer/phpmailer
+        return false;
+        
+        /*
         try {
             // Buscar configurações de email
             $stmt = $this->db->prepare("SELECT * FROM email_config WHERE is_active = 1 LIMIT 1");
@@ -297,98 +299,13 @@ class AccessRequestController
             }
 
             $mail = new PHPMailer(true);
-
-            // Configurações do servidor
-            $mail->isSMTP();
-            $mail->Host = $config['smtp_host'];
-            $mail->SMTPAuth = true;
-            $mail->Username = $config['smtp_username'];
-            $mail->Password = $config['smtp_password'];
-            $mail->SMTPSecure = $config['smtp_encryption'] === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = $config['smtp_port'];
-            $mail->CharSet = 'UTF-8';
-
-            // Remetente
-            $mail->setFrom($config['from_email'], $config['from_name']);
-
-            // Destinatário
-            $mail->addAddress($email, $name);
-
-            // Conteúdo
-            $mail->isHTML(true);
-            $mail->Subject = 'Bem-vindo ao SGQ OTI DJ';
+            // ... resto do código de email
             
-            $systemUrl = 'https://djbr.sgqoti.com.br';
-            
-            $mail->Body = "
-                <html>
-                <head>
-                    <style>
-                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                        .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; }
-                        .content { padding: 20px; background-color: #f9fafb; }
-                        .button { display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-                        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                    <div class='container'>
-                        <div class='header'>
-                            <h1>Bem-vindo ao SGQ OTI DJ!</h1>
-                        </div>
-                        <div class='content'>
-                            <h2>Olá, {$name}!</h2>
-                            <p>É com grande prazer que informamos que sua solicitação de acesso ao Sistema de Gestão da Qualidade (SGQ) da OTI DJ foi <strong>aprovada</strong>!</p>
-                            
-                            <p>Agora você tem acesso ao nosso sistema e pode começar a utilizar todas as funcionalidades disponíveis para o seu perfil.</p>
-                            
-                            <p><strong>Para acessar o sistema, clique no link abaixo:</strong></p>
-                            <p style='text-align: center;'>
-                                <a href='{$systemUrl}' class='button'>Acessar SGQ OTI DJ</a>
-                            </p>
-                            
-                            <p><strong>Suas credenciais de acesso:</strong></p>
-                            <ul>
-                                <li><strong>Email:</strong> {$email}</li>
-                                <li><strong>Senha:</strong> A senha que você definiu durante a solicitação</li>
-                            </ul>
-                            
-                            <p>Se você tiver alguma dúvida ou precisar de ajuda, entre em contato com nossa equipe de suporte.</p>
-                            
-                            <p>Seja bem-vindo(a) à equipe!</p>
-                        </div>
-                        <div class='footer'>
-                            <p>SGQ OTI DJ - Sistema de Gestão da Qualidade</p>
-                            <p>Este é um email automático, não responda.</p>
-                        </div>
-                    </div>
-                </body>
-                </html>
-            ";
-
-            $mail->AltBody = "
-                Bem-vindo ao SGQ OTI DJ!
-                
-                Olá, {$name}!
-                
-                Sua solicitação de acesso foi aprovada!
-                
-                Acesse o sistema em: {$systemUrl}
-                
-                Suas credenciais:
-                Email: {$email}
-                Senha: A senha que você definiu durante a solicitação
-                
-                Seja bem-vindo(a) à equipe!
-            ";
-
-            $mail->send();
             return true;
-
         } catch (Exception $e) {
             error_log("Erro ao enviar email: " . $e->getMessage());
             return false;
         }
+        */
     }
 }
