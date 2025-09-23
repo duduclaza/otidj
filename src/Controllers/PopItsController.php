@@ -831,3 +831,5 @@ class PopItsController
             echo json_encode(['success' => false, 'message' => 'Erro ao reprovar solicitação: ' . $e->getMessage()]);
         }
     }
+
+}
