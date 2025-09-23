@@ -89,7 +89,15 @@ $router->delete('/toners/amostragens/{id}', [App\Controllers\AmostragemControlle
 $router->get('/toners/amostragens/{id}/pdf', [App\Controllers\AmostragemController::class, 'show']);
 $router->get('/toners/amostragens/{id}/evidencias', [App\Controllers\AmostragemController::class, 'getEvidencias']);
 $router->get('/toners/amostragens/{id}/evidencia/{evidenciaId}', [App\Controllers\AmostragemController::class, 'evidencia']);
+// Garantias routes
 $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
+$router->get('/garantias/list', [App\Controllers\GarantiasController::class, 'list']);
+$router->post('/garantias/create', [App\Controllers\GarantiasController::class, 'create']);
+$router->get('/garantias/{id}', [App\Controllers\GarantiasController::class, 'show']);
+$router->post('/garantias/{id}/update', [App\Controllers\GarantiasController::class, 'update']);
+$router->post('/garantias/{id}/delete', [App\Controllers\GarantiasController::class, 'delete']);
+$router->get('/garantias/anexo/{id}', [App\Controllers\GarantiasController::class, 'downloadAnexo']);
+$router->post('/garantias/anexo/{id}/delete', [App\Controllers\GarantiasController::class, 'deleteAnexo']);
 
 // Controle de Descartes routes
 $router->get('/controle-descartes', [App\Controllers\ControleDescartesController::class, 'index']);
