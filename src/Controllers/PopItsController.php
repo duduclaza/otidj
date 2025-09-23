@@ -400,37 +400,12 @@ class PopItsController
         }
     }
 
-    public function deleteRegistro()
-    {
-        try {
-            $registro_id = (int)($_POST['registro_id'] ?? 0);
-            $user_id = $_SESSION['user_id'];
-
-            // Verificar se o registro pertence ao usuário
-            $stmt = $this->db->prepare("SELECT * FROM pops_its_registros WHERE id = ? AND created_by = ?");
-            $stmt->execute([$registro_id, $user_id]);
-            
-            if (!$stmt->fetch()) {
-                echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou sem permissão']);
-                exit();
-            }
-
-            // Excluir registro (CASCADE remove departamentos permitidos)
-            $stmt = $this->db->prepare("DELETE FROM pops_its_registros WHERE id = ?");
-            $stmt->execute([$registro_id]);
-
-            echo json_encode(['success' => true, 'message' => 'Registro excluído com sucesso!']);
-            exit();
-
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao excluir registro: ' . $e->getMessage()]);
-            exit();
-        }
-    }
+    
 
     // ===== ABA 3: PENDENTE APROVAÇÃO =====
 
     public function listPendentesAprovacao()
+    {
     // Garantir sessão
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
@@ -492,13 +467,28 @@ public function aprovarRegistro()
         if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
             echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem aprovar registros.']);
             return;
-            }
-
-            echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao aprovar registro: ' . $e->getMessage()]);
         }
+
+        $registro_id = (int)($_POST['registro_id'] ?? 0);
+        $user_id = $_SESSION['user_id'];
+
+        $stmt = $this->db->prepare(
+            "UPDATE pops_its_registros 
+             SET status = 'aprovado', approved_by = ?, approved_at = NOW()
+             WHERE id = ? AND status = 'pendente'"
+        );
+        $stmt->execute([$user_id, $registro_id]);
+
+        if ($stmt->rowCount() === 0) {
+            echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou já processado']);
+            return;
+        }
+
+        echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
+    } catch (\Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Erro ao aprovar registro: ' . $e->getMessage()]);
     }
+}
 
     public function reprovarRegistro()
     {
