@@ -195,20 +195,29 @@ class PopItsController
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        
-        // Forçar headers e limpar buffer
-        while (ob_get_level()) {
-            ob_end_clean();
+
+        // Limpar buffer atual (apenas se existir)
+        if (ob_get_level() > 0) {
+            ob_clean();
         }
-        
+
         header('Content-Type: application/json');
         header('Cache-Control: no-cache');
-        
+
+        // Log de início
+        try {
+            $logDir = __DIR__ . '/../../logs';
+            if (!is_dir($logDir)) { @mkdir($logDir, 0777, true); }
+            @file_put_contents($logDir . '/pops_its_debug.log', date('Y-m-d H:i:s') . " listMeusRegistros: start\n", FILE_APPEND);
+        } catch (\Throwable $e) {}
+
         try {
             // Verificar se usuário está logado
             if (!isset($_SESSION['user_id'])) {
-                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
-                exit();
+                $json = json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                header('Content-Length: ' . strlen($json));
+                echo $json;
+                return;
             }
             
             $user_id = $_SESSION['user_id'];
@@ -226,15 +235,25 @@ class PopItsController
             $stmt->execute([$user_id]);
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            echo json_encode(['success' => true, 'data' => $registros]);
-            exit();
+            $json = json_encode(['success' => true, 'data' => $registros]);
+            header('Content-Length: ' . strlen($json));
+            echo $json;
+            return;
 
         } catch (\Exception $e) {
-            echo json_encode([
-                'success' => false, 
+            try {
+                $logDir = __DIR__ . '/../../logs';
+                if (!is_dir($logDir)) { @mkdir($logDir, 0777, true); }
+                @file_put_contents($logDir . '/pops_its_debug.log', date('Y-m-d H:i:s') . ' listMeusRegistros ERROR: ' . $e->getMessage() . "\n", FILE_APPEND);
+            } catch (\Throwable $t) {}
+
+            $json = json_encode([
+                'success' => false,
                 'message' => 'Erro ao listar registros: ' . $e->getMessage()
             ]);
-            exit();
+            header('Content-Length: ' . strlen($json));
+            echo $json;
+            return;
         }
     }
 

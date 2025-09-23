@@ -520,6 +520,7 @@ async function loadTitulos() {
 async function loadMeusRegistros() {
   try {
     const response = await fetch('/pops-its/registros/meus', {
+      credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json'
@@ -574,6 +575,7 @@ async function loadMeusRegistros() {
 async function loadPendentesAprovacao() {
   try {
     const response = await fetch('/pops-its/pendentes/list', {
+      credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json'
@@ -621,6 +623,7 @@ async function loadPendentesAprovacao() {
 async function loadVisualizacao() {
   try {
     const response = await fetch('/pops-its/visualizacao/list', {
+      credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
         'Accept': 'application/json'
