@@ -737,13 +737,15 @@ function clearFilters() {
 
 // Inicializar dashboard quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
-  // Carregar dados iniciais
-  loadDashboardData();
+  console.log('🚀 Dashboard carregado, iniciando...');
   
-  // Inicializar gráficos após um pequeno delay
+  // Inicializar gráficos primeiro
+  initCharts();
+  
+  // Carregar dados após inicializar gráficos
   setTimeout(() => {
-    initCharts();
-  }, 500);
+    loadDashboardData();
+  }, 1000);
 });
 
 // Funções do modal de usuário
