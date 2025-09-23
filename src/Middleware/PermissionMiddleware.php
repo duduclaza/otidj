@@ -115,11 +115,6 @@ class PermissionMiddleware
         
         $userId = $_SESSION['user_id'];
         
-        // Verificar se é admin (admins têm acesso a tudo)
-        if (PermissionService::isAdmin($userId)) {
-            return true;
-        }
-        
         // Encontrar o módulo correspondente à rota
         $module = self::getModuleForRoute($route);
         if (!$module) {

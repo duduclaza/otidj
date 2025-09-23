@@ -22,8 +22,8 @@ class PermissionService
      */
     public static function hasPermission(int $userId, string $module, string $action): bool
     {
-        // Admin users have all permissions
-        if (self::isAdmin($userId)) {
+        // Super Admin users have all permissions (not customizable)
+        if (self::isSuperAdmin($userId)) {
             return true;
         }
         
@@ -39,21 +39,43 @@ class PermissionService
     }
     
     /**
-     * Check if user is admin
+     * Check if user is admin (regular admin - customizable permissions)
      */
     public static function isAdmin(int $userId): bool
     {
         $db = self::getDb();
         $stmt = $db->prepare("
-            SELECT p.is_admin 
+            SELECT COUNT(*) 
             FROM users u 
-            LEFT JOIN profiles p ON u.profile_id = p.id 
-            WHERE u.id = ?
+            JOIN profiles p ON u.profile_id = p.id 
+            WHERE u.id = ? AND p.name = 'Administrador'
         ");
         $stmt->execute([$userId]);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-        
-        return ($result['is_admin'] ?? false) == 1;
+        return $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Check if user is super admin (unrestricted access - not customizable)
+     */
+    public static function isSuperAdmin(int $userId): bool
+    {
+        $db = self::getDb();
+        $stmt = $db->prepare("
+            SELECT COUNT(*) 
+            FROM users u 
+            JOIN profiles p ON u.profile_id = p.id 
+            WHERE u.id = ? AND p.name = 'Super Administrador'
+        ");
+        $stmt->execute([$userId]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Check if user has admin privileges (either admin or super admin)
+     */
+    public static function hasAdminPrivileges(int $userId): bool
+    {
+        return self::isAdmin($userId) || self::isSuperAdmin($userId);
     }
     
     /**

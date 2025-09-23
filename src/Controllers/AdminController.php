@@ -143,7 +143,7 @@ class AdminController
                 exit;
             }
             
-            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+            if (!\App\Services\PermissionService::hasAdminPrivileges($_SESSION['user_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
                 exit;
             }
@@ -238,7 +238,7 @@ class AdminController
             }
 
             // Verificar se é admin
-            if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+            if (!\App\Services\PermissionService::hasAdminPrivileges($_SESSION['user_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
                 exit;
             }
