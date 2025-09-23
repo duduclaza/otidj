@@ -7,20 +7,6 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-gray-900">📊 Dashboard - Análise de Dados</h1>
-    <div class="flex space-x-3">
-      <button onclick="expandAllCharts()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-        </svg>
-        <span>Expandir Gráficos</span>
-      </button>
-      <a href="/admin/users" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-        </svg>
-        <span>Usuários</span>
-      </a>
-    </div>
   </div>
 
   <!-- Filtros -->
@@ -36,12 +22,6 @@
         <label class="block text-sm font-medium text-gray-700 mb-2">🏢 Filial</label>
         <select id="filtroFilial" onchange="updateCharts()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           <option value="">Todas as Filiais</option>
-          <option value="Jundiaí">Jundiaí</option>
-          <option value="São Paulo">São Paulo</option>
-          <option value="Campinas">Campinas</option>
-          <option value="Santos">Santos</option>
-          <option value="Sorocaba">Sorocaba</option>
-          <option value="Ribeirão Preto">Ribeirão Preto</option>
         </select>
       </div>
       <div>
@@ -69,80 +49,6 @@
     </div>
   </div>
 
-  <!-- Statistics Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Usuários Ativos</dt>
-            <dd class="text-lg font-medium text-gray-900"><?= $stats['active_users'] ?? 0 ?></dd>
-          </dl>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Solicitações Pendentes</dt>
-            <dd class="text-lg font-medium text-gray-900"><?= $stats['pending_invitations'] ?? 0 ?></dd>
-          </dl>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Total Amostragens</dt>
-            <dd class="text-lg font-medium text-gray-900"><?= $stats['total_amostragens'] ?? 0 ?></dd>
-          </dl>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-lg shadow p-6">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="ml-5 w-0 flex-1">
-          <dl>
-            <dt class="text-sm font-medium text-gray-500 truncate">Total Retornados</dt>
-            <dd class="text-lg font-medium text-gray-900"><?= $stats['total_retornados'] ?? 0 ?></dd>
-          </dl>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Gráficos dos Retornados -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -208,51 +114,6 @@
     </div>
   </div>
 
-  <!-- Quick Actions -->
-  <div class="bg-white rounded-lg shadow">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-medium text-gray-900">Ações Rápidas</h3>
-    </div>
-    <div class="p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <button onclick="openCreateUserModal()" class="flex items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors">
-          <div class="flex-shrink-0">
-            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-900">Criar Usuário</p>
-            <p class="text-sm text-gray-500">Adicionar novo usuário manualmente</p>
-          </div>
-        </button>
-
-        <a href="/admin/invitations" class="flex items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors">
-          <div class="flex-shrink-0">
-            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-900">Revisar Solicitações</p>
-            <p class="text-sm text-gray-500">Aprovar ou rejeitar convites</p>
-          </div>
-        </a>
-
-        <a href="/email/test-connection" class="flex items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors">
-          <div class="flex-shrink-0">
-            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-medium text-gray-900">Testar Email</p>
-            <p class="text-sm text-gray-500">Verificar configuração SMTP</p>
-          </div>
-        </a>
-      </div>
-    </div>
-  </div>
 </section>
 
 <!-- Create User Modal -->
@@ -341,13 +202,14 @@
 // Variáveis globais para os gráficos
 let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart;
 let expandedChartInstance;
+let dashboardData = null;
 
-// Dados de exemplo (serão substituídos por dados reais da API)
-const dadosRetornadosMes = {
+// Dados iniciais vazios (serão carregados da API)
+let dadosRetornadosMes = {
   labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
   datasets: [{
     label: 'Quantidade de Retornados',
-    data: [120, 150, 180, 140, 200, 160, 190, 220, 180, 210, 170, 190],
+    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     backgroundColor: 'rgba(34, 197, 94, 0.8)',
     borderColor: 'rgba(34, 197, 94, 1)',
     borderWidth: 2,
@@ -356,31 +218,21 @@ const dadosRetornadosMes = {
   }]
 };
 
-const dadosRetornadosDestino = {
-  labels: ['Descarte', 'Estoque', 'Uso Interno', 'Garantia'],
+let dadosRetornadosDestino = {
+  labels: ['Carregando...'],
   datasets: [{
-    data: [45, 30, 15, 10],
-    backgroundColor: [
-      'rgba(239, 68, 68, 0.8)',   // Vermelho - Descarte
-      'rgba(34, 197, 94, 0.8)',   // Verde - Estoque
-      'rgba(59, 130, 246, 0.8)',  // Azul - Uso Interno
-      'rgba(168, 85, 247, 0.8)'   // Roxo - Garantia
-    ],
-    borderColor: [
-      'rgba(239, 68, 68, 1)',
-      'rgba(34, 197, 94, 1)',
-      'rgba(59, 130, 246, 1)',
-      'rgba(168, 85, 247, 1)'
-    ],
+    data: [0],
+    backgroundColor: ['rgba(156, 163, 175, 0.8)'],
+    borderColor: ['rgba(156, 163, 175, 1)'],
     borderWidth: 2
   }]
 };
 
-const dadosTonersRecuperados = {
+let dadosTonersRecuperados = {
   labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
   datasets: [{
     label: 'Valor Recuperado (R$)',
-    data: [15000, 18000, 22000, 17000, 25000, 20000, 23000, 28000, 21000, 26000, 19000, 24000],
+    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     backgroundColor: 'rgba(168, 85, 247, 0.8)',
     borderColor: 'rgba(168, 85, 247, 1)',
     borderWidth: 2,
@@ -388,6 +240,96 @@ const dadosTonersRecuperados = {
     borderSkipped: false,
   }]
 };
+
+// Carregar dados da API
+async function loadDashboardData() {
+  try {
+    const filial = document.getElementById('filtroFilial').value;
+    const dataInicial = document.getElementById('dataInicial').value;
+    const dataFinal = document.getElementById('dataFinal').value;
+    
+    const params = new URLSearchParams();
+    if (filial) params.append('filial', filial);
+    if (dataInicial) params.append('data_inicial', dataInicial);
+    if (dataFinal) params.append('data_final', dataFinal);
+    
+    const response = await fetch(`/admin/dashboard/data?${params.toString()}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      dashboardData = result.data;
+      updateChartsWithData();
+      populateFilialOptions(result.data.filiais);
+    } else {
+      console.error('Erro ao carregar dados:', result.message);
+    }
+  } catch (error) {
+    console.error('Erro na requisição:', error);
+  }
+}
+
+// Atualizar gráficos com dados da API
+function updateChartsWithData() {
+  if (!dashboardData) return;
+  
+  // Atualizar dados do gráfico de retornados por mês
+  dadosRetornadosMes.datasets[0].data = dashboardData.retornados_mes.data;
+  
+  // Atualizar dados do gráfico de destino
+  dadosRetornadosDestino.labels = dashboardData.retornados_destino.labels;
+  dadosRetornadosDestino.datasets[0].data = dashboardData.retornados_destino.data;
+  
+  // Cores dinâmicas para o gráfico de destino
+  const colors = [
+    'rgba(239, 68, 68, 0.8)',   // Vermelho
+    'rgba(34, 197, 94, 0.8)',   // Verde
+    'rgba(59, 130, 246, 0.8)',  // Azul
+    'rgba(168, 85, 247, 0.8)',  // Roxo
+    'rgba(245, 158, 11, 0.8)',  // Amarelo
+    'rgba(236, 72, 153, 0.8)',  // Rosa
+    'rgba(14, 165, 233, 0.8)',  // Azul claro
+    'rgba(34, 197, 94, 0.8)'    // Verde claro
+  ];
+  
+  dadosRetornadosDestino.datasets[0].backgroundColor = colors.slice(0, dashboardData.retornados_destino.labels.length);
+  dadosRetornadosDestino.datasets[0].borderColor = colors.slice(0, dashboardData.retornados_destino.labels.length).map(color => color.replace('0.8', '1'));
+  
+  // Atualizar dados do gráfico de toners recuperados
+  dadosTonersRecuperados.datasets[0].data = dashboardData.toners_recuperados.data;
+  
+  // Atualizar os gráficos se já estiverem criados
+  if (retornadosMesChart) {
+    retornadosMesChart.update();
+  }
+  if (retornadosDestinoChart) {
+    retornadosDestinoChart.update();
+  }
+  if (tonersRecuperadosChart) {
+    tonersRecuperadosChart.update();
+  }
+}
+
+// Popular opções de filiais
+function populateFilialOptions(filiais) {
+  const select = document.getElementById('filtroFilial');
+  const currentValue = select.value;
+  
+  // Limpar opções existentes (exceto "Todas as Filiais")
+  while (select.children.length > 1) {
+    select.removeChild(select.lastChild);
+  }
+  
+  // Adicionar filiais
+  filiais.forEach(filial => {
+    const option = document.createElement('option');
+    option.value = filial;
+    option.textContent = filial;
+    select.appendChild(option);
+  });
+  
+  // Restaurar valor selecionado
+  select.value = currentValue;
+}
 
 // Inicializar gráficos
 function initCharts() {
@@ -779,24 +721,30 @@ function closeFullScreenDashboard() {
 
 // Funções de filtro
 function updateCharts() {
-  console.log('Atualizando gráficos com filtros...');
+  loadDashboardData();
 }
 
 function applyFilters() {
-  const filial = document.getElementById('filtroFilial').value;
-  const dataInicial = document.getElementById('dataInicial').value;
-  const dataFinal = document.getElementById('dataFinal').value;
-  
-  console.log('Aplicando filtros:', { filial, dataInicial, dataFinal });
-  alert(`Filtros aplicados:\nFilial: ${filial || 'Todas'}\nPeríodo: ${dataInicial || 'Início'} até ${dataFinal || 'Hoje'}`);
+  loadDashboardData();
 }
 
 function clearFilters() {
   document.getElementById('filtroFilial').value = '';
   document.getElementById('dataInicial').value = '';
   document.getElementById('dataFinal').value = '';
-  updateCharts();
+  loadDashboardData();
 }
+
+// Inicializar dashboard quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+  // Carregar dados iniciais
+  loadDashboardData();
+  
+  // Inicializar gráficos após um pequeno delay
+  setTimeout(() => {
+    initCharts();
+  }, 500);
+});
 
 // Funções do modal de usuário
 function openCreateUserModal() {

@@ -970,23 +970,373 @@ class AdminController
     {
         $stats = [];
         
-        // Total users
-        $stmt = $this->db->query("SELECT COUNT(*) FROM users");
-        $stats['active_users'] = $stmt->fetchColumn();
+        try {
+            // Total users
+            $stmt = $this->db->query("SELECT COUNT(*) FROM users");
+            $stats['active_users'] = $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            $stats['active_users'] = 0;
+        }
         
-        // Pending invitations
-        $stmt = $this->db->query("SELECT COUNT(*) FROM user_invitations WHERE status = 'pending'");
-        $stats['pending_invitations'] = $stmt->fetchColumn();
+        try {
+            // Pending access requests
+            $stmt = $this->db->query("SELECT COUNT(*) FROM access_requests WHERE status = 'pendente'");
+            $stats['pending_invitations'] = $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            $stats['pending_invitations'] = 0;
+        }
         
-        // Total amostragens
-        $stmt = $this->db->query("SELECT COUNT(*) FROM amostragens");
-        $stats['total_amostragens'] = $stmt->fetchColumn();
+        try {
+            // Total amostragens
+            $stmt = $this->db->query("SELECT COUNT(*) FROM amostragens");
+            $stats['total_amostragens'] = $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            $stats['total_amostragens'] = 0;
+        }
         
-        // Total retornados
-        $stmt = $this->db->query("SELECT COUNT(*) FROM retornados");
-        $stats['total_retornados'] = $stmt->fetchColumn();
+        try {
+            // Total retornados
+            $stmt = $this->db->query("SELECT COUNT(*) FROM retornados");
+            $stats['total_retornados'] = $stmt->fetchColumn();
+        } catch (\Exception $e) {
+            $stats['total_retornados'] = 0;
+        }
         
         return $stats;
+    }
+
+    /**
+     * Get dashboard chart data
+     */
+    public function getDashboardData()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $filial = $_GET['filial'] ?? '';
+            $dataInicial = $_GET['data_inicial'] ?? '';
+            $dataFinal = $_GET['data_final'] ?? '';
+            
+            $data = [
+                'retornados_mes' => $this->getRetornadosPorMes($filial, $dataInicial, $dataFinal),
+                'retornados_destino' => $this->getRetornadosPorDestino($filial, $dataInicial, $dataFinal),
+                'toners_recuperados' => $this->getTonersRecuperados($filial, $dataInicial, $dataFinal),
+                'filiais' => $this->getFiliaisFromRetornados()
+            ];
+            
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * Get retornados por mês
+     */
+    private function getRetornadosPorMes($filial = '', $dataInicial = '', $dataFinal = '')
+    {
+        // Verificar estrutura da tabela e ajustar query
+        $dateColumn = $this->getDateColumn();
+        $filialColumn = $this->getFilialColumn();
+        
+        $sql = "
+            SELECT 
+                MONTH({$dateColumn}) as mes,
+                YEAR({$dateColumn}) as ano,
+                COUNT(*) as quantidade
+            FROM retornados 
+            WHERE 1=1
+        ";
+        
+        $params = [];
+        
+        if (!empty($filial)) {
+            $sql .= " AND {$filialColumn} = ?";
+            $params[] = $filial;
+        }
+        
+        if (!empty($dataInicial)) {
+            $sql .= " AND {$dateColumn} >= ?";
+            $params[] = $dataInicial;
+        }
+        
+        if (!empty($dataFinal)) {
+            $sql .= " AND {$dateColumn} <= ?";
+            $params[] = $dataFinal;
+        }
+        
+        $sql .= " GROUP BY YEAR({$dateColumn}), MONTH({$dateColumn}) ORDER BY ano, mes";
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Preparar dados para o gráfico
+            $meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            $dados = array_fill(0, 12, 0);
+            
+            foreach ($results as $row) {
+                $mesIndex = $row['mes'] - 1;
+                if ($mesIndex >= 0 && $mesIndex < 12) {
+                    $dados[$mesIndex] = (int)$row['quantidade'];
+                }
+            }
+            
+            return [
+                'labels' => $meses,
+                'data' => $dados
+            ];
+        } catch (\Exception $e) {
+            return [
+                'labels' => ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                'data' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            ];
+        }
+    }
+
+    /**
+     * Get retornados por destino
+     */
+    private function getRetornadosPorDestino($filial = '', $dataInicial = '', $dataFinal = '')
+    {
+        $dateColumn = $this->getDateColumn();
+        $filialColumn = $this->getFilialColumn();
+        $destinoColumn = $this->getDestinoColumn();
+        
+        $sql = "
+            SELECT 
+                COALESCE({$destinoColumn}, 'Não Informado') as destino,
+                COUNT(*) as quantidade
+            FROM retornados 
+            WHERE 1=1
+        ";
+        
+        $params = [];
+        
+        if (!empty($filial)) {
+            $sql .= " AND {$filialColumn} = ?";
+            $params[] = $filial;
+        }
+        
+        if (!empty($dataInicial)) {
+            $sql .= " AND {$dateColumn} >= ?";
+            $params[] = $dataInicial;
+        }
+        
+        if (!empty($dataFinal)) {
+            $sql .= " AND {$dateColumn} <= ?";
+            $params[] = $dataFinal;
+        }
+        
+        $sql .= " GROUP BY destino ORDER BY quantidade DESC";
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            $labels = [];
+            $data = [];
+            
+            foreach ($results as $row) {
+                $labels[] = $row['destino'];
+                $data[] = (int)$row['quantidade'];
+            }
+            
+            return [
+                'labels' => $labels,
+                'data' => $data
+            ];
+        } catch (\Exception $e) {
+            return [
+                'labels' => ['Sem Dados'],
+                'data' => [0]
+            ];
+        }
+    }
+
+    /**
+     * Get valor recuperado em toners
+     */
+    private function getTonersRecuperados($filial = '', $dataInicial = '', $dataFinal = '')
+    {
+        $dateColumn = $this->getDateColumn();
+        $filialColumn = $this->getFilialColumn();
+        $valorColumn = $this->getValorColumn();
+        
+        $sql = "
+            SELECT 
+                MONTH({$dateColumn}) as mes,
+                YEAR({$dateColumn}) as ano,
+                SUM(COALESCE({$valorColumn}, 0)) as valor_total
+            FROM retornados 
+            WHERE 1=1
+        ";
+        
+        $params = [];
+        
+        if (!empty($filial)) {
+            $sql .= " AND {$filialColumn} = ?";
+            $params[] = $filial;
+        }
+        
+        if (!empty($dataInicial)) {
+            $sql .= " AND {$dateColumn} >= ?";
+            $params[] = $dataInicial;
+        }
+        
+        if (!empty($dataFinal)) {
+            $sql .= " AND {$dateColumn} <= ?";
+            $params[] = $dataFinal;
+        }
+        
+        $sql .= " GROUP BY YEAR({$dateColumn}), MONTH({$dateColumn}) ORDER BY ano, mes";
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Preparar dados para o gráfico
+            $meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            $dados = array_fill(0, 12, 0);
+            
+            foreach ($results as $row) {
+                $mesIndex = $row['mes'] - 1;
+                if ($mesIndex >= 0 && $mesIndex < 12) {
+                    $dados[$mesIndex] = (float)$row['valor_total'];
+                }
+            }
+            
+            return [
+                'labels' => $meses,
+                'data' => $dados
+            ];
+        } catch (\Exception $e) {
+            return [
+                'labels' => ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                'data' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            ];
+        }
+    }
+
+    /**
+     * Get filiais from retornados table
+     */
+    private function getFiliaisFromRetornados()
+    {
+        try {
+            $filialColumn = $this->getFilialColumn();
+            $stmt = $this->db->query("SELECT DISTINCT {$filialColumn} FROM retornados WHERE {$filialColumn} IS NOT NULL AND {$filialColumn} != '' ORDER BY {$filialColumn}");
+            return $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get the correct date column name from retornados table
+     */
+    private function getDateColumn()
+    {
+        try {
+            $stmt = $this->db->query("DESCRIBE retornados");
+            $columns = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            // Possíveis nomes de colunas de data
+            $possibleDateColumns = ['data_retorno', 'data', 'created_at', 'date_created', 'data_criacao'];
+            
+            foreach ($possibleDateColumns as $col) {
+                if (in_array($col, $columns)) {
+                    return $col;
+                }
+            }
+            
+            // Se não encontrar, usar a primeira coluna que contenha 'data'
+            foreach ($columns as $col) {
+                if (stripos($col, 'data') !== false) {
+                    return $col;
+                }
+            }
+            
+            return 'created_at'; // fallback
+        } catch (\Exception $e) {
+            return 'created_at'; // fallback
+        }
+    }
+
+    /**
+     * Get the correct filial column name from retornados table
+     */
+    private function getFilialColumn()
+    {
+        try {
+            $stmt = $this->db->query("DESCRIBE retornados");
+            $columns = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            // Possíveis nomes de colunas de filial
+            $possibleFilialColumns = ['filial', 'branch', 'subsidiary', 'unidade'];
+            
+            foreach ($possibleFilialColumns as $col) {
+                if (in_array($col, $columns)) {
+                    return $col;
+                }
+            }
+            
+            return 'filial'; // fallback
+        } catch (\Exception $e) {
+            return 'filial'; // fallback
+        }
+    }
+
+    /**
+     * Get the correct destino column name from retornados table
+     */
+    private function getDestinoColumn()
+    {
+        try {
+            $stmt = $this->db->query("DESCRIBE retornados");
+            $columns = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            // Possíveis nomes de colunas de destino
+            $possibleDestinoColumns = ['destino', 'destination', 'status', 'tipo_destino'];
+            
+            foreach ($possibleDestinoColumns as $col) {
+                if (in_array($col, $columns)) {
+                    return $col;
+                }
+            }
+            
+            return 'destino'; // fallback
+        } catch (\Exception $e) {
+            return 'destino'; // fallback
+        }
+    }
+
+    /**
+     * Get the correct valor column name from retornados table
+     */
+    private function getValorColumn()
+    {
+        try {
+            $stmt = $this->db->query("DESCRIBE retornados");
+            $columns = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+            
+            // Possíveis nomes de colunas de valor
+            $possibleValorColumns = ['valor_recuperado', 'valor', 'value', 'amount', 'preco'];
+            
+            foreach ($possibleValorColumns as $col) {
+                if (in_array($col, $columns)) {
+                    return $col;
+                }
+            }
+            
+            return 'valor_recuperado'; // fallback
+        } catch (\Exception $e) {
+            return 'valor_recuperado'; // fallback
+        }
     }
     
     private function setDefaultPermissions(int $userId, string $role): void

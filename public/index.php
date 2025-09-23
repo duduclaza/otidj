@@ -69,6 +69,7 @@ $router->get('/', function() {
 
 // Admin routes
 $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
+$router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);
 $router->get('/admin/users', [App\Controllers\AdminController::class, 'users']);
 $router->get('/admin/invitations', [App\Controllers\AdminController::class, 'invitations']);
 $router->post('/admin/users/create', [App\Controllers\AdminController::class, 'createUser']);
