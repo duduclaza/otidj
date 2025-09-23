@@ -173,8 +173,9 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     <div class="flex items-center justify-between">
       <div class="flex-1">
         <a href="/profile" class="flex items-center gap-3 hover:bg-slate-700 rounded-lg p-1 transition-colors">
-          <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-            <span class="text-white text-sm font-medium">
+          <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+            <img id="sidebarUserPhoto" src="" alt="Foto de Perfil" class="w-full h-full object-cover hidden">
+            <span id="sidebarUserInitial" class="text-white text-sm font-medium">
               <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
             </span>
           </div>
@@ -508,5 +509,29 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       if (diff < 86400000) return Math.floor(diff / 3600000) + 'h';
       return Math.floor(diff / 86400000) + 'd';
     }
+
+    // Carregar foto do usuário na sidebar
+    async function loadSidebarUserPhoto() {
+      try {
+        const response = await fetch('/api/profile');
+        const user = await response.json();
+        
+        if (user && user.profile_photo) {
+          const img = document.getElementById('sidebarUserPhoto');
+          const initial = document.getElementById('sidebarUserInitial');
+          
+          if (img && initial) {
+            img.src = `data:${user.profile_photo_type};base64,${user.profile_photo}`;
+            img.classList.remove('hidden');
+            initial.classList.add('hidden');
+          }
+        }
+      } catch (error) {
+        console.log('Foto de perfil não disponível na sidebar');
+      }
+    }
+
+    // Carregar foto quando a página carregar
+    document.addEventListener('DOMContentLoaded', loadSidebarUserPhoto);
   </script>
 </div>

@@ -89,6 +89,15 @@ function loadUserProfile() {
         img.src = `data:${user.profile_photo_type};base64,${user.profile_photo}`;
         img.classList.remove('hidden');
         document.getElementById('defaultAvatar').classList.add('hidden');
+        
+        // Atualizar também a miniatura da sidebar
+        const sidebarImg = document.getElementById('sidebarUserPhoto');
+        const sidebarInitial = document.getElementById('sidebarUserInitial');
+        if (sidebarImg && sidebarInitial) {
+          sidebarImg.src = `data:${user.profile_photo_type};base64,${user.profile_photo}`;
+          sidebarImg.classList.remove('hidden');
+          sidebarInitial.classList.add('hidden');
+        }
       }
     })
     .catch(error => {
@@ -132,6 +141,15 @@ function uploadPhoto() {
         img.src = e.target.result;
         img.classList.remove('hidden');
         document.getElementById('defaultAvatar').classList.add('hidden');
+        
+        // Atualizar também a miniatura da sidebar
+        const sidebarImg = document.getElementById('sidebarUserPhoto');
+        const sidebarInitial = document.getElementById('sidebarUserInitial');
+        if (sidebarImg && sidebarInitial) {
+          sidebarImg.src = e.target.result;
+          sidebarImg.classList.remove('hidden');
+          sidebarInitial.classList.add('hidden');
+        }
       };
       reader.readAsDataURL(file);
       
