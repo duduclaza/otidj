@@ -2,7 +2,7 @@
   <!-- Logo/Header -->
   <div class="text-center mb-6">
     <div class="inline-flex items-center justify-center m-0">
-      <img src="/pu" alt="DJ Logo" class="w-30 h-30 object-contain">
+      <img src="/public/assets/logo.png" alt="DJLogo" class="w-30 h-30 object-contain">
     </div>
     <h1 class="text-4xl font-bold text-white mb-3">SGQ OTI</h1>
     <p class="text-blue-100 text-lg">Sistema de Gestão da Qualidade</p>
