@@ -114,12 +114,14 @@
                 </button>
             </div>
 
-            <div class="text-center">
-                <a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
-                    Já tem acesso? Faça login
-                </a>
-            </div>
         </form>
+
+        <!-- Link para login -->
+        <div class="mt-6 text-center">
+            <a href="/login" class="font-medium text-blue-600 hover:text-blue-500 underline">
+                Já tem acesso? Faça login
+            </a>
+        </div>
 
         <!-- Mensagens -->
         <div id="message" class="hidden mt-4 p-4 rounded-md">
