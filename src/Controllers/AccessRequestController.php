@@ -173,8 +173,8 @@ class AccessRequestController
 
             // Criar usuário
             $stmt = $this->db->prepare("
-                INSERT INTO users (name, email, password, setor, filial, profile_id, is_active, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, 1, NOW())
+                INSERT INTO users (name, email, password, setor, filial, profile_id) 
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([
                 $request['name'],
