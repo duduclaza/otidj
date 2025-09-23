@@ -81,7 +81,7 @@ function loadUserProfile() {
       currentUser = user;
       document.getElementById('userName').textContent = user.name;
       document.getElementById('userEmail').textContent = user.email;
-      document.getElementById('userInfo').textContent = `${user.setor || 'N/A'} - ${user.filial || 'N/A'}`;
+      document.getElementById('userInfo').textContent = 'Usuário do Sistema';
       
       // Load profile photo if exists
       if (user.profile_photo) {

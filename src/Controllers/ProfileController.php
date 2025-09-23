@@ -35,12 +35,9 @@ class ProfileController
             }
             
             $stmt = $this->db->prepare("
-                SELECT u.id, u.name, u.email, u.profile_photo, u.profile_photo_type,
-                       d.nome as setor, f.nome as filial
-                FROM users u
-                LEFT JOIN departamentos d ON u.departamento_id = d.id
-                LEFT JOIN filiais f ON u.filial_id = f.id
-                WHERE u.id = :id
+                SELECT id, name, email, profile_photo, profile_photo_type
+                FROM users 
+                WHERE id = :id
             ");
             $stmt->execute([':id' => $userId]);
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -100,7 +97,7 @@ class ProfileController
             $photoType = $file['type'];
             
             // Update database
-            $stmt = $this->db->prepare("UPDATE users SET profile_photo = :photo, profile_photo_type = :type, profile_photo_size = :size, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+            $stmt = $this->db->prepare("UPDATE users SET profile_photo = :photo, profile_photo_type = :type, profile_photo_size = :size WHERE id = :id");
             $stmt->execute([
                 ':photo' => $photoData,
                 ':type' => $photoType,
@@ -159,7 +156,7 @@ class ProfileController
             
             // Update password
             $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-            $stmt = $this->db->prepare("UPDATE users SET password = :password, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
+            $stmt = $this->db->prepare("UPDATE users SET password = :password WHERE id = :id");
             $stmt->execute([
                 ':password' => $hashedPassword,
                 ':id' => $userId
