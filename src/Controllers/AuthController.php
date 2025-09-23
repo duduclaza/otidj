@@ -283,7 +283,7 @@ class AuthController
             'toners_retornados' => '/toners/retornados',
             'homologacoes' => '/homologacoes',
             'melhoria_continua' => '/melhoria-continua',
-            'solicitacao_melhorias' => '/melhoria-continua/solicitacoes',
+            '5w2h' => '/5w2h',
             'garantias' => '/garantias',
             'controle_descartes' => '/controle-de-descartes',
             'femea' => '/femea',

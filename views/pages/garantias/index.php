@@ -217,6 +217,7 @@ let fornecedores = <?= json_encode($fornecedores) ?>;
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
     carregarGarantias();
+    carregarFornecedoresSelect();
     configurarEventos();
     adicionarPrimeiroItem();
 });
@@ -457,6 +458,48 @@ async function salvarGarantia(e) {
         console.error('Erro:', error);
         alert('Erro ao salvar garantia');
     }
+}
+
+// Carregar fornecedores no select do modal
+async function carregarFornecedoresSelect() {
+    try {
+        // Se já temos fornecedores do PHP, usar eles
+        if (fornecedores && fornecedores.length > 0) {
+            preencherSelectFornecedores(fornecedores);
+            return;
+        }
+        
+        // Caso contrário, carregar via AJAX
+        const response = await fetch('/garantias/fornecedores');
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            fornecedores = result.data;
+            preencherSelectFornecedores(result.data);
+            console.log('Fornecedores carregados via AJAX:', result.debug);
+        } else {
+            console.error('Erro ao carregar fornecedores:', result.message);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar fornecedores:', error);
+    }
+}
+
+function preencherSelectFornecedores(fornecedoresList) {
+    const select = document.getElementById('fornecedorId');
+    
+    // Limpar opções existentes (exceto a primeira)
+    while (select.children.length > 1) {
+        select.removeChild(select.lastChild);
+    }
+    
+    // Adicionar fornecedores
+    fornecedoresList.forEach(fornecedor => {
+        const option = document.createElement('option');
+        option.value = fornecedor.id;
+        option.textContent = fornecedor.nome;
+        select.appendChild(option);
+    });
 }
 
 // Outras funções

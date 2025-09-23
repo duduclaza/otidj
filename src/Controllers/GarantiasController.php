@@ -19,12 +19,6 @@ class GarantiasController
         try {
             $fornecedores = $this->getFornecedores();
             
-            // Debug para verificar se fornecedores estão sendo carregados
-            if (isset($_GET['debug']) && $_GET['debug'] == '1') {
-                echo '<pre>Fornecedores encontrados: ' . count($fornecedores) . '</pre>';
-                echo '<pre>' . print_r($fornecedores, true) . '</pre>';
-            }
-            
             $title = 'Garantias - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/garantias/index.php';
             include __DIR__ . '/../../views/layouts/main.php';
@@ -377,9 +371,28 @@ class GarantiasController
         
         try {
             $fornecedores = $this->getFornecedores();
-            echo json_encode(['success' => true, 'data' => $fornecedores]);
+            
+            // Debug adicional
+            $debug = [
+                'count' => count($fornecedores),
+                'query_executed' => true,
+                'sample' => array_slice($fornecedores, 0, 3) // Primeiros 3 registros
+            ];
+            
+            echo json_encode([
+                'success' => true, 
+                'data' => $fornecedores,
+                'debug' => $debug
+            ]);
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao carregar fornecedores: ' . $e->getMessage()]);
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Erro ao carregar fornecedores: ' . $e->getMessage(),
+                'error_details' => [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]
+            ]);
         }
     }
 
@@ -446,26 +459,13 @@ class GarantiasController
     private function getFornecedores(): array
     {
         try {
-            // Primeiro tentar com campo 'ativo'
-            $stmt = $this->db->prepare("SELECT id, nome FROM fornecedores WHERE ativo = 1 ORDER BY nome");
+            $stmt = $this->db->prepare("SELECT id, nome FROM fornecedores ORDER BY nome");
             $stmt->execute();
-            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            // Se não encontrou nada, tentar sem o campo 'ativo'
-            if (empty($result)) {
-                $stmt = $this->db->prepare("SELECT id, nome FROM fornecedores ORDER BY nome");
-                $stmt->execute();
-                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            }
-            
-            return $result;
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
-            // Se a tabela não existe, retornar dados de exemplo para teste
-            return [
-                ['id' => 1, 'nome' => 'Fornecedor Exemplo 1'],
-                ['id' => 2, 'nome' => 'Fornecedor Exemplo 2'],
-                ['id' => 3, 'nome' => 'Fornecedor Exemplo 3']
-            ];
+            // Log do erro para debug
+            error_log("Erro ao buscar fornecedores: " . $e->getMessage());
+            return [];
         }
     }
 }
