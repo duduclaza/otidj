@@ -366,10 +366,28 @@ function setupForms() {
   if (formTitulo) {
     formTitulo.addEventListener('submit', async (e) => {
       e.preventDefault();
-      await submitForm('/pops-its/titulo/create', new FormData(formTitulo), () => {
-        formTitulo.reset();
-        loadTitulos();
-      });
+      
+      try {
+        const formData = new FormData(formTitulo);
+        const response = await fetch('/pops-its/titulo/create', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Título cadastrado com sucesso!');
+          formTitulo.reset();
+          loadTitulos(); // Atualizar lista de títulos
+          updateTitulosDropdown(); // Atualizar dropdown na aba de registros
+        } else {
+          alert('Erro: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Erro ao cadastrar título:', error);
+        alert('Erro ao cadastrar título');
+      }
     });
   }
   
@@ -378,10 +396,27 @@ function setupForms() {
   if (formRegistro) {
     formRegistro.addEventListener('submit', async (e) => {
       e.preventDefault();
-      await submitForm('/pops-its/registro/create', new FormData(formRegistro), () => {
-        formRegistro.reset();
-        loadMeusRegistros();
-      });
+      
+      try {
+        const formData = new FormData(formRegistro);
+        const response = await fetch('/pops-its/registro/create', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Registro criado com sucesso!');
+          formRegistro.reset();
+          loadMeusRegistros(); // Atualizar grid
+        } else {
+          alert('Erro: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Erro ao criar registro:', error);
+        alert('Erro ao criar registro');
+      }
     });
   }
   
@@ -390,10 +425,27 @@ function setupForms() {
   if (formReprovacao) {
     formReprovacao.addEventListener('submit', async (e) => {
       e.preventDefault();
-      await submitForm('/pops-its/registro/reprovar', new FormData(formReprovacao), () => {
-        fecharModalReprovacao();
-        loadPendentesAprovacao();
-      });
+      
+      try {
+        const formData = new FormData(formReprovacao);
+        const response = await fetch('/pops-its/registro/reprovar', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Registro reprovado com sucesso!');
+          fecharModalReprovacao();
+          loadPendentesAprovacao(); // Atualizar lista de pendentes
+        } else {
+          alert('Erro: ' + result.message);
+        }
+      } catch (error) {
+        console.error('Erro ao reprovar registro:', error);
+        alert('Erro ao reprovar registro');
+      }
     });
   }
 }
@@ -590,12 +642,28 @@ function formatDate(dateString) {
 async function aprovarRegistro(id) {
   if (!confirm('Tem certeza que deseja aprovar este registro?')) return;
   
-  const formData = new FormData();
-  formData.append('registro_id', id);
-  
-  await submitForm('/pops-its/registro/aprovar', formData, () => {
-    loadPendentesAprovacao();
-  });
+  try {
+    const formData = new FormData();
+    formData.append('registro_id', id);
+    
+    const response = await fetch('/pops-its/registro/aprovar', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('Registro aprovado com sucesso!');
+      loadPendentesAprovacao(); // Atualizar lista de pendentes
+      loadVisualizacao(); // Atualizar lista de visualização
+    } else {
+      alert('Erro: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Erro ao aprovar registro:', error);
+    alert('Erro ao aprovar registro');
+  }
 }
 
 function abrirModalReprovacao(id) {
@@ -611,16 +679,54 @@ function fecharModalReprovacao() {
 async function excluirRegistro(id) {
   if (!confirm('Tem certeza que deseja excluir este registro?')) return;
   
-  const formData = new FormData();
-  formData.append('registro_id', id);
-  
-  await submitForm('/pops-its/registro/delete', formData, () => {
-    loadMeusRegistros();
-  });
+  try {
+    const formData = new FormData();
+    formData.append('registro_id', id);
+    
+    const response = await fetch('/pops-its/registro/delete', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('Registro excluído com sucesso!');
+      loadMeusRegistros(); // Atualizar lista de meus registros
+    } else {
+      alert('Erro: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Erro ao excluir registro:', error);
+    alert('Erro ao excluir registro');
+  }
 }
 
 function atualizarRegistro(id) {
   // Implementar modal de atualização de arquivo
   alert('Funcionalidade de atualização em desenvolvimento');
+}
+
+// Atualizar dropdown de títulos na aba de registros
+async function updateTitulosDropdown() {
+  try {
+    const response = await fetch('/pops-its/titulos/list');
+    const result = await response.json();
+    
+    if (result.success) {
+      const select = document.querySelector('select[name="titulo_id"]');
+      if (select) {
+        select.innerHTML = '<option value="">Selecione um título...</option>';
+        result.data.forEach(titulo => {
+          const option = document.createElement('option');
+          option.value = titulo.id;
+          option.textContent = `${titulo.titulo} (${titulo.departamento_nome})`;
+          select.appendChild(option);
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar dropdown de títulos:', error);
+  }
 }
 </script>
