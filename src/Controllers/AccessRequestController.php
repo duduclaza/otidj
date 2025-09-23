@@ -19,29 +19,9 @@ class AccessRequestController
     // Página de solicitação de acesso
     public function requestAccess()
     {
-        // Debug simples primeiro
-        echo "Controller AccessRequestController carregado com sucesso!<br>";
-        echo "Método requestAccess executado!<br>";
-        
-        try {
-            $title = 'Solicitar Acesso - SGQ OTI DJ';
-            $viewFile = __DIR__ . '/../../views/pages/auth/request-access.php';
-            
-            echo "Caminho da view: " . $viewFile . "<br>";
-            echo "Arquivo existe: " . (file_exists($viewFile) ? 'SIM' : 'NÃO') . "<br>";
-            
-            $layoutFile = __DIR__ . '/../../views/layouts/auth.php';
-            echo "Caminho do layout: " . $layoutFile . "<br>";
-            echo "Layout existe: " . (file_exists($layoutFile) ? 'SIM' : 'NÃO') . "<br>";
-            
-            if (file_exists($viewFile) && file_exists($layoutFile)) {
-                include $layoutFile;
-            } else {
-                echo "Erro: Arquivos não encontrados!";
-            }
-        } catch (\Exception $e) {
-            echo "Erro: " . $e->getMessage();
-        }
+        $title = 'Solicitar Acesso - SGQ OTI DJ';
+        $viewFile = __DIR__ . '/../../views/pages/auth/request-access.php';
+        include __DIR__ . '/../../views/layouts/auth.php';
     }
 
     // Página de gerenciamento de solicitações (admin)
