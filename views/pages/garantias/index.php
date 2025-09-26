@@ -326,11 +326,34 @@ function cancelGarantiaForm() {
 }
 
 function resetGarantiaForm() {
+    // Resetar formulário
     document.getElementById('garantiaForm').reset();
+    document.getElementById('garantiaId').value = '';
+    
+    // Resetar título
+    document.getElementById('garantiaFormTitle').textContent = 'Nova Garantia';
+    
+    // Resetar botão de submit
+    const submitBtn = document.getElementById('submitGarantiaBtn');
+    submitBtn.textContent = 'Salvar Garantia';
+    submitBtn.className = 'px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2';
+    
+    // Limpar itens
     document.getElementById('itensContainer').innerHTML = '';
+    
+    // Limpar previews de anexos
     clearAllPreviews();
+    
+    // Remover seção de anexos existentes se existir
+    const anexosExistentes = document.querySelector('.bg-blue-50.border-blue-200');
+    if (anexosExistentes) {
+        anexosExistentes.remove();
+    }
+    
+    // Atualizar totais
     atualizarTotais();
 }
+
 
 // Funções de validação de upload
 function validateFileUpload(input, previewId) {
@@ -459,6 +482,10 @@ function submitGarantia(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
+    const garantiaId = document.getElementById('garantiaId').value;
+    const isEdicao = garantiaId && garantiaId.trim() !== '';
+    
+    console.log('📝 Tipo de operação:', isEdicao ? 'Edição' : 'Criação', 'ID:', garantiaId);
     
     // Validações
     if (!formData.get('fornecedor_id')) {
@@ -520,8 +547,12 @@ function submitGarantia(e) {
         console.log(key, value);
     }
     
+    // Determinar URL e método
+    const url = isEdicao ? `/garantias/${garantiaId}/update` : '/garantias';
+    const operacao = isEdicao ? 'atualizada' : 'criada';
+    
     // Enviar dados
-    fetch('/garantias', {
+    fetch(url, {
         method: 'POST',
         body: formData
     })
@@ -550,7 +581,7 @@ function submitGarantia(e) {
         console.log('✅ Resultado parseado:', result);
         
         if (result && result.success) {
-            alert('Garantia registrada com sucesso!');
+            showNotification(`Garantia ${operacao} com sucesso!`, 'success');
             cancelGarantiaForm();
             carregarGarantias();
         } else {
@@ -1219,8 +1250,167 @@ function downloadAnexo(anexoId) {
     window.open(`/garantias/anexo/${anexoId}`, '_blank');
 }
 
-function editarGarantia(id) {
-    // Implementar edição inline ou modal
-    alert(`Funcionalidade de edição da garantia ${id} será implementada`);
+// Editar garantia - carrega dados no formulário inline
+async function editarGarantia(id) {
+    try {
+        console.log('✏️ Carregando garantia para edição:', id);
+        
+        const response = await fetch(`/garantias/${id}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Erro ao carregar garantia');
+        }
+        
+        const garantia = result.data;
+        preencherFormularioEdicao(garantia);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar garantia:', error);
+        alert('Erro ao carregar dados para edição: ' + error.message);
+    }
+}
+
+// Preencher formulário com dados da garantia
+function preencherFormularioEdicao(garantia) {
+    // Mostrar formulário se estiver oculto
+    const container = document.getElementById('garantiaFormContainer');
+    const btn = document.getElementById('toggleGarantiaFormBtn');
+    
+    if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        btn.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Cancelar</span>
+        `;
+    }
+    
+    // Atualizar título do formulário
+    document.getElementById('garantiaFormTitle').textContent = `Editar Garantia #${garantia.id}`;
+    
+    // Preencher campos básicos
+    document.getElementById('garantiaId').value = garantia.id;
+    document.querySelector('[name="fornecedor_id"]').value = garantia.fornecedor_id || '';
+    document.querySelector('[name="origem_garantia"]').value = garantia.origem_garantia || '';
+    
+    // Preencher números de NF
+    document.querySelector('[name="numero_nf_compras"]').value = garantia.numero_nf_compras || '';
+    document.querySelector('[name="numero_nf_remessa_simples"]').value = garantia.numero_nf_remessa_simples || '';
+    document.querySelector('[name="numero_nf_remessa_devolucao"]').value = garantia.numero_nf_remessa_devolucao || '';
+    
+    // Preencher campos opcionais
+    document.querySelector('[name="numero_serie"]').value = garantia.numero_serie || '';
+    document.querySelector('[name="numero_lote"]').value = garantia.numero_lote || '';
+    document.querySelector('[name="numero_ticket_os"]').value = garantia.numero_ticket_os || '';
+    
+    // Preencher status e observação
+    document.querySelector('[name="status"]').value = garantia.status || 'Em andamento';
+    document.querySelector('[name="observacao"]').value = garantia.observacao || '';
+    
+    // Limpar itens existentes e adicionar os da garantia
+    document.getElementById('itensContainer').innerHTML = '';
+    
+    if (garantia.itens && garantia.itens.length > 0) {
+        garantia.itens.forEach(item => {
+            adicionarItemEdicao(item);
+        });
+    } else {
+        adicionarItem(); // Adicionar um item vazio se não houver itens
+    }
+    
+    // Atualizar botão de submit
+    const submitBtn = document.getElementById('submitGarantiaBtn');
+    submitBtn.textContent = 'Atualizar Garantia';
+    submitBtn.className = 'px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2';
+    
+    // Mostrar anexos existentes (apenas informativo)
+    mostrarAnexosExistentes(garantia.anexos || []);
+    
+    // Scroll para o formulário
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    showNotification(`Garantia #${garantia.id} carregada para edição`, 'info');
+}
+
+// Adicionar item com dados existentes
+function adicionarItemEdicao(itemData) {
+    const container = document.getElementById('itensContainer');
+    const itemIndex = container.children.length;
+    
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'item-garantia bg-gray-600 p-4 rounded-lg border border-gray-500';
+    itemDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h4 class="text-white font-medium">Item ${itemIndex + 1}</h4>
+            <button type="button" onclick="removerItem(this)" class="text-red-400 hover:text-red-300">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-white mb-1">Descrição *</label>
+                <input type="text" name="item_descricao" required value="${itemData.descricao || ''}" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Descrição do item">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-white mb-1">Quantidade *</label>
+                <input type="number" name="item_quantidade" min="1" required value="${itemData.quantidade || 1}" onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="1">
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+                <label class="block text-sm font-medium text-white mb-1">Valor Unitário (R$) *</label>
+                <input type="number" name="item_valor" step="0.01" min="0" required value="${itemData.valor_unitario || 0}" onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0,00">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-white mb-1">Valor Total</label>
+                <input type="text" class="item-valor-total w-full bg-gray-600 border border-gray-500 text-gray-300 rounded px-3 py-2 placeholder-gray-400" readonly placeholder="R$ 0,00">
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(itemDiv);
+    atualizarTotais();
+}
+
+// Mostrar anexos existentes (apenas informativo)
+function mostrarAnexosExistentes(anexos) {
+    if (anexos.length === 0) return;
+    
+    // Criar seção de anexos existentes
+    const anexosSection = document.createElement('div');
+    anexosSection.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4';
+    anexosSection.innerHTML = `
+        <h4 class="text-blue-800 font-medium mb-3">📎 Anexos Existentes</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            ${anexos.map(anexo => `
+                <div class="flex items-center justify-between p-2 bg-white rounded border">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">${anexo.nome_arquivo}</div>
+                            <div class="text-xs text-gray-500">${anexo.tipo_anexo}</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="downloadAnexo(${anexo.id})" class="text-blue-600 hover:text-blue-800 text-xs">
+                        Baixar
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+        <p class="text-xs text-blue-600 mt-2">💡 Para substituir anexos, faça upload de novos arquivos abaixo</p>
+    `;
+    
+    // Inserir antes da seção de itens
+    const itensSection = document.querySelector('.bg-gray-700:has(#itensContainer)').parentElement;
+    itensSection.parentElement.insertBefore(anexosSection, itensSection);
 }
 </script>
