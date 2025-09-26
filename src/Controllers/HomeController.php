@@ -20,11 +20,24 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.6';
+        $systemVersion = '2.1.7';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
         $updates = [
+            [
+                'version' => '2.1.7',
+                'date' => '26/09/2025',
+                'type' => 'Investigação',
+                'title' => 'Diagnóstico POPs Pendentes de Aprovação',
+                'description' => 'Investigação de problema onde POPs pendentes não aparecem na aba de aprovação',
+                'items' => [
+                    'Criado script debug_pops_pendentes.php para análise completa',
+                    'Verificação de registros pendentes no banco de dados',
+                    'Teste de rotas e permissões do módulo POPs e ITs',
+                    'Diagnóstico de problemas de carregamento na visualização'
+                ]
+            ],
             [
                 'version' => '2.1.6',
                 'date' => '26/09/2025',
