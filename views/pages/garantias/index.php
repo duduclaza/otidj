@@ -357,7 +357,7 @@ if (!isset($_SESSION['user_id'])) {
                 Cancelar
             </button>
             <button type="button" onclick="gerarDeclaracaoConteudo()" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                Gerar Declaração de Conteúdo
+                📄 Gerar Declaração de Conteúdo
             </button>
         </div>
     </div>
@@ -2110,29 +2110,48 @@ function calcularTotaisDeclaracao() {
 
 // Gerar declaração de conteúdo
 function gerarDeclaracaoConteudo() {
-    // Validar se há pelo menos um remetente, destinatário e item
-    const remetentes = document.querySelectorAll('#remetentesContainer .border');
-    const destinatarios = document.querySelectorAll('#destinatariosContainer .border');
-    const itens = document.querySelectorAll('#itensDeclaracaoContainer .border');
+    console.log('🎯 gerarDeclaracaoConteudo() chamada');
+    alert('Função gerarDeclaracaoConteudo() foi chamada!'); // Teste temporário
     
-    if (remetentes.length === 0) {
-        alert('Adicione pelo menos um remetente');
-        return;
+    try {
+        // Validar se há pelo menos um remetente, destinatário e item
+        const remetentes = document.querySelectorAll('#remetentesContainer .border');
+        const destinatarios = document.querySelectorAll('#destinatariosContainer .border');
+        const itens = document.querySelectorAll('#itensDeclaracaoContainer .border');
+        
+        console.log('📊 Contadores:', {
+            remetentes: remetentes.length,
+            destinatarios: destinatarios.length,
+            itens: itens.length
+        });
+        
+        if (remetentes.length === 0) {
+            alert('Adicione pelo menos um remetente');
+            return;
+        }
+        
+        if (destinatarios.length === 0) {
+            alert('Adicione pelo menos um destinatário');
+            return;
+        }
+        
+        if (itens.length === 0) {
+            alert('Adicione pelo menos um item');
+            return;
+        }
+        
+        // Coletar dados e gerar PDF
+        console.log('📋 Coletando dados...');
+        const dados = coletarDadosDeclaracao();
+        console.log('📋 Dados coletados:', dados);
+        
+        console.log('🎨 Gerando PDF...');
+        gerarPDFDeclaracao(dados);
+        
+    } catch (error) {
+        console.error('❌ Erro em gerarDeclaracaoConteudo:', error);
+        alert('Erro ao gerar declaração: ' + error.message);
     }
-    
-    if (destinatarios.length === 0) {
-        alert('Adicione pelo menos um destinatário');
-        return;
-    }
-    
-    if (itens.length === 0) {
-        alert('Adicione pelo menos um item');
-        return;
-    }
-    
-    // Coletar dados e gerar PDF
-    const dados = coletarDadosDeclaracao();
-    gerarPDFDeclaracao(dados);
 }
 
 // Coletar dados da declaração
@@ -2183,18 +2202,131 @@ function coletarDadosDeclaracao() {
 
 // Gerar PDF da declaração (implementação básica)
 function gerarPDFDeclaracao(dados) {
-    // Por enquanto, mostrar os dados coletados
     console.log('📋 Dados da Declaração:', dados);
     
-    // Aqui seria implementada a geração do PDF
-    // Pode usar bibliotecas como jsPDF ou enviar para o backend
-    
-    showNotification('Funcionalidade de geração de PDF será implementada em breve!', 'info');
-    
-    // Exemplo de como seria:
-    // const pdf = new jsPDF();
-    // // Adicionar conteúdo ao PDF baseado no template da imagem
-    // pdf.save('declaracao-conteudo.pdf');
+    try {
+        // Criar HTML para impressão
+        const htmlDeclaracao = criarHTMLDeclaracao(dados);
+        
+        // Abrir janela de impressão
+        const janelaImpressao = window.open('', '_blank', 'width=800,height=600');
+        janelaImpressao.document.write(htmlDeclaracao);
+        janelaImpressao.document.close();
+        
+        // Aguardar carregamento e imprimir
+        janelaImpressao.onload = function() {
+            janelaImpressao.print();
+        };
+        
+        showNotification('Declaração de conteúdo gerada! Janela de impressão aberta.', 'success');
+        
+    } catch (error) {
+        console.error('❌ Erro ao gerar PDF:', error);
+        showNotification('Erro ao gerar declaração: ' + error.message, 'error');
+    }
+}
+
+// Criar HTML da declaração para impressão
+function criarHTMLDeclaracao(dados) {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Declaração de Conteúdo</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .section { margin-bottom: 15px; }
+            .section h3 { background: #f0f0f0; padding: 5px; margin: 0 0 10px 0; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .item { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
+            .totals { background: #f9f9f9; padding: 10px; margin-top: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background: #f0f0f0; }
+            @media print { body { margin: 0; } }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>📮 DECLARAÇÃO DE CONTEÚDO</h1>
+            <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+        </div>
+
+        <div class="grid">
+            <div class="section">
+                <h3>📤 REMETENTES</h3>
+                ${dados.remetentes.map((remetente, index) => `
+                    <div class="item">
+                        <strong>Remetente ${index + 1}</strong><br>
+                        <strong>Nome:</strong> ${remetente.nome}<br>
+                        <strong>Endereço:</strong> ${remetente.endereco}<br>
+                        <strong>Cidade:</strong> ${remetente.cidade} - ${remetente.uf}<br>
+                        <strong>CEP:</strong> ${remetente.cep}<br>
+                        <strong>Documento:</strong> ${remetente.documento}
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="section">
+                <h3>📥 DESTINATÁRIOS</h3>
+                ${dados.destinatarios.map((destinatario, index) => `
+                    <div class="item">
+                        <strong>Destinatário ${index + 1}</strong><br>
+                        <strong>Nome:</strong> ${destinatario.nome}<br>
+                        <strong>Endereço:</strong> ${destinatario.endereco}<br>
+                        <strong>Cidade:</strong> ${destinatario.cidade} - ${destinatario.uf}<br>
+                        <strong>CEP:</strong> ${destinatario.cep}<br>
+                        <strong>Documento:</strong> ${destinatario.documento}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>📦 ITENS DECLARADOS</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Descrição</th>
+                        <th>Qtd</th>
+                        <th>Valor Unit.</th>
+                        <th>Valor Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${dados.itens.map((item, index) => `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.descricao}</td>
+                            <td>${item.quantidade}</td>
+                            <td>R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')}</td>
+                            <td>R$ ${(item.quantidade * item.valor).toFixed(2).replace('.', ',')}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="totals">
+            <div class="grid">
+                <div>
+                    <strong>🏋️ Peso Total:</strong> ${dados.pesoTotal} kg
+                </div>
+                <div>
+                    <strong>💰 Valor Total:</strong> R$ ${dados.valorTotal}
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #666;">
+            Declaração gerada pelo Sistema SGQ OTI DJ - ${new Date().toLocaleString('pt-BR')}
+        </div>
+    </body>
+    </html>
+    `;
 }
 
 // =====================================================
