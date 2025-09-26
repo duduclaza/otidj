@@ -29,13 +29,13 @@ class HomeController
                 'version' => '2.1.7',
                 'date' => '26/09/2025',
                 'type' => 'Investigação',
-                'title' => 'Diagnóstico POPs Pendentes de Aprovação',
-                'description' => 'Investigação de problema onde POPs pendentes não aparecem na aba de aprovação',
+                'title' => 'Diagnóstico POPs Pendentes - Versão Produção',
+                'description' => 'Criado diagnóstico integrado ao sistema para investigar POPs pendentes em produção',
                 'items' => [
-                    'Criado script debug_pops_pendentes.php para análise completa',
-                    'Verificação de registros pendentes no banco de dados',
-                    'Teste de rotas e permissões do módulo POPs e ITs',
-                    'Diagnóstico de problemas de carregamento na visualização'
+                    'Criada rota /admin/diagnostico/pops-pendentes para produção',
+                    'Método diagnosticoPendentes() no PopItsController',
+                    'Interface moderna com TailwindCSS para análise completa',
+                    'Verificação de registros, rotas, permissões e usuário logado'
                 ]
             ],
             [

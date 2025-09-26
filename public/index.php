@@ -81,6 +81,9 @@ $router->get('/inicio', [App\Controllers\HomeController::class, 'index']);
 // Dashboard route - com URL específica
 $router->get('/dashboard', [App\Controllers\AdminController::class, 'dashboard']);
 
+// Rota de diagnóstico POPs (apenas para admins)
+$router->get('/admin/diagnostico/pops-pendentes', [App\Controllers\PopItsController::class, 'diagnosticoPendentes']);
+
 // Admin routes
 $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
 $router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);

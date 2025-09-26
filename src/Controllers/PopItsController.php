@@ -823,4 +823,214 @@ public function aprovarRegistro()
         }
     }
 
+    // Método de diagnóstico para produção
+    public function diagnosticoPendentes()
+    {
+        // Verificar se é admin
+        if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+            http_response_code(403);
+            echo "<h1>Acesso Negado</h1><p>Apenas administradores podem acessar o diagnóstico.</p>";
+            return;
+        }
+
+        try {
+            echo "<!DOCTYPE html>
+            <html lang='pt-br'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <title>Diagnóstico POPs Pendentes - SGQ OTI DJ</title>
+                <script src='https://cdn.tailwindcss.com'></script>
+            </head>
+            <body class='bg-gray-100 p-8'>
+                <div class='max-w-6xl mx-auto'>
+                    <h1 class='text-3xl font-bold mb-6 text-gray-900'>🔍 Diagnóstico: POPs Pendentes de Aprovação</h1>";
+
+            // 1. Verificar registros pendentes
+            echo "<div class='bg-white rounded-lg shadow p-6 mb-6'>
+                    <h2 class='text-xl font-semibold mb-4'>1. Registros Pendentes no Banco</h2>";
+
+            $stmt = $this->db->prepare("
+                SELECT r.*, 
+                       COALESCE(t.titulo, 'Título não encontrado') as titulo, 
+                       COALESCE(d.nome, 'Departamento não encontrado') as departamento_nome, 
+                       COALESCE(u.name, 'Usuário não encontrado') as criador_nome
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN users u ON r.created_by = u.id
+                WHERE r.status = 'pendente'
+                ORDER BY r.created_at ASC
+            ");
+            $stmt->execute();
+            $registrosPendentes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            echo "<p class='text-lg mb-4'><strong>Total de registros pendentes:</strong> <span class='bg-orange-100 text-orange-800 px-3 py-1 rounded-full'>" . count($registrosPendentes) . "</span></p>";
+
+            if (count($registrosPendentes) > 0) {
+                echo "<div class='overflow-x-auto'>
+                        <table class='min-w-full bg-white border border-gray-200'>
+                            <thead class='bg-gray-50'>
+                                <tr>
+                                    <th class='px-4 py-2 text-left'>ID</th>
+                                    <th class='px-4 py-2 text-left'>Título</th>
+                                    <th class='px-4 py-2 text-left'>Departamento</th>
+                                    <th class='px-4 py-2 text-left'>Criador</th>
+                                    <th class='px-4 py-2 text-left'>Status</th>
+                                    <th class='px-4 py-2 text-left'>Data Criação</th>
+                                </tr>
+                            </thead>
+                            <tbody>";
+                foreach ($registrosPendentes as $reg) {
+                    echo "<tr class='border-t'>
+                            <td class='px-4 py-2'>" . $reg['id'] . "</td>
+                            <td class='px-4 py-2'>" . htmlspecialchars($reg['titulo']) . "</td>
+                            <td class='px-4 py-2'>" . htmlspecialchars($reg['departamento_nome']) . "</td>
+                            <td class='px-4 py-2'>" . htmlspecialchars($reg['criador_nome']) . "</td>
+                            <td class='px-4 py-2'><span class='bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm'>" . $reg['status'] . "</span></td>
+                            <td class='px-4 py-2'>" . $reg['created_at'] . "</td>
+                          </tr>";
+                }
+                echo "</tbody></table></div>";
+            } else {
+                echo "<div class='bg-red-50 border border-red-200 rounded p-4'>
+                        <p class='text-red-800'><strong>❌ PROBLEMA:</strong> Não há registros com status 'pendente' no banco!</p>
+                      </div>";
+
+                // Verificar todos os status
+                echo "<h3 class='text-lg font-semibold mt-4 mb-2'>Status existentes na tabela:</h3>";
+                $stmt = $this->db->prepare("SELECT status, COUNT(*) as count FROM pops_its_registros GROUP BY status");
+                $stmt->execute();
+                $statusCount = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+                echo "<ul class='list-disc list-inside'>";
+                foreach ($statusCount as $status) {
+                    echo "<li><strong>" . $status['status'] . ":</strong> " . $status['count'] . " registros</li>";
+                }
+                echo "</ul>";
+            }
+            echo "</div>";
+
+            // 2. Teste das rotas
+            echo "<div class='bg-white rounded-lg shadow p-6 mb-6'>
+                    <h2 class='text-xl font-semibold mb-4'>2. Teste das Rotas</h2>
+                    <div class='space-y-2'>
+                        <a href='/pops-its/pendentes/list?debug=1' target='_blank' class='inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-2'>🧪 Testar Rota Pendentes (Debug)</a>
+                        <a href='/pops-its/pendentes/list' target='_blank' class='inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 mr-2'>🔗 Testar Rota Pendentes</a>
+                        <a href='/pops-its/visualizacao/list' target='_blank' class='inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700'>👁️ Testar Rota Visualização</a>
+                    </div>
+                  </div>";
+
+            // 3. Permissões do usuário
+            echo "<div class='bg-white rounded-lg shadow p-6 mb-6'>
+                    <h2 class='text-xl font-semibold mb-4'>3. Permissões do Usuário Atual</h2>";
+
+            $userId = $_SESSION['user_id'];
+            $permissions = [
+                'pops_its_visualizacao' => 'Visualização',
+                'pops_its_pendente_aprovacao' => 'Pendente Aprovação',
+                'pops_its_cadastro_titulos' => 'Cadastro Títulos',
+                'pops_its_meus_registros' => 'Meus Registros'
+            ];
+
+            echo "<div class='overflow-x-auto'>
+                    <table class='min-w-full bg-white border border-gray-200'>
+                        <thead class='bg-gray-50'>
+                            <tr>
+                                <th class='px-4 py-2 text-left'>Módulo</th>
+                                <th class='px-4 py-2 text-left'>Descrição</th>
+                                <th class='px-4 py-2 text-center'>View</th>
+                                <th class='px-4 py-2 text-center'>Edit</th>
+                                <th class='px-4 py-2 text-center'>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>";
+
+            foreach ($permissions as $module => $desc) {
+                $canView = \App\Services\PermissionService::hasPermission($userId, $module, 'view');
+                $canEdit = \App\Services\PermissionService::hasPermission($userId, $module, 'edit');
+                $canDelete = \App\Services\PermissionService::hasPermission($userId, $module, 'delete');
+
+                echo "<tr class='border-t'>
+                        <td class='px-4 py-2 font-mono text-sm'>" . $module . "</td>
+                        <td class='px-4 py-2'>" . $desc . "</td>
+                        <td class='px-4 py-2 text-center'>" . ($canView ? '✅' : '❌') . "</td>
+                        <td class='px-4 py-2 text-center'>" . ($canEdit ? '✅' : '❌') . "</td>
+                        <td class='px-4 py-2 text-center'>" . ($canDelete ? '✅' : '❌') . "</td>
+                      </tr>";
+            }
+            echo "</tbody></table></div>";
+
+            $isAdmin = \App\Services\PermissionService::isAdmin($userId);
+            echo "<p class='mt-4'><strong>É Administrador:</strong> " . ($isAdmin ? '<span class="text-green-600">✅ SIM</span>' : '<span class="text-red-600">❌ NÃO</span>') . "</p>";
+            echo "</div>";
+
+            // 4. Informações do usuário
+            echo "<div class='bg-white rounded-lg shadow p-6 mb-6'>
+                    <h2 class='text-xl font-semibold mb-4'>4. Informações do Usuário</h2>";
+
+            $stmt = $this->db->prepare("
+                SELECT u.id, u.name, u.email, u.profile_id, p.name as profile_name, p.is_admin
+                FROM users u 
+                LEFT JOIN profiles p ON u.profile_id = p.id 
+                WHERE u.id = ?
+            ");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            if ($user) {
+                echo "<ul class='space-y-2'>
+                        <li><strong>ID:</strong> " . $user['id'] . "</li>
+                        <li><strong>Nome:</strong> " . htmlspecialchars($user['name']) . "</li>
+                        <li><strong>Email:</strong> " . htmlspecialchars($user['email']) . "</li>
+                        <li><strong>Perfil:</strong> " . htmlspecialchars($user['profile_name'] ?? 'Sem perfil') . "</li>
+                        <li><strong>Perfil é Admin:</strong> " . ($user['is_admin'] ? '<span class="text-green-600">✅ SIM</span>' : '<span class="text-red-600">❌ NÃO</span>') . "</li>
+                      </ul>";
+            }
+            echo "</div>";
+
+            // 5. Soluções sugeridas
+            echo "<div class='bg-blue-50 border border-blue-200 rounded p-6'>
+                    <h2 class='text-xl font-semibold mb-4'>🔧 Possíveis Soluções</h2>
+                    <div class='space-y-4'>
+                        <div>
+                            <h3 class='font-semibold text-blue-800'>Se não há registros pendentes:</h3>
+                            <ul class='list-disc list-inside text-blue-700 ml-4'>
+                                <li>Verifique se existem registros na tabela pops_its_registros</li>
+                                <li>Confirme se algum registro tem status = 'pendente'</li>
+                                <li>Verifique se os registros foram criados corretamente</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class='font-semibold text-blue-800'>Se há registros mas não aparecem:</h3>
+                            <ul class='list-disc list-inside text-blue-700 ml-4'>
+                                <li>Teste as rotas acima diretamente</li>
+                                <li>Verifique permissões para 'pops_its_pendente_aprovacao'</li>
+                                <li>Confirme se o JavaScript está carregando os dados</li>
+                                <li>Verifique erros no console do navegador (F12)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class='font-semibold text-blue-800'>Se visualização fica 'Carregando...':</h3>
+                            <ul class='list-disc list-inside text-blue-700 ml-4'>
+                                <li>Problema na rota /pops-its/visualizacao/list</li>
+                                <li>Verifique permissões para 'pops_its_visualizacao'</li>
+                                <li>Teste a rota diretamente no navegador</li>
+                            </ul>
+                        </div>
+                    </div>
+                  </div>";
+
+            echo "</div></body></html>";
+
+        } catch (\Exception $e) {
+            echo "<div class='bg-red-50 border border-red-200 rounded p-4'>
+                    <h3 class='text-red-800 font-semibold'>❌ Erro no Diagnóstico:</h3>
+                    <p class='text-red-700'>" . htmlspecialchars($e->getMessage()) . "</p>
+                    <p class='text-red-600 text-sm'>Arquivo: " . htmlspecialchars($e->getFile()) . "</p>
+                    <p class='text-red-600 text-sm'>Linha: " . $e->getLine() . "</p>
+                  </div>";
+        }
+    }
+
 }
