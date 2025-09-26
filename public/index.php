@@ -218,6 +218,7 @@ $router->post('/api/profile/photo', [App\Controllers\ProfileController::class, '
 $router->get('/api/notifications', [App\Controllers\NotificationsController::class, 'getNotifications']);
 $router->post('/api/notifications/{id}/read', [App\Controllers\NotificationsController::class, 'markAsRead']);
 $router->post('/api/notifications/read-all', [App\Controllers\NotificationsController::class, 'markAllAsRead']);
+$router->post('/api/notifications/clear-history', [App\Controllers\NotificationsController::class, 'clearHistory']);
 
 // FMEA routes
 $router->get('/fmea', [App\Controllers\FMEAController::class, 'index']);

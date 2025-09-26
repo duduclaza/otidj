@@ -111,6 +111,9 @@ class GarantiasController
 
             // Processar anexos
             $this->processarAnexos($garantia_id);
+            
+            // Processar dados de logística se fornecidos
+            $this->processarLogistica($garantia_id);
 
             $this->db->commit();
             echo json_encode(['success' => true, 'message' => 'Garantia criada com sucesso!', 'id' => $garantia_id]);
@@ -128,16 +131,26 @@ class GarantiasController
         
         try {
             $stmt = $this->db->prepare("
-                SELECT g.*, f.nome as fornecedor_nome,
-                       COUNT(ga.id) as total_anexos
+                SELECT g.*, 
+                       f.nome as fornecedor_nome,
+                       COUNT(DISTINCT ga.id) as total_anexos,
+                       COALESCE(g.total_itens, 0) as total_itens,
+                       COALESCE(g.valor_total, 0) as valor_total
                 FROM garantias g
                 LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
                 LEFT JOIN garantias_anexos ga ON g.id = ga.garantia_id
-                GROUP BY g.id
+                GROUP BY g.id, g.total_itens, g.valor_total
                 ORDER BY g.created_at DESC
             ");
             $stmt->execute();
             $garantias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Garantir que os valores numéricos estejam corretos
+            foreach ($garantias as &$garantia) {
+                $garantia['total_itens'] = (int)($garantia['total_itens'] ?? 0);
+                $garantia['valor_total'] = (float)($garantia['valor_total'] ?? 0);
+                $garantia['total_anexos'] = (int)($garantia['total_anexos'] ?? 0);
+            }
 
             echo json_encode(['success' => true, 'data' => $garantias]);
         } catch (\Exception $e) {
@@ -184,6 +197,15 @@ class GarantiasController
             ");
             $stmt->execute([$id]);
             $garantia['anexos'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Buscar dados de logística
+            $stmt = $this->db->prepare("
+                SELECT * FROM logistica_garantias 
+                WHERE garantia_id = ?
+            ");
+            $stmt->execute([$id]);
+            $logistica = $stmt->fetch(PDO::FETCH_ASSOC);
+            $garantia['logistica'] = $logistica ?: null;
 
             echo json_encode(['success' => true, 'data' => $garantia]);
         } catch (\Exception $e) {
@@ -279,6 +301,9 @@ class GarantiasController
             if (!empty($_FILES)) {
                 $this->processarAnexos($id);
             }
+            
+            // Processar dados de logística
+            $this->processarLogistica($id);
 
             $this->db->commit();
             echo json_encode(['success' => true, 'message' => 'Garantia atualizada com sucesso!']);
@@ -576,6 +601,97 @@ class GarantiasController
             // Log do erro para debug
             error_log("Erro ao buscar fornecedores: " . $e->getMessage());
             return [];
+        }
+    }
+    
+    // Processar dados de logística
+    private function processarLogistica($garantia_id)
+    {
+        // Coletar dados de logística do POST
+        $nome_transportadora = trim($_POST['nome_transportadora'] ?? '');
+        $cnpj_transportadora = trim($_POST['cnpj_transportadora'] ?? '');
+        $peso_total = $_POST['peso_total_logistica'] ?? null;
+        $altura = $_POST['altura'] ?? null;
+        $largura = $_POST['largura'] ?? null;
+        $profundidade = $_POST['profundidade'] ?? null;
+        $observacoes_logistica = trim($_POST['observacoes_logistica'] ?? '');
+        
+        // Verificar se há dados de logística para salvar
+        $temDados = !empty($nome_transportadora) || !empty($cnpj_transportadora) || 
+                   !empty($peso_total) || !empty($altura) || !empty($largura) || 
+                   !empty($profundidade) || !empty($observacoes_logistica);
+        
+        if (!$temDados) {
+            // Se não há dados, remover registro existente se houver
+            $stmt = $this->db->prepare("DELETE FROM logistica_garantias WHERE garantia_id = ?");
+            $stmt->execute([$garantia_id]);
+            return;
+        }
+        
+        // Verificar se já existe registro de logística para esta garantia
+        $stmt = $this->db->prepare("SELECT id FROM logistica_garantias WHERE garantia_id = ?");
+        $stmt->execute([$garantia_id]);
+        $existeLogistica = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Converter valores vazios para NULL
+        $peso_total = !empty($peso_total) ? (float)$peso_total : null;
+        $altura = !empty($altura) ? (float)$altura : null;
+        $largura = !empty($largura) ? (float)$largura : null;
+        $profundidade = !empty($profundidade) ? (float)$profundidade : null;
+        $nome_transportadora = !empty($nome_transportadora) ? $nome_transportadora : null;
+        $cnpj_transportadora = !empty($cnpj_transportadora) ? $cnpj_transportadora : null;
+        $observacoes_logistica = !empty($observacoes_logistica) ? $observacoes_logistica : null;
+        
+        if ($existeLogistica) {
+            // Atualizar registro existente
+            $stmt = $this->db->prepare("
+                UPDATE logistica_garantias SET
+                    nome_transportadora = ?,
+                    cnpj_transportadora = ?,
+                    peso_total = ?,
+                    altura = ?,
+                    largura = ?,
+                    profundidade = ?,
+                    observacoes_logistica = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE garantia_id = ?
+            ");
+            
+            $stmt->execute([
+                $nome_transportadora,
+                $cnpj_transportadora,
+                $peso_total,
+                $altura,
+                $largura,
+                $profundidade,
+                $observacoes_logistica,
+                $garantia_id
+            ]);
+        } else {
+            // Criar novo registro
+            $stmt = $this->db->prepare("
+                INSERT INTO logistica_garantias (
+                    garantia_id,
+                    nome_transportadora,
+                    cnpj_transportadora,
+                    peso_total,
+                    altura,
+                    largura,
+                    profundidade,
+                    observacoes_logistica
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            
+            $stmt->execute([
+                $garantia_id,
+                $nome_transportadora,
+                $cnpj_transportadora,
+                $peso_total,
+                $altura,
+                $largura,
+                $profundidade,
+                $observacoes_logistica
+            ]);
         }
     }
 }

@@ -283,6 +283,13 @@
             <label>Criado por</label>
             <div class="value"><?= $melhoria['created_by_name'] ?? 'Sistema' ?></div>
         </div>
+        
+        <?php if (!empty($melhoria['idealizador'])): ?>
+        <div class="info-item">
+            <label>💡 Idealizador</label>
+            <div class="value"><?= $melhoria['idealizador'] ?></div>
+        </div>
+        <?php endif; ?>
     </div>
     
     <div class="description-section">

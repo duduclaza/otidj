@@ -13,12 +13,20 @@ if (!isset($_SESSION['user_id'])) {
             <h1 class="text-2xl font-semibold text-gray-900">Garantias</h1>
             <p class="text-gray-600 mt-1">Controle de garantias de produtos</p>
         </div>
-        <button id="toggleGarantiaFormBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <span>Nova Garantia</span>
-        </button>
+        <div class="flex space-x-3">
+            <button id="toggleCorreiosFormBtn" type="button" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <span>Formulário de Correios</span>
+            </button>
+            <button id="toggleGarantiaFormBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                <span>Nova Garantia</span>
+            </button>
+        </div>
     </div>
 
     <!-- Filtros -->
@@ -195,6 +203,56 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
 
+            <!-- Informações de Logística (Opcional) -->
+            <div class="bg-gray-700 rounded-lg p-4">
+                <h3 class="text-lg font-medium text-white mb-4">🚚 Informações de Logística (Opcional)</h3>
+                
+                <!-- Dados da Transportadora -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Nome da Transportadora</label>
+                        <input type="text" name="nome_transportadora" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Ex: Transportadora ABC Ltda">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">CNPJ da Transportadora</label>
+                        <input type="text" name="cnpj_transportadora" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="00.000.000/0000-00">
+                    </div>
+                </div>
+
+                <!-- Dimensões e Peso -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Peso Total (Kg)</label>
+                        <input type="number" name="peso_total_logistica" step="0.001" min="0" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0.000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Altura (cm)</label>
+                        <input type="number" name="altura" step="0.01" min="0" onchange="calcularVolume()" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Largura (cm)</label>
+                        <input type="number" name="largura" step="0.01" min="0" onchange="calcularVolume()" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Profundidade (cm)</label>
+                        <input type="number" name="profundidade" step="0.01" min="0" onchange="calcularVolume()" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0.00">
+                    </div>
+                </div>
+
+                <!-- Volume Calculado e Observações -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Volume Calculado (m³)</label>
+                        <input type="text" id="volumeCalculado" class="w-full bg-gray-500 border border-gray-400 text-gray-300 rounded-lg px-3 py-2" readonly placeholder="Calculado automaticamente">
+                        <p class="text-xs text-gray-400 mt-1">Calculado automaticamente: Altura × Largura × Profundidade</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Observações de Logística</label>
+                        <textarea name="observacoes_logistica" rows="3" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Ex: Produto frágil, manuseio cuidadoso..."></textarea>
+                    </div>
+                </div>
+            </div>
+
             <!-- Itens da Garantia -->
             <div class="bg-gray-700 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-4">
@@ -226,22 +284,169 @@ if (!isset($_SESSION['user_id'])) {
         </form>
     </div>
 
+    <!-- Formulário de Correios -->
+    <div id="correiosFormContainer" class="hidden bg-green-50 border border-green-200 rounded-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-semibold text-green-800">📮 Formulário de Correios</h2>
+            <button onclick="cancelCorreiosForm()" class="text-green-600 hover:text-green-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Remetentes -->
+            <div class="bg-white rounded-lg border border-green-200 p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">👤 Remetentes</h3>
+                    <button type="button" onclick="adicionarRemetente()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                        + Adicionar Remetente
+                    </button>
+                </div>
+                <div id="remetentesContainer" class="space-y-4">
+                    <!-- Remetentes adicionados dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Destinatários -->
+            <div class="bg-white rounded-lg border border-green-200 p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">📍 Destinatários</h3>
+                    <button type="button" onclick="adicionarDestinatario()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                        + Adicionar Destinatário
+                    </button>
+                </div>
+                <div id="destinatariosContainer" class="space-y-4">
+                    <!-- Destinatários adicionados dinamicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Itens da Declaração -->
+        <div class="mt-8 bg-white rounded-lg border border-green-200 p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">📦 Identificação dos Bens</h3>
+                <button type="button" onclick="adicionarItemDeclaracao()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                    + Adicionar Item
+                </button>
+            </div>
+            <div id="itensDeclaracaoContainer" class="space-y-4">
+                <!-- Itens adicionados dinamicamente -->
+            </div>
+            
+            <!-- Totais -->
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Peso Total (Kg)</label>
+                        <input type="number" id="pesoTotal" step="0.001" min="0" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="0.000">
+                    </div>
+                    <div class="flex items-end">
+                        <div class="text-lg font-semibold text-gray-900">
+                            Valor Total: R$ <span id="valorTotalDeclaracao">0,00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="cancelCorreiosForm()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                Cancelar
+            </button>
+            <button type="button" onclick="gerarDeclaracaoConteudo()" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                Gerar Declaração de Conteúdo
+            </button>
+        </div>
+    </div>
+
     <!-- Tabela de Garantias -->
     <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <!-- Controles da Tabela -->
+        <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h3 class="text-sm font-medium text-gray-900">Tabela de Garantias</h3>
+                    <span class="text-xs text-gray-500">Arraste as bordas das colunas para redimensionar</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="resetColumnWidths()" class="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded border border-blue-200 hover:bg-blue-50">
+                        Resetar Colunas
+                    </button>
+                    <button onclick="toggleColumnVisibility()" class="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">
+                        Configurar Colunas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Configuração de Colunas -->
+        <div id="columnConfigModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Configurar Colunas</h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3" id="columnToggles">
+                        <!-- Checkboxes gerados dinamicamente -->
+                    </div>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                    <button onclick="closeColumnConfig()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                        Fechar
+                    </button>
+                    <button onclick="applyColumnConfig()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Aplicar
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table id="garantiasTable" class="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fornecedor</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origem</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NFs</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anexos</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado em</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        <th data-column="id" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 80px; min-width: 60px;">
+                            ID
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="fornecedor" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 120px;">
+                            Fornecedor
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="origem" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 120px; min-width: 100px;">
+                            Origem
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="nfs" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 150px; min-width: 100px;">
+                            NFs
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="status" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 150px;">
+                            Status
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="itens" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 80px; min-width: 60px;">
+                            Itens
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="valor" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 120px; min-width: 100px;">
+                            Valor Total
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="anexos" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 100px; min-width: 80px;">
+                            Anexos
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="data" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 140px; min-width: 120px;">
+                            Criado em
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="acoes" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 180px;">
+                            Ações
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="tabelaGarantias" class="bg-white divide-y divide-gray-200">
@@ -259,6 +464,82 @@ if (!isset($_SESSION['user_id'])) {
 </section>
 
 <!-- Modal removido - usando apenas formulário inline -->
+
+<style>
+/* Estilos para redimensionamento de colunas */
+.resizable-column {
+    position: relative;
+    user-select: none;
+}
+
+.column-resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 100%;
+    cursor: col-resize;
+    background: transparent;
+    border-right: 2px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.column-resizer:hover {
+    border-right-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.column-resizer.resizing {
+    border-right-color: #1d4ed8;
+    background: rgba(29, 78, 216, 0.2);
+}
+
+.table-fixed {
+    table-layout: fixed;
+}
+
+.table-fixed th,
+.table-fixed td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Animação para mostrar/ocultar colunas */
+.column-hidden {
+    display: none !important;
+}
+
+.column-show {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Estilos para o modal de configuração */
+#columnConfigModal .space-y-3 > div {
+    display: flex;
+    items-center;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+#columnConfigModal input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Indicador visual de redimensionamento */
+.table-resizing {
+    user-select: none;
+}
+
+.table-resizing * {
+    cursor: col-resize !important;
+}
+</style>
 
 <script>
 // Variáveis globais
@@ -349,6 +630,16 @@ function resetGarantiaForm() {
     if (anexosExistentes) {
         anexosExistentes.remove();
     }
+    
+    // Limpar campos de logística
+    document.querySelector('[name="nome_transportadora"]').value = '';
+    document.querySelector('[name="cnpj_transportadora"]').value = '';
+    document.querySelector('[name="peso_total_logistica"]').value = '';
+    document.querySelector('[name="altura"]').value = '';
+    document.querySelector('[name="largura"]').value = '';
+    document.querySelector('[name="profundidade"]').value = '';
+    document.querySelector('[name="observacoes_logistica"]').value = '';
+    document.getElementById('volumeCalculado').value = '';
     
     // Atualizar totais
     atualizarTotais();
@@ -682,6 +973,21 @@ function atualizarTotais() {
     if (valorTotalSpan) valorTotalSpan.textContent = valorTotal.toFixed(2).replace('.', ',');
 }
 
+// Calcular volume automaticamente
+function calcularVolume() {
+    const altura = parseFloat(document.querySelector('input[name="altura"]').value) || 0;
+    const largura = parseFloat(document.querySelector('input[name="largura"]').value) || 0;
+    const profundidade = parseFloat(document.querySelector('input[name="profundidade"]').value) || 0;
+    
+    if (altura > 0 && largura > 0 && profundidade > 0) {
+        // Calcular volume em m³ (converter de cm³ para m³)
+        const volumeM3 = (altura * largura * profundidade) / 1000000;
+        document.getElementById('volumeCalculado').value = volumeM3.toFixed(6) + ' m³';
+    } else {
+        document.getElementById('volumeCalculado').value = '';
+    }
+}
+
 // Carregar garantias
 async function carregarGarantias() {
     try {
@@ -713,6 +1019,13 @@ async function carregarGarantias() {
         
         if (result && result.success) {
             garantias = result.data || [];
+            console.log('📊 Dados das garantias carregados:', garantias);
+            
+            // Debug dos totais
+            garantias.forEach(g => {
+                console.log(`Garantia #${g.id}: ${g.total_itens} itens, R$ ${g.valor_total}`);
+            });
+            
             renderizarTabela(garantias);
             carregarFornecedoresFiltro();
         } else {
@@ -790,11 +1103,11 @@ function renderizarTabela(dados) {
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                    ${garantia.total_itens || 0}
+                    ${parseInt(garantia.total_itens) || 0}
                 </span>
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-medium">
-                R$ ${parseFloat(garantia.valor_total || 0).toFixed(2).replace('.', ',')}
+                R$ ${formatarValorBrasileiro(garantia.valor_total || 0)}
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-center">
                 <div class="flex items-center justify-center space-x-1">
@@ -860,6 +1173,14 @@ function getStatusClass(status) {
 
 function formatarData(data) {
     return new Date(data).toLocaleDateString('pt-BR');
+}
+
+function formatarValorBrasileiro(valor) {
+    const numero = parseFloat(valor) || 0;
+    return numero.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
 }
 
 function calcularTempoDecorrido(data) {
@@ -1133,6 +1454,43 @@ function mostrarModalDetalhes(garantia) {
                     </div>
                 </div>
                 
+                <!-- Informações de Logística -->
+                ${garantia.logistica ? `
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 class="font-medium text-gray-900 mb-3">🚚 Informações de Logística</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div>
+                                <h5 class="font-medium text-gray-700 mb-2">Transportadora</h5>
+                                <div class="space-y-1 text-sm">
+                                    <div><span class="font-medium">Nome:</span> ${garantia.logistica.nome_transportadora || '-'}</div>
+                                    <div><span class="font-medium">CNPJ:</span> ${garantia.logistica.cnpj_transportadora || '-'}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="font-medium text-gray-700 mb-2">Dimensões e Peso</h5>
+                                <div class="space-y-1 text-sm">
+                                    <div><span class="font-medium">Peso Total:</span> ${garantia.logistica.peso_total ? garantia.logistica.peso_total + ' kg' : '-'}</div>
+                                    <div><span class="font-medium">Dimensões (A×L×P):</span> 
+                                        ${garantia.logistica.altura && garantia.logistica.largura && garantia.logistica.profundidade 
+                                            ? `${garantia.logistica.altura}×${garantia.logistica.largura}×${garantia.logistica.profundidade} cm`
+                                            : '-'
+                                        }
+                                    </div>
+                                    <div><span class="font-medium">Volume:</span> 
+                                        ${garantia.logistica.volume_total ? garantia.logistica.volume_total + ' m³' : '-'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ${garantia.logistica.observacoes_logistica ? `
+                            <div>
+                                <h5 class="font-medium text-gray-700 mb-1">Observações de Logística</h5>
+                                <p class="text-sm text-gray-600 bg-white p-2 rounded border">${garantia.logistica.observacoes_logistica}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
                 <!-- Tempo em cada Status -->
                 <div class="bg-blue-50 p-4 rounded-lg">
                     <h4 class="font-medium text-gray-900 mb-3">⏱️ Tempo por Status</h4>
@@ -1312,6 +1670,20 @@ function preencherFormularioEdicao(garantia) {
     document.querySelector('[name="status"]').value = garantia.status || 'Em andamento';
     document.querySelector('[name="observacao"]').value = garantia.observacao || '';
     
+    // Preencher dados de logística se existirem
+    if (garantia.logistica) {
+        document.querySelector('[name="nome_transportadora"]').value = garantia.logistica.nome_transportadora || '';
+        document.querySelector('[name="cnpj_transportadora"]').value = garantia.logistica.cnpj_transportadora || '';
+        document.querySelector('[name="peso_total_logistica"]').value = garantia.logistica.peso_total || '';
+        document.querySelector('[name="altura"]').value = garantia.logistica.altura || '';
+        document.querySelector('[name="largura"]').value = garantia.logistica.largura || '';
+        document.querySelector('[name="profundidade"]').value = garantia.logistica.profundidade || '';
+        document.querySelector('[name="observacoes_logistica"]').value = garantia.logistica.observacoes_logistica || '';
+        
+        // Calcular volume se as dimensões existirem
+        calcularVolume();
+    }
+    
     // Limpar itens existentes e adicionar os da garantia
     document.getElementById('itensContainer').innerHTML = '';
     
@@ -1413,4 +1785,648 @@ function mostrarAnexosExistentes(anexos) {
     const itensSection = document.querySelector('.bg-gray-700:has(#itensContainer)').parentElement;
     itensSection.parentElement.insertBefore(anexosSection, itensSection);
 }
+
+// =====================================================
+// SISTEMA DE FORMULÁRIO DE CORREIOS
+// =====================================================
+
+// Toggle do formulário de correios
+function toggleCorreiosForm() {
+    const container = document.getElementById('correiosFormContainer');
+    const btn = document.getElementById('toggleCorreiosFormBtn');
+    
+    if (container.classList.contains('hidden')) {
+        container.classList.remove('hidden');
+        btn.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            <span>Cancelar</span>
+        `;
+        
+        // Adicionar primeiro remetente e destinatário se não existirem
+        if (document.getElementById('remetentesContainer').children.length === 0) {
+            adicionarRemetente();
+        }
+        if (document.getElementById('destinatariosContainer').children.length === 0) {
+            adicionarDestinatario();
+        }
+        if (document.getElementById('itensDeclaracaoContainer').children.length === 0) {
+            adicionarItemDeclaracao();
+        }
+    } else {
+        cancelCorreiosForm();
+    }
+}
+
+// Cancelar formulário de correios
+function cancelCorreiosForm() {
+    const container = document.getElementById('correiosFormContainer');
+    const btn = document.getElementById('toggleCorreiosFormBtn');
+    
+    container.classList.add('hidden');
+    btn.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+        </svg>
+        <span>Formulário de Correios</span>
+    `;
+    
+    // Limpar formulário
+    document.getElementById('remetentesContainer').innerHTML = '';
+    document.getElementById('destinatariosContainer').innerHTML = '';
+    document.getElementById('itensDeclaracaoContainer').innerHTML = '';
+    document.getElementById('pesoTotal').value = '';
+    document.getElementById('valorTotalDeclaracao').textContent = '0,00';
+}
+
+// Adicionar remetente
+function adicionarRemetente() {
+    const container = document.getElementById('remetentesContainer');
+    const index = container.children.length;
+    
+    const remetenteDiv = document.createElement('div');
+    remetenteDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
+    remetenteDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h4 class="font-medium text-gray-900">Remetente ${index + 1}</h4>
+            <button type="button" onclick="removerRemetente(this)" class="text-red-600 hover:text-red-800">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                <input type="text" name="remetente_nome[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Nome completo">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Endereço *</label>
+                <input type="text" name="remetente_endereco[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Endereço completo">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cidade *</label>
+                    <input type="text" name="remetente_cidade[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Cidade">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">UF *</label>
+                    <input type="text" name="remetente_uf[]" required maxlength="2" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="UF">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CEP *</label>
+                    <input type="text" name="remetente_cep[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="00000-000">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ/DOC.ESTRANGEIRO *</label>
+                    <input type="text" name="remetente_documento[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Documento">
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(remetenteDiv);
+}
+
+// Adicionar destinatário
+function adicionarDestinatario() {
+    const container = document.getElementById('destinatariosContainer');
+    const index = container.children.length;
+    
+    const destinatarioDiv = document.createElement('div');
+    destinatarioDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
+    destinatarioDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h4 class="font-medium text-gray-900">Destinatário ${index + 1}</h4>
+            <button type="button" onclick="removerDestinatario(this)" class="text-red-600 hover:text-red-800">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
+                <input type="text" name="destinatario_nome[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Nome completo">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Endereço *</label>
+                <input type="text" name="destinatario_endereco[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Endereço completo">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Cidade *</label>
+                    <input type="text" name="destinatario_cidade[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Cidade">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">UF *</label>
+                    <input type="text" name="destinatario_uf[]" required maxlength="2" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="UF">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CEP *</label>
+                    <input type="text" name="destinatario_cep[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="00000-000">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">CPF/CNPJ/DOC.ESTRANGEIRO *</label>
+                    <input type="text" name="destinatario_documento[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Documento">
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(destinatarioDiv);
+}
+
+// Adicionar item da declaração
+function adicionarItemDeclaracao() {
+    const container = document.getElementById('itensDeclaracaoContainer');
+    const index = container.children.length;
+    
+    const itemDiv = document.createElement('div');
+    itemDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
+    itemDiv.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h4 class="font-medium text-gray-900">Item ${index + 1}</h4>
+            <button type="button" onclick="removerItemDeclaracao(this)" class="text-red-600 hover:text-red-800">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Conteúdo *</label>
+                <input type="text" name="item_conteudo[]" required class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Descrição do item">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Quantidade *</label>
+                <input type="number" name="item_quantidade[]" min="1" required onchange="calcularTotaisDeclaracao()" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="1">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Valor Unitário (R$) *</label>
+                <input type="number" name="item_valor[]" step="0.01" min="0" required onchange="calcularTotaisDeclaracao()" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="0,00">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Valor Total</label>
+                <input type="text" class="item-valor-total-declaracao w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100" readonly placeholder="R$ 0,00">
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(itemDiv);
+    calcularTotaisDeclaracao();
+}
+
+// Remover remetente
+function removerRemetente(button) {
+    button.closest('.border').remove();
+    renumerarRemetentes();
+}
+
+// Remover destinatário
+function removerDestinatario(button) {
+    button.closest('.border').remove();
+    renumerarDestinatarios();
+}
+
+// Remover item da declaração
+function removerItemDeclaracao(button) {
+    button.closest('.border').remove();
+    renumerarItensDeclaracao();
+    calcularTotaisDeclaracao();
+}
+
+// Renumerar remetentes
+function renumerarRemetentes() {
+    const remetentes = document.querySelectorAll('#remetentesContainer .border');
+    remetentes.forEach((remetente, index) => {
+        remetente.querySelector('h4').textContent = `Remetente ${index + 1}`;
+    });
+}
+
+// Renumerar destinatários
+function renumerarDestinatarios() {
+    const destinatarios = document.querySelectorAll('#destinatariosContainer .border');
+    destinatarios.forEach((destinatario, index) => {
+        destinatario.querySelector('h4').textContent = `Destinatário ${index + 1}`;
+    });
+}
+
+// Renumerar itens da declaração
+function renumerarItensDeclaracao() {
+    const itens = document.querySelectorAll('#itensDeclaracaoContainer .border');
+    itens.forEach((item, index) => {
+        item.querySelector('h4').textContent = `Item ${index + 1}`;
+    });
+}
+
+// Calcular totais da declaração
+function calcularTotaisDeclaracao() {
+    let valorTotal = 0;
+    
+    const itens = document.querySelectorAll('#itensDeclaracaoContainer .border');
+    itens.forEach(item => {
+        const quantidade = parseFloat(item.querySelector('input[name="item_quantidade[]"]').value) || 0;
+        const valorUnitario = parseFloat(item.querySelector('input[name="item_valor[]"]').value) || 0;
+        const valorItemTotal = quantidade * valorUnitario;
+        
+        // Atualizar valor total do item
+        item.querySelector('.item-valor-total-declaracao').value = `R$ ${valorItemTotal.toFixed(2).replace('.', ',')}`;
+        
+        valorTotal += valorItemTotal;
+    });
+    
+    // Atualizar valor total geral
+    document.getElementById('valorTotalDeclaracao').textContent = valorTotal.toFixed(2).replace('.', ',');
+}
+
+// Gerar declaração de conteúdo
+function gerarDeclaracaoConteudo() {
+    // Validar se há pelo menos um remetente, destinatário e item
+    const remetentes = document.querySelectorAll('#remetentesContainer .border');
+    const destinatarios = document.querySelectorAll('#destinatariosContainer .border');
+    const itens = document.querySelectorAll('#itensDeclaracaoContainer .border');
+    
+    if (remetentes.length === 0) {
+        alert('Adicione pelo menos um remetente');
+        return;
+    }
+    
+    if (destinatarios.length === 0) {
+        alert('Adicione pelo menos um destinatário');
+        return;
+    }
+    
+    if (itens.length === 0) {
+        alert('Adicione pelo menos um item');
+        return;
+    }
+    
+    // Coletar dados e gerar PDF
+    const dados = coletarDadosDeclaracao();
+    gerarPDFDeclaracao(dados);
+}
+
+// Coletar dados da declaração
+function coletarDadosDeclaracao() {
+    const dados = {
+        remetentes: [],
+        destinatarios: [],
+        itens: [],
+        pesoTotal: document.getElementById('pesoTotal').value || '0',
+        valorTotal: document.getElementById('valorTotalDeclaracao').textContent
+    };
+    
+    // Coletar remetentes
+    document.querySelectorAll('#remetentesContainer .border').forEach(remetente => {
+        dados.remetentes.push({
+            nome: remetente.querySelector('input[name="remetente_nome[]"]').value,
+            endereco: remetente.querySelector('input[name="remetente_endereco[]"]').value,
+            cidade: remetente.querySelector('input[name="remetente_cidade[]"]').value,
+            uf: remetente.querySelector('input[name="remetente_uf[]"]').value,
+            cep: remetente.querySelector('input[name="remetente_cep[]"]').value,
+            documento: remetente.querySelector('input[name="remetente_documento[]"]').value
+        });
+    });
+    
+    // Coletar destinatários
+    document.querySelectorAll('#destinatariosContainer .border').forEach(destinatario => {
+        dados.destinatarios.push({
+            nome: destinatario.querySelector('input[name="destinatario_nome[]"]').value,
+            endereco: destinatario.querySelector('input[name="destinatario_endereco[]"]').value,
+            cidade: destinatario.querySelector('input[name="destinatario_cidade[]"]').value,
+            uf: destinatario.querySelector('input[name="destinatario_uf[]"]').value,
+            cep: destinatario.querySelector('input[name="destinatario_cep[]"]').value,
+            documento: destinatario.querySelector('input[name="destinatario_documento[]"]').value
+        });
+    });
+    
+    // Coletar itens
+    document.querySelectorAll('#itensDeclaracaoContainer .border').forEach(item => {
+        dados.itens.push({
+            conteudo: item.querySelector('input[name="item_conteudo[]"]').value,
+            quantidade: item.querySelector('input[name="item_quantidade[]"]').value,
+            valor: item.querySelector('input[name="item_valor[]"]').value
+        });
+    });
+    
+    return dados;
+}
+
+// Gerar PDF da declaração (implementação básica)
+function gerarPDFDeclaracao(dados) {
+    // Por enquanto, mostrar os dados coletados
+    console.log('📋 Dados da Declaração:', dados);
+    
+    // Aqui seria implementada a geração do PDF
+    // Pode usar bibliotecas como jsPDF ou enviar para o backend
+    
+    showNotification('Funcionalidade de geração de PDF será implementada em breve!', 'info');
+    
+    // Exemplo de como seria:
+    // const pdf = new jsPDF();
+    // // Adicionar conteúdo ao PDF baseado no template da imagem
+    // pdf.save('declaracao-conteudo.pdf');
+}
+
+// =====================================================
+// SISTEMA DE REDIMENSIONAMENTO DE COLUNAS
+// =====================================================
+
+// Variáveis para redimensionamento
+let isResizing = false;
+let currentColumn = null;
+let startX = 0;
+let startWidth = 0;
+
+// Configuração padrão das colunas
+const defaultColumnWidths = {
+    'id': 80,
+    'fornecedor': 200,
+    'origem': 120,
+    'nfs': 150,
+    'status': 200,
+    'itens': 80,
+    'valor': 120,
+    'anexos': 100,
+    'data': 140,
+    'acoes': 200
+};
+
+// Configuração de visibilidade das colunas
+const columnConfig = {
+    'id': { name: 'ID', visible: true },
+    'fornecedor': { name: 'Fornecedor', visible: true },
+    'origem': { name: 'Origem', visible: true },
+    'nfs': { name: 'NFs', visible: true },
+    'status': { name: 'Status', visible: true },
+    'itens': { name: 'Itens', visible: true },
+    'valor': { name: 'Valor Total', visible: true },
+    'anexos': { name: 'Anexos', visible: true },
+    'data': { name: 'Criado em', visible: true },
+    'acoes': { name: 'Ações', visible: true }
+};
+
+// Inicializar redimensionamento de colunas
+function initColumnResizing() {
+    const table = document.getElementById('garantiasTable');
+    if (!table) return;
+    
+    // Adicionar event listeners para redimensionamento
+    const resizers = table.querySelectorAll('.column-resizer');
+    resizers.forEach(resizer => {
+        resizer.addEventListener('mousedown', startResize);
+    });
+    
+    // Event listeners globais
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+    
+    // Carregar configurações salvas
+    loadColumnSettings();
+    
+    console.log('🔧 Sistema de redimensionamento de colunas inicializado');
+}
+
+// Iniciar redimensionamento
+function startResize(e) {
+    isResizing = true;
+    currentColumn = e.target.parentElement;
+    startX = e.clientX;
+    startWidth = parseInt(document.defaultView.getComputedStyle(currentColumn).width, 10);
+    
+    // Adicionar classe visual
+    e.target.classList.add('resizing');
+    document.body.classList.add('table-resizing');
+    
+    e.preventDefault();
+}
+
+// Fazer redimensionamento
+function doResize(e) {
+    if (!isResizing) return;
+    
+    const width = startWidth + e.clientX - startX;
+    const minWidth = parseInt(currentColumn.style.minWidth) || 60;
+    const maxWidth = 500; // Largura máxima
+    
+    const newWidth = Math.max(minWidth, Math.min(maxWidth, width));
+    currentColumn.style.width = newWidth + 'px';
+    
+    // Atualizar células correspondentes
+    const columnIndex = Array.from(currentColumn.parentElement.children).indexOf(currentColumn);
+    const tbody = currentColumn.closest('table').querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+    
+    rows.forEach(row => {
+        const cell = row.children[columnIndex];
+        if (cell) {
+            cell.style.width = newWidth + 'px';
+        }
+    });
+}
+
+// Parar redimensionamento
+function stopResize(e) {
+    if (!isResizing) return;
+    
+    isResizing = false;
+    
+    // Remover classes visuais
+    const resizer = document.querySelector('.column-resizer.resizing');
+    if (resizer) {
+        resizer.classList.remove('resizing');
+    }
+    document.body.classList.remove('table-resizing');
+    
+    // Salvar configurações
+    saveColumnSettings();
+    
+    currentColumn = null;
+}
+
+// Resetar larguras das colunas
+function resetColumnWidths() {
+    const table = document.getElementById('garantiasTable');
+    if (!table) return;
+    
+    const headers = table.querySelectorAll('th[data-column]');
+    headers.forEach(header => {
+        const columnName = header.getAttribute('data-column');
+        const defaultWidth = defaultColumnWidths[columnName] || 120;
+        header.style.width = defaultWidth + 'px';
+    });
+    
+    // Recarregar tabela para aplicar larguras
+    if (garantias.length > 0) {
+        renderizarTabela(garantias);
+    }
+    
+    // Salvar configurações
+    saveColumnSettings();
+    
+    showNotification('Larguras das colunas resetadas!', 'success');
+}
+
+// Configurar visibilidade das colunas
+function toggleColumnVisibility() {
+    const modal = document.getElementById('columnConfigModal');
+    const togglesContainer = document.getElementById('columnToggles');
+    
+    // Limpar container
+    togglesContainer.innerHTML = '';
+    
+    // Criar checkboxes para cada coluna
+    Object.keys(columnConfig).forEach(columnKey => {
+        const config = columnConfig[columnKey];
+        const div = document.createElement('div');
+        div.className = 'flex items-center justify-between';
+        div.innerHTML = `
+            <label class="flex items-center cursor-pointer">
+                <input type="checkbox" ${config.visible ? 'checked' : ''} data-column="${columnKey}" class="mr-2">
+                <span class="text-sm text-gray-700">${config.name}</span>
+            </label>
+        `;
+        togglesContainer.appendChild(div);
+    });
+    
+    modal.classList.remove('hidden');
+}
+
+// Fechar modal de configuração
+function closeColumnConfig() {
+    document.getElementById('columnConfigModal').classList.add('hidden');
+}
+
+// Aplicar configuração de colunas
+function applyColumnConfig() {
+    const checkboxes = document.querySelectorAll('#columnToggles input[type="checkbox"]');
+    
+    checkboxes.forEach(checkbox => {
+        const columnKey = checkbox.getAttribute('data-column');
+        const isVisible = checkbox.checked;
+        
+        columnConfig[columnKey].visible = isVisible;
+        
+        // Aplicar visibilidade
+        const table = document.getElementById('garantiasTable');
+        const header = table.querySelector(`th[data-column="${columnKey}"]`);
+        const columnIndex = Array.from(header.parentElement.children).indexOf(header);
+        
+        if (isVisible) {
+            header.classList.remove('column-hidden');
+            header.classList.add('column-show');
+            
+            // Mostrar células da coluna
+            const tbody = table.querySelector('tbody');
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cell = row.children[columnIndex];
+                if (cell) {
+                    cell.classList.remove('column-hidden');
+                    cell.classList.add('column-show');
+                }
+            });
+        } else {
+            header.classList.add('column-hidden');
+            header.classList.remove('column-show');
+            
+            // Ocultar células da coluna
+            const tbody = table.querySelector('tbody');
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cell = row.children[columnIndex];
+                if (cell) {
+                    cell.classList.add('column-hidden');
+                    cell.classList.remove('column-show');
+                }
+            });
+        }
+    });
+    
+    // Salvar configurações
+    saveColumnSettings();
+    closeColumnConfig();
+    
+    showNotification('Configuração de colunas aplicada!', 'success');
+}
+
+// Salvar configurações das colunas
+function saveColumnSettings() {
+    const settings = {
+        widths: {},
+        visibility: columnConfig
+    };
+    
+    const table = document.getElementById('garantiasTable');
+    if (table) {
+        const headers = table.querySelectorAll('th[data-column]');
+        headers.forEach(header => {
+            const columnName = header.getAttribute('data-column');
+            settings.widths[columnName] = parseInt(header.style.width) || defaultColumnWidths[columnName];
+        });
+    }
+    
+    localStorage.setItem('garantias_column_settings', JSON.stringify(settings));
+}
+
+// Carregar configurações das colunas
+function loadColumnSettings() {
+    const savedSettings = localStorage.getItem('garantias_column_settings');
+    if (!savedSettings) return;
+    
+    try {
+        const settings = JSON.parse(savedSettings);
+        
+        // Aplicar larguras
+        if (settings.widths) {
+            const table = document.getElementById('garantiasTable');
+            if (table) {
+                const headers = table.querySelectorAll('th[data-column]');
+                headers.forEach(header => {
+                    const columnName = header.getAttribute('data-column');
+                    if (settings.widths[columnName]) {
+                        header.style.width = settings.widths[columnName] + 'px';
+                    }
+                });
+            }
+        }
+        
+        // Aplicar visibilidade
+        if (settings.visibility) {
+            Object.assign(columnConfig, settings.visibility);
+            
+            // Aplicar visibilidade na tabela
+            Object.keys(columnConfig).forEach(columnKey => {
+                const config = columnConfig[columnKey];
+                if (!config.visible) {
+                    const table = document.getElementById('garantiasTable');
+                    if (table) {
+                        const header = table.querySelector(`th[data-column="${columnKey}"]`);
+                        if (header) {
+                            header.classList.add('column-hidden');
+                        }
+                    }
+                }
+            });
+        }
+        
+        console.log('⚙️ Configurações de colunas carregadas:', settings);
+    } catch (error) {
+        console.error('❌ Erro ao carregar configurações de colunas:', error);
+    }
+}
+
+// Inicializar sistema de colunas quando a tabela for renderizada
+document.addEventListener('DOMContentLoaded', function() {
+    // Aguardar um pouco para garantir que a tabela foi criada
+    setTimeout(() => {
+        initColumnResizing();
+    }, 500);
+});
 </script>

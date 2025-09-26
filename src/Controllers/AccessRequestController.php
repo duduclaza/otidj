@@ -116,6 +116,11 @@ class AccessRequestController
                 VALUES (?, ?, ?, ?, ?, ?)
             ");
             $stmt->execute([$name, $email, $passwordHash, $setor, $filial, $justificativa]);
+            
+            $requestId = $this->db->lastInsertId();
+
+            // Notificar todos os administradores sobre a nova solicitação
+            $this->notifyAdministrators($name, $email, $requestId);
 
             echo json_encode(['success' => true, 'message' => 'Solicitação enviada com sucesso! Aguarde a aprovação do administrador.']);
 
@@ -356,6 +361,39 @@ class AccessRequestController
             echo json_encode(['success' => true, 'data' => $departamentos]);
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar departamentos: ' . $e->getMessage()]);
+        }
+    }
+
+    // Notificar administradores sobre nova solicitação de acesso
+    private function notifyAdministrators($userName, $userEmail, $requestId)
+    {
+        try {
+            // Buscar todos os usuários administradores
+            $stmt = $this->db->prepare("
+                SELECT u.id 
+                FROM users u 
+                JOIN profiles p ON u.profile_id = p.id 
+                WHERE p.name = 'Administrador' AND u.status = 'active'
+            ");
+            $stmt->execute();
+            $administrators = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Criar notificação para cada administrador
+            foreach ($administrators as $admin) {
+                NotificationsController::create(
+                    $admin['id'],
+                    '🔔 Nova Solicitação de Acesso',
+                    "O usuário {$userName} ({$userEmail}) solicitou acesso ao sistema. Clique para revisar e aprovar/rejeitar a solicitação.",
+                    'access_request',
+                    'access_request',
+                    $requestId
+                );
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            error_log("Erro ao notificar administradores: " . $e->getMessage());
+            return false;
         }
     }
 }

@@ -208,9 +208,15 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           <div id="notificationDropdown" class="hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
             <!-- Setinha apontando para baixo (para o botão) -->
             <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white border-r border-b border-gray-200 transform rotate-45 -mt-2"></div>
-            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 class="text-sm font-semibold text-gray-900">Notificações</h3>
-              <button id="markAllReadBtn" class="text-xs text-blue-600 hover:text-blue-800">Marcar todas como lidas</button>
+            <div class="p-4 border-b border-gray-200">
+              <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-semibold text-gray-900">Notificações</h3>
+                <div class="flex space-x-2">
+                  <button id="markAllReadBtn" class="text-xs text-blue-600 hover:text-blue-800">Marcar como lidas</button>
+                  <button id="clearHistoryBtn" class="text-xs text-red-600 hover:text-red-800">Limpar histórico</button>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500">Últimas 30 dias • Clique para navegar</p>
             </div>
             <div id="notificationsList" class="max-h-64 overflow-y-auto">
               <!-- Notificações serão carregadas aqui -->
@@ -375,6 +381,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       // Event listeners
       document.getElementById('notificationBtn')?.addEventListener('click', toggleNotifications);
       document.getElementById('markAllReadBtn')?.addEventListener('click', markAllAsRead);
+      document.getElementById('clearHistoryBtn')?.addEventListener('click', clearNotificationHistory);
       
       // Fechar dropdown ao clicar fora
       document.addEventListener('click', function(e) {
@@ -454,22 +461,213 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       const list = document.getElementById('notificationsList');
       
       if (notifications.length === 0) {
-        list.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhuma notificação</div>';
+        list.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhuma notificação nos últimos 30 dias</div>';
         return;
       }
       
-      list.innerHTML = notifications.map(notification => `
-        <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="markAsRead(${notification.id})">
+      // Separar notificações não lidas das lidas
+      const unreadNotifications = notifications.filter(n => n.is_unread == 1);
+      const readNotifications = notifications.filter(n => n.is_unread == 0);
+      
+      let html = '';
+      
+      // Seção de não lidas
+      if (unreadNotifications.length > 0) {
+        html += '<div class="bg-blue-50 px-3 py-2 border-b border-blue-200"><span class="text-xs font-medium text-blue-800">📢 NOVAS NOTIFICAÇÕES</span></div>';
+        html += unreadNotifications.map(notification => createNotificationHTML(notification, false)).join('');
+      }
+      
+      // Seção de lidas (histórico)
+      if (readNotifications.length > 0) {
+        html += '<div class="bg-gray-50 px-3 py-2 border-b border-gray-200"><span class="text-xs font-medium text-gray-600">📋 HISTÓRICO</span></div>';
+        html += readNotifications.map(notification => createNotificationHTML(notification, true)).join('');
+      }
+      
+      list.innerHTML = html;
+    }
+    
+    // Criar HTML de uma notificação
+    function createNotificationHTML(notification, isRead) {
+      const clickAction = getNotificationClickAction(notification);
+      const iconColor = getNotificationIconColor(notification.type);
+      const bgClass = isRead ? 'bg-gray-50 opacity-75' : 'bg-white';
+      const textClass = isRead ? 'text-gray-500' : 'text-gray-900';
+      const actionText = getNotificationActionText(notification.type);
+      
+      return `
+        <div class="p-3 border-b border-gray-100 hover:bg-gray-100 cursor-pointer ${bgClass}" onclick="${clickAction}">
           <div class="flex items-start gap-3">
-            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+            <div class="w-2 h-2 ${iconColor} rounded-full mt-2 flex-shrink-0 ${isRead ? 'opacity-50' : ''}"></div>
             <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-medium text-gray-900 truncate">${notification.title}</h4>
+              <h4 class="text-sm font-medium ${textClass} truncate">${notification.title}</h4>
               <p class="text-xs text-gray-600 mt-1">${notification.message}</p>
-              <span class="text-xs text-gray-400 mt-1">${formatDate(notification.created_at)}</span>
+              <div class="flex justify-between items-center mt-2">
+                <span class="text-xs text-gray-400">${formatDate(notification.created_at)}</span>
+                ${isRead ? 
+                  `<span class="text-xs text-gray-400">✓ Lida em ${formatDate(notification.read_at)}</span>` :
+                  `<span class="text-xs text-blue-600 font-medium">${actionText}</span>`
+                }
+              </div>
             </div>
           </div>
         </div>
-      `).join('');
+      `;
+    }
+    
+    // Obter texto de ação baseado no tipo
+    function getNotificationActionText(type) {
+      const actions = {
+        'access_request': 'Clique para revisar →',
+        'success': 'Clique para ver →',
+        'warning': 'Clique para verificar →',
+        'error': 'Clique para resolver →',
+        'info': 'Clique para ver →'
+      };
+      return actions[type] || 'Clique para ver →';
+    }
+    
+    // Determinar ação do clique baseada no tipo de notificação
+    function getNotificationClickAction(notification) {
+      return `handleNotificationClick(${notification.id}, '${notification.type}', '${notification.related_type}', ${notification.related_id || 'null'})`;
+    }
+    
+    // Determinar cor do ícone baseada no tipo
+    function getNotificationIconColor(type) {
+      const colors = {
+        'access_request': 'bg-orange-500',
+        'success': 'bg-green-500',
+        'warning': 'bg-yellow-500',
+        'error': 'bg-red-500',
+        'info': 'bg-blue-500'
+      };
+      return colors[type] || 'bg-blue-500';
+    }
+    
+    // Lidar com clique em notificação (navegação inteligente)
+    async function handleNotificationClick(notificationId, type, relatedType, relatedId) {
+      try {
+        // Marcar como lida se não estiver lida
+        await fetch(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+        
+        // Fechar dropdown
+        document.getElementById('notificationDropdown').classList.add('hidden');
+        
+        // Navegar para o módulo correto baseado no tipo
+        const targetUrl = getNotificationTargetUrl(type, relatedType, relatedId);
+        if (targetUrl) {
+          window.location.href = targetUrl;
+        }
+        
+        // Recarregar notificações
+        loadNotifications();
+      } catch (error) {
+        console.error('Erro ao processar notificação:', error);
+      }
+    }
+    
+    // Determinar URL de destino baseada no tipo de notificação
+    function getNotificationTargetUrl(type, relatedType, relatedId) {
+      const navigationMap = {
+        'access_request': '/admin/access-requests',
+        'garantia': '/garantias',
+        'amostragem': '/toners/amostragens',
+        'homologacao': '/homologacoes',
+        'melhoria': '/melhoria-continua/solicitacoes',
+        'toner': '/toners/cadastro',
+        'retornado': '/toners/retornados',
+        'fmea': '/fmea',
+        'pop': '/pops-e-its',
+        'fluxograma': '/fluxogramas',
+        'user': '/admin/users',
+        'profile': '/admin/profiles'
+      };
+      
+      // Primeiro, tentar mapear por related_type
+      if (relatedType && navigationMap[relatedType]) {
+        return navigationMap[relatedType];
+      }
+      
+      // Depois, tentar mapear por type
+      if (navigationMap[type]) {
+        return navigationMap[type];
+      }
+      
+      // Fallback para dashboard se for admin, senão página inicial
+      return '/';
+    }
+    
+    // Limpar histórico de notificações
+    async function clearNotificationHistory() {
+      if (!confirm('Tem certeza que deseja limpar o histórico de notificações? Esta ação não pode ser desfeita.')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/notifications/clear-history', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+          // Mostrar mensagem de sucesso
+          showNotificationToast(data.message, 'success');
+          
+          // Recarregar notificações
+          loadNotifications();
+        } else {
+          showNotificationToast(data.message || 'Erro ao limpar histórico', 'error');
+        }
+      } catch (error) {
+        console.error('Erro ao limpar histórico:', error);
+        showNotificationToast('Erro de conexão ao limpar histórico', 'error');
+      }
+    }
+    
+    // Mostrar toast de notificação
+    function showNotificationToast(message, type = 'info') {
+      // Criar elemento de toast
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white text-sm max-w-sm transform transition-all duration-300 translate-x-full`;
+      
+      // Definir cor baseada no tipo
+      const colors = {
+        'success': 'bg-green-500',
+        'error': 'bg-red-500',
+        'warning': 'bg-yellow-500',
+        'info': 'bg-blue-500'
+      };
+      toast.classList.add(colors[type] || colors.info);
+      
+      // Definir ícone baseado no tipo
+      const icons = {
+        'success': '✅',
+        'error': '❌',
+        'warning': '⚠️',
+        'info': 'ℹ️'
+      };
+      
+      toast.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span>${icons[type] || icons.info}</span>
+          <span>${message}</span>
+        </div>
+      `;
+      
+      // Adicionar ao DOM
+      document.body.appendChild(toast);
+      
+      // Animar entrada
+      setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+      }, 100);
+      
+      // Remover após 4 segundos
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 300);
+      }, 4000);
     }
 
     // Toggle dropdown

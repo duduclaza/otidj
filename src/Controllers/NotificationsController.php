@@ -26,13 +26,14 @@ class NotificationsController
                 return;
             }
             
-            // Buscar notificações não lidas
+            // Buscar todas as notificações (lidas e não lidas) dos últimos 30 dias
             $stmt = $this->db->prepare("
-                SELECT id, title, message, type, related_type, related_id, created_at
+                SELECT id, title, message, type, related_type, related_id, created_at, read_at,
+                       CASE WHEN read_at IS NULL THEN 1 ELSE 0 END as is_unread
                 FROM notifications 
-                WHERE user_id = ? AND read_at IS NULL 
-                ORDER BY created_at DESC 
-                LIMIT 20
+                WHERE user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                ORDER BY is_unread DESC, created_at DESC 
+                LIMIT 50
             ");
             $stmt->execute([$userId]);
             $notifications = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -100,6 +101,37 @@ class NotificationsController
         } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao marcar notificações: ' . $e->getMessage()]);
+        }
+    }
+
+    // Limpar histórico de notificações
+    public function clearHistory()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não logado']);
+                return;
+            }
+            
+            // Deletar apenas notificações lidas (manter as não lidas)
+            $stmt = $this->db->prepare("DELETE FROM notifications WHERE user_id = ? AND read_at IS NOT NULL");
+            $stmt->execute([$userId]);
+            
+            $deletedCount = $stmt->rowCount();
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => "Histórico limpo! {$deletedCount} notificações removidas.",
+                'deleted_count' => $deletedCount
+            ]);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro ao limpar histórico: ' . $e->getMessage()]);
         }
     }
 
