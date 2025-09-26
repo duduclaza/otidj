@@ -64,27 +64,13 @@ $router->get('/', function() {
         exit;
     }
     
-    // Verificar se tem permissão para dashboard
-    if (\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
-        // Tem permissão: mostrar dashboard
-        (new App\Controllers\AdminController())->dashboard();
-    } else {
-        // Não tem permissão: redirecionar para primeiro módulo permitido
-        $authController = new App\Controllers\AuthController();
-        $redirectMethod = new ReflectionMethod($authController, 'getSmartRedirectUrl');
-        $redirectMethod->setAccessible(true);
-        $redirectUrl = $redirectMethod->invoke($authController, $_SESSION['user_id']);
-        
-        if ($redirectUrl !== '/profile' && $redirectUrl !== '/') {
-            header('Location: ' . $redirectUrl);
-            exit;
-        } else {
-            // Fallback para perfil
-            header('Location: /profile');
-            exit;
-        }
-    }
+    // Redirecionar TODOS os usuários para a página Início por segurança
+    header('Location: /inicio');
+    exit;
 });
+
+// Home/Início route - acessível a todos os usuários autenticados
+$router->get('/inicio', [App\Controllers\HomeController::class, 'index']);
 
 // Admin routes
 $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);

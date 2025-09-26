@@ -83,12 +83,8 @@ class AuthController
                     return;
                 }
                 
-                // Determinar URL de redirecionamento baseado nas permissões
-                $redirectUrl = '/';
-                if (!\App\Services\PermissionService::hasPermission($user['id'], 'dashboard', 'view')) {
-                    // Se não tem permissão para dashboard, encontrar primeiro módulo permitido
-                    $redirectUrl = $this->findFirstAllowedModule($user['id']) ?: '/profile';
-                }
+                // Redirecionar TODOS os usuários para a página Início por segurança
+                $redirectUrl = '/inicio';
                 
                 echo json_encode([
                     'success' => true, 

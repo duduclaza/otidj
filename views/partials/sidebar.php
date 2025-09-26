@@ -90,11 +90,19 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
   </div>
   <nav class="flex-1 overflow-y-auto py-4">
     <ul class="space-y-1 px-3">
+      <!-- Início - acessível a todos os usuários autenticados -->
+      <li>
+        <a href="/inicio" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/inicio'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
+          <span class="text-lg">🏠</span>
+          <span>Início</span>
+        </a>
+      </li>
+      
       <!-- Dashboard só visível se tiver permissão -->
       <?php if (hasPermission('dashboard')): ?>
       <li>
         <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
-          <span class="text-lg">🏠</span>
+          <span class="text-lg">📊</span>
           <span>Dashboard</span>
         </a>
       </li>
