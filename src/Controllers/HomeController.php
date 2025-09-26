@@ -20,11 +20,37 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.2';
+        $systemVersion = '2.1.4';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
         $updates = [
+            [
+                'version' => '2.1.4',
+                'date' => '26/09/2025',
+                'type' => 'Ajuste',
+                'title' => 'Padronização do Redirecionamento de Login',
+                'description' => 'Todos os usuários são direcionados para a página Início após login, independente de permissões',
+                'items' => [
+                    'Login sempre redireciona para /inicio para todos os usuários',
+                    'Comportamento uniforme independente de permissões',
+                    'Dashboard acessível apenas via menu para quem tem permissão',
+                    'Experiência de login consistente e previsível'
+                ]
+            ],
+            [
+                'version' => '2.1.3',
+                'date' => '26/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção do Redirecionamento do Dashboard',
+                'description' => 'Corrigido problema onde menu Dashboard redirecionava para Início em vez do dashboard real',
+                'items' => [
+                    'Rota "/" agora verifica permissão antes de redirecionar',
+                    'Usuários com permissão de dashboard acessam dashboard real',
+                    'Usuários sem permissão são redirecionados para /inicio',
+                    'Sistema de login ajustado para redirecionamento inteligente'
+                ]
+            ],
             [
                 'version' => '2.1.2',
                 'date' => '26/09/2025',

@@ -64,9 +64,15 @@ $router->get('/', function() {
         exit;
     }
     
-    // Redirecionar TODOS os usuários para a página Início por segurança
-    header('Location: /inicio');
-    exit;
+    // Verificar se tem permissão para dashboard
+    if (\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+        // Tem permissão: mostrar dashboard
+        (new App\Controllers\AdminController())->dashboard();
+    } else {
+        // Não tem permissão: redirecionar para página inicial
+        header('Location: /inicio');
+        exit;
+    }
 });
 
 // Home/Início route - acessível a todos os usuários autenticados

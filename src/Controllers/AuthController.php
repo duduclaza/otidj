@@ -83,7 +83,7 @@ class AuthController
                     return;
                 }
                 
-                // Redirecionar TODOS os usuários para a página Início por segurança
+                // TODOS os usuários são direcionados para a página Início após login
                 $redirectUrl = '/inicio';
                 
                 echo json_encode([
