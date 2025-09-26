@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Edição de Perfis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Teste - Edição de Perfis com Usuários</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Teste da Rota de Permissões</h2>
+            <button onclick="testProfilePermissions()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Testar Rota /admin/profiles/{id}/permissions
+            </button>
+            <div id="result" class="mt-4 p-4 bg-gray-50 rounded hidden"></div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-4">Checklist de Correções</h2>
+            <ul class="space-y-2">
+                <li class="flex items-center">
+                    <span class="w-4 h-4 bg-green-500 rounded-full mr-3"></span>
+                    <span>✅ Rota <code>/admin/profiles/{id}/permissions</code> adicionada ao index.php</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-4 h-4 bg-green-500 rounded-full mr-3"></span>
+                    <span>✅ Método <code>getPermissions($profileId)</code> existe no ProfilesController</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-4 h-4 bg-green-500 rounded-full mr-3"></span>
+                    <span>✅ Método <code>update()</code> NÃO tem restrição para perfis com usuários</span>
+                </li>
+                <li class="flex items-center">
+                    <span class="w-4 h-4 bg-yellow-500 rounded-full mr-3"></span>
+                    <span>⚠️ Apenas o método <code>delete()</code> tem restrição para perfis com usuários</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <h2 class="text-lg font-semibold mb-4">Problema Identificado e Solucionado</h2>
+            <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
+                <h3 class="font-semibold text-red-800">❌ Problema Anterior:</h3>
+                <p class="text-red-700">JavaScript tentava acessar <code>/admin/profiles/{id}/permissions</code> mas a rota não existia no index.php</p>
+            </div>
+            <div class="bg-green-50 border border-green-200 rounded p-4">
+                <h3 class="font-semibold text-green-800">✅ Solução Implementada:</h3>
+                <p class="text-green-700">Adicionada a rota faltante: <code>$router->get('/admin/profiles/{id}/permissions', [ProfilesController::class, 'getPermissions']);</code></p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <h2 class="text-lg font-semibold mb-4">Como Testar</h2>
+            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                <li>Acesse o sistema SGQ em produção</li>
+                <li>Vá para <strong>Administrativo > Gerenciar Perfis</strong></li>
+                <li>Clique em <strong>"Editar"</strong> em qualquer perfil (mesmo com usuários associados)</li>
+                <li>O formulário deve abrir normalmente sem erro "Erro de conexão"</li>
+                <li>Você pode editar nome, descrição, status padrão e permissões</li>
+                <li>Salvar deve funcionar normalmente</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function testProfilePermissions() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = '<p class="text-blue-600">Testando rota...</p>';
+            
+            // Teste com ID de exemplo (substitua por um ID real se necessário)
+            const testProfileId = 2; // ID de exemplo
+            
+            fetch(`/admin/profiles/${testProfileId}/permissions`, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            })
+            .then(result => {
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="text-green-600">
+                            <h3 class="font-semibold">✅ Sucesso!</h3>
+                            <p>Rota funcionando corretamente</p>
+                            <p class="text-sm mt-2">Perfil: ${result.profile.name}</p>
+                            <p class="text-sm">Permissões carregadas: ${Object.keys(result.permissions).length} módulos</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="text-yellow-600">
+                            <h3 class="font-semibold">⚠️ Resposta do servidor:</h3>
+                            <p>${result.message}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `
+                    <div class="text-red-600">
+                        <h3 class="font-semibold">❌ Erro:</h3>
+                        <p>${error.message}</p>
+                        <p class="text-sm mt-2">Verifique se você está logado como administrador</p>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

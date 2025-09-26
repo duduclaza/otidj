@@ -162,6 +162,7 @@ $router->get('/admin/profiles', [App\Controllers\ProfilesController::class, 'ind
 $router->post('/admin/profiles/create', [App\Controllers\ProfilesController::class, 'create']);
 $router->post('/admin/profiles/update', [App\Controllers\ProfilesController::class, 'update']);
 $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::class, 'delete']);
+$router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesController::class, 'getPermissions']);
 
 // Melhoria Continua routes
 $router->get('/melhoria-continua/solicitacoes', [App\Controllers\MelhoriaContinuaController::class, 'index']);
