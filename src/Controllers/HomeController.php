@@ -20,11 +20,24 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.0';
+        $systemVersion = '2.1.1';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
         $updates = [
+            [
+                'version' => '2.1.1',
+                'date' => '26/09/2025',
+                'type' => 'Melhoria',
+                'title' => 'Interface da Página Início Otimizada',
+                'description' => 'Removidos cards desnecessários para interface mais limpa e focada',
+                'items' => [
+                    'Removidos cards "Status do Sistema" e "Acesso Rápido"',
+                    'Interface mais limpa e focada no essencial',
+                    'Mantida seção de boas-vindas personalizada',
+                    'Preservada seção "Últimas Atualizações" com changelog'
+                ]
+            ],
             [
                 'version' => '2.1.0',
                 'date' => '26/09/2025',
