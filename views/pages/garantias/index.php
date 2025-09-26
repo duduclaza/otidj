@@ -256,127 +256,7 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 </section>
 
-<!-- Modal Nova/Editar Garantia (mantido para compatibilidade) -->
-<div id="modalGarantia" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h3 id="modalTitle" class="text-lg font-medium text-gray-900">Nova Garantia</h3>
-            </div>
-            
-            <form id="formGarantia" class="p-6 space-y-6">
-                <input type="hidden" id="garantiaId" name="garantia_id">
-                
-                <!-- Informações Básicas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Fornecedor *</label>
-                        <select id="fornecedorId" name="fornecedor_id" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                            <option value="">Selecione um fornecedor</option>
-                            <?php foreach ($fornecedores as $fornecedor): ?>
-                                <option value="<?= $fornecedor['id'] ?>"><?= htmlspecialchars($fornecedor['nome']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Origem da Garantia *</label>
-                        <select id="origemGarantia" name="origem_garantia" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                            <option value="">Selecione a origem</option>
-                            <option value="Amostragem">Amostragem</option>
-                            <option value="Homologação">Homologação</option>
-                            <option value="Em Campo">Em Campo</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Números de NF -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número NF Compras</label>
-                        <input type="text" id="numeroNfCompras" name="numero_nf_compras" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número NF Remessa Simples</label>
-                        <input type="text" id="numeroNfRemessaSimples" name="numero_nf_remessa_simples" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número NF Remessa Devolução</label>
-                        <input type="text" id="numeroNfRemessaDevolucao" name="numero_nf_remessa_devolucao" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                </div>
-
-                <!-- Campos Opcionais -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número de Série</label>
-                        <input type="text" id="numeroSerie" name="numero_serie" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número do Lote</label>
-                        <input type="text" id="numeroLote" name="numero_lote" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Número Ticket/OS</label>
-                        <input type="text" id="numeroTicketOs" name="numero_ticket_os" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                </div>
-
-                <!-- Status e Observação -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select id="status" name="status" class="w-full border border-gray-300 rounded-md px-3 py-2">
-                            <option value="Em andamento">Em andamento</option>
-                            <option value="Aguardando Fornecedor">Aguardando Fornecedor</option>
-                            <option value="Aguardando Recebimento">Aguardando Recebimento</option>
-                            <option value="Aguardando Item Chegar ao laboratório">Aguardando Item Chegar ao laboratório</option>
-                            <option value="Aguardando Emissão de NF">Aguardando Emissão de NF</option>
-                            <option value="Aguardando Despache">Aguardando Despache</option>
-                            <option value="Aguardando Testes">Aguardando Testes</option>
-                            <option value="Finalizado">Finalizado</option>
-                            <option value="Garantia Expirada">Garantia Expirada</option>
-                            <option value="Garantia não coberta">Garantia não coberta</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Observação</label>
-                        <textarea id="observacao" name="observacao" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2"></textarea>
-                        <p id="observacaoHelp" class="text-sm text-gray-500 mt-1 hidden">Observação obrigatória para este status</p>
-                    </div>
-                </div>
-
-                <!-- Itens -->
-                <div>
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-lg font-medium text-gray-900">Itens da Garantia</h4>
-                        <button type="button" id="btnAdicionarItem" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
-                            + Adicionar Item
-                        </button>
-                    </div>
-                    <div id="itensContainer" class="space-y-4">
-                        <!-- Itens adicionados dinamicamente -->
-                    </div>
-                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-                        <div class="flex justify-between text-sm">
-                            <span>Total de Itens: <span id="totalItens" class="font-medium">0</span></span>
-                            <span>Valor Total: R$ <span id="valorTotal" class="font-medium">0,00</span></span>
-                        </div>
-                    </div>
-                </div>
-            </form>
-
-            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-                <button type="button" id="btnCancelar" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md">
-                    Cancelar
-                </button>
-                <button type="submit" form="formGarantia" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-                    Salvar
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Modal removido - usando apenas formulário inline -->
 
 <script>
 // Variáveis globais
@@ -386,9 +266,7 @@ let fornecedores = <?= json_encode($fornecedores) ?>;
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
     carregarGarantias();
-    carregarFornecedoresSelect();
     configurarEventos();
-    adicionarPrimeiroItem();
 });
 
 // Configurar eventos
@@ -680,21 +558,21 @@ function adicionarItem() {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-white mb-1">Descrição *</label>
-                <input type="text" name="item_descricao" required class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Descrição do item">
+                <input type="text" name="item_descricao" required class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Descrição do item">
             </div>
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Quantidade *</label>
-                <input type="number" name="item_quantidade" min="1" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="1">
+                <input type="number" name="item_quantidade" min="1" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="1">
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Valor Unitário (R$) *</label>
-                <input type="number" name="item_valor" step="0.01" min="0" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0,00">
+                <input type="number" name="item_valor" step="0.01" min="0" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0,00">
             </div>
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Valor Total</label>
-                <input type="text" class="item-valor-total w-full bg-gray-600 border border-gray-500 text-gray-300 rounded px-3 py-2" readonly placeholder="R$ 0,00">
+                <input type="text" class="item-valor-total w-full bg-gray-600 border border-gray-500 text-gray-300 rounded px-3 py-2 placeholder-gray-400" readonly placeholder="R$ 0,00">
             </div>
         </div>
     `;
@@ -927,92 +805,7 @@ function verificarObservacaoObrigatoria() {
     }
 }
 
-// Salvar garantia
-async function salvarGarantia(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    
-    // Coletar itens
-    const itens = [];
-    const container = document.getElementById('itensContainer');
-    Array.from(container.children).forEach((item, index) => {
-        const itemData = {
-            item: item.querySelector('input[name*="[item]"]').value,
-            quantidade: parseInt(item.querySelector('input[name*="[quantidade]"]').value),
-            valor_unitario: parseFloat(item.querySelector('input[name*="[valor_unitario]"]').value),
-            defeito: item.querySelector('textarea[name*="[defeito]"]').value
-        };
-        itens.push(itemData);
-    });
-    
-    formData.append('itens', JSON.stringify(itens));
-    
-    try {
-        const garantiaId = document.getElementById('garantiaId').value;
-        const url = garantiaId ? `/garantias/${garantiaId}/update` : '/garantias/create';
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert(result.message);
-            fecharModal();
-            carregarGarantias();
-        } else {
-            alert('Erro: ' + result.message);
-        }
-    } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro ao salvar garantia');
-    }
-}
-
-// Carregar fornecedores no select do modal
-async function carregarFornecedoresSelect() {
-    try {
-        // Se já temos fornecedores do PHP, usar eles
-        if (fornecedores && fornecedores.length > 0) {
-            preencherSelectFornecedores(fornecedores);
-            return;
-        }
-        
-        // Caso contrário, carregar via AJAX
-        const response = await fetch('/garantias/fornecedores');
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            fornecedores = result.data;
-            preencherSelectFornecedores(result.data);
-            console.log('Fornecedores carregados via AJAX:', result.debug);
-        } else {
-            console.error('Erro ao carregar fornecedores:', result.message);
-        }
-    } catch (error) {
-        console.error('Erro ao carregar fornecedores:', error);
-    }
-}
-
-function preencherSelectFornecedores(fornecedoresList) {
-    const select = document.getElementById('fornecedorId');
-    
-    // Limpar opções existentes (exceto a primeira)
-    while (select.children.length > 1) {
-        select.removeChild(select.lastChild);
-    }
-    
-    // Adicionar fornecedores
-    fornecedoresList.forEach(fornecedor => {
-        const option = document.createElement('option');
-        option.value = fornecedor.id;
-        option.textContent = fornecedor.nome;
-        select.appendChild(option);
-    });
-}
+// Funções antigas do modal removidas - usando apenas formulário inline
 
 // Outras funções
 function carregarFornecedoresFiltro() {
