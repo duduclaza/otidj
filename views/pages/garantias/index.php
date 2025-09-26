@@ -1813,6 +1813,9 @@ function mostrarAnexosExistentes(anexos) {
 // SISTEMA DE FORMULÁRIO DE CORREIOS
 // =====================================================
 
+// Flag para evitar chamadas múltiplas
+let correiosFormInitialized = false;
+
 // Toggle do formulário de correios
 function toggleCorreiosForm() {
     console.log('toggleCorreiosForm() chamada');
@@ -1838,31 +1841,40 @@ function toggleCorreiosForm() {
         const destinatariosContainer = document.getElementById('destinatariosContainer');
         const itensContainer = document.getElementById('itensDeclaracaoContainer');
         
-        if (remetentesContainer && remetentesContainer.children.length === 0) {
-            console.log('Adicionando primeiro remetente');
-            if (typeof adicionarRemetente === 'function') {
-                adicionarRemetente();
-            } else {
-                console.error('Função adicionarRemetente não encontrada');
-            }
-        }
-        
-        if (destinatariosContainer && destinatariosContainer.children.length === 0) {
-            console.log('Adicionando primeiro destinatário');
-            if (typeof adicionarDestinatario === 'function') {
-                adicionarDestinatario();
-            } else {
-                console.error('Função adicionarDestinatario não encontrada');
-            }
-        }
-        
-        if (itensContainer && itensContainer.children.length === 0) {
-            console.log('Adicionando primeiro item');
-            if (typeof adicionarItemDeclaracao === 'function') {
-                adicionarItemDeclaracao();
-            } else {
-                console.error('Função adicionarItemDeclaracao não encontrada');
-            }
+        // Adicionar elementos iniciais apenas se não foram inicializados ainda
+        if (!correiosFormInitialized) {
+            console.log('🔄 Inicializando formulário de correios pela primeira vez');
+            correiosFormInitialized = true;
+            
+            // Usar setTimeout para garantir que os elementos sejam adicionados após o DOM estar pronto
+            setTimeout(() => {
+                const remetentesContainerCheck = document.getElementById('remetentesContainer');
+                const destinatariosContainerCheck = document.getElementById('destinatariosContainer');
+                const itensContainerCheck = document.getElementById('itensDeclaracaoContainer');
+                
+                if (remetentesContainerCheck && remetentesContainerCheck.children.length === 0) {
+                    console.log('Adicionando primeiro remetente');
+                    if (typeof adicionarRemetente === 'function') {
+                        adicionarRemetente();
+                    }
+                }
+                
+                if (destinatariosContainerCheck && destinatariosContainerCheck.children.length === 0) {
+                    console.log('Adicionando primeiro destinatário');
+                    if (typeof adicionarDestinatario === 'function') {
+                        adicionarDestinatario();
+                    }
+                }
+                
+                if (itensContainerCheck && itensContainerCheck.children.length === 0) {
+                    console.log('Adicionando primeiro item');
+                    if (typeof adicionarItemDeclaracao === 'function') {
+                        adicionarItemDeclaracao();
+                    }
+                }
+            }, 100);
+        } else {
+            console.log('📋 Formulário já foi inicializado, não adicionando elementos duplicados');
         }
     } else {
         cancelCorreiosForm();
@@ -1901,12 +1913,18 @@ function cancelCorreiosForm() {
     if (itensContainer) itensContainer.innerHTML = '';
     if (pesoTotal) pesoTotal.value = '';
     if (valorTotal) valorTotal.textContent = '0,00';
+    
+    // Resetar flag para permitir nova inicialização
+    correiosFormInitialized = false;
+    console.log('🔄 Flag de inicialização resetada');
 }
 
 // Adicionar remetente
 function adicionarRemetente() {
+    console.log('📤 adicionarRemetente() chamada');
     const container = document.getElementById('remetentesContainer');
     const index = container.children.length;
+    console.log('📤 Container atual tem', index, 'remetentes');
     
     const remetenteDiv = document.createElement('div');
     remetenteDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
@@ -1956,8 +1974,10 @@ function adicionarRemetente() {
 
 // Adicionar destinatário
 function adicionarDestinatario() {
+    console.log('📥 adicionarDestinatario() chamada');
     const container = document.getElementById('destinatariosContainer');
     const index = container.children.length;
+    console.log('📥 Container atual tem', index, 'destinatários');
     
     const destinatarioDiv = document.createElement('div');
     destinatarioDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
