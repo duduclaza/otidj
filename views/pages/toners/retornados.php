@@ -168,18 +168,13 @@
       </div>
 
       <!-- Botões de Ação -->
-      <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-        <button type="button" onclick="testarOrientacoes()" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-sm">
-          🧪 Testar Orientações
+      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+        <button type="button" onclick="cancelRetornadoForm()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          Cancelar
         </button>
-        <div class="flex space-x-3">
-          <button type="button" onclick="cancelRetornadoForm()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            Cancelar
-          </button>
-          <button type="submit" id="submitRetornadoBtn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            Registrar Retornado
-          </button>
-        </div>
+        <button type="submit" id="submitRetornadoBtn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          Registrar Retornado
+        </button>
       </div>
     </form>
   </div>
@@ -915,72 +910,6 @@ function submitRetornado(e) {
   });
 }
 
-// Função de teste para demonstrar diferentes cenários de orientação
-function testarOrientacoes() {
-  console.log('🧪 Iniciando teste de orientações...');
-  
-  // Verificar se parâmetros estão carregados
-  if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
-    alert('⚠️ Parâmetros não carregados. Carregue os parâmetros primeiro.');
-    carregarParametrosGerais();
-    return;
-  }
-  
-  // Cenários de teste com valores decimais
-  const cenariosTeste = [
-    { percentual: 2.5, descricao: 'Muito baixo (2.5%)' },
-    { percentual: 5.1, descricao: 'Baixo (5.1%)' },
-    { percentual: 8.7, descricao: 'Baixo-médio (8.7%)' },
-    { percentual: 15.3, descricao: 'Médio-baixo (15.3%)' },
-    { percentual: 25.8, descricao: 'Médio (25.8%)' },
-    { percentual: 45.2, descricao: 'Alto (45.2%)' },
-    { percentual: 70.9, descricao: 'Muito alto (70.9%)' },
-    { percentual: 95.4, descricao: 'Quase cheio (95.4%)' }
-  ];
-  
-  let resultados = '🧪 TESTE DE ORIENTAÇÕES:\n\n';
-  resultados += '📋 Parâmetros configurados:\n';
-  
-  // Mostrar parâmetros configurados
-  parametrosGerais.forEach(param => {
-    const faixaMax = param.faixa_max ? `${param.faixa_max}%` : '∞';
-    resultados += `• ${param.faixa_min}% - ${faixaMax}: "${param.orientacao}"\n`;
-  });
-  
-  resultados += '\n🎯 Resultados dos testes:\n';
-  
-  // Testar cada cenário
-  cenariosTeste.forEach(cenario => {
-    const orientacao = gerarOrientacao(cenario.percentual);
-    resultados += `• ${cenario.descricao}: "${orientacao}"\n`;
-  });
-  
-  // Mostrar resultados
-  alert(resultados);
-  
-  // Demonstração visual com o último cenário
-  const ultimoCenario = cenariosTeste[cenariosTeste.length - 1];
-  
-  // Simular um modelo para mostrar os resultados
-  const modeloTeste = {
-    rendimento: 2000,
-    valor: 150
-  };
-  
-  // Mostrar resultado visual
-  document.getElementById('percentualRestante').textContent = ultimoCenario.percentual.toFixed(1) + '%';
-  document.getElementById('folhasEstimadas').textContent = Math.round((ultimoCenario.percentual / 100) * modeloTeste.rendimento) + ' folhas';
-  document.getElementById('valorEstimado').textContent = 'R$ ' + ((ultimoCenario.percentual / 100) * modeloTeste.valor).toFixed(2);
-  
-  const orientacao = gerarOrientacao(ultimoCenario.percentual);
-  atualizarOrientacaoVisual(orientacao, ultimoCenario.percentual);
-  
-  // Mostrar seção de resultados
-  document.getElementById('resultadoCalculo').classList.remove('hidden');
-  document.getElementById('selecaoDestino').classList.remove('hidden');
-  
-  console.log('✅ Teste de orientações concluído');
-}
 
       // Código legado mantido para compatibilidade
       (function(){
