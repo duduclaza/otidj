@@ -1813,8 +1813,6 @@ function mostrarAnexosExistentes(anexos) {
 // SISTEMA DE FORMULÁRIO DE CORREIOS
 // =====================================================
 
-// Flag para evitar chamadas múltiplas
-let correiosFormInitialized = false;
 
 // Toggle do formulário de correios
 function toggleCorreiosForm() {
@@ -1841,41 +1839,36 @@ function toggleCorreiosForm() {
         const destinatariosContainer = document.getElementById('destinatariosContainer');
         const itensContainer = document.getElementById('itensDeclaracaoContainer');
         
-        // Adicionar elementos iniciais apenas se não foram inicializados ainda
-        if (!correiosFormInitialized) {
-            console.log('🔄 Inicializando formulário de correios pela primeira vez');
-            correiosFormInitialized = true;
+        // Limpar containers primeiro para evitar elementos duplicados
+        if (remetentesContainer) remetentesContainer.innerHTML = '';
+        if (destinatariosContainer) destinatariosContainer.innerHTML = '';
+        if (itensContainer) itensContainer.innerHTML = '';
+        
+        // Adicionar apenas 1 elemento de cada tipo
+        console.log('🔄 Inicializando formulário de correios');
+        setTimeout(() => {
+            console.log('Adicionando elementos iniciais...');
             
-            // Usar setTimeout para garantir que os elementos sejam adicionados após o DOM estar pronto
-            setTimeout(() => {
-                const remetentesContainerCheck = document.getElementById('remetentesContainer');
-                const destinatariosContainerCheck = document.getElementById('destinatariosContainer');
-                const itensContainerCheck = document.getElementById('itensDeclaracaoContainer');
-                
-                if (remetentesContainerCheck && remetentesContainerCheck.children.length === 0) {
-                    console.log('Adicionando primeiro remetente');
-                    if (typeof adicionarRemetente === 'function') {
-                        adicionarRemetente();
-                    }
-                }
-                
-                if (destinatariosContainerCheck && destinatariosContainerCheck.children.length === 0) {
-                    console.log('Adicionando primeiro destinatário');
-                    if (typeof adicionarDestinatario === 'function') {
-                        adicionarDestinatario();
-                    }
-                }
-                
-                if (itensContainerCheck && itensContainerCheck.children.length === 0) {
-                    console.log('Adicionando primeiro item');
-                    if (typeof adicionarItemDeclaracao === 'function') {
-                        adicionarItemDeclaracao();
-                    }
-                }
-            }, 100);
-        } else {
-            console.log('📋 Formulário já foi inicializado, não adicionando elementos duplicados');
-        }
+            // Adicionar 1 remetente
+            if (typeof adicionarRemetente === 'function') {
+                adicionarRemetente();
+                console.log('✅ Remetente adicionado');
+            }
+            
+            // Adicionar 1 destinatário
+            if (typeof adicionarDestinatario === 'function') {
+                adicionarDestinatario();
+                console.log('✅ Destinatário adicionado');
+            }
+            
+            // Adicionar 1 item
+            if (typeof adicionarItemDeclaracao === 'function') {
+                adicionarItemDeclaracao();
+                console.log('✅ Item adicionado');
+            }
+            
+            console.log('🎯 Inicialização completa');
+        }, 50);
     } else {
         cancelCorreiosForm();
     }
@@ -1913,10 +1906,6 @@ function cancelCorreiosForm() {
     if (itensContainer) itensContainer.innerHTML = '';
     if (pesoTotal) pesoTotal.value = '';
     if (valorTotal) valorTotal.textContent = '0,00';
-    
-    // Resetar flag para permitir nova inicialização
-    correiosFormInitialized = false;
-    console.log('🔄 Flag de inicialização resetada');
 }
 
 // Adicionar remetente
@@ -2336,30 +2325,32 @@ function criarHTMLDeclaracao(dados) {
         <div class="grid">
             <div class="section">
                 <h3>📤 REMETENTES</h3>
-                ${dados.remetentes.map((remetente, index) => `
+                ${dados.remetentes.filter(r => r.nome.trim() || r.endereco.trim()).map((remetente, index) => `
                     <div class="item">
                         <strong>Remetente ${index + 1}</strong><br>
-                        <strong>Nome:</strong> ${remetente.nome}<br>
-                        <strong>Endereço:</strong> ${remetente.endereco}<br>
-                        <strong>Cidade:</strong> ${remetente.cidade} - ${remetente.uf}<br>
-                        <strong>CEP:</strong> ${remetente.cep}<br>
-                        <strong>Documento:</strong> ${remetente.documento}
+                        <strong>Nome:</strong> ${remetente.nome || 'Não informado'}<br>
+                        <strong>Endereço:</strong> ${remetente.endereco || 'Não informado'}<br>
+                        <strong>Cidade:</strong> ${remetente.cidade || 'Não informado'} - ${remetente.uf || 'Não informado'}<br>
+                        <strong>CEP:</strong> ${remetente.cep || 'Não informado'}<br>
+                        <strong>Documento:</strong> ${remetente.documento || 'Não informado'}
                     </div>
                 `).join('')}
+                ${dados.remetentes.filter(r => r.nome.trim() || r.endereco.trim()).length === 0 ? '<p>Nenhum remetente informado</p>' : ''}
             </div>
 
             <div class="section">
                 <h3>📥 DESTINATÁRIOS</h3>
-                ${dados.destinatarios.map((destinatario, index) => `
+                ${dados.destinatarios.filter(d => d.nome.trim() || d.endereco.trim()).map((destinatario, index) => `
                     <div class="item">
                         <strong>Destinatário ${index + 1}</strong><br>
-                        <strong>Nome:</strong> ${destinatario.nome}<br>
-                        <strong>Endereço:</strong> ${destinatario.endereco}<br>
-                        <strong>Cidade:</strong> ${destinatario.cidade} - ${destinatario.uf}<br>
-                        <strong>CEP:</strong> ${destinatario.cep}<br>
-                        <strong>Documento:</strong> ${destinatario.documento}
+                        <strong>Nome:</strong> ${destinatario.nome || 'Não informado'}<br>
+                        <strong>Endereço:</strong> ${destinatario.endereco || 'Não informado'}<br>
+                        <strong>Cidade:</strong> ${destinatario.cidade || 'Não informado'} - ${destinatario.uf || 'Não informado'}<br>
+                        <strong>CEP:</strong> ${destinatario.cep || 'Não informado'}<br>
+                        <strong>Documento:</strong> ${destinatario.documento || 'Não informado'}
                     </div>
                 `).join('')}
+                ${dados.destinatarios.filter(d => d.nome.trim() || d.endereco.trim()).length === 0 ? '<p>Nenhum destinatário informado</p>' : ''}
             </div>
         </div>
 
@@ -2376,15 +2367,16 @@ function criarHTMLDeclaracao(dados) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${dados.itens.map((item, index) => `
+                    ${dados.itens.filter(i => i.descricao.trim()).map((item, index) => `
                         <tr>
                             <td>${index + 1}</td>
-                            <td>${item.descricao}</td>
-                            <td>${item.quantidade}</td>
-                            <td>R$ ${parseFloat(item.valor).toFixed(2).replace('.', ',')}</td>
-                            <td>R$ ${(item.quantidade * item.valor).toFixed(2).replace('.', ',')}</td>
+                            <td>${item.descricao || 'Não informado'}</td>
+                            <td>${item.quantidade || '1'}</td>
+                            <td>R$ ${parseFloat(item.valor || 0).toFixed(2).replace('.', ',')}</td>
+                            <td>R$ ${((item.quantidade || 1) * (item.valor || 0)).toFixed(2).replace('.', ',')}</td>
                         </tr>
                     `).join('')}
+                    ${dados.itens.filter(i => i.descricao.trim()).length === 0 ? '<tr><td colspan="5">Nenhum item informado</td></tr>' : ''}
                 </tbody>
             </table>
         </div>
