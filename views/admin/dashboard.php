@@ -193,8 +193,8 @@
 </div>
 
 <!-- Modal para Gráfico Expandido - Versão Elegante para Apresentações -->
-<div id="expandedChartModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center p-4" style="z-index: 999999;" onclick="closeExpandedChart()">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-full overflow-hidden transform transition-all duration-300" id="expandedChartContainer" onclick="event.stopPropagation()" style="transform: scale(0.95); opacity: 0;">
+<div id="expandedChartModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center p-4" style="z-index: 9999999 !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important;" onclick="closeExpandedChart()">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-full overflow-hidden transform transition-all duration-300" id="expandedChartContainer" onclick="event.stopPropagation()" style="transform: scale(0.95); opacity: 0; position: relative !important; z-index: 10000000 !important;">
     <!-- Header Elegante -->
     <div class="px-8 py-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
       <div class="absolute inset-0 bg-black bg-opacity-10"></div>
@@ -612,7 +612,27 @@ function expandChart(chartId) {
   console.log('📱 Mostrando modal...');
   modal.classList.remove('hidden');
   modal.classList.add('active'); // Adicionar classe active para o CSS customizado
+  
+  // Garantir que o modal apareça na frente de tudo
+  modal.style.zIndex = '9999999';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100vw';
+  modal.style.height = '100vh';
+  modal.style.display = 'flex';
+  modal.style.alignItems = 'center';
+  modal.style.justifyContent = 'center';
+  
   document.body.style.overflow = 'hidden';
+  
+  // Ocultar elementos que possam interferir
+  const sidebar = document.querySelector('.sidebar, nav, aside, [class*="sidebar"], [class*="nav"]');
+  if (sidebar) {
+    sidebar.style.zIndex = '1';
+    console.log('📋 Sidebar z-index reduzido');
+  }
+  
   console.log('👁️ Modal classes após mostrar:', modal.className);
   console.log('📏 Modal computed style display:', window.getComputedStyle(modal).display);
   
@@ -774,6 +794,13 @@ function closeExpandedChart() {
     modal.classList.add('hidden');
     modal.classList.remove('active'); // Remover classe active
     document.body.style.overflow = '';
+    
+    // Restaurar z-index do sidebar
+    const sidebar = document.querySelector('.sidebar, nav, aside, [class*="sidebar"], [class*="nav"]');
+    if (sidebar) {
+      sidebar.style.zIndex = '';
+      console.log('📋 Sidebar z-index restaurado');
+    }
     
     if (expandedChartInstance) {
       expandedChartInstance.destroy();
