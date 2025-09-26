@@ -926,15 +926,16 @@ function testarOrientacoes() {
     return;
   }
   
-  // Cenários de teste
+  // Cenários de teste com valores decimais
   const cenariosTeste = [
-    { percentual: 2, descricao: 'Muito baixo (2%)' },
-    { percentual: 8, descricao: 'Baixo (8%)' },
-    { percentual: 15, descricao: 'Médio-baixo (15%)' },
-    { percentual: 25, descricao: 'Médio (25%)' },
-    { percentual: 45, descricao: 'Alto (45%)' },
-    { percentual: 70, descricao: 'Muito alto (70%)' },
-    { percentual: 95, descricao: 'Quase cheio (95%)' }
+    { percentual: 2.5, descricao: 'Muito baixo (2.5%)' },
+    { percentual: 5.1, descricao: 'Baixo (5.1%)' },
+    { percentual: 8.7, descricao: 'Baixo-médio (8.7%)' },
+    { percentual: 15.3, descricao: 'Médio-baixo (15.3%)' },
+    { percentual: 25.8, descricao: 'Médio (25.8%)' },
+    { percentual: 45.2, descricao: 'Alto (45.2%)' },
+    { percentual: 70.9, descricao: 'Muito alto (70.9%)' },
+    { percentual: 95.4, descricao: 'Quase cheio (95.4%)' }
   ];
   
   let resultados = '🧪 TESTE DE ORIENTAÇÕES:\n\n';

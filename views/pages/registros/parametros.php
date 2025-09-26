@@ -6,8 +6,8 @@
     <h2 class="text-lg font-medium mb-3">Cadastrar Novo Parâmetro</h2>
     <form method="post" action="/registros/parametros/store" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
       <input type="text" name="nome" placeholder="Nome do parâmetro" class="border rounded px-3 py-2" required>
-      <input type="number" name="faixa_min" placeholder="Faixa mínima (%)" class="border rounded px-3 py-2" required>
-      <input type="number" name="faixa_max" placeholder="Faixa máxima (%) (opcional)" class="border rounded px-3 py-2">
+      <input type="number" name="faixa_min" placeholder="Faixa mínima (%)" step="0.1" min="0" max="100" class="border rounded px-3 py-2" required>
+      <input type="number" name="faixa_max" placeholder="Faixa máxima (%) (opcional)" step="0.1" min="0" max="100" class="border rounded px-3 py-2">
       <textarea name="orientacao" placeholder="Orientação" class="border rounded px-3 py-2 sm:col-span-2 lg:col-span-3" required></textarea>
       <button class="px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700">Salvar</button>
     </form>
@@ -42,12 +42,12 @@
                 </td>
                 <td class="px-4 py-3">
                   <span class="edit-display-faixa-<?= $p['id'] ?>">
-                    <?= e((string)$p['faixa_min']) ?>% - <?= $p['faixa_max'] !== null ? e((string)$p['faixa_max']).'%' : '∞' ?>
+                    <?= number_format((float)$p['faixa_min'], 1, ',', '.') ?>% - <?= $p['faixa_max'] !== null ? number_format((float)$p['faixa_max'], 1, ',', '.').'%' : '∞' ?>
                   </span>
                   <div class="edit-input-faixa-<?= $p['id'] ?> hidden space-x-1">
-                    <input type="number" class="edit-input-faixa-min-<?= $p['id'] ?> border rounded px-2 py-1 w-16" value="<?= $p['faixa_min'] ?>">
+                    <input type="number" step="0.1" min="0" max="100" class="edit-input-faixa-min-<?= $p['id'] ?> border rounded px-2 py-1 w-20" value="<?= $p['faixa_min'] ?>">
                     <span>-</span>
-                    <input type="number" class="edit-input-faixa-max-<?= $p['id'] ?> border rounded px-2 py-1 w-16" value="<?= $p['faixa_max'] ?>">
+                    <input type="number" step="0.1" min="0" max="100" class="edit-input-faixa-max-<?= $p['id'] ?> border rounded px-2 py-1 w-20" value="<?= $p['faixa_max'] ?>">
                   </div>
                 </td>
                 <td class="px-4 py-3 max-w-xs">
@@ -92,11 +92,29 @@ function cancelEdit(id) {
 
 function saveRow(id) {
   const nome = document.querySelector('.edit-input-nome-' + id).value.trim();
-  const faixa_min = document.querySelector('.edit-input-faixa-min-' + id).value;
+  const faixa_min = parseFloat(document.querySelector('.edit-input-faixa-min-' + id).value);
   const faixa_max = document.querySelector('.edit-input-faixa-max-' + id).value;
   const orientacao = document.querySelector('.edit-input-orientacao-' + id).value.trim();
   
   if (!nome || !orientacao) { alert('Nome e orientação são obrigatórios'); return; }
+  
+  // Validar faixas
+  if (isNaN(faixa_min) || faixa_min < 0 || faixa_min > 100) {
+    alert('Faixa mínima deve ser um número entre 0 e 100');
+    return;
+  }
+  
+  if (faixa_max !== '' && faixa_max !== null) {
+    const faixa_max_num = parseFloat(faixa_max);
+    if (isNaN(faixa_max_num) || faixa_max_num < 0 || faixa_max_num > 100) {
+      alert('Faixa máxima deve ser um número entre 0 e 100');
+      return;
+    }
+    if (faixa_max_num <= faixa_min) {
+      alert('Faixa máxima deve ser maior que a faixa mínima');
+      return;
+    }
+  }
   
   const form = document.createElement('form');
   form.method = 'POST';

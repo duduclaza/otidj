@@ -107,14 +107,14 @@ class RegistrosController
     public function storeParametro(): void
     {
         $nome = trim($_POST['nome'] ?? '');
-        $faixa_min = (int)($_POST['faixa_min'] ?? 0);
-        $faixa_max = isset($_POST['faixa_max']) && $_POST['faixa_max'] !== '' ? (int)$_POST['faixa_max'] : null;
+        $faixa_min = (float)($_POST['faixa_min'] ?? 0);
+        $faixa_max = isset($_POST['faixa_max']) && $_POST['faixa_max'] !== '' ? (float)$_POST['faixa_max'] : null;
         $orientacao = trim($_POST['orientacao'] ?? '');
         if ($nome === '' || $orientacao === '') { flash('error', 'Preencha nome e orientação.'); redirect('/registros/parametros'); return; }
         $stmt = $this->db->prepare('INSERT INTO parametros_retornados (nome, faixa_min, faixa_max, orientacao) VALUES (:n, :min, :max, :o)');
         $stmt->bindValue(':n', $nome);
-        $stmt->bindValue(':min', $faixa_min, \PDO::PARAM_INT);
-        $stmt->bindValue(':max', $faixa_max, $faixa_max === null ? \PDO::PARAM_NULL : \PDO::PARAM_INT);
+        $stmt->bindValue(':min', $faixa_min);
+        $stmt->bindValue(':max', $faixa_max, $faixa_max === null ? \PDO::PARAM_NULL : \PDO::PARAM_STR);
         $stmt->bindValue(':o', $orientacao);
         $stmt->execute();
         flash('success', 'Parâmetro cadastrado com sucesso.');
@@ -207,14 +207,14 @@ class RegistrosController
     {
         $id = (int)($_POST['id'] ?? 0);
         $nome = trim($_POST['nome'] ?? '');
-        $faixa_min = (int)($_POST['faixa_min'] ?? 0);
-        $faixa_max = isset($_POST['faixa_max']) && $_POST['faixa_max'] !== '' ? (int)$_POST['faixa_max'] : null;
+        $faixa_min = (float)($_POST['faixa_min'] ?? 0);
+        $faixa_max = isset($_POST['faixa_max']) && $_POST['faixa_max'] !== '' ? (float)$_POST['faixa_max'] : null;
         $orientacao = trim($_POST['orientacao'] ?? '');
         if ($id <= 0 || $nome === '' || $orientacao === '') { flash('error', 'Dados inválidos.'); redirect('/registros/parametros'); return; }
         $stmt = $this->db->prepare('UPDATE parametros_retornados SET nome = :nome, faixa_min = :min, faixa_max = :max, orientacao = :orientacao WHERE id = :id');
         $stmt->bindValue(':nome', $nome);
-        $stmt->bindValue(':min', $faixa_min, \PDO::PARAM_INT);
-        $stmt->bindValue(':max', $faixa_max, $faixa_max === null ? \PDO::PARAM_NULL : \PDO::PARAM_INT);
+        $stmt->bindValue(':min', $faixa_min);
+        $stmt->bindValue(':max', $faixa_max, $faixa_max === null ? \PDO::PARAM_NULL : \PDO::PARAM_STR);
         $stmt->bindValue(':orientacao', $orientacao);
         $stmt->bindValue(':id', $id, \PDO::PARAM_INT);
         $stmt->execute();
