@@ -7,6 +7,14 @@
 <section class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-semibold text-gray-900">📊 Dashboard - Análise de Dados</h1>
+    <div class="flex space-x-2">
+      <button onclick="testExpandChart()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+        🧪 Testar Expansão
+      </button>
+      <button onclick="expandAllCharts()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm">
+        🖥️ Modo Apresentação
+      </button>
+    </div>
   </div>
 
   <!-- Filtros -->
@@ -61,7 +69,9 @@
           </svg>
           📊 Retornados por Mês
         </h3>
-        <button onclick="expandChart('retornadosMesChart')" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button onclick="expandChart('retornadosMesChart')" 
+                class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-all duration-200 transform hover:scale-110" 
+                title="Expandir gráfico para apresentação">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
           </svg>
@@ -82,7 +92,9 @@
           </svg>
           🥧 Destino dos Retornados
         </h3>
-        <button onclick="expandChart('retornadosDestinoChart')" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <button onclick="expandChart('retornadosDestinoChart')" 
+                class="text-gray-400 hover:text-orange-600 hover:bg-orange-50 p-2 rounded-lg transition-all duration-200 transform hover:scale-110" 
+                title="Expandir gráfico para apresentação">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
           </svg>
@@ -103,7 +115,9 @@
         </svg>
         💰 Valor Recuperado em Toners (R$)
       </h3>
-      <button onclick="expandChart('tonersRecuperadosChart')" class="text-gray-400 hover:text-gray-600 transition-colors">
+      <button onclick="expandChart('tonersRecuperadosChart')" 
+              class="text-gray-400 hover:text-purple-600 hover:bg-purple-50 p-2 rounded-lg transition-all duration-200 transform hover:scale-110" 
+              title="Expandir gráfico para apresentação">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
         </svg>
@@ -538,6 +552,8 @@ function initCharts() {
 
 // Função para expandir gráfico com animações elegantes
 function expandChart(chartId) {
+  console.log('🔍 Expandindo gráfico:', chartId);
+  
   const modal = document.getElementById('expandedChartModal');
   const container = document.getElementById('expandedChartContainer');
   const expandedCanvas = document.getElementById('expandedChart');
@@ -545,28 +561,48 @@ function expandChart(chartId) {
   const dateElement = document.getElementById('expandedChartDate');
   const loading = document.getElementById('expandedChartLoading');
   
+  // Verificar se todos os elementos existem
+  if (!modal || !container || !expandedCanvas || !title || !dateElement || !loading) {
+    console.error('❌ Elementos do modal não encontrados!');
+    alert('Erro: Elementos do modal não encontrados. Recarregue a página.');
+    return;
+  }
+  
   let chartData, chartType, chartTitle, chartIcon;
   
   switch(chartId) {
     case 'retornadosMesChart':
       chartData = dadosRetornadosMes;
       chartType = 'bar';
-      chartTitle = '📊 Retornados por Mês';
+      chartTitle = 'Retornados por Mês';
       chartIcon = '📊';
       break;
     case 'retornadosDestinoChart':
       chartData = dadosRetornadosDestino;
       chartType = 'doughnut';
-      chartTitle = '🥧 Destino dos Retornados';
+      chartTitle = 'Destino dos Retornados';
       chartIcon = '🥧';
       break;
     case 'tonersRecuperadosChart':
       chartData = dadosTonersRecuperados;
       chartType = 'bar';
-      chartTitle = '💰 Valor Recuperado em Toners';
+      chartTitle = 'Valor Recuperado em Toners';
       chartIcon = '💰';
       break;
+    default:
+      console.error('❌ ID de gráfico inválido:', chartId);
+      alert('Erro: Gráfico não reconhecido.');
+      return;
   }
+  
+  // Verificar se os dados do gráfico existem
+  if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
+    console.error('❌ Dados do gráfico não encontrados:', chartId);
+    alert('Erro: Dados do gráfico não carregados. Aguarde o carregamento completo.');
+    return;
+  }
+  
+  console.log('✅ Dados do gráfico encontrados:', chartData);
   
   // Atualizar informações do modal
   title.textContent = `${chartIcon} ${chartTitle}`;
@@ -958,18 +994,37 @@ function clearFilters() {
   loadDashboardData();
 }
 
-// Inicializar dashboard quando a página carregar
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 Dashboard carregado, iniciando...');
+// Função de teste para expansão de gráficos
+function testExpandChart() {
+  console.log('🧪 Testando expansão de gráficos...');
   
-  // Inicializar gráficos primeiro
-  initCharts();
+  // Testar se os elementos existem
+  const modal = document.getElementById('expandedChartModal');
+  const charts = ['retornadosMesChart', 'retornadosDestinoChart', 'tonersRecuperadosChart'];
   
-  // Carregar dados após inicializar gráficos
+  if (!modal) {
+    alert('❌ Modal de expansão não encontrado!');
+    return;
+  }
+  
+  // Testar cada gráfico
+  let testResults = [];
+  charts.forEach(chartId => {
+    const canvas = document.getElementById(chartId);
+    const hasData = window[chartId.replace('Chart', '') === 'retornadosMes' ? 'dadosRetornadosMes' : 
+                           chartId.replace('Chart', '') === 'retornadosDestino' ? 'dadosRetornadosDestino' : 
+                           'dadosTonersRecuperados'];
+    
+    testResults.push(`${chartId}: ${canvas ? '✅' : '❌'} Canvas | ${hasData ? '✅' : '❌'} Dados`);
+  });
+  
+  alert('🧪 Resultados do Teste:\n\n' + testResults.join('\n') + '\n\nTentando expandir primeiro gráfico...');
+  
+  // Tentar expandir o primeiro gráfico
   setTimeout(() => {
-    loadDashboardData();
+    expandChart('retornadosMesChart');
   }, 1000);
-});
+}
 
 // Funções do modal de usuário
 function openCreateUserModal() {
@@ -1004,8 +1059,10 @@ function submitCreateUser() {
   });
 }
 
-// Inicializar quando a página carregar
+// Inicializar dashboard quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('🚀 Dashboard carregado, iniciando...');
+  
   // Definir datas padrão
   const hoje = new Date();
   const primeiroDiaAno = new Date(hoje.getFullYear(), 0, 1); // 01 de janeiro do ano atual
@@ -1013,7 +1070,12 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('dataInicial').value = primeiroDiaAno.toISOString().split('T')[0];
   document.getElementById('dataFinal').value = hoje.toISOString().split('T')[0];
   
-  // Inicializar gráficos
+  // Inicializar gráficos primeiro
   initCharts();
+  
+  // Carregar dados após inicializar gráficos
+  setTimeout(() => {
+    loadDashboardData();
+  }, 1000);
 });
 </script>
