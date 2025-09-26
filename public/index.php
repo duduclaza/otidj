@@ -63,8 +63,27 @@ $router->get('/', function() {
         header('Location: /login');
         exit;
     }
-    // Authenticated: send to admin dashboard
-    (new App\Controllers\AdminController())->dashboard();
+    
+    // Verificar se tem permissão para dashboard
+    if (\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+        // Tem permissão: mostrar dashboard
+        (new App\Controllers\AdminController())->dashboard();
+    } else {
+        // Não tem permissão: redirecionar para primeiro módulo permitido
+        $authController = new App\Controllers\AuthController();
+        $redirectMethod = new ReflectionMethod($authController, 'getSmartRedirectUrl');
+        $redirectMethod->setAccessible(true);
+        $redirectUrl = $redirectMethod->invoke($authController, $_SESSION['user_id']);
+        
+        if ($redirectUrl !== '/profile' && $redirectUrl !== '/') {
+            header('Location: ' . $redirectUrl);
+            exit;
+        } else {
+            // Fallback para perfil
+            header('Location: /profile');
+            exit;
+        }
+    }
 });
 
 // Admin routes

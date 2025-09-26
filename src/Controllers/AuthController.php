@@ -260,7 +260,13 @@ class AuthController
                 echo json_encode(['success' => false, 'message' => 'Acesso negado']);
                 exit;
             } else {
-                redirect('/');
+                // Redirecionar para primeiro módulo permitido em vez de criar loop
+                $redirectUrl = (new self())->getSmartRedirectUrl($_SESSION['user_id']);
+                if ($redirectUrl !== '/') {
+                    header('Location: ' . $redirectUrl);
+                } else {
+                    header('Location: /profile');
+                }
                 exit;
             }
         }
@@ -282,19 +288,17 @@ class AuthController
             'amostragens' => '/toners/amostragens', 
             'toners_retornados' => '/toners/retornados',
             'homologacoes' => '/homologacoes',
-            'melhoria_continua' => '/melhoria-continua',
             '5w2h' => '/5w2h',
             'garantias' => '/garantias',
             'controle_descartes' => '/controle-de-descartes',
             'femea' => '/femea',
-            'pops_its' => '/pops-e-its',
+            'pops_its_visualizacao' => '/pops-e-its',
             'fluxogramas' => '/fluxogramas',
             'controle_rc' => '/controle-de-rc',
             'registros_filiais' => '/registros/filiais',
             'registros_departamentos' => '/registros/departamentos',
             'registros_fornecedores' => '/registros/fornecedores',
             'registros_parametros' => '/registros/parametros',
-            'configuracoes_gerais' => '/configuracoes',
         ];
         
         // Procurar primeiro módulo com permissão
