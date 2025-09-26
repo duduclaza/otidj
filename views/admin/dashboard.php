@@ -69,7 +69,7 @@
           </svg>
           📊 Retornados por Mês
         </h3>
-        <button onclick="expandChart('retornadosMesChart')" 
+        <button onclick="alert('Botão clicado!'); console.log('Teste expandChart'); expandChart('retornadosMesChart')" 
                 class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-all duration-200 transform hover:scale-110" 
                 title="Expandir gráfico para apresentação">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -609,25 +609,30 @@ function expandChart(chartId) {
   dateElement.textContent = `Atualizado em ${new Date().toLocaleString('pt-BR')}`;
   
   // Mostrar modal com animação
+  console.log('📱 Mostrando modal...');
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   
   // Animar entrada do container
   setTimeout(() => {
+    console.log('🎬 Animando container...');
     container.style.transform = 'scale(1)';
     container.style.opacity = '1';
   }, 50);
   
   // Mostrar loading
+  console.log('⏳ Mostrando loading...');
   loading.classList.remove('hidden');
   
   // Destruir gráfico anterior se existir
   if (expandedChartInstance) {
+    console.log('🗑️ Destruindo gráfico anterior...');
     expandedChartInstance.destroy();
   }
   
   // Criar novo gráfico expandido com delay para animação
   setTimeout(() => {
+    console.log('📊 Criando gráfico expandido...');
     const ctx = expandedCanvas.getContext('2d');
     
     // Configurações avançadas para apresentação
@@ -728,14 +733,22 @@ function expandChart(chartId) {
       }
     };
     
-    expandedChartInstance = new Chart(ctx, {
-      type: chartType,
-      data: chartData,
-      options: presentationOptions
-    });
+    try {
+      console.log('🎯 Criando instância do Chart.js...');
+      expandedChartInstance = new Chart(ctx, {
+        type: chartType,
+        data: chartData,
+        options: presentationOptions
+      });
+      console.log('✅ Gráfico expandido criado com sucesso!');
+    } catch (error) {
+      console.error('❌ Erro ao criar gráfico:', error);
+      alert('Erro ao criar gráfico: ' + error.message);
+    }
     
     // Esconder loading após criar gráfico
     setTimeout(() => {
+      console.log('✨ Escondendo loading...');
       loading.classList.add('hidden');
     }, 500);
   }, 300);
