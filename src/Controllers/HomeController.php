@@ -20,7 +20,7 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.1';
+        $systemVersion = '2.1.2';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
