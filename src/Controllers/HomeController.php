@@ -26,6 +26,19 @@ class HomeController
         // Últimas atualizações do sistema
         $updates = [
             [
+                'version' => '2.1.2',
+                'date' => '26/09/2025',
+                'type' => 'Investigação',
+                'title' => 'Diagnóstico de Permissões do Dashboard',
+                'description' => 'Criados scripts de diagnóstico para investigar problemas de acesso ao dashboard',
+                'items' => [
+                    'Criado script debug_dashboard_permissions.php para análise',
+                    'Criado script fix_dashboard_permissions.php para correções',
+                    'Criado script test_user_dashboard.php para testes específicos',
+                    'Investigação de inconsistências no sistema de permissões'
+                ]
+            ],
+            [
                 'version' => '2.1.1',
                 'date' => '26/09/2025',
                 'type' => 'Melhoria',
