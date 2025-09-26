@@ -78,6 +78,9 @@ $router->get('/', function() {
 // Home/Início route - acessível a todos os usuários autenticados
 $router->get('/inicio', [App\Controllers\HomeController::class, 'index']);
 
+// Dashboard route - com URL específica
+$router->get('/dashboard', [App\Controllers\AdminController::class, 'dashboard']);
+
 // Admin routes
 $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
 $router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);

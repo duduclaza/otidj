@@ -20,11 +20,24 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.5';
+        $systemVersion = '2.1.6';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
         $updates = [
+            [
+                'version' => '2.1.6',
+                'date' => '26/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção URL e Permissões do Dashboard',
+                'description' => 'Corrigida URL do dashboard e problemas de permissão para usuários autorizados',
+                'items' => [
+                    'Criada rota específica /dashboard para URL correta na barra',
+                    'Menu Dashboard agora aponta para /dashboard em vez de /',
+                    'Criado script fix_dashboard_permission_specific.php para diagnóstico',
+                    'Corrigidas verificações de permissão do módulo dashboard'
+                ]
+            ],
             [
                 'version' => '2.1.5',
                 'date' => '26/09/2025',
