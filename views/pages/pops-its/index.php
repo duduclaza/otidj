@@ -1,111 +1,104 @@
-<?php
-// Helpers protegidos contra redeclaração (servidor já carrega helpers.php)
-if (!function_exists('hasPermission')) {
-    function hasPermission($module, $action = 'view') {
-        if (!isset($_SESSION['user_id'])) {
-            return false;
-        }
-        // Admin tem acesso total
-        try {
-            if (\App\Services\PermissionService::isAdmin((int)$_SESSION['user_id'])) {
-                return true;
-            }
-        } catch (\Throwable $e) {}
+<section class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 -m-6">
+    <div class="max-w-2xl mx-auto text-center px-6">
+        <!-- Ícone principal -->
+        <div class="mb-8">
+            <div class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-2xl">
+                <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+        </div>
 
-        // Fallback via sessão
-        $profile = $_SESSION['profile'] ?? ($_SESSION['user_profile']['profile_name'] ?? null);
-        if ($profile === 'Administrador') { return true; }
+        <!-- Título principal -->
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            <?= e($title ?? 'POPs e ITs') ?>
+        </h1>
 
-        $permissions = $_SESSION['permissions'] ?? ($_SESSION['user_profile']['permissions'] ?? []);
-        if (!empty($permissions)) {
-            foreach ($permissions as $permission) {
-                if (($permission['module'] ?? null) === $module) {
-                    switch ($action) {
-                        case 'view': return (bool)$permission['can_view'];
-                        case 'edit': return (bool)$permission['can_edit'];
-                        case 'delete': return (bool)$permission['can_delete'];
-                        case 'import': return (bool)$permission['can_import'];
-                        case 'export': return (bool)$permission['can_export'];
-                    }
-                }
-            }
-        }
+        <!-- Subtítulo -->
+        <h2 class="text-xl md:text-2xl font-semibold text-blue-600 mb-6">
+            Em Breve Disponível
+        </h2>
 
-        // Fallback final: consultar serviço
-        try {
-            $map = ['view'=>'view','edit'=>'edit','delete'=>'delete','import'=>'import','export'=>'export'];
-            $actionKey = $map[$action] ?? 'view';
-            return \App\Services\PermissionService::hasPermission((int)$_SESSION['user_id'], $module, $actionKey);
-        } catch (\Throwable $e) {
-            return false;
-        }
-    }
-}
+        <!-- Descrição -->
+        <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+            Estamos trabalhando duro para trazer este módulo para você! <br>
+            Nossa equipe está construindo uma experiência incrível que estará disponível em breve.
+        </p>
 
-if (!function_exists('e')) {
-    function e($value) { return htmlspecialchars($value, ENT_QUOTES, 'UTF-8'); }
-}
+        <!-- Ícones de progresso -->
+        <div class="flex justify-center items-center space-x-8 mb-8">
+            <div class="flex flex-col items-center">
+                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-2">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <span class="text-sm text-gray-600">Planejamento</span>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-2 animate-pulse">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <span class="text-sm text-gray-600">Desenvolvimento</span>
+            </div>
+            
+            <div class="flex flex-col items-center">
+                <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mb-2">
+                    <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span class="text-sm text-gray-600">Lançamento</span>
+            </div>
+        </div>
 
-// Verificar permissões para cada aba
-$canViewCadastroTitulos = hasPermission('pops_its_cadastro_titulos', 'view');
-$canViewMeusRegistros = hasPermission('pops_its_meus_registros', 'view');
-$canViewPendenteAprovacao = hasPermission('pops_its_pendente_aprovacao', 'view');
-$canViewVisualizacao = hasPermission('pops_its_visualizacao', 'view');
-// Detectar admin de forma robusta para garantir acesso
-$isAdmin = false;
-try {
-    if (isset($_SESSION['user_id']) && \App\Services\PermissionService::isAdmin((int)$_SESSION['user_id'])) {
-        $isAdmin = true;
-    }
-} catch (\Throwable $e) {
-    // Ignorar e tentar via sessão
-}
-$profileName = $_SESSION['profile'] ?? ($_SESSION['user_profile']['profile_name'] ?? null);
-if (!$isAdmin && $profileName) {
-    $isAdmin = in_array(strtolower($profileName), ['administrador','admin','administrator']);
-}
+        <!-- Card informativo -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800">O que esperar?</h3>
+            </div>
+            <p class="text-gray-600">
+                Este módulo fará parte do nosso sistema completo de gestão da qualidade, 
+                oferecendo funcionalidades avançadas e uma interface intuitiva para 
+                otimizar seus processos de trabalho.
+            </p>
+        </div>
 
-// Aba de solicitações visível apenas para admin
-$canViewSolicitacoes = $isAdmin;
+        <!-- Botão de voltar -->
+        <div class="space-y-4">
+            <button onclick="history.back()" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Voltar
+            </button>
+            
+            <p class="text-sm text-gray-500">
+                Enquanto isso, explore os outros módulos disponíveis no menu lateral.
+            </p>
+        </div>
 
-// Se nenhuma aba estiver liberada (por algum motivo de permissão), habilitar Meus Registros como fallback
-if (!$canViewCadastroTitulos && !$canViewMeusRegistros && !$canViewPendenteAprovacao && !$canViewVisualizacao) {
-    $canViewMeusRegistros = true;
-}
-?>
+        <!-- Rodapé com logo -->
+        <div class="mt-12 pt-8 border-t border-gray-200">
+            <div class="flex items-center justify-center space-x-2 text-gray-500">
+                <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+                    <span class="text-white text-xs font-bold">SGQ</span>
+                </div>
+                <span class="text-sm">Sistema de Gestão da Qualidade - OTI DJ</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-<section class="space-y-6">
-  <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-semibold text-gray-900">POPs e ITs</h1>
-  </div>
-
-  <!-- Navegação por Abas -->
-  <div class="bg-white rounded-lg shadow">
-    <div class="border-b border-gray-200">
-      <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-        <?php if ($canViewCadastroTitulos): ?>
-        <button id="tab-cadastro" class="tab-button active border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-          📚 Cadastro de Títulos
-        </button>
-        <?php endif; ?>
-        
-        <?php if ($canViewMeusRegistros): ?>
-        <button id="tab-registros" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-          📝 Meus Registros
-        </button>
-        <?php endif; ?>
-        
-        <?php if ($canViewPendenteAprovacao): ?>
-        <button id="tab-pendentes" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-          ⏳ Pendente Aprovação
-        </button>
-        <?php endif; ?>
-        
-        <?php if ($canViewVisualizacao): ?>
-        <button id="tab-visualizacao" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-          👁️ Visualização
-        </button>
-        <?php endif; ?>
       </nav>
     </div>
 
