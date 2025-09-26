@@ -591,21 +591,38 @@ function submitGarantia(e) {
         return;
     }
     
-    // Verificar se há pelo menos um item
+    // Verificar se há pelo menos um item válido
     const itens = document.querySelectorAll('#itensContainer .item-garantia');
     if (itens.length === 0) {
         alert('Adicione pelo menos um item à garantia');
         return;
     }
     
-    // Coletar dados dos itens
-    const itensData = [];
-    itens.forEach((item, index) => {
-        const descricao = item.querySelector('input[name="item_descricao"]').value;
+    // Verificar se pelo menos um item tem todos os campos preenchidos
+    let itemValido = false;
+    itens.forEach(item => {
+        const descricao = item.querySelector('input[name="item_descricao"]').value.trim();
         const quantidade = item.querySelector('input[name="item_quantidade"]').value;
         const valor = item.querySelector('input[name="item_valor"]').value;
         
-        if (descricao && quantidade && valor) {
+        if (descricao && quantidade && valor && quantidade > 0 && valor > 0) {
+            itemValido = true;
+        }
+    });
+    
+    if (!itemValido) {
+        alert('Preencha todos os campos de pelo menos um item (Descrição, Quantidade e Valor)');
+        return;
+    }
+    
+    // Coletar dados dos itens válidos
+    const itensData = [];
+    itens.forEach((item, index) => {
+        const descricao = item.querySelector('input[name="item_descricao"]').value.trim();
+        const quantidade = item.querySelector('input[name="item_quantidade"]').value;
+        const valor = item.querySelector('input[name="item_valor"]').value;
+        
+        if (descricao && quantidade && valor && quantidade > 0 && valor > 0) {
             itensData.push({
                 descricao: descricao,
                 quantidade: parseInt(quantidade),
@@ -662,21 +679,21 @@ function adicionarItem() {
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-300 mb-1">Descrição *</label>
+                <label class="block text-sm font-medium text-white mb-1">Descrição *</label>
                 <input type="text" name="item_descricao" required class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Descrição do item">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Quantidade *</label>
+                <label class="block text-sm font-medium text-white mb-1">Quantidade *</label>
                 <input type="number" name="item_quantidade" min="1" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="1">
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Valor Unitário (R$) *</label>
+                <label class="block text-sm font-medium text-white mb-1">Valor Unitário (R$) *</label>
                 <input type="number" name="item_valor" step="0.01" min="0" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0,00">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-300 mb-1">Valor Total</label>
+                <label class="block text-sm font-medium text-white mb-1">Valor Total</label>
                 <input type="text" class="item-valor-total w-full bg-gray-600 border border-gray-500 text-gray-300 rounded px-3 py-2" readonly placeholder="R$ 0,00">
             </div>
         </div>
