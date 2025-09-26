@@ -479,21 +479,29 @@ class AmostragemController
             ob_clean();
         }
         
-        header('Content-Type: application/json');
+        // Garantir que não há output antes do JSON
+        ob_start();
         
         try {
             $id = (int)$id;
             $status = $_POST['status'] ?? '';
             $observacao = trim($_POST['observacao'] ?? '');
             
+            // Log para debug
+            error_log("Update amostragem - ID: $id, Status: $status, Obs: $observacao");
+            
             // Validações
             if (!in_array($status, ['pendente', 'aprovado', 'reprovado'])) {
+                ob_clean();
+                header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Status inválido']);
                 exit;
             }
             
             // Validar observação para status reprovado
             if ($status === 'reprovado' && empty($observacao)) {
+                ob_clean();
+                header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Observação é obrigatória para status reprovado']);
                 exit;
             }
@@ -503,20 +511,34 @@ class AmostragemController
             $stmt->execute([$id]);
             
             if (!$stmt->fetch()) {
+                ob_clean();
+                header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
                 exit;
             }
             
             // Atualizar amostragem
             $stmt = $this->db->prepare("UPDATE amostragens SET status = ?, observacao = ? WHERE id = ?");
-            $stmt->execute([$status, $observacao, $id]);
+            $result = $stmt->execute([$status, $observacao, $id]);
             
-            echo json_encode(['success' => true, 'message' => 'Amostragem atualizada com sucesso!']);
+            if ($result) {
+                error_log("Update amostragem - Sucesso para ID: $id");
+                ob_clean();
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Amostragem atualizada com sucesso!']);
+            } else {
+                error_log("Update amostragem - Falha na execução para ID: $id");
+                ob_clean();
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Falha ao executar atualização']);
+            }
             exit;
             
         } catch (\Exception $e) {
             // Log do erro para debug
-            error_log("Erro update amostragem: " . $e->getMessage() . " - Linha: " . $e->getLine());
+            error_log("Erro update amostragem: " . $e->getMessage() . " - Linha: " . $e->getLine() . " - File: " . $e->getFile());
+            ob_clean();
+            header('Content-Type: application/json');
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao atualizar amostragem: ' . $e->getMessage()]);
             exit;

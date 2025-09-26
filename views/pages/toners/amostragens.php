@@ -701,6 +701,8 @@ async function viewEvidencias(amostragemId) {
 // Atualizar status
 async function updateStatus(id, newStatus) {
   try {
+    console.log('🔄 Atualizando status:', { id, newStatus });
+    
     const formData = new FormData();
     formData.append('status', newStatus);
     
@@ -714,9 +716,30 @@ async function updateStatus(id, newStatus) {
       body: formData
     });
     
-    const result = await response.json();
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response headers:', response.headers.get('content-type'));
     
-    if (result.success) {
+    // Verificar se a resposta é OK
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    // Tentar ler como texto primeiro para debug
+    const responseText = await response.text();
+    console.log('📋 Response text:', responseText);
+    
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Erro ao fazer parse do JSON:', parseError);
+      console.error('📄 Resposta recebida:', responseText);
+      throw new Error('Resposta inválida do servidor');
+    }
+    
+    console.log('✅ Resultado parseado:', result);
+    
+    if (result && result.success) {
       // Atualizar cor do select
       const select = event.target;
       select.className = `text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 ${
@@ -729,15 +752,18 @@ async function updateStatus(id, newStatus) {
         editObservacao(id);
         // Não mostrar alert, apenas abrir editor
       }
+      
+      console.log('✅ Status atualizado com sucesso!');
       // Status atualizado silenciosamente - sem alert
     } else {
-      alert('Erro: ' + result.message);
+      console.error('❌ Erro retornado pela API:', result);
+      alert('Erro: ' + (result ? result.message : 'Resposta inválida'));
       // Reverter select
       location.reload();
     }
   } catch (error) {
-    console.error('Erro ao atualizar status:', error);
-    alert('Erro ao atualizar status');
+    console.error('❌ Erro ao atualizar status:', error);
+    alert('Erro ao atualizar status: ' + error.message);
     location.reload();
   }
 }
@@ -768,12 +794,16 @@ function cancelEditObservacao(id) {
 // Salvar observação
 async function saveObservacao(id) {
   try {
+    console.log('💾 Salvando observação para ID:', id);
+    
     const input = document.getElementById(`obs-input-${id}`);
     const observacao = input.value.trim();
     
     // Buscar status atual
     const statusSelect = document.querySelector(`select[onchange*="${id}"]`);
     const currentStatus = statusSelect.value;
+    
+    console.log('📝 Dados:', { observacao, currentStatus });
     
     const formData = new FormData();
     formData.append('status', currentStatus);
@@ -784,9 +814,28 @@ async function saveObservacao(id) {
       body: formData
     });
     
-    const result = await response.json();
+    console.log('📡 Response status:', response.status);
     
-    if (result.success) {
+    // Verificar se a resposta é OK
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    // Tentar ler como texto primeiro para debug
+    const responseText = await response.text();
+    console.log('📋 Response text:', responseText);
+    
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('❌ Erro ao fazer parse do JSON:', parseError);
+      throw new Error('Resposta inválida do servidor');
+    }
+    
+    console.log('✅ Resultado parseado:', result);
+    
+    if (result && result.success) {
       // Atualizar texto
       const textSpan = document.getElementById(`obs-text-${id}`);
       if (observacao) {
@@ -799,13 +848,15 @@ async function saveObservacao(id) {
       }
       
       cancelEditObservacao(id);
+      console.log('✅ Observação salva com sucesso!');
       // Observação salva silenciosamente - sem alert
     } else {
-      alert('Erro: ' + result.message);
+      console.error('❌ Erro retornado pela API:', result);
+      alert('Erro: ' + (result ? result.message : 'Resposta inválida'));
     }
   } catch (error) {
-    console.error('Erro ao salvar observação:', error);
-    alert('Erro ao salvar observação');
+    console.error('❌ Erro ao salvar observação:', error);
+    alert('Erro ao salvar observação: ' + error.message);
   }
 }
 
