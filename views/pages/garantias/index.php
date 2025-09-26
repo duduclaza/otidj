@@ -820,17 +820,30 @@ function submitGarantia(e) {
         const quantidade = item.querySelector('input[name="item_quantidade"]').value;
         const valor = item.querySelector('input[name="item_valor"]').value;
         
+        console.log(`Item ${index + 1}:`, {
+            descricao: descricao,
+            quantidade: quantidade,
+            valor: valor
+        });
+        
         if (descricao && quantidade && valor && quantidade > 0 && valor > 0) {
-            itensData.push({
+            const itemData = {
                 descricao: descricao,
                 quantidade: parseInt(quantidade),
                 valor_unitario: parseFloat(valor)
-            });
+            };
+            itensData.push(itemData);
+            console.log(`Item ${index + 1} adicionado:`, itemData);
+        } else {
+            console.log(`Item ${index + 1} ignorado - dados inválidos`);
         }
     });
     
+    console.log('Dados dos itens coletados:', itensData);
+    
     // Adicionar itens ao FormData
     formData.append('itens', JSON.stringify(itensData));
+    console.log('JSON dos itens:', JSON.stringify(itensData));
     
     // Debug FormData
     console.log('Dados do formulário:');

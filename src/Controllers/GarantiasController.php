@@ -65,6 +65,8 @@ class GarantiasController
 
             // Validar itens
             $itens = json_decode($_POST['itens'] ?? '[]', true);
+            error_log("DEBUG - Itens recebidos: " . print_r($itens, true));
+            
             if (empty($itens)) {
                 echo json_encode(['success' => false, 'message' => 'Pelo menos um item é obrigatório']);
                 return;
@@ -86,12 +88,15 @@ class GarantiasController
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
                 $numero_ticket_os, $status, $observacao
             ]);
-
+            
             $garantia_id = $this->db->lastInsertId();
 
             // Inserir itens
             foreach ($itens as $index => $item) {
+                error_log("DEBUG - Processando item $index: " . print_r($item, true));
+                
                 if (empty($item['descricao']) || $item['quantidade'] <= 0 || $item['valor_unitario'] < 0) {
+                    error_log("DEBUG - Item $index ignorado - dados inválidos");
                     continue;
                 }
 
@@ -101,14 +106,14 @@ class GarantiasController
                     ) VALUES (?, ?, ?, ?)
                 ");
                 
-                $stmt->execute([
-                    $garantia_id,
-                    trim($item['descricao']),
-                    (int)$item['quantidade'],
-                    (float)$item['valor_unitario']
-                ]);
+                $result = $stmt->execute([$garantia_id, trim($item['descricao']), (int)$item['quantidade'], (float)$item['valor_unitario']]);
+                error_log("DEBUG - Item $index inserido: " . ($result ? 'SUCESSO' : 'ERRO'));
+                
+                if (!$result) {
+                    error_log("DEBUG - Erro SQL: " . print_r($stmt->errorInfo(), true));
+                }
             }
-
+            
             // Processar anexos
             $this->processarAnexos($garantia_id);
             
@@ -269,31 +274,38 @@ class GarantiasController
             // Atualizar itens se fornecidos
             if (isset($_POST['itens'])) {
                 $itens = json_decode($_POST['itens'], true);
+                error_log("DEBUG UPDATE - Itens recebidos: " . print_r($itens, true));
                 
                 // Remover itens existentes
                 $stmt = $this->db->prepare("DELETE FROM garantias_itens WHERE garantia_id = ?");
                 $stmt->execute([$id]);
+                error_log("DEBUG UPDATE - Itens antigos removidos para garantia $id");
 
                 // Inserir novos itens
                 foreach ($itens as $index => $item) {
-                    if (empty($item['item']) || $item['quantidade'] <= 0 || $item['valor_unitario'] < 0) {
+                    error_log("DEBUG UPDATE - Processando item $index: " . print_r($item, true));
+                    
+                    if (empty($item['descricao']) || $item['quantidade'] <= 0 || $item['valor_unitario'] < 0) {
+                        error_log("DEBUG UPDATE - Item $index ignorado - dados inválidos");
                         continue;
                     }
 
                     $stmt = $this->db->prepare("
                         INSERT INTO garantias_itens (
-                            garantia_id, item, quantidade, valor_unitario, defeito, ordem
-                        ) VALUES (?, ?, ?, ?, ?, ?)
+                            garantia_id, descricao, quantidade, valor_unitario
+                        ) VALUES (?, ?, ?, ?)
                     ");
-                    
-                    $stmt->execute([
+                    $result = $stmt->execute([
                         $id,
-                        trim($item['item']),
+                        trim($item['descricao']),
                         (int)$item['quantidade'],
-                        (float)$item['valor_unitario'],
-                        trim($item['defeito'] ?? ''),
-                        $index + 1
+                        (float)$item['valor_unitario']
                     ]);
+                    error_log("DEBUG UPDATE - Item $index inserido: " . ($result ? 'SUCESSO' : 'ERRO'));
+                    
+                    if (!$result) {
+                        error_log("DEBUG UPDATE - Erro SQL: " . print_r($stmt->errorInfo(), true));
+                    }
                 }
             }
 
