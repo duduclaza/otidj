@@ -133,8 +133,10 @@ $router->get('/garantias/fornecedores', [App\Controllers\GarantiasController::cl
 $router->post('/garantias/create', [App\Controllers\GarantiasController::class, 'create']);
 $router->get('/garantias/{id}', [App\Controllers\GarantiasController::class, 'show']);
 $router->post('/garantias/{id}/update', [App\Controllers\GarantiasController::class, 'update']);
+$router->post('/garantias/{id}/update-status', [App\Controllers\GarantiasController::class, 'updateStatus']);
 $router->post('/garantias/{id}/delete', [App\Controllers\GarantiasController::class, 'delete']);
 $router->get('/garantias/anexo/{id}', [App\Controllers\GarantiasController::class, 'downloadAnexo']);
+$router->get('/garantias/{id}/anexos/download-all', [App\Controllers\GarantiasController::class, 'downloadAllAnexos']);
 $router->post('/garantias/anexo/{id}/delete', [App\Controllers\GarantiasController::class, 'deleteAnexo']);
 
 // Controle de Descartes routes

@@ -232,14 +232,16 @@ if (!isset($_SESSION['user_id'])) {
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fornecedor</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origem</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado em</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fornecedor</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origem</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NFs</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Itens</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anexos</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado em</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                     </tr>
                 </thead>
                 <tbody id="tabelaGarantias" class="bg-white divide-y divide-gray-200">
@@ -708,7 +710,7 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     if (dados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
         return;
     }
     
@@ -718,22 +720,95 @@ function renderizarTabela(dados) {
         
         const statusClass = getStatusClass(garantia.status);
         
+        // Montar lista de NFs
+        const nfs = [];
+        if (garantia.numero_nf_compras) nfs.push(`C: ${garantia.numero_nf_compras}`);
+        if (garantia.numero_nf_remessa_simples) nfs.push(`RS: ${garantia.numero_nf_remessa_simples}`);
+        if (garantia.numero_nf_remessa_devolucao) nfs.push(`RD: ${garantia.numero_nf_remessa_devolucao}`);
+        const nfsText = nfs.length > 0 ? nfs.join('<br>') : '-';
+        
         tr.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#${garantia.id}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${garantia.fornecedor_nome || 'N/A'}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${garantia.origem_garantia}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
-                    ${garantia.status}
+            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">#${garantia.id}</td>
+            <td class="px-4 py-3 text-sm text-gray-900 max-w-xs">
+                <div class="truncate" title="${garantia.fornecedor_nome || 'N/A'}">
+                    ${garantia.fornecedor_nome || 'N/A'}
+                </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    ${garantia.origem_garantia}
                 </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${garantia.total_itens}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">R$ ${parseFloat(garantia.valor_total).toFixed(2)}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatarData(garantia.created_at)}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button onclick="visualizarGarantia(${garantia.id})" class="text-blue-600 hover:text-blue-900 mr-3">Ver</button>
-                <button onclick="editarGarantia(${garantia.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">Editar</button>
-                <button onclick="excluirGarantia(${garantia.id})" class="text-red-600 hover:text-red-900">Excluir</button>
+            <td class="px-4 py-3 text-xs text-gray-600 max-w-xs">
+                <div class="space-y-1">${nfsText}</div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+                <select onchange="updateGarantiaStatus(${garantia.id}, this.value, this)" 
+                        class="text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 ${statusClass}">
+                    <option value="Em andamento" ${garantia.status === 'Em andamento' ? 'selected' : ''}>Em andamento</option>
+                    <option value="Aguardando Fornecedor" ${garantia.status === 'Aguardando Fornecedor' ? 'selected' : ''}>Aguardando Fornecedor</option>
+                    <option value="Aguardando Recebimento" ${garantia.status === 'Aguardando Recebimento' ? 'selected' : ''}>Aguardando Recebimento</option>
+                    <option value="Aguardando Item Chegar ao laboratório" ${garantia.status === 'Aguardando Item Chegar ao laboratório' ? 'selected' : ''}>Aguardando Item Chegar ao laboratório</option>
+                    <option value="Aguardando Emissão de NF" ${garantia.status === 'Aguardando Emissão de NF' ? 'selected' : ''}>Aguardando Emissão de NF</option>
+                    <option value="Aguardando Despache" ${garantia.status === 'Aguardando Despache' ? 'selected' : ''}>Aguardando Despache</option>
+                    <option value="Aguardando Testes" ${garantia.status === 'Aguardando Testes' ? 'selected' : ''}>Aguardando Testes</option>
+                    <option value="Finalizado" ${garantia.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                    <option value="Garantia Expirada" ${garantia.status === 'Garantia Expirada' ? 'selected' : ''}>Garantia Expirada</option>
+                    <option value="Garantia não coberta" ${garantia.status === 'Garantia não coberta' ? 'selected' : ''}>Garantia não coberta</option>
+                </select>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    ${garantia.total_itens || 0}
+                </span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 font-medium">
+                R$ ${parseFloat(garantia.valor_total || 0).toFixed(2).replace('.', ',')}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-center">
+                <div class="flex items-center justify-center space-x-1">
+                    <button onclick="downloadAllAnexos(${garantia.id})" 
+                            class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors"
+                            title="Baixar todos os anexos">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                        ${garantia.total_anexos || 0}
+                    </button>
+                </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                <div class="text-xs">${formatarData(garantia.created_at)}</div>
+                <div class="text-xs text-gray-400">${calcularTempoDecorrido(garantia.created_at)}</div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                <div class="flex items-center space-x-2">
+                    <button onclick="visualizarGarantia(${garantia.id})" 
+                            class="text-blue-600 hover:text-blue-900 text-xs bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+                            title="Ver detalhes completos">
+                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        Ver
+                    </button>
+                    <button onclick="editarGarantia(${garantia.id})" 
+                            class="text-indigo-600 hover:text-indigo-900 text-xs bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 transition-colors"
+                            title="Editar garantia">
+                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+                        </svg>
+                        Editar
+                    </button>
+                    <button onclick="excluirGarantia(${garantia.id})" 
+                            class="text-red-600 hover:text-red-900 text-xs bg-red-50 px-2 py-1 rounded hover:bg-red-100 transition-colors"
+                            title="Excluir garantia">
+                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Excluir
+                    </button>
+                </div>
             </td>
         `;
         
@@ -754,6 +829,126 @@ function getStatusClass(status) {
 
 function formatarData(data) {
     return new Date(data).toLocaleDateString('pt-BR');
+}
+
+function calcularTempoDecorrido(data) {
+    const agora = new Date();
+    const dataGarantia = new Date(data);
+    const diffMs = agora - dataGarantia;
+    const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDias === 0) return 'Hoje';
+    if (diffDias === 1) return '1 dia atrás';
+    if (diffDias < 30) return `${diffDias} dias atrás`;
+    if (diffDias < 365) return `${Math.floor(diffDias/30)} meses atrás`;
+    return `${Math.floor(diffDias/365)} anos atrás`;
+}
+
+// Atualizar status da garantia no grid
+async function updateGarantiaStatus(id, newStatus, selectElement) {
+    try {
+        console.log('🔄 Atualizando status da garantia:', { id, newStatus });
+        
+        const formData = new FormData();
+        formData.append('status', newStatus);
+        
+        const response = await fetch(`/garantias/${id}/update-status`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result && result.success) {
+            // Atualizar cor do select
+            if (selectElement) {
+                const statusClass = getStatusClass(newStatus);
+                selectElement.className = `text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 ${statusClass}`;
+            }
+            
+            console.log('✅ Status atualizado com sucesso!');
+            
+            // Mostrar notificação de sucesso
+            showNotification('Status atualizado com sucesso!', 'success');
+        } else {
+            console.error('❌ Erro retornado pela API:', result);
+            alert('Erro: ' + (result ? result.message : 'Resposta inválida'));
+            location.reload();
+        }
+    } catch (error) {
+        console.error('❌ Erro ao atualizar status:', error);
+        alert('Erro ao atualizar status: ' + error.message);
+        location.reload();
+    }
+}
+
+// Download de todos os anexos
+async function downloadAllAnexos(garantiaId) {
+    try {
+        console.log('📥 Baixando anexos da garantia:', garantiaId);
+        
+        const response = await fetch(`/garantias/${garantiaId}/anexos/download-all`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Criar download do arquivo ZIP
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `garantia_${garantiaId}_anexos.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showNotification('Anexos baixados com sucesso!', 'success');
+    } catch (error) {
+        console.error('❌ Erro ao baixar anexos:', error);
+        alert('Erro ao baixar anexos: ' + error.message);
+    }
+}
+
+// Mostrar notificação
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+        type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+        type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+        'bg-blue-100 text-blue-800 border border-blue-200'
+    }`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                ${type === 'success' ? 
+                    '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>' :
+                    '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>'
+                }
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
 }
 
 // Modal functions
@@ -825,12 +1020,207 @@ async function excluirGarantia(id) {
     }
 }
 
-// Placeholder functions
-function visualizarGarantia(id) {
-    alert('Funcionalidade de visualização em desenvolvimento');
+// Visualizar garantia com detalhes completos
+async function visualizarGarantia(id) {
+    try {
+        console.log('👁️ Carregando detalhes da garantia:', id);
+        
+        const response = await fetch(`/garantias/${id}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Erro ao carregar garantia');
+        }
+        
+        const garantia = result.data;
+        mostrarModalDetalhes(garantia);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar garantia:', error);
+        alert('Erro ao carregar detalhes: ' + error.message);
+    }
+}
+
+// Mostrar modal com detalhes completos
+function mostrarModalDetalhes(garantia) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4';
+    modal.onclick = (e) => { if (e.target === modal) fecharModalDetalhes(modal); };
+    
+    // Calcular tempo em cada status (simulado - seria implementado no backend)
+    const tempoStatus = calcularTempoStatus(garantia);
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900">Detalhes da Garantia #${garantia.id}</h3>
+                <button onclick="fecharModalDetalhes(this.closest('.fixed'))" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- Informações Básicas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-3">📋 Informações Básicas</h4>
+                        <div class="space-y-2 text-sm">
+                            <div><span class="font-medium">Fornecedor:</span> ${garantia.fornecedor_nome || 'N/A'}</div>
+                            <div><span class="font-medium">Origem:</span> ${garantia.origem_garantia}</div>
+                            <div><span class="font-medium">Status:</span> 
+                                <span class="px-2 py-1 rounded-full text-xs font-medium ${getStatusClass(garantia.status)}">
+                                    ${garantia.status}
+                                </span>
+                            </div>
+                            <div><span class="font-medium">Criado em:</span> ${formatarData(garantia.created_at)}</div>
+                            <div><span class="font-medium">Última atualização:</span> ${formatarData(garantia.updated_at)}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-3">📄 Notas Fiscais</h4>
+                        <div class="space-y-2 text-sm">
+                            <div><span class="font-medium">NF Compras:</span> ${garantia.numero_nf_compras || '-'}</div>
+                            <div><span class="font-medium">NF Remessa Simples:</span> ${garantia.numero_nf_remessa_simples || '-'}</div>
+                            <div><span class="font-medium">NF Remessa Devolução:</span> ${garantia.numero_nf_remessa_devolucao || '-'}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campos Opcionais -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-900 mb-3">🔧 Informações Técnicas</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div><span class="font-medium">Número de Série:</span> ${garantia.numero_serie || '-'}</div>
+                        <div><span class="font-medium">Número do Lote:</span> ${garantia.numero_lote || '-'}</div>
+                        <div><span class="font-medium">Ticket/OS:</span> ${garantia.numero_ticket_os || '-'}</div>
+                    </div>
+                </div>
+                
+                <!-- Tempo em cada Status -->
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-900 mb-3">⏱️ Tempo por Status</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        ${tempoStatus.map(item => `
+                            <div class="text-center p-2 bg-white rounded border">
+                                <div class="font-medium text-xs text-gray-600 mb-1">${item.status}</div>
+                                <div class="text-lg font-bold ${item.atual ? 'text-blue-600' : 'text-gray-800'}">${item.tempo}</div>
+                                ${item.atual ? '<div class="text-xs text-blue-600">Atual</div>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <!-- Itens -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-900 mb-3">📦 Itens da Garantia</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descrição</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qtd</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Valor Unit.</th>
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                ${(garantia.itens || []).map(item => `
+                                    <tr>
+                                        <td class="px-3 py-2 text-sm text-gray-900">${item.descricao}</td>
+                                        <td class="px-3 py-2 text-sm text-gray-900">${item.quantidade}</td>
+                                        <td class="px-3 py-2 text-sm text-gray-900">R$ ${parseFloat(item.valor_unitario).toFixed(2).replace('.', ',')}</td>
+                                        <td class="px-3 py-2 text-sm font-medium text-gray-900">R$ ${parseFloat(item.valor_total).toFixed(2).replace('.', ',')}</td>
+                                    </tr>
+                                `).join('')}
+                                <tr class="bg-gray-100 font-medium">
+                                    <td colspan="3" class="px-3 py-2 text-sm text-gray-900 text-right">Total Geral:</td>
+                                    <td class="px-3 py-2 text-sm text-gray-900">R$ ${parseFloat(garantia.valor_total || 0).toFixed(2).replace('.', ',')}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Anexos -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-medium text-gray-900 mb-3">📎 Anexos</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${(garantia.anexos || []).map(anexo => `
+                            <div class="flex items-center justify-between p-3 bg-white rounded border">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">${anexo.nome_arquivo}</div>
+                                        <div class="text-xs text-gray-500">${anexo.tipo_anexo} • ${(anexo.tamanho_bytes/1024/1024).toFixed(2)} MB</div>
+                                    </div>
+                                </div>
+                                <button onclick="downloadAnexo(${anexo.id})" class="text-blue-600 hover:text-blue-800 text-sm">
+                                    Baixar
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <!-- Observações -->
+                ${garantia.observacao ? `
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-900 mb-2">💬 Observações</h4>
+                        <p class="text-sm text-gray-700">${garantia.observacao}</p>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="downloadAllAnexos(${garantia.id})" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm">
+                    Baixar Todos os Anexos
+                </button>
+                <button onclick="editarGarantia(${garantia.id})" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">
+                    Editar Garantia
+                </button>
+                <button onclick="fecharModalDetalhes(this.closest('.fixed'))" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function fecharModalDetalhes(modal) {
+    if (modal && modal.parentNode) {
+        modal.parentNode.removeChild(modal);
+    }
+}
+
+function calcularTempoStatus(garantia) {
+    // Esta função seria implementada no backend com dados reais
+    // Por enquanto, retorna dados simulados
+    const statusList = [
+        { status: 'Em andamento', tempo: '2 dias', atual: garantia.status === 'Em andamento' },
+        { status: 'Aguardando Fornecedor', tempo: '5 dias', atual: garantia.status === 'Aguardando Fornecedor' },
+        { status: 'Aguardando Recebimento', tempo: '3 dias', atual: garantia.status === 'Aguardando Recebimento' },
+        { status: 'Finalizado', tempo: '-', atual: garantia.status === 'Finalizado' }
+    ];
+    
+    return statusList;
+}
+
+function downloadAnexo(anexoId) {
+    window.open(`/garantias/anexo/${anexoId}`, '_blank');
 }
 
 function editarGarantia(id) {
-    alert('Funcionalidade de edição em desenvolvimento');
+    // Implementar edição inline ou modal
+    alert(`Funcionalidade de edição da garantia ${id} será implementada`);
 }
 </script>

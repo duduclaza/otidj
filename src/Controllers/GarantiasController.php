@@ -153,10 +153,9 @@ class GarantiasController
         try {
             // Buscar garantia
             $stmt = $this->db->prepare("
-                SELECT g.*, f.nome as fornecedor_nome, u.name as criador_nome
+                SELECT g.*, f.nome as fornecedor_nome
                 FROM garantias g
                 LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
-                LEFT JOIN users u ON g.created_by = u.id
                 WHERE g.id = ?
             ");
             $stmt->execute([$id]);
@@ -171,14 +170,14 @@ class GarantiasController
             $stmt = $this->db->prepare("
                 SELECT * FROM garantias_itens 
                 WHERE garantia_id = ? 
-                ORDER BY ordem
+                ORDER BY id
             ");
             $stmt->execute([$id]);
             $garantia['itens'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Buscar anexos
             $stmt = $this->db->prepare("
-                SELECT id, tipo_anexo, nome_arquivo, tamanho_arquivo, descricao, created_at
+                SELECT id, tipo_anexo, nome_arquivo, tamanho_bytes, created_at
                 FROM garantias_anexos 
                 WHERE garantia_id = ?
                 ORDER BY tipo_anexo, created_at
@@ -310,12 +309,53 @@ class GarantiasController
         }
     }
 
+    // Atualizar apenas o status da garantia
+    public function updateStatus($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $status = $_POST['status'] ?? '';
+            
+            // Validar status
+            $statusValidos = [
+                'Em andamento', 'Aguardando Fornecedor', 'Aguardando Recebimento',
+                'Aguardando Item Chegar ao laboratório', 'Aguardando Emissão de NF',
+                'Aguardando Despache', 'Aguardando Testes', 'Finalizado',
+                'Garantia Expirada', 'Garantia não coberta'
+            ];
+            
+            if (!in_array($status, $statusValidos)) {
+                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+                return;
+            }
+            
+            // Atualizar status
+            $stmt = $this->db->prepare("
+                UPDATE garantias 
+                SET status = ?, updated_at = CURRENT_TIMESTAMP 
+                WHERE id = ?
+            ");
+            $stmt->execute([$status, $id]);
+            
+            if ($stmt->rowCount() === 0) {
+                echo json_encode(['success' => false, 'message' => 'Garantia não encontrada']);
+                return;
+            }
+            
+            echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar status: ' . $e->getMessage()]);
+        }
+    }
+
     // Download de anexo
     public function downloadAnexo($id)
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT nome_arquivo, tipo_arquivo, tamanho_arquivo, conteudo_arquivo
+                SELECT nome_arquivo, tipo_mime, tamanho_bytes, conteudo_arquivo
                 FROM garantias_anexos 
                 WHERE id = ?
             ");
@@ -328,8 +368,8 @@ class GarantiasController
                 return;
             }
 
-            header('Content-Type: ' . $anexo['tipo_arquivo']);
-            header('Content-Length: ' . $anexo['tamanho_arquivo']);
+            header('Content-Type: ' . $anexo['tipo_mime']);
+            header('Content-Length: ' . $anexo['tamanho_bytes']);
             header('Content-Disposition: attachment; filename="' . $anexo['nome_arquivo'] . '"');
             
             echo $anexo['conteudo_arquivo'];
@@ -338,6 +378,59 @@ class GarantiasController
         } catch (\Exception $e) {
             http_response_code(500);
             echo 'Erro ao baixar anexo: ' . $e->getMessage();
+        }
+    }
+
+    // Download de todos os anexos em ZIP
+    public function downloadAllAnexos($garantiaId)
+    {
+        try {
+            // Buscar todos os anexos da garantia
+            $stmt = $this->db->prepare("
+                SELECT nome_arquivo, tipo_mime, conteudo_arquivo, tipo_anexo
+                FROM garantias_anexos 
+                WHERE garantia_id = ?
+                ORDER BY tipo_anexo, nome_arquivo
+            ");
+            $stmt->execute([$garantiaId]);
+            $anexos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($anexos)) {
+                http_response_code(404);
+                echo 'Nenhum anexo encontrado para esta garantia';
+                return;
+            }
+
+            // Criar arquivo ZIP temporário
+            $zipFilename = tempnam(sys_get_temp_dir(), 'garantia_' . $garantiaId . '_anexos_');
+            $zip = new \ZipArchive();
+            
+            if ($zip->open($zipFilename, \ZipArchive::CREATE) !== TRUE) {
+                throw new \Exception('Não foi possível criar o arquivo ZIP');
+            }
+
+            // Adicionar cada anexo ao ZIP
+            foreach ($anexos as $anexo) {
+                $filename = $anexo['tipo_anexo'] . '_' . $anexo['nome_arquivo'];
+                $zip->addFromString($filename, $anexo['conteudo_arquivo']);
+            }
+
+            $zip->close();
+
+            // Enviar o arquivo ZIP
+            $zipContent = file_get_contents($zipFilename);
+            unlink($zipFilename); // Limpar arquivo temporário
+
+            header('Content-Type: application/zip');
+            header('Content-Length: ' . strlen($zipContent));
+            header('Content-Disposition: attachment; filename="garantia_' . $garantiaId . '_anexos.zip"');
+            
+            echo $zipContent;
+            exit();
+
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo 'Erro ao criar arquivo ZIP: ' . $e->getMessage();
         }
     }
 
