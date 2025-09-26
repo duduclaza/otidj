@@ -1384,8 +1384,8 @@ class AdminController
             $stmt = $this->db->query("DESCRIBE retornados");
             $columns = $stmt->fetchAll(\PDO::FETCH_COLUMN);
             
-            // Possíveis nomes de colunas de valor
-            $possibleValorColumns = ['valor_recuperado', 'valor', 'value', 'amount', 'preco'];
+            // Possíveis nomes de colunas de valor (prioridade: valor_calculado primeiro)
+            $possibleValorColumns = ['valor_calculado', 'valor_recuperado', 'valor', 'value', 'amount', 'preco'];
             
             foreach ($possibleValorColumns as $col) {
                 if (in_array($col, $columns)) {
@@ -1393,9 +1393,9 @@ class AdminController
                 }
             }
             
-            return 'valor_recuperado'; // fallback
+            return 'valor_calculado'; // fallback para valor_calculado
         } catch (\Exception $e) {
-            return 'valor_recuperado'; // fallback
+            return 'valor_calculado'; // fallback para valor_calculado
         }
     }
     
