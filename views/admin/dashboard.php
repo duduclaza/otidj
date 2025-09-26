@@ -69,7 +69,7 @@
           </svg>
           📊 Retornados por Mês
         </h3>
-        <button onclick="alert('Botão clicado!'); console.log('Teste expandChart'); expandChart('retornadosMesChart')" 
+        <button onclick="expandChart('retornadosMesChart')" 
                 class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-all duration-200 transform hover:scale-110" 
                 title="Expandir gráfico para apresentação">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -611,6 +611,7 @@ function expandChart(chartId) {
   // Mostrar modal com animação
   console.log('📱 Mostrando modal...');
   modal.classList.remove('hidden');
+  modal.classList.add('active'); // Adicionar classe active para o CSS customizado
   document.body.style.overflow = 'hidden';
   console.log('👁️ Modal classes após mostrar:', modal.className);
   console.log('📏 Modal computed style display:', window.getComputedStyle(modal).display);
@@ -762,6 +763,8 @@ function closeExpandedChart() {
   const modal = document.getElementById('expandedChartModal');
   const container = document.getElementById('expandedChartContainer');
   
+  console.log('🚪 Fechando modal...');
+  
   // Animar saída do container
   container.style.transform = 'scale(0.95)';
   container.style.opacity = '0';
@@ -769,6 +772,7 @@ function closeExpandedChart() {
   // Fechar modal após animação
   setTimeout(() => {
     modal.classList.add('hidden');
+    modal.classList.remove('active'); // Remover classe active
     document.body.style.overflow = '';
     
     if (expandedChartInstance) {
