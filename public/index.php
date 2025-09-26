@@ -127,6 +127,7 @@ $router->get('/toners/amostragens/{id}/evidencias', [App\Controllers\AmostragemC
 $router->get('/toners/amostragens/{id}/evidencia/{evidenciaId}', [App\Controllers\AmostragemController::class, 'evidencia']);
 // Garantias routes
 $router->get('/garantias', [App\Controllers\GarantiasController::class, 'index']);
+$router->post('/garantias', [App\Controllers\GarantiasController::class, 'create']); // Rota para o formulário
 $router->get('/garantias/list', [App\Controllers\GarantiasController::class, 'list']);
 $router->get('/garantias/fornecedores', [App\Controllers\GarantiasController::class, 'listFornecedores']);
 $router->post('/garantias/create', [App\Controllers\GarantiasController::class, 'create']);

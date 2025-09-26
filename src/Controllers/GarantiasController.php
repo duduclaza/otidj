@@ -75,39 +75,37 @@ class GarantiasController
             // Inserir garantia
             $stmt = $this->db->prepare("
                 INSERT INTO garantias (
-                    fornecedor_id, numero_nf_compras, numero_nf_remessa_simples, 
+                    fornecedor_id, origem_garantia, numero_nf_compras, numero_nf_remessa_simples, 
                     numero_nf_remessa_devolucao, numero_serie, numero_lote, 
-                    numero_ticket_os, origem_garantia, status, observacao, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    numero_ticket_os, status, observacao
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
             $stmt->execute([
-                $fornecedor_id, $numero_nf_compras, $numero_nf_remessa_simples,
+                $fornecedor_id, $origem_garantia, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
-                $numero_ticket_os, $origem_garantia, $status, $observacao, $user_id
+                $numero_ticket_os, $status, $observacao
             ]);
 
             $garantia_id = $this->db->lastInsertId();
 
             // Inserir itens
             foreach ($itens as $index => $item) {
-                if (empty($item['item']) || $item['quantidade'] <= 0 || $item['valor_unitario'] < 0) {
+                if (empty($item['descricao']) || $item['quantidade'] <= 0 || $item['valor_unitario'] < 0) {
                     continue;
                 }
 
                 $stmt = $this->db->prepare("
                     INSERT INTO garantias_itens (
-                        garantia_id, item, quantidade, valor_unitario, defeito, ordem
-                    ) VALUES (?, ?, ?, ?, ?, ?)
+                        garantia_id, descricao, quantidade, valor_unitario
+                    ) VALUES (?, ?, ?, ?)
                 ");
                 
                 $stmt->execute([
                     $garantia_id,
-                    trim($item['item']),
+                    trim($item['descricao']),
                     (int)$item['quantidade'],
-                    (float)$item['valor_unitario'],
-                    trim($item['defeito'] ?? ''),
-                    $index + 1
+                    (float)$item['valor_unitario']
                 ]);
             }
 
@@ -130,11 +128,10 @@ class GarantiasController
         
         try {
             $stmt = $this->db->prepare("
-                SELECT g.*, f.nome as fornecedor_nome, u.name as criador_nome,
+                SELECT g.*, f.nome as fornecedor_nome,
                        COUNT(ga.id) as total_anexos
                 FROM garantias g
                 LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
-                LEFT JOIN users u ON g.created_by = u.id
                 LEFT JOIN garantias_anexos ga ON g.id = ga.garantia_id
                 GROUP BY g.id
                 ORDER BY g.created_at DESC
@@ -400,9 +397,10 @@ class GarantiasController
     private function processarAnexos($garantia_id)
     {
         $tiposAnexos = [
-            'nf_compras' => 'nf_compras',
-            'nf_remessa_simples' => 'nf_remessa_simples',
-            'nf_remessa_devolucao' => 'nf_remessa_devolucao'
+            'anexo_nf_compras' => 'nf_compras',
+            'anexo_nf_remessa_simples' => 'nf_remessa_simples',
+            'anexo_nf_remessa_devolucao' => 'nf_remessa_devolucao',
+            'anexo_laudo_tecnico' => 'laudo_tecnico'
         ];
 
         // Processar anexos específicos
@@ -412,37 +410,57 @@ class GarantiasController
             }
         }
 
-        // Processar outros anexos (até 5)
-        for ($i = 1; $i <= 5; $i++) {
-            $campo = "outros_anexos_{$i}";
-            if (isset($_FILES[$campo]) && $_FILES[$campo]['error'] === UPLOAD_ERR_OK) {
-                $descricao = $_POST["descricao_anexo_{$i}"] ?? '';
-                $this->salvarAnexo($garantia_id, $_FILES[$campo], 'outros', $descricao);
+        // Processar evidências (múltiplas imagens)
+        if (isset($_FILES['anexo_evidencias']) && is_array($_FILES['anexo_evidencias']['tmp_name'])) {
+            foreach ($_FILES['anexo_evidencias']['tmp_name'] as $index => $tmpName) {
+                if ($_FILES['anexo_evidencias']['error'][$index] === UPLOAD_ERR_OK) {
+                    $arquivo = [
+                        'name' => $_FILES['anexo_evidencias']['name'][$index],
+                        'type' => $_FILES['anexo_evidencias']['type'][$index],
+                        'tmp_name' => $tmpName,
+                        'size' => $_FILES['anexo_evidencias']['size'][$index]
+                    ];
+                    $this->salvarAnexo($garantia_id, $arquivo, 'evidencia');
+                }
             }
         }
     }
 
-    private function salvarAnexo($garantia_id, $arquivo, $tipo, $descricao = '')
+    private function salvarAnexo($garantia_id, $arquivo, $tipo)
     {
         // Validar tipo de arquivo
-        $tiposPermitidos = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'image/gif'];
+        $tiposPermitidos = [
+            'application/pdf', 
+            'application/msword', 
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg', 
+            'image/jpg',
+            'image/png', 
+            'image/gif',
+            'image/webp'
+        ];
         
         if (!in_array($arquivo['type'], $tiposPermitidos)) {
             throw new \Exception('Tipo de arquivo não permitido: ' . $arquivo['name']);
         }
 
-        // Validar tamanho (5MB)
-        if ($arquivo['size'] > 5 * 1024 * 1024) {
-            throw new \Exception('Arquivo muito grande: ' . $arquivo['name'] . '. Máximo 5MB');
+        // Validar tamanho (10MB para PDFs/DOCs, 5MB para imagens)
+        $maxSize = in_array($arquivo['type'], ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']) 
+                   ? 5 * 1024 * 1024  // 5MB para imagens
+                   : 10 * 1024 * 1024; // 10MB para documentos
+        
+        if ($arquivo['size'] > $maxSize) {
+            $maxSizeMB = $maxSize / (1024 * 1024);
+            throw new \Exception('Arquivo muito grande: ' . $arquivo['name'] . '. Máximo ' . $maxSizeMB . 'MB');
         }
 
         $conteudo = file_get_contents($arquivo['tmp_name']);
 
         $stmt = $this->db->prepare("
             INSERT INTO garantias_anexos (
-                garantia_id, tipo_anexo, nome_arquivo, tipo_arquivo, 
-                tamanho_arquivo, conteudo_arquivo, descricao
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                garantia_id, tipo_anexo, nome_arquivo, tipo_mime, 
+                tamanho_bytes, conteudo_arquivo
+            ) VALUES (?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
@@ -451,8 +469,7 @@ class GarantiasController
             $arquivo['name'],
             $arquivo['type'],
             $arquivo['size'],
-            $conteudo,
-            $descricao
+            $conteudo
         ]);
     }
 
