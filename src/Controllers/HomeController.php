@@ -20,11 +20,24 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.8';
+        $systemVersion = '2.1.9';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
         $updates = [
+            [
+                'version' => '2.1.9',
+                'date' => '26/09/2025',
+                'type' => 'Correção Crítica',
+                'title' => 'Correção Acesso Dashboard para Usuários com Permissão',
+                'description' => 'Corrigido problema onde usuários com permissão de dashboard não conseguiam acessar',
+                'items' => [
+                    'AdminController agora verifica permissão "dashboard" em vez de ser admin',
+                    'Usuários com permissão podem acessar dashboard independente do perfil',
+                    'Corrigido redirecionamento para /inicio em vez de /profile',
+                    'Dashboard funcional para supervisores e outros perfis autorizados'
+                ]
+            ],
             [
                 'version' => '2.1.8',
                 'date' => '26/09/2025',

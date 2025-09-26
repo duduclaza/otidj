@@ -19,7 +19,12 @@ class AdminController
      */
     public function dashboard()
     {
-        AuthController::requireAdmin();
+        // Verificar se tem permissão de dashboard (não precisa ser admin)
+        if (!\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+            http_response_code(403);
+            echo "<h1>Acesso Negado</h1><p>Você não tem permissão para acessar o dashboard.</p>";
+            return;
+        }
         
         try {
             // Get statistics
