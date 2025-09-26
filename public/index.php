@@ -113,7 +113,9 @@ $router->post('/toners/import', [App\Controllers\TonersController::class, 'impor
 $router->get('/toners/export', [App\Controllers\TonersController::class, 'exportExcelAdvanced']);
 
 // Other routes
-$router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);
+$router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
+$router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
+$router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
 $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
 // Amostragens actions
 $router->post('/toners/amostragens', [App\Controllers\AmostragemController::class, 'store']);
