@@ -37,7 +37,7 @@
         <div class="<?= $index > 0 ? 'border-t border-gray-100 pt-6' : '' ?>">
           <div class="flex items-start space-x-4">
             <div class="flex-shrink-0">
-              <div class="w-10 h-10 rounded-full flex items-center justify-center <?= $update['type'] === 'Correção Crítica' ? 'bg-red-100' : ($update['type'] === 'Correção' ? 'bg-yellow-100' : 'bg-blue-100') ?>">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center <?= $update['type'] === 'Correção Crítica' ? 'bg-red-100' : ($update['type'] === 'Correção' ? 'bg-yellow-100' : ($update['type'] === 'Ajuste' ? 'bg-purple-100' : ($update['type'] === 'Investigação' ? 'bg-orange-100' : 'bg-blue-100'))) ?>">
                 <?php if ($update['type'] === 'Correção Crítica'): ?>
                   <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
@@ -45,6 +45,14 @@
                 <?php elseif ($update['type'] === 'Correção'): ?>
                   <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                <?php elseif ($update['type'] === 'Ajuste'): ?>
+                  <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                  </svg>
+                <?php elseif ($update['type'] === 'Investigação'): ?>
+                  <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                   </svg>
                 <?php else: ?>
                   <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +63,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-2 mb-1">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $update['type'] === 'Correção Crítica' ? 'bg-red-100 text-red-800' : ($update['type'] === 'Correção' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800') ?>">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?= $update['type'] === 'Correção Crítica' ? 'bg-red-100 text-red-800' : ($update['type'] === 'Correção' ? 'bg-yellow-100 text-yellow-800' : ($update['type'] === 'Ajuste' ? 'bg-purple-100 text-purple-800' : ($update['type'] === 'Investigação' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'))) ?>">
                   <?= e($update['type']) ?>
                 </span>
                 <span class="text-sm text-gray-500">v<?= e($update['version']) ?></span>
@@ -77,38 +85,8 @@
             </div>
           </div>
         </div>
-        <?php if ($index === 2): break; endif; // Mostrar apenas as 3 primeiras ?>
         <?php endforeach; ?>
       </div>
-      
-      <?php if (count($updates) > 3): ?>
-      <div class="mt-6 pt-4 border-t border-gray-100 text-center">
-        <button class="text-sm text-blue-600 hover:text-blue-700 font-medium" onclick="toggleAllUpdates()">
-          <span id="toggleText">Ver todas as atualizações</span>
-          <svg id="toggleIcon" class="w-4 h-4 inline ml-1 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-      </div>
-      <?php endif; ?>
     </div>
   </div>
 </section>
-
-<script>
-function toggleAllUpdates() {
-  // Esta função pode ser implementada para mostrar/ocultar todas as atualizações
-  const toggleText = document.getElementById('toggleText');
-  const toggleIcon = document.getElementById('toggleIcon');
-  
-  if (toggleText.textContent === 'Ver todas as atualizações') {
-    toggleText.textContent = 'Ver menos atualizações';
-    toggleIcon.classList.add('rotate-180');
-    // Aqui você pode implementar a lógica para mostrar todas as atualizações
-  } else {
-    toggleText.textContent = 'Ver todas as atualizações';
-    toggleIcon.classList.remove('rotate-180');
-    // Aqui você pode implementar a lógica para ocultar as atualizações extras
-  }
-}
-</script>

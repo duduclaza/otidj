@@ -20,11 +20,24 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.4';
+        $systemVersion = '2.1.5';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
         $updates = [
+            [
+                'version' => '2.1.5',
+                'date' => '26/09/2025',
+                'type' => 'Melhoria',
+                'title' => 'Histórico Completo de Atualizações',
+                'description' => 'Seção "Últimas Atualizações" agora mostra todo o histórico desde o início',
+                'items' => [
+                    'Removida limitação de apenas 3 atualizações visíveis',
+                    'Todo o histórico de versões agora é exibido',
+                    'Removido botão "Ver todas as atualizações"',
+                    'Adicionados ícones e cores para novos tipos (Ajuste, Investigação)'
+                ]
+            ],
             [
                 'version' => '2.1.4',
                 'date' => '26/09/2025',
