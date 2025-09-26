@@ -178,19 +178,73 @@
   </div>
 </div>
 
-<!-- Modal para Gráfico Expandido -->
-<div id="expandedChartModal" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4" style="z-index: 999999;">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-full overflow-auto" onclick="event.stopPropagation()">
-    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-gray-50 to-white">
-      <h3 id="expandedChartTitle" class="text-xl font-bold text-gray-900">📊 Gráfico Expandido</h3>
-      <button onclick="closeExpandedChart()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
+<!-- Modal para Gráfico Expandido - Versão Elegante para Apresentações -->
+<div id="expandedChartModal" class="hidden fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 bg-opacity-95 flex items-center justify-center p-4 backdrop-blur-sm" style="z-index: 999999;" onclick="closeExpandedChart()">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-full overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="expandedChartContainer" onclick="event.stopPropagation()">
+    <!-- Header Elegante -->
+    <div class="px-8 py-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
+      <div class="absolute inset-0 bg-black bg-opacity-10"></div>
+      <div class="relative flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 id="expandedChartTitle" class="text-2xl font-bold text-white drop-shadow-sm">📊 Gráfico Expandido</h3>
+            <p class="text-blue-100 text-sm mt-1">Visualização em Tela Cheia para Apresentações</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-3">
+          <!-- Botão Tela Cheia -->
+          <button onclick="toggleFullscreen()" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm" title="Tela Cheia">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+            </svg>
+          </button>
+          <!-- Botão Fechar -->
+          <button onclick="closeExpandedChart()" class="w-10 h-10 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm" title="Fechar">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="p-8">
-      <canvas id="expandedChart" width="1000" height="500"></canvas>
+    
+    <!-- Área do Gráfico -->
+    <div class="p-8 bg-gradient-to-br from-gray-50 to-white min-h-[600px] flex items-center justify-center">
+      <div class="w-full h-full relative">
+        <canvas id="expandedChart" class="w-full h-full rounded-lg shadow-sm"></canvas>
+        <!-- Loading Indicator -->
+        <div id="expandedChartLoading" class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-lg hidden">
+          <div class="flex flex-col items-center space-y-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="text-gray-600 font-medium">Carregando gráfico...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer com Informações -->
+    <div class="px-8 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+      <div class="flex items-center space-x-4 text-sm text-gray-600">
+        <div class="flex items-center space-x-2">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span>Sistema SGQ OTI DJ</span>
+        </div>
+        <span>•</span>
+        <span id="expandedChartDate">Dashboard Atualizado</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span class="text-xs text-gray-500">Pressione ESC para fechar</span>
+        <div class="flex items-center space-x-1">
+          <div class="w-1 h-1 bg-blue-500 rounded-full"></div>
+          <div class="w-1 h-1 bg-indigo-500 rounded-full"></div>
+          <div class="w-1 h-1 bg-purple-500 rounded-full"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -482,55 +536,84 @@ function initCharts() {
   });
 }
 
-// Função para expandir gráfico
+// Função para expandir gráfico com animações elegantes
 function expandChart(chartId) {
   const modal = document.getElementById('expandedChartModal');
+  const container = document.getElementById('expandedChartContainer');
   const expandedCanvas = document.getElementById('expandedChart');
   const title = document.getElementById('expandedChartTitle');
+  const dateElement = document.getElementById('expandedChartDate');
+  const loading = document.getElementById('expandedChartLoading');
   
-  let chartData, chartType, chartTitle;
+  let chartData, chartType, chartTitle, chartIcon;
   
   switch(chartId) {
     case 'retornadosMesChart':
       chartData = dadosRetornadosMes;
       chartType = 'bar';
-      chartTitle = '📊 Retornados por Mês - Visão Expandida';
+      chartTitle = '📊 Retornados por Mês';
+      chartIcon = '📊';
       break;
     case 'retornadosDestinoChart':
       chartData = dadosRetornadosDestino;
       chartType = 'doughnut';
-      chartTitle = '🥧 Destino dos Retornados - Visão Expandida';
+      chartTitle = '🥧 Destino dos Retornados';
+      chartIcon = '🥧';
       break;
     case 'tonersRecuperadosChart':
       chartData = dadosTonersRecuperados;
       chartType = 'bar';
-      chartTitle = '💰 Valor Recuperado em Toners - Visão Expandida';
+      chartTitle = '💰 Valor Recuperado em Toners';
+      chartIcon = '💰';
       break;
   }
   
-  title.textContent = chartTitle;
+  // Atualizar informações do modal
+  title.textContent = `${chartIcon} ${chartTitle}`;
+  dateElement.textContent = `Atualizado em ${new Date().toLocaleString('pt-BR')}`;
+  
+  // Mostrar modal com animação
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  
+  // Animar entrada do container
+  setTimeout(() => {
+    container.style.transform = 'scale(1)';
+    container.style.opacity = '1';
+  }, 50);
+  
+  // Mostrar loading
+  loading.classList.remove('hidden');
   
   // Destruir gráfico anterior se existir
   if (expandedChartInstance) {
     expandedChartInstance.destroy();
   }
   
-  // Criar novo gráfico expandido
-  const ctx = expandedCanvas.getContext('2d');
-  expandedChartInstance = new Chart(ctx, {
-    type: chartType,
-    data: chartData,
-    options: {
+  // Criar novo gráfico expandido com delay para animação
+  setTimeout(() => {
+    const ctx = expandedCanvas.getContext('2d');
+    
+    // Configurações avançadas para apresentação
+    const presentationOptions = {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 2000,
+        easing: 'easeOutQuart'
+      },
       plugins: {
         legend: {
           display: true,
           position: 'top',
           labels: {
             font: {
-              size: 16
-            }
+              size: 18,
+              weight: 'bold'
+            },
+            padding: 20,
+            usePointStyle: true,
+            pointStyle: 'circle'
           }
         },
         tooltip: {
@@ -538,61 +621,201 @@ function expandChart(chartId) {
           titleColor: 'white',
           bodyColor: 'white',
           borderColor: 'rgba(255, 255, 255, 0.2)',
-          borderWidth: 1,
+          borderWidth: 2,
           cornerRadius: 12,
           displayColors: true,
           titleFont: {
-            size: 16
+            size: 18,
+            weight: 'bold'
           },
           bodyFont: {
-            size: 14
-          }
+            size: 16
+          },
+          padding: 15,
+          caretPadding: 10
         }
       },
       scales: chartType === 'doughnut' ? {} : {
         y: {
           beginAtZero: true,
           grid: {
-            color: 'rgba(0, 0, 0, 0.1)',
+            color: 'rgba(0, 0, 0, 0.08)',
+            lineWidth: 1
           },
           ticks: {
-            color: '#6B7280',
+            color: '#4B5563',
             font: {
-              size: 14
+              size: 16,
+              weight: '500'
+            },
+            padding: 10,
+            callback: function(value) {
+              if (chartId === 'tonersRecuperadosChart') {
+                return 'R$ ' + value.toLocaleString('pt-BR');
+              }
+              return value;
             }
+          },
+          title: {
+            display: true,
+            text: chartId === 'tonersRecuperadosChart' ? 'Valor (R$)' : 'Quantidade',
+            font: {
+              size: 16,
+              weight: 'bold'
+            },
+            color: '#374151'
           }
         },
         x: {
           grid: {
-            color: 'rgba(0, 0, 0, 0.1)',
+            color: 'rgba(0, 0, 0, 0.05)',
+            lineWidth: 1
           },
           ticks: {
-            color: '#6B7280',
+            color: '#4B5563',
             font: {
-              size: 14
-            }
+              size: 16,
+              weight: '500'
+            },
+            padding: 10
+          },
+          title: {
+            display: true,
+            text: 'Período',
+            font: {
+              size: 16,
+              weight: 'bold'
+            },
+            color: '#374151'
           }
         }
       }
-    }
-  });
-  
-  // Mostrar modal
-  modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+    };
+    
+    expandedChartInstance = new Chart(ctx, {
+      type: chartType,
+      data: chartData,
+      options: presentationOptions
+    });
+    
+    // Esconder loading após criar gráfico
+    setTimeout(() => {
+      loading.classList.add('hidden');
+    }, 500);
+  }, 300);
 }
 
-// Função para fechar gráfico expandido
+// Função para fechar gráfico expandido com animação
 function closeExpandedChart() {
   const modal = document.getElementById('expandedChartModal');
-  modal.classList.add('hidden');
-  document.body.style.overflow = '';
+  const container = document.getElementById('expandedChartContainer');
   
-  if (expandedChartInstance) {
-    expandedChartInstance.destroy();
-    expandedChartInstance = null;
+  // Animar saída do container
+  container.style.transform = 'scale(0.95)';
+  container.style.opacity = '0';
+  
+  // Fechar modal após animação
+  setTimeout(() => {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    
+    if (expandedChartInstance) {
+      expandedChartInstance.destroy();
+      expandedChartInstance = null;
+    }
+    
+    // Resetar transformações para próxima abertura
+    container.style.transform = 'scale(0.95)';
+    container.style.opacity = '0';
+  }, 200);
+}
+
+// Função para alternar tela cheia
+function toggleFullscreen() {
+  const modal = document.getElementById('expandedChartModal');
+  
+  if (!document.fullscreenElement) {
+    // Entrar em tela cheia
+    modal.requestFullscreen().then(() => {
+      // Ajustar layout para tela cheia
+      modal.style.padding = '0';
+      const container = document.getElementById('expandedChartContainer');
+      container.style.maxWidth = '100%';
+      container.style.height = '100vh';
+      container.style.borderRadius = '0';
+      
+      // Recriar gráfico para aproveitar espaço total
+      if (expandedChartInstance) {
+        setTimeout(() => {
+          expandedChartInstance.resize();
+        }, 100);
+      }
+    }).catch(err => {
+      console.log('Erro ao entrar em tela cheia:', err);
+    });
+  } else {
+    // Sair da tela cheia
+    document.exitFullscreen().then(() => {
+      // Restaurar layout normal
+      modal.style.padding = '1rem';
+      const container = document.getElementById('expandedChartContainer');
+      container.style.maxWidth = '7xl';
+      container.style.height = 'auto';
+      container.style.borderRadius = '1rem';
+      
+      // Redimensionar gráfico
+      if (expandedChartInstance) {
+        setTimeout(() => {
+          expandedChartInstance.resize();
+        }, 100);
+      }
+    });
   }
 }
+
+// Adicionar suporte a teclas de atalho
+document.addEventListener('keydown', function(event) {
+  const modal = document.getElementById('expandedChartModal');
+  
+  if (!modal.classList.contains('hidden')) {
+    switch(event.key) {
+      case 'Escape':
+        closeExpandedChart();
+        break;
+      case 'F11':
+        event.preventDefault();
+        toggleFullscreen();
+        break;
+      case 'f':
+      case 'F':
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          toggleFullscreen();
+        }
+        break;
+    }
+  }
+});
+
+// Detectar mudanças no estado de tela cheia
+document.addEventListener('fullscreenchange', function() {
+  const modal = document.getElementById('expandedChartModal');
+  const container = document.getElementById('expandedChartContainer');
+  
+  if (!document.fullscreenElement && !modal.classList.contains('hidden')) {
+    // Saiu da tela cheia, restaurar layout
+    modal.style.padding = '1rem';
+    container.style.maxWidth = '7xl';
+    container.style.height = 'auto';
+    container.style.borderRadius = '1rem';
+    
+    if (expandedChartInstance) {
+      setTimeout(() => {
+        expandedChartInstance.resize();
+      }, 100);
+    }
+  }
+});
 
 // Função para expandir todos os gráficos
 function expandAllCharts() {
