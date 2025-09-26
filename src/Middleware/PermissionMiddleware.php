@@ -261,7 +261,7 @@ class PermissionMiddleware
         // Lista de módulos em ordem de prioridade
         $moduleUrls = [
             'toners_cadastro' => '/toners/cadastro',
-            '5w2h_planos' => '/5w2h',
+            '5w2h' => '/5w2h',
             'homologacoes' => '/homologacoes',
             'amostragens' => '/amostragens',
             'garantias' => '/garantias',

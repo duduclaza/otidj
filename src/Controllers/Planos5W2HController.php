@@ -20,7 +20,7 @@ class Planos5W2HController
     {
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 http_response_code(403);
                 include __DIR__ . '/../../views/errors/403.php';
                 return;
@@ -46,7 +46,7 @@ class Planos5W2HController
         
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para visualizar planos']);
                 return;
             }
@@ -138,7 +138,7 @@ class Planos5W2HController
         
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'edit')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'edit')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para criar planos']);
                 return;
             }
@@ -209,7 +209,7 @@ class Planos5W2HController
             }
 
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'edit')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'edit')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para editar planos']);
                 return;
             }
@@ -275,7 +275,7 @@ class Planos5W2HController
             }
 
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'delete')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'delete')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para excluir planos']);
                 return;
             }
@@ -418,7 +418,7 @@ class Planos5W2HController
     {
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 http_response_code(403);
                 include __DIR__ . '/../../views/errors/403.php';
                 return;
@@ -438,7 +438,7 @@ class Planos5W2HController
     {
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 http_response_code(403);
                 include __DIR__ . '/../../views/errors/403.php';
                 return;
@@ -460,7 +460,7 @@ class Planos5W2HController
         
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para visualizar planos']);
                 return;
             }
@@ -482,7 +482,7 @@ class Planos5W2HController
     {
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 http_response_code(403);
                 include __DIR__ . '/../../views/errors/403.php';
                 return;
@@ -521,7 +521,7 @@ class Planos5W2HController
         
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para visualizar anexos']);
                 return;
             }
@@ -547,7 +547,7 @@ class Planos5W2HController
     {
         try {
             // Verificar permissão
-            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h_planos', 'view')) {
+            if (!PermissionService::hasPermission($_SESSION['user_id'], '5w2h', 'view')) {
                 http_response_code(403);
                 echo 'Sem permissão para baixar anexos';
                 return;
