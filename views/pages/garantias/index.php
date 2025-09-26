@@ -557,6 +557,16 @@ function configurarEventos() {
     const toggleBtn = document.getElementById('toggleGarantiaFormBtn');
     if (toggleBtn) toggleBtn.addEventListener('click', toggleGarantiaForm);
     
+    // Event listener do botão de correios
+    const correiosBtn = document.getElementById('toggleCorreiosFormBtn');
+    console.log('Configurando event listener do botão de correios:', correiosBtn);
+    if (correiosBtn) {
+        correiosBtn.addEventListener('click', toggleCorreiosForm);
+        console.log('Event listener do correios configurado com sucesso');
+    } else {
+        console.error('Botão de correios não encontrado!');
+    }
+    
     const form = document.getElementById('garantiaForm');
     if (form) form.addEventListener('submit', submitGarantia);
     
@@ -1805,10 +1815,16 @@ function mostrarAnexosExistentes(anexos) {
 
 // Toggle do formulário de correios
 function toggleCorreiosForm() {
+    console.log('toggleCorreiosForm() chamada');
+    
     const container = document.getElementById('correiosFormContainer');
     const btn = document.getElementById('toggleCorreiosFormBtn');
     
-    if (container.classList.contains('hidden')) {
+    console.log('Container encontrado:', container);
+    console.log('Botão encontrado:', btn);
+    
+    if (container && container.classList.contains('hidden')) {
+        console.log('Abrindo formulário de correios');
         container.classList.remove('hidden');
         btn.innerHTML = `
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1818,14 +1834,35 @@ function toggleCorreiosForm() {
         `;
         
         // Adicionar primeiro remetente e destinatário se não existirem
-        if (document.getElementById('remetentesContainer').children.length === 0) {
-            adicionarRemetente();
+        const remetentesContainer = document.getElementById('remetentesContainer');
+        const destinatariosContainer = document.getElementById('destinatariosContainer');
+        const itensContainer = document.getElementById('itensDeclaracaoContainer');
+        
+        if (remetentesContainer && remetentesContainer.children.length === 0) {
+            console.log('Adicionando primeiro remetente');
+            if (typeof adicionarRemetente === 'function') {
+                adicionarRemetente();
+            } else {
+                console.error('Função adicionarRemetente não encontrada');
+            }
         }
-        if (document.getElementById('destinatariosContainer').children.length === 0) {
-            adicionarDestinatario();
+        
+        if (destinatariosContainer && destinatariosContainer.children.length === 0) {
+            console.log('Adicionando primeiro destinatário');
+            if (typeof adicionarDestinatario === 'function') {
+                adicionarDestinatario();
+            } else {
+                console.error('Função adicionarDestinatario não encontrada');
+            }
         }
-        if (document.getElementById('itensDeclaracaoContainer').children.length === 0) {
-            adicionarItemDeclaracao();
+        
+        if (itensContainer && itensContainer.children.length === 0) {
+            console.log('Adicionando primeiro item');
+            if (typeof adicionarItemDeclaracao === 'function') {
+                adicionarItemDeclaracao();
+            } else {
+                console.error('Função adicionarItemDeclaracao não encontrada');
+            }
         }
     } else {
         cancelCorreiosForm();
@@ -1834,23 +1871,36 @@ function toggleCorreiosForm() {
 
 // Cancelar formulário de correios
 function cancelCorreiosForm() {
+    console.log('cancelCorreiosForm() chamada');
+    
     const container = document.getElementById('correiosFormContainer');
     const btn = document.getElementById('toggleCorreiosFormBtn');
     
-    container.classList.add('hidden');
-    btn.innerHTML = `
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-        </svg>
-        <span>Formulário de Correios</span>
-    `;
+    if (container) {
+        container.classList.add('hidden');
+    }
     
-    // Limpar formulário
-    document.getElementById('remetentesContainer').innerHTML = '';
-    document.getElementById('destinatariosContainer').innerHTML = '';
-    document.getElementById('itensDeclaracaoContainer').innerHTML = '';
-    document.getElementById('pesoTotal').value = '';
-    document.getElementById('valorTotalDeclaracao').textContent = '0,00';
+    if (btn) {
+        btn.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+            <span>Formulário de Correios</span>
+        `;
+    }
+    
+    // Limpar formulário com verificações de segurança
+    const remetentesContainer = document.getElementById('remetentesContainer');
+    const destinatariosContainer = document.getElementById('destinatariosContainer');
+    const itensContainer = document.getElementById('itensDeclaracaoContainer');
+    const pesoTotal = document.getElementById('pesoTotal');
+    const valorTotal = document.getElementById('valorTotalDeclaracao');
+    
+    if (remetentesContainer) remetentesContainer.innerHTML = '';
+    if (destinatariosContainer) destinatariosContainer.innerHTML = '';
+    if (itensContainer) itensContainer.innerHTML = '';
+    if (pesoTotal) pesoTotal.value = '';
+    if (valorTotal) valorTotal.textContent = '0,00';
 }
 
 // Adicionar remetente
