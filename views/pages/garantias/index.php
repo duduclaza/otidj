@@ -2111,7 +2111,6 @@ function calcularTotaisDeclaracao() {
 // Gerar declaração de conteúdo
 function gerarDeclaracaoConteudo() {
     console.log('🎯 gerarDeclaracaoConteudo() chamada');
-    alert('Função gerarDeclaracaoConteudo() foi chamada!'); // Teste temporário
     
     try {
         // Validar se há pelo menos um remetente, destinatário e item
@@ -2156,47 +2155,107 @@ function gerarDeclaracaoConteudo() {
 
 // Coletar dados da declaração
 function coletarDadosDeclaracao() {
+    console.log('📋 Iniciando coleta de dados...');
+    
+    // Verificar se elementos principais existem
+    const pesoTotalEl = document.getElementById('pesoTotal');
+    const valorTotalEl = document.getElementById('valorTotalDeclaracao');
+    
+    console.log('🔍 Elementos encontrados:', {
+        pesoTotal: pesoTotalEl,
+        valorTotal: valorTotalEl
+    });
+    
     const dados = {
         remetentes: [],
         destinatarios: [],
         itens: [],
-        pesoTotal: document.getElementById('pesoTotal').value || '0',
-        valorTotal: document.getElementById('valorTotalDeclaracao').textContent
+        pesoTotal: pesoTotalEl ? pesoTotalEl.value || '0' : '0',
+        valorTotal: valorTotalEl ? valorTotalEl.textContent || '0,00' : '0,00'
     };
     
     // Coletar remetentes
-    document.querySelectorAll('#remetentesContainer .border').forEach(remetente => {
-        dados.remetentes.push({
-            nome: remetente.querySelector('input[name="remetente_nome[]"]').value,
-            endereco: remetente.querySelector('input[name="remetente_endereco[]"]').value,
-            cidade: remetente.querySelector('input[name="remetente_cidade[]"]').value,
-            uf: remetente.querySelector('input[name="remetente_uf[]"]').value,
-            cep: remetente.querySelector('input[name="remetente_cep[]"]').value,
-            documento: remetente.querySelector('input[name="remetente_documento[]"]').value
-        });
+    const remetentesElements = document.querySelectorAll('#remetentesContainer .border');
+    console.log('📤 Remetentes encontrados:', remetentesElements.length);
+    
+    remetentesElements.forEach((remetente, index) => {
+        try {
+            const nome = remetente.querySelector('input[name="remetente_nome[]"]');
+            const endereco = remetente.querySelector('input[name="remetente_endereco[]"]');
+            const cidade = remetente.querySelector('input[name="remetente_cidade[]"]');
+            const uf = remetente.querySelector('input[name="remetente_uf[]"]');
+            const cep = remetente.querySelector('input[name="remetente_cep[]"]');
+            const documento = remetente.querySelector('input[name="remetente_documento[]"]');
+            
+            console.log(`📤 Remetente ${index + 1} campos:`, {
+                nome: nome ? 'OK' : 'FALTANDO',
+                endereco: endereco ? 'OK' : 'FALTANDO',
+                cidade: cidade ? 'OK' : 'FALTANDO',
+                uf: uf ? 'OK' : 'FALTANDO',
+                cep: cep ? 'OK' : 'FALTANDO',
+                documento: documento ? 'OK' : 'FALTANDO'
+            });
+            
+            dados.remetentes.push({
+                nome: nome ? nome.value : '',
+                endereco: endereco ? endereco.value : '',
+                cidade: cidade ? cidade.value : '',
+                uf: uf ? uf.value : '',
+                cep: cep ? cep.value : '',
+                documento: documento ? documento.value : ''
+            });
+        } catch (error) {
+            console.error(`❌ Erro ao coletar remetente ${index + 1}:`, error);
+        }
     });
     
     // Coletar destinatários
-    document.querySelectorAll('#destinatariosContainer .border').forEach(destinatario => {
-        dados.destinatarios.push({
-            nome: destinatario.querySelector('input[name="destinatario_nome[]"]').value,
-            endereco: destinatario.querySelector('input[name="destinatario_endereco[]"]').value,
-            cidade: destinatario.querySelector('input[name="destinatario_cidade[]"]').value,
-            uf: destinatario.querySelector('input[name="destinatario_uf[]"]').value,
-            cep: destinatario.querySelector('input[name="destinatario_cep[]"]').value,
-            documento: destinatario.querySelector('input[name="destinatario_documento[]"]').value
-        });
+    const destinatariosElements = document.querySelectorAll('#destinatariosContainer .border');
+    console.log('📥 Destinatários encontrados:', destinatariosElements.length);
+    
+    destinatariosElements.forEach((destinatario, index) => {
+        try {
+            const nome = destinatario.querySelector('input[name="destinatario_nome[]"]');
+            const endereco = destinatario.querySelector('input[name="destinatario_endereco[]"]');
+            const cidade = destinatario.querySelector('input[name="destinatario_cidade[]"]');
+            const uf = destinatario.querySelector('input[name="destinatario_uf[]"]');
+            const cep = destinatario.querySelector('input[name="destinatario_cep[]"]');
+            const documento = destinatario.querySelector('input[name="destinatario_documento[]"]');
+            
+            dados.destinatarios.push({
+                nome: nome ? nome.value : '',
+                endereco: endereco ? endereco.value : '',
+                cidade: cidade ? cidade.value : '',
+                uf: uf ? uf.value : '',
+                cep: cep ? cep.value : '',
+                documento: documento ? documento.value : ''
+            });
+        } catch (error) {
+            console.error(`❌ Erro ao coletar destinatário ${index + 1}:`, error);
+        }
     });
     
     // Coletar itens
-    document.querySelectorAll('#itensDeclaracaoContainer .border').forEach(item => {
-        dados.itens.push({
-            conteudo: item.querySelector('input[name="item_conteudo[]"]').value,
-            quantidade: item.querySelector('input[name="item_quantidade[]"]').value,
-            valor: item.querySelector('input[name="item_valor[]"]').value
-        });
+    const itensElements = document.querySelectorAll('#itensDeclaracaoContainer .border');
+    console.log('📦 Itens encontrados:', itensElements.length);
+    
+    itensElements.forEach((item, index) => {
+        try {
+            const conteudo = item.querySelector('input[name="item_conteudo[]"]');
+            const quantidade = item.querySelector('input[name="item_quantidade[]"]');
+            const valor = item.querySelector('input[name="item_valor[]"]');
+            
+            dados.itens.push({
+                descricao: conteudo ? conteudo.value : '',
+                quantidade: quantidade ? quantidade.value : '1',
+                valor: valor ? valor.value : '0'
+            });
+        } catch (error) {
+            console.error(`❌ Erro ao coletar item ${index + 1}:`, error);
+        }
     });
     
+    console.log('📋 Dados coletados final:', dados);
     return dados;
 }
 
