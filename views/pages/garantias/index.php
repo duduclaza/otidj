@@ -74,7 +74,7 @@ if (!isset($_SESSION['user_id'])) {
             <!-- Informações Básicas -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Fornecedor *</label>
+                    <label class="block text-sm font-medium text-white mb-2">Fornecedor *</label>
                     <select name="fornecedor_id" required class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Selecione um fornecedor</option>
                         <?php if (isset($fornecedores)): ?>
@@ -86,7 +86,7 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Origem da Garantia *</label>
+                    <label class="block text-sm font-medium text-white mb-2">Origem da Garantia *</label>
                     <select name="origem_garantia" required class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Selecione a origem</option>
                         <option value="Amostragem">Amostragem</option>
@@ -99,32 +99,16 @@ if (!isset($_SESSION['user_id'])) {
             <!-- Números de NF -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Número NF Compras</label>
-                    <input type="text" name="numero_nf_compras" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-sm font-medium text-white mb-2">Número NF Compras</label>
+                    <input type="text" name="numero_nf_compras" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número da NF">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Número NF Remessa Simples</label>
-                    <input type="text" name="numero_nf_remessa_simples" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-sm font-medium text-white mb-2">Número NF Remessa Simples</label>
+                    <input type="text" name="numero_nf_remessa_simples" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número da NF">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Número NF Remessa Devolução</label>
-                    <input type="text" name="numero_nf_remessa_devolucao" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-            </div>
-
-            <!-- Campos Opcionais -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Número de Série</label>
-                    <input type="text" name="numero_serie" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Número do Lote</label>
-                    <input type="text" name="numero_lote" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Número Ticket/OS</label>
-                    <input type="text" name="numero_ticket_os" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-sm font-medium text-white mb-2">Número NF Remessa Devolução</label>
+                    <input type="text" name="numero_nf_remessa_devolucao" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número da NF">
                 </div>
             </div>
 
@@ -133,23 +117,39 @@ if (!isset($_SESSION['user_id'])) {
                 <h3 class="text-lg font-medium text-white mb-4">📎 Anexos das Notas Fiscais</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">NF Compras (PDF)</label>
+                        <label class="block text-sm font-medium text-white mb-2">NF Compras (PDF)</label>
                         <input type="file" name="anexo_nf_compras" accept=".pdf" onchange="validateFileUpload(this, 'nf_compras')" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         <p class="text-xs text-gray-400 mt-1">Apenas PDF até 10MB</p>
                         <div id="preview_nf_compras" class="mt-2"></div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">NF Remessa Simples (PDF)</label>
+                        <label class="block text-sm font-medium text-white mb-2">NF Remessa Simples (PDF)</label>
                         <input type="file" name="anexo_nf_remessa_simples" accept=".pdf" onchange="validateFileUpload(this, 'nf_remessa_simples')" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         <p class="text-xs text-gray-400 mt-1">Apenas PDF até 10MB</p>
                         <div id="preview_nf_remessa_simples" class="mt-2"></div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">NF Remessa Devolução (PDF)</label>
+                        <label class="block text-sm font-medium text-white mb-2">NF Remessa Devolução (PDF)</label>
                         <input type="file" name="anexo_nf_remessa_devolucao" accept=".pdf" onchange="validateFileUpload(this, 'nf_remessa_devolucao')" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         <p class="text-xs text-gray-400 mt-1">Apenas PDF até 10MB</p>
                         <div id="preview_nf_remessa_devolucao" class="mt-2"></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Campos Opcionais -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Número de Série</label>
+                    <input type="text" name="numero_serie" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número de série">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Número do Lote</label>
+                    <input type="text" name="numero_lote" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número do lote">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Número Ticket/OS</label>
+                    <input type="text" name="numero_ticket_os" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número do ticket">
                 </div>
             </div>
 
