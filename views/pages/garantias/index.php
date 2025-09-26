@@ -158,13 +158,13 @@ if (!isset($_SESSION['user_id'])) {
                 <h3 class="text-lg font-medium text-white mb-4">📋 Anexos dos Laudos</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Laudo Técnico (PDF/DOC)</label>
+                        <label class="block text-sm font-medium text-white mb-2">Laudo Técnico (PDF/DOC)</label>
                         <input type="file" name="anexo_laudo_tecnico" accept=".pdf,.doc,.docx" onchange="validateFileUpload(this, 'laudo_tecnico')" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         <p class="text-xs text-gray-400 mt-1">PDF, DOC ou DOCX até 10MB</p>
                         <div id="preview_laudo_tecnico" class="mt-2"></div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Evidências (Imagens)</label>
+                        <label class="block text-sm font-medium text-white mb-2">Evidências (Imagens)</label>
                         <input type="file" name="anexo_evidencias[]" accept="image/*" multiple onchange="validateImageUpload(this, 'evidencias')" class="w-full bg-gray-600 border border-gray-500 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         <p class="text-xs text-gray-400 mt-1">Imagens até 5MB cada (máx. 10 arquivos)</p>
                         <div id="preview_evidencias" class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2"></div>
@@ -175,7 +175,7 @@ if (!isset($_SESSION['user_id'])) {
             <!-- Status e Observação -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                    <label class="block text-sm font-medium text-white mb-2">Status</label>
                     <select name="status" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="Em andamento">Em andamento</option>
                         <option value="Aguardando Fornecedor">Aguardando Fornecedor</option>
@@ -190,8 +190,8 @@ if (!isset($_SESSION['user_id'])) {
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Observação</label>
-                    <textarea name="observacao" rows="3" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Observações sobre a garantia..."></textarea>
+                    <label class="block text-sm font-medium text-white mb-2">Observação</label>
+                    <textarea name="observacao" rows="3" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Observações sobre a garantia..."></textarea>
                 </div>
             </div>
 
