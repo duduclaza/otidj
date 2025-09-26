@@ -39,11 +39,11 @@ $menu = [
     'href' => '#', 
     'icon' => '📊', 
     'category' => true,
-    'modules' => ['homologacoes', 'fmea', 'pops_its', 'fluxogramas', '5w2h', 'auditorias', 'melhoria_continua', 'controle_rc'],
+    'modules' => ['homologacoes', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', '5w2h', 'auditorias', 'melhoria_continua', 'controle_rc'],
     'submenu' => [
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
       ['label' => 'FMEA', 'href' => '/fmea', 'icon' => '📈', 'module' => 'fmea'],
-      ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its'],
+      ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its_visualizacao'],
       ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
       ['label' => '5W2H', 'href' => '/5w2h', 'icon' => '📋', 'module' => '5w2h'],
       ['label' => 'Auditorias', 'href' => '/auditorias', 'icon' => '🔍', 'module' => 'auditorias'],
