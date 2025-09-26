@@ -170,7 +170,7 @@
                   ?>
                 </td>
                 <td class="px-4 py-2">
-                  <select onchange="updateStatus(<?= $amostragem['id'] ?>, this.value)" class="text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 <?php 
+                  <select onchange="updateStatus(<?= $amostragem['id'] ?>, this.value, this)" class="text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 <?php 
                     echo $amostragem['status'] === 'aprovado' ? 'bg-green-100 text-green-800' : 
                          ($amostragem['status'] === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'); 
                   ?>">
@@ -699,7 +699,7 @@ async function viewEvidencias(amostragemId) {
 // ===== Edição Inline =====
 
 // Atualizar status
-async function updateStatus(id, newStatus) {
+async function updateStatus(id, newStatus, selectElement) {
   try {
     console.log('🔄 Atualizando status:', { id, newStatus });
     
@@ -740,12 +740,13 @@ async function updateStatus(id, newStatus) {
     console.log('✅ Resultado parseado:', result);
     
     if (result && result.success) {
-      // Atualizar cor do select
-      const select = event.target;
-      select.className = `text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 ${
-        newStatus === 'aprovado' ? 'bg-green-100 text-green-800' : 
-        newStatus === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-      }`;
+      // Atualizar cor do select usando o elemento passado como parâmetro
+      if (selectElement) {
+        selectElement.className = `text-xs font-semibold rounded-full px-2 py-1 border-0 focus:ring-2 focus:ring-blue-500 ${
+          newStatus === 'aprovado' ? 'bg-green-100 text-green-800' : 
+          newStatus === 'pendente' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+        }`;
+      }
       
       // Se mudou para reprovado e não tem observação, abrir edição
       if (newStatus === 'reprovado' && !currentObs) {
