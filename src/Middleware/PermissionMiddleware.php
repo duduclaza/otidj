@@ -268,7 +268,6 @@ class PermissionMiddleware
             'registros_fornecedores' => '/registros/fornecedores',
             'registros_parametros' => '/registros/parametros',
             'configuracoes_gerais' => '/configuracoes',
-            'profile' => '/profile',
         ];
         
         foreach ($moduleUrls as $module => $url) {
@@ -277,6 +276,7 @@ class PermissionMiddleware
             }
         }
         
-        return null;
+        // Se não encontrou nenhum módulo, retornar para início
+        return '/inicio';
     }
 }
