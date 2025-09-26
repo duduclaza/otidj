@@ -130,9 +130,14 @@
             <span id="valorEstimado" class="font-bold ml-2">-</span>
           </div>
         </div>
-        <div id="orientacaoSistema" class="bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded">
-          <p class="text-yellow-800 font-medium">Orientação do Sistema:</p>
-          <p id="textoOrientacao" class="text-yellow-700 mt-1">-</p>
+        <div id="orientacaoSistema" class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-500 p-4 rounded-lg shadow-sm">
+          <div class="flex items-center mb-2">
+            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-yellow-800 font-semibold">Orientação do Sistema:</p>
+          </div>
+          <p id="textoOrientacao" class="text-yellow-800 font-medium text-lg">-</p>
         </div>
       </div>
 
@@ -163,20 +168,25 @@
       </div>
 
       <!-- Botões de Ação -->
-      <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-        <button type="button" onclick="cancelRetornadoForm()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-          Cancelar
+      <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+        <button type="button" onclick="testarOrientacoes()" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-sm">
+          🧪 Testar Orientações
         </button>
-        <button type="submit" id="submitRetornadoBtn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-          Registrar Retornado
-        </button>
+        <div class="flex space-x-3">
+          <button type="button" onclick="cancelRetornadoForm()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Cancelar
+          </button>
+          <button type="submit" id="submitRetornadoBtn" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Registrar Retornado
+          </button>
+        </div>
       </div>
     </form>
   </div>
     <script>
 // Variáveis globais
 let modelosData = [];
-let parametrosGerais = {};
+let parametrosGerais = [];
 let selectedDestino = '';
 let deleteId = null;
 
@@ -500,15 +510,105 @@ function carregarModelos() {
     });
 }
 
-// Carregar parâmetros gerais
-function carregarParametrosGerais() {
-  // Simulação - implementar endpoint real
-  parametrosGerais = {
-    descarte_minimo: 10,
-    estoque_minimo: 20,
-    uso_interno_minimo: 15,
-    garantia_minimo: 30
-  };
+// Carregar parâmetros gerais com retry automático
+function carregarParametrosGerais(tentativa = 1, maxTentativas = 3) {
+  console.log(`📡 Carregando parâmetros de retornados... (tentativa ${tentativa}/${maxTentativas})`);
+  
+  return fetch('/api/parametros', {
+    method: 'GET',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => {
+      console.log('Response status (parâmetros):', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.text();
+    })
+    .then(text => {
+      console.log('Raw response (parâmetros):', text);
+      try {
+        const data = JSON.parse(text);
+        console.log('Parsed data (parâmetros):', data);
+        
+        if (data.success && Array.isArray(data.data)) {
+          parametrosGerais = data.data;
+          console.log(`✅ ${data.data.length} parâmetros carregados com sucesso!`);
+          
+          // Mostrar notificação de sucesso se houve tentativas anteriores
+          if (tentativa > 1) {
+            mostrarNotificacaoParametros('Parâmetros carregados com sucesso!', 'success');
+          }
+          
+          return data.data;
+        } else {
+          throw new Error('Resposta inválida da API: ' + JSON.stringify(data));
+        }
+      } catch (e) {
+        throw new Error('Erro ao processar resposta JSON: ' + e.message);
+      }
+    })
+    .catch(error => {
+      console.error(`❌ Erro ao carregar parâmetros (tentativa ${tentativa}):`, error);
+      
+      // Se ainda há tentativas restantes, tentar novamente
+      if (tentativa < maxTentativas) {
+        const delay = tentativa * 1000; // Delay progressivo: 1s, 2s, 3s
+        console.log(`🔄 Tentando novamente em ${delay}ms...`);
+        
+        mostrarNotificacaoParametros(`Erro ao carregar parâmetros. Tentando novamente... (${tentativa}/${maxTentativas})`, 'warning');
+        
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve(carregarParametrosGerais(tentativa + 1, maxTentativas));
+          }, delay);
+        });
+      } else {
+        // Esgotaram as tentativas
+        console.error('❌ Falha ao carregar parâmetros após todas as tentativas');
+        parametrosGerais = [];
+        mostrarNotificacaoParametros('Falha ao carregar parâmetros. Usando valores padrão.', 'error');
+        return [];
+      }
+    });
+}
+
+function mostrarNotificacaoParametros(mensagem, tipo = 'info') {
+  // Criar notificação temporária
+  const notification = document.createElement('div');
+  const bgColor = tipo === 'success' ? 'bg-green-500' : 
+                  tipo === 'error' ? 'bg-red-500' : 
+                  tipo === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+  
+  notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full text-sm`;
+  notification.innerHTML = `
+    <div class="flex items-center space-x-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>${mensagem}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Animar entrada
+  setTimeout(() => {
+    notification.classList.remove('translate-x-full');
+  }, 100);
+  
+  // Remover após 3 segundos
+  setTimeout(() => {
+    notification.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 3000);
 }
 
 // Ao selecionar modelo
@@ -611,25 +711,105 @@ function mostrarResultados(percentualRestante, modelo) {
   document.getElementById('folhasEstimadas').textContent = folhasEstimadas + ' folhas';
   document.getElementById('valorEstimado').textContent = 'R$ ' + valorEstimado.toFixed(2);
   
-  // Gerar orientação
-  const orientacao = gerarOrientacao(percentualRestante);
-  document.getElementById('textoOrientacao').textContent = orientacao;
+  // Verificar se parâmetros estão carregados, senão recarregar
+  if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
+    console.log('⚠️ Parâmetros não carregados, recarregando...');
+    document.getElementById('textoOrientacao').textContent = 'Carregando orientação...';
+    carregarParametrosGerais();
+    
+    // Tentar novamente após um delay
+    setTimeout(() => {
+      const orientacao = gerarOrientacao(percentualRestante);
+      atualizarOrientacaoVisual(orientacao, percentualRestante);
+    }, 2000);
+  } else {
+    // Gerar orientação normalmente
+    const orientacao = gerarOrientacao(percentualRestante);
+    atualizarOrientacaoVisual(orientacao, percentualRestante);
+  }
   
   // Mostrar resultados e seleção de destino
   document.getElementById('resultadoCalculo').classList.remove('hidden');
   document.getElementById('selecaoDestino').classList.remove('hidden');
 }
 
-function gerarOrientacao(percentual) {
-  if (percentual <= parametrosGerais.descarte_minimo) {
-    return 'Recomendado DESCARTE - Toner com baixo percentual de tinta restante.';
-  } else if (percentual <= parametrosGerais.uso_interno_minimo) {
-    return 'Recomendado USO INTERNO - Toner adequado para impressões internas.';
-  } else if (percentual <= parametrosGerais.estoque_minimo) {
-    return 'Recomendado ESTOQUE - Toner com boa quantidade de tinta para revenda.';
+function atualizarOrientacaoVisual(orientacao, percentual) {
+  const textoElement = document.getElementById('textoOrientacao');
+  const containerElement = document.getElementById('orientacaoSistema');
+  
+  // Atualizar texto
+  textoElement.textContent = orientacao;
+  
+  // Adicionar animação de mudança
+  containerElement.style.transform = 'scale(0.95)';
+  containerElement.style.opacity = '0.7';
+  
+  setTimeout(() => {
+    containerElement.style.transform = 'scale(1)';
+    containerElement.style.opacity = '1';
+    containerElement.style.transition = 'all 0.3s ease';
+  }, 100);
+  
+  // Mudar cor baseada no tipo de orientação
+  containerElement.classList.remove('border-yellow-500', 'border-red-500', 'border-green-500', 'border-blue-500');
+  
+  if (orientacao.toLowerCase().includes('descarte')) {
+    containerElement.classList.add('border-red-500');
+    containerElement.className = containerElement.className.replace(/from-\w+-\d+/, 'from-red-50').replace(/to-\w+-\d+/, 'to-red-100');
+  } else if (orientacao.toLowerCase().includes('estoque')) {
+    containerElement.classList.add('border-green-500');
+    containerElement.className = containerElement.className.replace(/from-\w+-\d+/, 'from-green-50').replace(/to-\w+-\d+/, 'to-green-100');
+  } else if (orientacao.toLowerCase().includes('interno')) {
+    containerElement.classList.add('border-blue-500');
+    containerElement.className = containerElement.className.replace(/from-\w+-\d+/, 'from-blue-50').replace(/to-\w+-\d+/, 'to-blue-100');
   } else {
-    return 'Recomendado GARANTIA - Toner com alto percentual, verificar se está em garantia.';
+    containerElement.classList.add('border-yellow-500');
+    containerElement.className = containerElement.className.replace(/from-\w+-\d+/, 'from-yellow-50').replace(/to-\w+-\d+/, 'to-orange-50');
   }
+  
+  // Log para debug
+  console.log(`💡 Orientação atualizada para ${percentual.toFixed(1)}%: "${orientacao}"`);
+}
+
+function gerarOrientacao(percentual) {
+  console.log('🎯 Gerando orientação para percentual:', percentual);
+  console.log('📋 Parâmetros disponíveis:', parametrosGerais);
+  
+  // Se não há parâmetros carregados, usar orientação padrão
+  if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
+    console.log('⚠️ Nenhum parâmetro carregado, usando orientação padrão');
+    return 'Aguardando carregamento dos parâmetros de orientação...';
+  }
+  
+  // Ordenar parâmetros por faixa_min para garantir ordem correta
+  const parametrosOrdenados = [...parametrosGerais].sort((a, b) => a.faixa_min - b.faixa_min);
+  console.log('📊 Parâmetros ordenados:', parametrosOrdenados);
+  
+  // Encontrar o parâmetro correspondente ao percentual
+  for (const parametro of parametrosOrdenados) {
+    const faixaMin = parseFloat(parametro.faixa_min);
+    const faixaMax = parametro.faixa_max ? parseFloat(parametro.faixa_max) : null;
+    
+    console.log(`🔍 Verificando faixa: ${faixaMin}% - ${faixaMax ? faixaMax + '%' : '∞'}`);
+    
+    // Se tem faixa máxima, verificar se está dentro do intervalo
+    if (faixaMax !== null) {
+      if (percentual >= faixaMin && percentual <= faixaMax) {
+        console.log(`✅ Percentual ${percentual}% está na faixa ${faixaMin}% - ${faixaMax}%`);
+        return parametro.orientacao;
+      }
+    } else {
+      // Se não tem faixa máxima, verificar se é maior ou igual ao mínimo
+      if (percentual >= faixaMin) {
+        console.log(`✅ Percentual ${percentual}% está na faixa ${faixaMin}% - ∞`);
+        return parametro.orientacao;
+      }
+    }
+  }
+  
+  // Se não encontrou nenhum parâmetro correspondente
+  console.log('❌ Nenhum parâmetro encontrado para o percentual:', percentual);
+  return 'Percentual fora das faixas configuradas. Verifique os parâmetros de retornados.';
 }
 
 function selecionarDestino(destino) {
@@ -733,6 +913,72 @@ function submitRetornado(e) {
     console.error('Fetch error:', error);
     alert('Erro de conexão: ' + error.message);
   });
+}
+
+// Função de teste para demonstrar diferentes cenários de orientação
+function testarOrientacoes() {
+  console.log('🧪 Iniciando teste de orientações...');
+  
+  // Verificar se parâmetros estão carregados
+  if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
+    alert('⚠️ Parâmetros não carregados. Carregue os parâmetros primeiro.');
+    carregarParametrosGerais();
+    return;
+  }
+  
+  // Cenários de teste
+  const cenariosTeste = [
+    { percentual: 2, descricao: 'Muito baixo (2%)' },
+    { percentual: 8, descricao: 'Baixo (8%)' },
+    { percentual: 15, descricao: 'Médio-baixo (15%)' },
+    { percentual: 25, descricao: 'Médio (25%)' },
+    { percentual: 45, descricao: 'Alto (45%)' },
+    { percentual: 70, descricao: 'Muito alto (70%)' },
+    { percentual: 95, descricao: 'Quase cheio (95%)' }
+  ];
+  
+  let resultados = '🧪 TESTE DE ORIENTAÇÕES:\n\n';
+  resultados += '📋 Parâmetros configurados:\n';
+  
+  // Mostrar parâmetros configurados
+  parametrosGerais.forEach(param => {
+    const faixaMax = param.faixa_max ? `${param.faixa_max}%` : '∞';
+    resultados += `• ${param.faixa_min}% - ${faixaMax}: "${param.orientacao}"\n`;
+  });
+  
+  resultados += '\n🎯 Resultados dos testes:\n';
+  
+  // Testar cada cenário
+  cenariosTeste.forEach(cenario => {
+    const orientacao = gerarOrientacao(cenario.percentual);
+    resultados += `• ${cenario.descricao}: "${orientacao}"\n`;
+  });
+  
+  // Mostrar resultados
+  alert(resultados);
+  
+  // Demonstração visual com o último cenário
+  const ultimoCenario = cenariosTeste[cenariosTeste.length - 1];
+  
+  // Simular um modelo para mostrar os resultados
+  const modeloTeste = {
+    rendimento: 2000,
+    valor: 150
+  };
+  
+  // Mostrar resultado visual
+  document.getElementById('percentualRestante').textContent = ultimoCenario.percentual.toFixed(1) + '%';
+  document.getElementById('folhasEstimadas').textContent = Math.round((ultimoCenario.percentual / 100) * modeloTeste.rendimento) + ' folhas';
+  document.getElementById('valorEstimado').textContent = 'R$ ' + ((ultimoCenario.percentual / 100) * modeloTeste.valor).toFixed(2);
+  
+  const orientacao = gerarOrientacao(ultimoCenario.percentual);
+  atualizarOrientacaoVisual(orientacao, ultimoCenario.percentual);
+  
+  // Mostrar seção de resultados
+  document.getElementById('resultadoCalculo').classList.remove('hidden');
+  document.getElementById('selecaoDestino').classList.remove('hidden');
+  
+  console.log('✅ Teste de orientações concluído');
 }
 
       // Código legado mantido para compatibilidade

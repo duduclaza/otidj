@@ -201,6 +201,7 @@ $router->get('/api/profiles', [App\Controllers\ProfilesController::class, 'getPr
 $router->get('/api/toner', [App\Controllers\TonersController::class, 'getTonerData']);
 $router->get('/api/setores', [App\Controllers\RegistrosController::class, 'getDepartamentos']);
 $router->get('/api/filiais', [App\Controllers\RegistrosController::class, 'getFiliais']);
+$router->get('/api/parametros', [App\Controllers\RegistrosController::class, 'getParametros']);
 
 // Profile routes
 $router->get('/profile', [App\Controllers\ProfileController::class, 'index']);

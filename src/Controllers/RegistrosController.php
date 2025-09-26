@@ -277,6 +277,28 @@ class RegistrosController
         }
     }
 
+    public function getParametros(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare('SELECT id, nome, faixa_min, faixa_max, orientacao FROM parametros_retornados ORDER BY faixa_min');
+            $stmt->execute();
+            $parametros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $parametros,
+                'count' => count($parametros)
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao carregar parâmetros: ' . $e->getMessage()
+            ]);
+        }
+    }
+
 
 
     private function render(string $view, array $data = []): void
