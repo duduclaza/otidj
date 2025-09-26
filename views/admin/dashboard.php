@@ -193,8 +193,8 @@
 </div>
 
 <!-- Modal para Gráfico Expandido - Versão Elegante para Apresentações -->
-<div id="expandedChartModal" class="hidden fixed inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 bg-opacity-95 flex items-center justify-center p-4 backdrop-blur-sm" style="z-index: 999999;" onclick="closeExpandedChart()">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-full overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="expandedChartContainer" onclick="event.stopPropagation()">
+<div id="expandedChartModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center p-4" style="z-index: 999999;" onclick="closeExpandedChart()">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-full overflow-hidden transform transition-all duration-300" id="expandedChartContainer" onclick="event.stopPropagation()" style="transform: scale(0.95); opacity: 0;">
     <!-- Header Elegante -->
     <div class="px-8 py-6 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white relative overflow-hidden">
       <div class="absolute inset-0 bg-black bg-opacity-10"></div>
@@ -612,13 +612,16 @@ function expandChart(chartId) {
   console.log('📱 Mostrando modal...');
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  console.log('👁️ Modal classes após mostrar:', modal.className);
+  console.log('📏 Modal computed style display:', window.getComputedStyle(modal).display);
   
   // Animar entrada do container
   setTimeout(() => {
     console.log('🎬 Animando container...');
     container.style.transform = 'scale(1)';
     container.style.opacity = '1';
-  }, 50);
+    console.log('📐 Container style após animação:', container.style.transform, container.style.opacity);
+  }, 100);
   
   // Mostrar loading
   console.log('⏳ Mostrando loading...');
