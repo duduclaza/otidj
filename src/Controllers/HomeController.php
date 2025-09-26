@@ -20,11 +20,24 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.7';
+        $systemVersion = '2.1.8';
         $lastUpdate = '26/09/2025';
         
         // Últimas atualizações do sistema
         $updates = [
+            [
+                'version' => '2.1.8',
+                'date' => '26/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção Acesso ao Perfil e Permissões Dashboard',
+                'description' => 'Corrigido acesso ao perfil próprio e criado diagnóstico de permissões para supervisores',
+                'items' => [
+                    'Rota /profile liberada para todos os usuários logados',
+                    'Usuários podem alterar foto e senha própria sem restrições',
+                    'Criada rota /admin/diagnostico/permissoes-usuario',
+                    'Correção automática de permissões de dashboard para supervisores'
+                ]
+            ],
             [
                 'version' => '2.1.7',
                 'date' => '26/09/2025',

@@ -77,8 +77,7 @@ class PermissionMiddleware
         '/admin' => 'admin_painel',
         '/admin/dashboard/data' => 'dashboard',
         
-        // Perfil
-        '/profile' => 'profile',
+        // Perfil - removido pois é rota pública para usuários logados
     ];
     
     /**
@@ -90,7 +89,8 @@ class PermissionMiddleware
         $publicRoutes = [
             '/login', '/auth/login', '/register', '/auth/register', '/logout',
             '/request-access', '/access-request/process', '/access-request/filiais', '/access-request/departamentos',
-            '/email/test-connection', '/email/send-test'
+            '/email/test-connection', '/email/send-test',
+            '/profile'  // Perfil próprio deve ser acessível a todos os usuários logados
         ];
         
         // Rotas de API que têm verificação própria

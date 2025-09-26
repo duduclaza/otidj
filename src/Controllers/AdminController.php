@@ -1410,5 +1410,217 @@ class AdminController
             }
         }
     }
+
+    /**
+     * Diagnóstico de permissões de usuário
+     */
+    public function diagnosticoPermissoes()
+    {
+        // Verificar se é admin
+        if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+            http_response_code(403);
+            echo "<h1>Acesso Negado</h1><p>Apenas administradores podem acessar o diagnóstico.</p>";
+            return;
+        }
+
+        try {
+            echo "<!DOCTYPE html>
+            <html lang='pt-br'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <title>Diagnóstico de Permissões - SGQ OTI DJ</title>
+                <script src='https://cdn.tailwindcss.com'></script>
+            </head>
+            <body class='bg-gray-100 p-8'>
+                <div class='max-w-6xl mx-auto'>
+                    <h1 class='text-3xl font-bold mb-6 text-gray-900'>🔍 Diagnóstico: Permissões de Usuário</h1>";
+
+            // 1. Listar todos os usuários
+            echo "<div class='bg-white rounded-lg shadow p-6 mb-6'>
+                    <h2 class='text-xl font-semibold mb-4'>1. Usuários do Sistema</h2>";
+
+            $stmt = $this->db->prepare("
+                SELECT u.id, u.name, u.email, u.profile_id, p.name as profile_name, p.is_admin
+                FROM users u 
+                LEFT JOIN profiles p ON u.profile_id = p.id 
+                ORDER BY u.name
+            ");
+            $stmt->execute();
+            $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            echo "<div class='overflow-x-auto'>
+                    <table class='min-w-full bg-white border border-gray-200'>
+                        <thead class='bg-gray-50'>
+                            <tr>
+                                <th class='px-4 py-2 text-left'>ID</th>
+                                <th class='px-4 py-2 text-left'>Nome</th>
+                                <th class='px-4 py-2 text-left'>Email</th>
+                                <th class='px-4 py-2 text-left'>Perfil</th>
+                                <th class='px-4 py-2 text-center'>Dashboard</th>
+                                <th class='px-4 py-2 text-center'>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>";
+
+            foreach ($users as $user) {
+                $hasDashboard = \App\Services\PermissionService::hasPermission($user['id'], 'dashboard', 'view');
+                echo "<tr class='border-t'>
+                        <td class='px-4 py-2'>" . $user['id'] . "</td>
+                        <td class='px-4 py-2'>" . htmlspecialchars($user['name']) . "</td>
+                        <td class='px-4 py-2'>" . htmlspecialchars($user['email']) . "</td>
+                        <td class='px-4 py-2'>" . htmlspecialchars($user['profile_name'] ?? 'Sem perfil') . "</td>
+                        <td class='px-4 py-2 text-center'>" . ($hasDashboard ? '<span class="text-green-600">✅</span>' : '<span class="text-red-600">❌</span>') . "</td>
+                        <td class='px-4 py-2 text-center'>
+                            <a href='?user_id=" . $user['id'] . "' class='bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700'>Analisar</a>
+                        </td>
+                      </tr>";
+            }
+            echo "</tbody></table></div>";
+            echo "</div>";
+
+            // 2. Análise específica de usuário
+            if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
+                $userId = (int)$_GET['user_id'];
+                
+                $stmt = $this->db->prepare("
+                    SELECT u.id, u.name, u.email, u.profile_id, p.name as profile_name, p.is_admin
+                    FROM users u 
+                    LEFT JOIN profiles p ON u.profile_id = p.id 
+                    WHERE u.id = ?
+                ");
+                $stmt->execute([$userId]);
+                $selectedUser = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+                if ($selectedUser) {
+                    echo "<div class='bg-white rounded-lg shadow p-6 mb-6'>
+                            <h2 class='text-xl font-semibold mb-4'>2. Análise Detalhada: " . htmlspecialchars($selectedUser['name']) . "</h2>";
+
+                    // Informações do usuário
+                    echo "<div class='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
+                            <div>
+                                <h3 class='font-semibold mb-2'>Informações do Usuário:</h3>
+                                <ul class='space-y-1'>
+                                    <li><strong>ID:</strong> " . $selectedUser['id'] . "</li>
+                                    <li><strong>Nome:</strong> " . htmlspecialchars($selectedUser['name']) . "</li>
+                                    <li><strong>Email:</strong> " . htmlspecialchars($selectedUser['email']) . "</li>
+                                    <li><strong>Perfil:</strong> " . htmlspecialchars($selectedUser['profile_name'] ?? 'Sem perfil') . "</li>
+                                    <li><strong>É Admin:</strong> " . ($selectedUser['is_admin'] ? '<span class="text-green-600">✅ SIM</span>' : '<span class="text-red-600">❌ NÃO</span>') . "</li>
+                                </ul>
+                            </div>";
+
+                    // Verificar permissões específicas
+                    $modules = ['dashboard', 'toners_cadastro', 'homologacoes', 'pops_its_visualizacao', 'admin_usuarios'];
+                    echo "<div>
+                            <h3 class='font-semibold mb-2'>Permissões Principais:</h3>
+                            <ul class='space-y-1'>";
+                    foreach ($modules as $module) {
+                        $hasPermission = \App\Services\PermissionService::hasPermission($userId, $module, 'view');
+                        echo "<li><strong>" . $module . ":</strong> " . ($hasPermission ? '<span class="text-green-600">✅ TEM</span>' : '<span class="text-red-600">❌ NÃO TEM</span>') . "</li>";
+                    }
+                    echo "</ul></div></div>";
+
+                    // Permissões do perfil no banco
+                    if ($selectedUser['profile_id']) {
+                        echo "<h3 class='font-semibold mb-2'>Permissões do Perfil no Banco de Dados:</h3>";
+                        $stmt = $this->db->prepare("
+                            SELECT module, can_view, can_edit, can_delete, can_import, can_export
+                            FROM profile_permissions 
+                            WHERE profile_id = ? 
+                            ORDER BY module
+                        ");
+                        $stmt->execute([$selectedUser['profile_id']]);
+                        $permissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+                        if ($permissions) {
+                            echo "<div class='overflow-x-auto'>
+                                    <table class='min-w-full bg-white border border-gray-200'>
+                                        <thead class='bg-gray-50'>
+                                            <tr>
+                                                <th class='px-3 py-2 text-left'>Módulo</th>
+                                                <th class='px-3 py-2 text-center'>View</th>
+                                                <th class='px-3 py-2 text-center'>Edit</th>
+                                                <th class='px-3 py-2 text-center'>Delete</th>
+                                                <th class='px-3 py-2 text-center'>Import</th>
+                                                <th class='px-3 py-2 text-center'>Export</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>";
+                            foreach ($permissions as $perm) {
+                                echo "<tr class='border-t'>
+                                        <td class='px-3 py-2 font-mono text-sm'>" . $perm['module'] . "</td>
+                                        <td class='px-3 py-2 text-center'>" . ($perm['can_view'] ? '✅' : '❌') . "</td>
+                                        <td class='px-3 py-2 text-center'>" . ($perm['can_edit'] ? '✅' : '❌') . "</td>
+                                        <td class='px-3 py-2 text-center'>" . ($perm['can_delete'] ? '✅' : '❌') . "</td>
+                                        <td class='px-3 py-2 text-center'>" . ($perm['can_import'] ? '✅' : '❌') . "</td>
+                                        <td class='px-3 py-2 text-center'>" . ($perm['can_export'] ? '✅' : '❌') . "</td>
+                                      </tr>";
+                            }
+                            echo "</tbody></table></div>";
+                        } else {
+                            echo "<p class='text-red-600'>❌ Este perfil não tem permissões configuradas!</p>";
+                        }
+                    }
+
+                    // Botão para corrigir dashboard
+                    $hasDashboard = \App\Services\PermissionService::hasPermission($userId, 'dashboard', 'view');
+                    if (!$hasDashboard && $selectedUser['profile_id']) {
+                        echo "<div class='mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded'>
+                                <h3 class='font-semibold text-yellow-800 mb-2'>🔧 Correção Disponível</h3>
+                                <p class='text-yellow-700 mb-3'>Este usuário não tem permissão de dashboard. Clique abaixo para adicionar:</p>
+                                <a href='?user_id=" . $userId . "&fix_dashboard=1' class='bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700'>✅ Adicionar Permissão Dashboard</a>
+                              </div>";
+                    }
+
+                    echo "</div>";
+                }
+            }
+
+            // 3. Correção automática
+            if (isset($_GET['fix_dashboard']) && isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
+                $userId = (int)$_GET['user_id'];
+                
+                $stmt = $this->db->prepare("SELECT profile_id FROM users WHERE id = ?");
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+                
+                if ($user && $user['profile_id']) {
+                    echo "<div class='bg-white rounded-lg shadow p-6 mb-6'>
+                            <h2 class='text-xl font-semibold mb-4'>3. 🔧 Correção Executada</h2>";
+                    
+                    // Verificar se já existe
+                    $checkStmt = $this->db->prepare("SELECT id FROM profile_permissions WHERE profile_id = ? AND module = 'dashboard'");
+                    $checkStmt->execute([$user['profile_id']]);
+                    
+                    if ($checkStmt->fetch()) {
+                        // Atualizar
+                        $updateStmt = $this->db->prepare("UPDATE profile_permissions SET can_view = 1 WHERE profile_id = ? AND module = 'dashboard'");
+                        $updateStmt->execute([$user['profile_id']]);
+                        echo "<p class='text-green-600'>✅ Permissão de dashboard ATUALIZADA para visualização!</p>";
+                    } else {
+                        // Inserir
+                        $insertStmt = $this->db->prepare("
+                            INSERT INTO profile_permissions 
+                            (profile_id, module, can_view, can_edit, can_delete, can_import, can_export) 
+                            VALUES (?, 'dashboard', 1, 0, 0, 0, 0)
+                        ");
+                        $insertStmt->execute([$user['profile_id']]);
+                        echo "<p class='text-green-600'>✅ Permissão de dashboard ADICIONADA para visualização!</p>";
+                    }
+                    
+                    echo "<p class='mt-2'><a href='?user_id=" . $userId . "' class='bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'>🔄 Verificar Novamente</a></p>";
+                    echo "</div>";
+                }
+            }
+
+            echo "</div></body></html>";
+
+        } catch (\Exception $e) {
+            echo "<div class='bg-red-50 border border-red-200 rounded p-4'>
+                    <h3 class='text-red-800 font-semibold'>❌ Erro no Diagnóstico:</h3>
+                    <p class='text-red-700'>" . htmlspecialchars($e->getMessage()) . "</p>
+                  </div>";
+        }
+    }
     
 }

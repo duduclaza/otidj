@@ -84,6 +84,9 @@ $router->get('/dashboard', [App\Controllers\AdminController::class, 'dashboard']
 // Rota de diagnóstico POPs (apenas para admins)
 $router->get('/admin/diagnostico/pops-pendentes', [App\Controllers\PopItsController::class, 'diagnosticoPendentes']);
 
+// Rota de diagnóstico de permissões (apenas para admins)
+$router->get('/admin/diagnostico/permissoes-usuario', [App\Controllers\AdminController::class, 'diagnosticoPermissoes']);
+
 // Admin routes
 $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
 $router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);
