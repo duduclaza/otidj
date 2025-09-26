@@ -785,10 +785,9 @@ function submitCreateUser() {
 document.addEventListener('DOMContentLoaded', function() {
   // Definir datas padrão
   const hoje = new Date();
-  const trintaDiasAtras = new Date();
-  trintaDiasAtras.setDate(hoje.getDate() - 30);
+  const primeiroDiaAno = new Date(hoje.getFullYear(), 0, 1); // 01 de janeiro do ano atual
   
-  document.getElementById('dataInicial').value = trintaDiasAtras.toISOString().split('T')[0];
+  document.getElementById('dataInicial').value = primeiroDiaAno.toISOString().split('T')[0];
   document.getElementById('dataFinal').value = hoje.toISOString().split('T')[0];
   
   // Inicializar gráficos

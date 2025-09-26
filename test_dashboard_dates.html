@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Dashboard Datas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        .code { background: #f8f9fa; padding: 10px; border-left: 4px solid #007bff; margin: 10px 0; font-family: monospace; }
+        .debug-info { background: #e9ecef; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico - Dashboard Retornados por Mês</h1>
+    
+    <div class="test-section">
+        <h2>🐛 Problema Identificado</h2>
+        <p class="error"><strong>Problema:</strong> O gráfico "Retornados por Mês" está pegando a data errada no banco de dados.</p>
+        
+        <h3>📊 Sintomas:</h3>
+        <ul>
+            <li>Dados do gráfico não correspondem às datas reais dos retornados</li>
+            <li>Possível uso da coluna errada para agrupar por mês</li>
+            <li>Discrepância entre dados exibidos e dados reais</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Análise do Problema</h2>
+        
+        <h3>📋 Estrutura da Tabela Retornados:</h3>
+        <div class="debug-info">
+            <strong>Colunas de Data Identificadas:</strong>
+            <ul>
+                <li><code>data_registro</code> - Data do registro do retornado (campo do formulário)</li>
+                <li><code>created_at</code> - Timestamp de criação do registro no banco</li>
+            </ul>
+        </div>
+
+        <h3>⚙️ Método de Detecção de Coluna:</h3>
+        <div class="code">
+            <strong>Antes (Problemático):</strong><br>
+            $possibleDateColumns = ['data_retorno', 'data', 'created_at', 'date_created', 'data_criacao'];<br><br>
+            
+            <strong>Depois (Corrigido):</strong><br>
+            $possibleDateColumns = ['data_registro', 'data_retorno', 'data', 'created_at', 'date_created', 'data_criacao'];
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Correção Implementada</h2>
+        
+        <h3>🔧 Mudanças no AdminController.php:</h3>
+        <div class="success">
+            <strong>1. Prioridade da Coluna de Data:</strong>
+            <ul>
+                <li>✅ <code>data_registro</code> agora tem prioridade máxima</li>
+                <li>✅ Fallback alterado de <code>created_at</code> para <code>data_registro</code></li>
+                <li>✅ Método <code>getDateColumn()</code> atualizado</li>
+            </ul>
+        </div>
+
+        <h3>📝 Lógica da Correção:</h3>
+        <div class="info">
+            <p><strong>Problema:</strong> O sistema estava usando <code>created_at</code> (timestamp de criação) em vez de <code>data_registro</code> (data real do retornado).</p>
+            <p><strong>Solução:</strong> Priorizar <code>data_registro</code> que é a data informada pelo usuário no formulário.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Como Testar a Correção</h2>
+        
+        <h3>1. Teste da API de Dados:</h3>
+        <div class="code">
+            <strong>URL de Teste:</strong><br>
+            <a href="/admin/dashboard/data" target="_blank">/admin/dashboard/data</a><br><br>
+            
+            <strong>Verificar no JSON de resposta:</strong><br>
+            - debug.date_column deve ser "data_registro"<br>
+            - retornados_mes.data deve ter valores corretos por mês
+        </div>
+
+        <h3>2. Teste Visual no Dashboard:</h3>
+        <ol>
+            <li>Acesse o Dashboard do sistema</li>
+            <li>Verifique o gráfico "📊 Retornados por Mês"</li>
+            <li>Compare os dados com registros reais na tabela</li>
+            <li>Teste filtros por data para validar funcionamento</li>
+        </ol>
+
+        <h3>3. Validação SQL Direta:</h3>
+        <div class="code">
+            <strong>Query para verificar dados:</strong><br>
+            SELECT MONTH(data_registro) as mes, YEAR(data_registro) as ano, COUNT(*) as quantidade<br>
+            FROM retornados<br>
+            GROUP BY YEAR(data_registro), MONTH(data_registro)<br>
+            ORDER BY ano, mes;
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Debug Avançado</h2>
+        
+        <h3>📊 Informações de Debug Disponíveis:</h3>
+        <div class="debug-info">
+            A API <code>/admin/dashboard/data</code> retorna informações de debug:
+            <ul>
+                <li><strong>table_exists:</strong> Se a tabela retornados existe</li>
+                <li><strong>columns:</strong> Estrutura completa da tabela</li>
+                <li><strong>date_column:</strong> Coluna de data sendo usada</li>
+                <li><strong>filial_column:</strong> Coluna de filial sendo usada</li>
+                <li><strong>destino_column:</strong> Coluna de destino sendo usada</li>
+            </ul>
+        </div>
+
+        <h3>🛠️ Comandos de Verificação:</h3>
+        <div class="code">
+            <strong>1. Verificar estrutura da tabela:</strong><br>
+            DESCRIBE retornados;<br><br>
+            
+            <strong>2. Comparar datas:</strong><br>
+            SELECT data_registro, created_at FROM retornados LIMIT 10;<br><br>
+            
+            <strong>3. Contar por mês (data_registro):</strong><br>
+            SELECT MONTH(data_registro) as mes, COUNT(*) as qtd FROM retornados GROUP BY mes;<br><br>
+            
+            <strong>4. Contar por mês (created_at):</strong><br>
+            SELECT MONTH(created_at) as mes, COUNT(*) as qtd FROM retornados GROUP BY mes;
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📈 Impacto da Correção</h2>
+        
+        <div class="success">
+            <h3>✅ Benefícios:</h3>
+            <ul>
+                <li><strong>Dados Corretos:</strong> Gráfico agora usa a data real do retornado</li>
+                <li><strong>Análise Precisa:</strong> Relatórios mensais refletem datas reais</li>
+                <li><strong>Filtros Funcionais:</strong> Filtros por período funcionam corretamente</li>
+                <li><strong>Confiabilidade:</strong> Dados do dashboard são confiáveis</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Pontos de Atenção:</h3>
+            <ul>
+                <li>Verificar se todos os registros têm <code>data_registro</code> preenchida</li>
+                <li>Validar formato de data (Y-m-d vs d/m/Y)</li>
+                <li>Testar com diferentes filtros de data</li>
+                <li>Confirmar que outros gráficos não foram afetados</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Checklist de Validação</h2>
+        
+        <div class="debug-info">
+            <h3>□ Testes a Realizar:</h3>
+            <ul>
+                <li>□ API /admin/dashboard/data retorna date_column = "data_registro"</li>
+                <li>□ Gráfico "Retornados por Mês" mostra dados corretos</li>
+                <li>□ Filtro por data funciona corretamente</li>
+                <li>□ Dados do gráfico batem com consulta SQL direta</li>
+                <li>□ Tooltip do gráfico mostra informações corretas</li>
+                <li>□ Gráfico expandido funciona normalmente</li>
+                <li>□ Outros gráficos (Destino, Toners Recuperados) não foram afetados</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Status da Correção</h2>
+        <p class="success"><strong>🎯 CORREÇÃO IMPLEMENTADA!</strong></p>
+        <p>O método <code>getDateColumn()</code> foi atualizado para priorizar <code>data_registro</code> em vez de <code>created_at</code>.</p>
+        <p class="info">Agora o gráfico "Retornados por Mês" deve usar a data correta informada pelo usuário no formulário de retornados.</p>
+    </div>
+
+    <script>
+        console.log('🔍 Diagnóstico - Dashboard Retornados por Mês');
+        console.log('✅ Correção: Prioridade para data_registro em vez de created_at');
+        console.log('🧪 Teste: Verificar API /admin/dashboard/data');
+        console.log('📊 Validar: Gráfico deve mostrar dados corretos por mês');
+    </script>
+</body>
+</html>

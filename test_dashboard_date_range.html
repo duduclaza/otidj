@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Ajuste de Datas Padrão Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .success { color: #28a745; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        .code { background: #f8f9fa; padding: 10px; border-left: 4px solid #007bff; margin: 10px 0; font-family: monospace; }
+        .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .before, .after { padding: 15px; border-radius: 8px; }
+        .before { background: #ffebee; border-left: 4px solid #f44336; }
+        .after { background: #e8f5e9; border-left: 4px solid #4caf50; }
+    </style>
+</head>
+<body>
+    <h1>📅 Ajuste de Datas Padrão - Dashboard</h1>
+    
+    <div class="test-section">
+        <h2>🎯 Solicitação do Usuário</h2>
+        <p class="info"><strong>Requisito:</strong> "ajuste o data inicial para ser 01 de janeiro do ano atual e data final ser sempre o dia e o mês e ano presente"</p>
+        
+        <h3>📋 Comportamento Solicitado:</h3>
+        <ul>
+            <li><strong>Data Inicial:</strong> 01/01/2025 (primeiro dia do ano atual)</li>
+            <li><strong>Data Final:</strong> Data atual (hoje: 26/09/2025)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔄 Comparação: Antes vs Depois</h2>
+        
+        <div class="comparison">
+            <div class="before">
+                <h4>❌ ANTES (Últimos 30 dias)</h4>
+                <div class="code">
+                    const hoje = new Date();<br>
+                    const trintaDiasAtras = new Date();<br>
+                    trintaDiasAtras.setDate(hoje.getDate() - 30);<br><br>
+                    
+                    dataInicial = trintaDiasAtras; // ~30 dias atrás<br>
+                    dataFinal = hoje; // Data atual
+                </div>
+                <p><strong>Resultado:</strong> Período de aproximadamente 1 mês</p>
+                <p><strong>Exemplo:</strong> 27/08/2025 até 26/09/2025</p>
+            </div>
+            
+            <div class="after">
+                <h4>✅ DEPOIS (Ano completo)</h4>
+                <div class="code">
+                    const hoje = new Date();<br>
+                    const primeiroDiaAno = new Date(hoje.getFullYear(), 0, 1);<br><br>
+                    
+                    dataInicial = primeiroDiaAno; // 01/01/ano atual<br>
+                    dataFinal = hoje; // Data atual
+                </div>
+                <p><strong>Resultado:</strong> Do início do ano até hoje</p>
+                <p><strong>Exemplo:</strong> 01/01/2025 até 26/09/2025</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>⚙️ Implementação Técnica</h2>
+        
+        <h3>📁 Arquivo Modificado:</h3>
+        <div class="code">
+            <strong>views/admin/dashboard.php</strong> (linhas 785-795)
+        </div>
+
+        <h3>🔧 Código Implementado:</h3>
+        <div class="code">
+            // Definir datas padrão<br>
+            const hoje = new Date();<br>
+            const primeiroDiaAno = new Date(hoje.getFullYear(), 0, 1); // 01 de janeiro do ano atual<br><br>
+            
+            document.getElementById('dataInicial').value = primeiroDiaAno.toISOString().split('T')[0];<br>
+            document.getElementById('dataFinal').value = hoje.toISOString().split('T')[0];
+        </div>
+
+        <h3>📝 Explicação do Código:</h3>
+        <ul>
+            <li><code>hoje.getFullYear()</code> - Obtém o ano atual (2025)</li>
+            <li><code>new Date(ano, 0, 1)</code> - Cria data: ano atual, mês 0 (janeiro), dia 1</li>
+            <li><code>toISOString().split('T')[0]</code> - Converte para formato YYYY-MM-DD</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Impacto nos Gráficos</h2>
+        
+        <div class="success">
+            <h3>✅ Benefícios da Mudança:</h3>
+            <ul>
+                <li><strong>Visão Anual Completa:</strong> Dados desde o início do ano</li>
+                <li><strong>Análise Sazonal:</strong> Permite ver tendências anuais</li>
+                <li><strong>Comparação Mensal:</strong> Todos os meses do ano visíveis</li>
+                <li><strong>Relatórios Anuais:</strong> Base para relatórios de fim de ano</li>
+                <li><strong>Planejamento:</strong> Dados completos para tomada de decisão</li>
+            </ul>
+        </div>
+
+        <h3>📈 Gráficos Afetados:</h3>
+        <ul>
+            <li><strong>📊 Retornados por Mês:</strong> Mostrará todos os meses do ano</li>
+            <li><strong>🥧 Destino dos Retornados:</strong> Dados anuais completos</li>
+            <li><strong>💰 Valor Recuperado:</strong> Recuperação anual de toners</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Como Testar</h2>
+        
+        <h3>1. Teste Visual no Dashboard:</h3>
+        <ol>
+            <li>Acesse o Dashboard do sistema</li>
+            <li>Verifique os campos de filtro de data</li>
+            <li>Data Inicial deve mostrar: <strong>01/01/2025</strong></li>
+            <li>Data Final deve mostrar: <strong>26/09/2025</strong> (data atual)</li>
+            <li>Gráficos devem carregar dados do ano inteiro</li>
+        </ol>
+
+        <h3>2. Teste de Funcionalidade:</h3>
+        <ol>
+            <li>Recarregue a página do dashboard</li>
+            <li>Verifique se as datas padrão são aplicadas automaticamente</li>
+            <li>Teste os botões "Aplicar Filtros" e "Limpar"</li>
+            <li>Confirme que "Limpar" restaura as datas padrão corretas</li>
+        </ol>
+
+        <h3>3. Validação de Dados:</h3>
+        <div class="code">
+            <strong>Console do navegador:</strong><br>
+            console.log('Data Inicial:', document.getElementById('dataInicial').value);<br>
+            console.log('Data Final:', document.getElementById('dataFinal').value);
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📅 Exemplos por Ano</h2>
+        
+        <div class="info">
+            <h3>🗓️ Comportamento Dinâmico:</h3>
+            <ul>
+                <li><strong>2025:</strong> 01/01/2025 até data atual</li>
+                <li><strong>2026:</strong> 01/01/2026 até data atual (quando chegar 2026)</li>
+                <li><strong>2027:</strong> 01/01/2027 até data atual (quando chegar 2027)</li>
+            </ul>
+            <p><strong>Vantagem:</strong> Sistema se ajusta automaticamente a cada ano novo!</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>⚠️ Considerações</h2>
+        
+        <div class="warning">
+            <h3>📊 Volume de Dados:</h3>
+            <ul>
+                <li>Período maior = mais dados para processar</li>
+                <li>Gráficos podem demorar um pouco mais para carregar</li>
+                <li>Análise mais completa e precisa</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>🔄 Funcionalidade Mantida:</h3>
+            <ul>
+                <li>Usuários ainda podem alterar as datas manualmente</li>
+                <li>Filtros por filial continuam funcionando</li>
+                <li>Botão "Limpar" restaura as novas datas padrão</li>
+                <li>Funcionalidade de expansão de gráficos mantida</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Status da Implementação</h2>
+        <p class="success"><strong>🎯 AJUSTE CONCLUÍDO!</strong></p>
+        <p>As datas padrão do dashboard foram ajustadas conforme solicitado:</p>
+        <ul>
+            <li>✅ <strong>Data Inicial:</strong> 01 de janeiro do ano atual</li>
+            <li>✅ <strong>Data Final:</strong> Data presente (dia, mês e ano atual)</li>
+            <li>✅ <strong>Atualização Automática:</strong> Se ajusta a cada ano novo</li>
+            <li>✅ <strong>Compatibilidade:</strong> Mantém todas as funcionalidades existentes</li>
+        </ul>
+        <p class="info">Agora o dashboard mostra uma visão anual completa dos dados, permitindo análises mais abrangentes e estratégicas!</p>
+    </div>
+
+    <script>
+        console.log('📅 Teste - Ajuste de Datas Padrão Dashboard');
+        console.log('✅ Data Inicial: 01 de janeiro do ano atual');
+        console.log('✅ Data Final: Data presente');
+        console.log('🎯 Período: Ano completo até hoje');
+        
+        // Simular as datas que serão definidas
+        const hoje = new Date();
+        const primeiroDiaAno = new Date(hoje.getFullYear(), 0, 1);
+        
+        console.log('📊 Exemplo de datas:');
+        console.log('Data Inicial:', primeiroDiaAno.toISOString().split('T')[0]);
+        console.log('Data Final:', hoje.toISOString().split('T')[0]);
+    </script>
+</body>
+</html>
