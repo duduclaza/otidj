@@ -523,18 +523,40 @@ function submitGarantia(e) {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(async response => {
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response headers:', response.headers.get('content-type'));
+        
+        // Verificar se a resposta é OK
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // Tentar ler como texto primeiro para debug
+        const responseText = await response.text();
+        console.log('📋 Response text:', responseText);
+        
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('❌ Erro ao fazer parse do JSON:', parseError);
+            console.error('📄 Resposta recebida:', responseText);
+            throw new Error('Resposta inválida do servidor. Verifique se a rota /garantias existe e retorna JSON válido.');
+        }
+    })
     .then(result => {
-        if (result.success) {
+        console.log('✅ Resultado parseado:', result);
+        
+        if (result && result.success) {
             alert('Garantia registrada com sucesso!');
             cancelGarantiaForm();
             carregarGarantias();
         } else {
-            alert('Erro: ' + result.message);
+            alert('Erro: ' + (result ? result.message : 'Resposta inválida do servidor'));
         }
     })
     .catch(error => {
-        console.error('Erro:', error);
+        console.error('❌ Erro completo:', error);
         alert('Erro de conexão: ' + error.message);
     });
 }
@@ -631,19 +653,50 @@ function atualizarTotais() {
 async function carregarGarantias() {
     try {
         document.getElementById('loading').classList.remove('hidden');
-        const response = await fetch('/garantias/list');
-        const result = await response.json();
         
-        if (result.success) {
-            garantias = result.data;
+        const response = await fetch('/garantias/list');
+        console.log('📡 Carregando garantias - Status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const responseText = await response.text();
+        console.log('📋 Response garantias:', responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('❌ Erro ao fazer parse do JSON:', parseError);
+            console.error('📄 Resposta recebida:', responseText);
+            
+            // Se a rota não existe, mostrar dados de exemplo
+            console.log('⚠️ Usando dados de exemplo - rota /garantias/list não implementada');
+            garantias = [];
+            renderizarTabela(garantias);
+            return;
+        }
+        
+        if (result && result.success) {
+            garantias = result.data || [];
             renderizarTabela(garantias);
             carregarFornecedoresFiltro();
         } else {
-            alert('Erro ao carregar garantias: ' + result.message);
+            console.error('❌ Erro na resposta:', result);
+            alert('Erro ao carregar garantias: ' + (result ? result.message : 'Resposta inválida'));
         }
     } catch (error) {
-        console.error('Erro:', error);
-        alert('Erro ao carregar garantias');
+        console.error('❌ Erro ao carregar garantias:', error);
+        
+        // Em caso de erro, mostrar tabela vazia
+        garantias = [];
+        renderizarTabela(garantias);
+        
+        // Só mostrar alert se não for erro de rota não encontrada
+        if (!error.message.includes('404')) {
+            alert('Erro ao carregar garantias: ' + error.message);
+        }
     } finally {
         document.getElementById('loading').classList.add('hidden');
     }
