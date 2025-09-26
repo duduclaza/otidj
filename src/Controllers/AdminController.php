@@ -1305,8 +1305,8 @@ class AdminController
             $stmt = $this->db->query("DESCRIBE retornados");
             $columns = $stmt->fetchAll(\PDO::FETCH_COLUMN);
             
-            // Possíveis nomes de colunas de data
-            $possibleDateColumns = ['data_retorno', 'data', 'created_at', 'date_created', 'data_criacao'];
+            // Possíveis nomes de colunas de data (prioridade: data_registro primeiro)
+            $possibleDateColumns = ['data_registro', 'data_retorno', 'data', 'created_at', 'date_created', 'data_criacao'];
             
             foreach ($possibleDateColumns as $col) {
                 if (in_array($col, $columns)) {
@@ -1321,9 +1321,9 @@ class AdminController
                 }
             }
             
-            return 'created_at'; // fallback
+            return 'data_registro'; // fallback para data_registro
         } catch (\Exception $e) {
-            return 'created_at'; // fallback
+            return 'data_registro'; // fallback para data_registro
         }
     }
 
