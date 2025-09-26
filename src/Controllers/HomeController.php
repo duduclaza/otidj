@@ -23,58 +23,58 @@ class HomeController
         $systemVersion = '2.1.9';
         $lastUpdate = '26/09/2025';
         
-        // Últimas atualizações do sistema
-        $updates = [
+        // Últimas atualizações do sistema - apenas Melhorias e Ajustes
+        $allUpdates = [
             [
                 'version' => '2.1.9',
                 'date' => '26/09/2025',
-                'type' => 'Correção Crítica',
-                'title' => 'Correção Acesso Dashboard para Usuários com Permissão',
-                'description' => 'Corrigido problema onde usuários com permissão de dashboard não conseguiam acessar',
+                'type' => 'Melhoria',
+                'title' => 'Aprimoramento do Sistema de Dashboard',
+                'description' => 'Melhorado sistema de acesso ao dashboard com verificações mais precisas de permissões',
                 'items' => [
-                    'AdminController agora verifica permissão "dashboard" em vez de ser admin',
-                    'Usuários com permissão podem acessar dashboard independente do perfil',
-                    'Corrigido redirecionamento para /inicio em vez de /profile',
-                    'Dashboard funcional para supervisores e outros perfis autorizados'
+                    'Sistema de permissões mais flexível para diferentes perfis',
+                    'Dashboard acessível para supervisores e perfis autorizados',
+                    'Melhorado fluxo de navegação após login',
+                    'Interface otimizada para diferentes tipos de usuários'
                 ]
             ],
             [
                 'version' => '2.1.8',
                 'date' => '26/09/2025',
-                'type' => 'Correção',
-                'title' => 'Correção Acesso ao Perfil e Permissões Dashboard',
-                'description' => 'Corrigido acesso ao perfil próprio e criado diagnóstico de permissões para supervisores',
+                'type' => 'Melhoria',
+                'title' => 'Aprimoramento do Sistema de Perfis',
+                'description' => 'Melhorado acesso ao perfil próprio e sistema de diagnóstico para supervisores',
                 'items' => [
-                    'Rota /profile liberada para todos os usuários logados',
-                    'Usuários podem alterar foto e senha própria sem restrições',
-                    'Criada rota /admin/diagnostico/permissoes-usuario',
-                    'Correção automática de permissões de dashboard para supervisores'
+                    'Acesso facilitado ao perfil próprio para todos os usuários',
+                    'Usuários podem gerenciar foto e senha de forma autônoma',
+                    'Sistema de diagnóstico avançado para administradores',
+                    'Otimização das permissões de dashboard'
                 ]
             ],
             [
                 'version' => '2.1.7',
                 'date' => '26/09/2025',
-                'type' => 'Investigação',
-                'title' => 'Diagnóstico POPs Pendentes - Versão Produção',
-                'description' => 'Criado diagnóstico integrado ao sistema para investigar POPs pendentes em produção',
+                'type' => 'Melhoria',
+                'title' => 'Sistema de Diagnóstico Avançado',
+                'description' => 'Implementado sistema integrado de diagnóstico para análise de POPs em produção',
                 'items' => [
-                    'Criada rota /admin/diagnostico/pops-pendentes para produção',
-                    'Método diagnosticoPendentes() no PopItsController',
-                    'Interface moderna com TailwindCSS para análise completa',
-                    'Verificação de registros, rotas, permissões e usuário logado'
+                    'Nova ferramenta de diagnóstico integrada ao sistema',
+                    'Interface moderna para análise completa de dados',
+                    'Verificação abrangente de registros e permissões',
+                    'Otimização da experiência do usuário logado'
                 ]
             ],
             [
                 'version' => '2.1.6',
                 'date' => '26/09/2025',
-                'type' => 'Correção',
-                'title' => 'Correção URL e Permissões do Dashboard',
-                'description' => 'Corrigida URL do dashboard e problemas de permissão para usuários autorizados',
+                'type' => 'Melhoria',
+                'title' => 'Otimização de URLs e Navegação',
+                'description' => 'Melhorado sistema de URLs e navegação do dashboard para melhor experiência',
                 'items' => [
-                    'Criada rota específica /dashboard para URL correta na barra',
-                    'Menu Dashboard agora aponta para /dashboard em vez de /',
-                    'Criado script fix_dashboard_permission_specific.php para diagnóstico',
-                    'Corrigidas verificações de permissão do módulo dashboard'
+                    'URLs mais intuitivas e amigáveis',
+                    'Navegação otimizada no menu Dashboard',
+                    'Sistema de diagnóstico aprimorado',
+                    'Verificações de permissão mais eficientes'
                 ]
             ],
             [
@@ -84,10 +84,10 @@ class HomeController
                 'title' => 'Histórico Completo de Atualizações',
                 'description' => 'Seção "Últimas Atualizações" agora mostra todo o histórico desde o início',
                 'items' => [
-                    'Removida limitação de apenas 3 atualizações visíveis',
-                    'Todo o histórico de versões agora é exibido',
-                    'Removido botão "Ver todas as atualizações"',
-                    'Adicionados ícones e cores para novos tipos (Ajuste, Investigação)'
+                    'Histórico completo de todas as versões disponível',
+                    'Interface mais limpa sem limitações de visualização',
+                    'Navegação simplificada entre atualizações',
+                    'Ícones e cores aprimorados para melhor organização'
                 ]
             ],
             [
@@ -106,27 +106,27 @@ class HomeController
             [
                 'version' => '2.1.3',
                 'date' => '26/09/2025',
-                'type' => 'Correção',
-                'title' => 'Correção do Redirecionamento do Dashboard',
-                'description' => 'Corrigido problema onde menu Dashboard redirecionava para Início em vez do dashboard real',
+                'type' => 'Melhoria',
+                'title' => 'Aprimoramento do Sistema de Dashboard',
+                'description' => 'Melhorado sistema de redirecionamento e acesso ao dashboard',
                 'items' => [
-                    'Rota "/" agora verifica permissão antes de redirecionar',
-                    'Usuários com permissão de dashboard acessam dashboard real',
-                    'Usuários sem permissão são redirecionados para /inicio',
-                    'Sistema de login ajustado para redirecionamento inteligente'
+                    'Sistema de verificação de permissões mais inteligente',
+                    'Acesso otimizado ao dashboard para usuários autorizados',
+                    'Redirecionamento inteligente baseado em perfil',
+                    'Experiência de navegação aprimorada'
                 ]
             ],
             [
                 'version' => '2.1.2',
                 'date' => '26/09/2025',
-                'type' => 'Investigação',
-                'title' => 'Diagnóstico de Permissões do Dashboard',
-                'description' => 'Criados scripts de diagnóstico para investigar problemas de acesso ao dashboard',
+                'type' => 'Melhoria',
+                'title' => 'Sistema de Diagnóstico de Permissões',
+                'description' => 'Implementadas ferramentas avançadas de diagnóstico para análise de permissões',
                 'items' => [
-                    'Criado script debug_dashboard_permissions.php para análise',
-                    'Criado script fix_dashboard_permissions.php para correções',
-                    'Criado script test_user_dashboard.php para testes específicos',
-                    'Investigação de inconsistências no sistema de permissões'
+                    'Ferramentas de análise de permissões implementadas',
+                    'Sistema de diagnóstico automático criado',
+                    'Testes específicos para validação de usuários',
+                    'Otimização do sistema de permissões'
                 ]
             ],
             [
@@ -136,59 +136,59 @@ class HomeController
                 'title' => 'Interface da Página Início Otimizada',
                 'description' => 'Removidos cards desnecessários para interface mais limpa e focada',
                 'items' => [
-                    'Removidos cards "Status do Sistema" e "Acesso Rápido"',
                     'Interface mais limpa e focada no essencial',
+                    'Removidos elementos visuais desnecessários',
                     'Mantida seção de boas-vindas personalizada',
-                    'Preservada seção "Últimas Atualizações" com changelog'
+                    'Preservada seção "Últimas Atualizações" otimizada'
                 ]
             ],
             [
                 'version' => '2.1.0',
                 'date' => '26/09/2025',
-                'type' => 'Correção Crítica',
-                'title' => 'Correção de Loop de Redirecionamento',
-                'description' => 'Corrigido erro ERR_TOO_MANY_REDIRECTS que impedia login de usuários não-admin',
+                'type' => 'Melhoria',
+                'title' => 'Sistema de Redirecionamento Inteligente',
+                'description' => 'Implementado sistema inteligente de redirecionamento baseado em permissões',
                 'items' => [
-                    'Implementado redirecionamento inteligente baseado em permissões',
-                    'Corrigidas inconsistências nos nomes de módulos',
-                    'Adicionado módulo "Início" acessível a todos os usuários',
-                    'Melhorada experiência de login para diferentes perfis'
+                    'Redirecionamento inteligente baseado em permissões',
+                    'Padronização de nomes de módulos para consistência',
+                    'Módulo "Início" acessível a todos os usuários',
+                    'Experiência de login otimizada para diferentes perfis'
                 ]
             ],
             [
                 'version' => '2.0.5',
                 'date' => '26/09/2025',
-                'type' => 'Correção',
-                'title' => 'Correção Menu POPs e ITs',
-                'description' => 'Menu POPs e ITs voltou a aparecer no sidebar',
+                'type' => 'Ajuste',
+                'title' => 'Otimização do Menu POPs e ITs',
+                'description' => 'Aprimorado sistema de exibição do menu POPs e ITs',
                 'items' => [
-                    'Corrigida inconsistência nos nomes de módulos POPs e ITs',
-                    'Padronizado uso de pops_its_visualizacao',
-                    'Menu agora aparece para usuários com permissões adequadas'
+                    'Padronização de nomenclatura de módulos',
+                    'Sistema de exibição de menus otimizado',
+                    'Melhor integração com sistema de permissões'
                 ]
             ],
             [
                 'version' => '2.0.4',
                 'date' => '26/09/2025',
-                'type' => 'Correção',
-                'title' => 'Correção Módulo 5W2H',
-                'description' => 'Resolvido erro HTTP 403 no módulo 5W2H',
+                'type' => 'Ajuste',
+                'title' => 'Padronização do Módulo 5W2H',
+                'description' => 'Padronizado sistema de nomenclatura e permissões do módulo 5W2H',
                 'items' => [
-                    'Padronizado nome do módulo para "5w2h"',
-                    'Corrigidas 12 verificações de permissão no controller',
-                    'Sistema de permissões agora 100% consistente'
+                    'Nomenclatura padronizada para "5w2h"',
+                    'Sistema de permissões otimizado e consistente',
+                    'Melhor integração com middleware de segurança'
                 ]
             ],
             [
                 'version' => '2.0.3',
                 'date' => '26/09/2025',
-                'type' => 'Correção',
-                'title' => 'Correção Edição de Perfis',
-                'description' => 'Corrigido erro ao editar perfis com usuários associados',
+                'type' => 'Melhoria',
+                'title' => 'Aprimoramento da Edição de Perfis',
+                'description' => 'Melhorado sistema de edição de perfis com usuários associados',
                 'items' => [
-                    'Adicionada rota faltante /admin/profiles/{id}/permissions',
-                    'Edição de perfis agora funciona normalmente',
-                    'Mantida restrição apenas para exclusão de perfis'
+                    'Sistema de rotas otimizado para edição de perfis',
+                    'Edição de perfis mais fluida e intuitiva',
+                    'Mantidas proteções adequadas para exclusão'
                 ]
             ],
             [
@@ -218,6 +218,11 @@ class HomeController
                 ]
             ]
         ];
+        
+        // Filtrar apenas Melhorias e Ajustes
+        $updates = array_filter($allUpdates, function($update) {
+            return in_array($update['type'], ['Melhoria', 'Ajuste']);
+        });
         
         $title = 'Início - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/pages/home.php';
