@@ -339,9 +339,9 @@ if (!isset($_SESSION['user_id'])) {
                                 <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
                                 <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
                             </div>
-                            <button onclick="testarNotificacoes()" 
+                            <button onclick="testarNotificacaoSimples()" 
                                     class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700">
-                                🔧 Teste Notificações
+                                🔧 Teste Notificação Manual
                             </button>
                         </div>
                     </div>
@@ -1736,6 +1736,35 @@ async function testarLogs() {
     }
 }
 
+// Teste simples de notificação
+async function testarNotificacaoSimples() {
+    try {
+        console.log('🧪 Testando notificação manual...');
+        
+        const response = await fetch('/pops-its/teste-notificacao-manual', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                teste: true
+            })
+        });
+        
+        const result = await response.json();
+        console.log('📊 Resultado:', result);
+        
+        if (result.success) {
+            alert(`✅ TESTE CONCLUÍDO!\n\n${result.message}\n\nVerifique:\n1. Logs no servidor\n2. Sininho de notificações\n3. Console do navegador`);
+        } else {
+            alert(`❌ ERRO NO TESTE:\n\n${result.message || result.error}`);
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro:', error);
+        alert('❌ Erro ao executar teste');
+    }
+}
 
 // Visualizar arquivo em iframe (modal) com proteções
 function visualizarArquivo(registroId, nomeArquivo, tipo) {

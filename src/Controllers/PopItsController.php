@@ -1903,6 +1903,94 @@ class PopItsController
         }
     }
 
+    // Teste manual de notificação - MÉTODO SUPER SIMPLES
+    public function testeNotificacaoManual()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $user_id = $_SESSION['user_id'] ?? null;
+            
+            if (!$user_id) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            error_log("🧪 === TESTE MANUAL DE NOTIFICAÇÃO INICIADO ===");
+            error_log("👤 Usuário testando: ID $user_id");
+            
+            // 1. Testar inserção direta na tabela notifications
+            $titulo_teste = "🧪 TESTE MANUAL - " . date('H:i:s');
+            $mensagem_teste = "Esta é uma notificação de teste criada manualmente em " . date('Y-m-d H:i:s');
+            
+            try {
+                $stmt = $this->db->prepare("
+                    INSERT INTO notifications (user_id, title, message, type, related_type, related_id) 
+                    VALUES (?, ?, ?, 'info', 'teste', 999)
+                ");
+                $resultado = $stmt->execute([$user_id, $titulo_teste, $mensagem_teste]);
+                
+                if ($resultado) {
+                    error_log("✅ NOTIFICAÇÃO TESTE CRIADA COM SUCESSO");
+                    
+                    // 2. Testar busca de administradores
+                    $stmt_admins = $this->db->prepare("SELECT id, name, email FROM users WHERE is_admin = 1");
+                    $stmt_admins->execute();
+                    $admins = $stmt_admins->fetchAll(\PDO::FETCH_ASSOC);
+                    
+                    error_log("👥 ADMINISTRADORES ENCONTRADOS: " . count($admins));
+                    foreach ($admins as $admin) {
+                        error_log("   - {$admin['name']} (ID: {$admin['id']})");
+                    }
+                    
+                    // 3. Criar notificação para cada admin
+                    $notificacoes_admin = 0;
+                    foreach ($admins as $admin) {
+                        $stmt_admin = $this->db->prepare("
+                            INSERT INTO notifications (user_id, title, message, type) 
+                            VALUES (?, ?, ?, 'pops_its_pendente')
+                        ");
+                        $resultado_admin = $stmt_admin->execute([
+                            $admin['id'], 
+                            "🔔 Teste para Admin", 
+                            "Notificação de teste para {$admin['name']} às " . date('H:i:s')
+                        ]);
+                        
+                        if ($resultado_admin) {
+                            $notificacoes_admin++;
+                            error_log("✅ Notificação criada para {$admin['name']}");
+                        } else {
+                            error_log("❌ Falha ao criar notificação para {$admin['name']}");
+                        }
+                    }
+                    
+                    error_log("🧪 === TESTE MANUAL CONCLUÍDO ===");
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'message' => "Teste concluído!\n\n" .
+                                   "✅ Notificação pessoal criada\n" .
+                                   "👥 {$notificacoes_admin} notificações para admins\n" .
+                                   "📊 Total admins: " . count($admins) . "\n\n" .
+                                   "Verifique o sininho agora!"
+                    ]);
+                    
+                } else {
+                    error_log("❌ FALHA ao criar notificação teste");
+                    echo json_encode(['success' => false, 'message' => 'Falha ao criar notificação teste']);
+                }
+                
+            } catch (\Exception $e) {
+                error_log("❌ ERRO SQL: " . $e->getMessage());
+                echo json_encode(['success' => false, 'message' => 'Erro SQL: ' . $e->getMessage()]);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("❌ ERRO GERAL: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
     // ===== SISTEMA DE SOLICITAÇÕES DE EXCLUSÃO =====
 
     // Criar tabela de solicitações se não existir
