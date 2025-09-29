@@ -160,19 +160,105 @@ if (!isset($_SESSION['user_id'])) {
             <!-- ABA 2: MEUS REGISTROS -->
             <?php if ($canViewMeusRegistros): ?>
             <div id="content-registros" class="tab-content hidden">
-                <div class="text-center py-16">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
+                <!-- Formulário de Registro -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📄 Criar Novo Registro</h3>
+                    
+                    <form id="formCriarRegistro" class="space-y-4" enctype="multipart/form-data">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Título -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Título *</label>
+                                <select name="titulo_id" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Selecione um título...</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">O sistema definirá automaticamente a próxima versão</p>
+                            </div>
+
+                            <!-- Arquivo -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo * (PNG, JPEG, PPT, PDF - Max 10MB)</label>
+                                <input type="file" name="arquivo" required accept=".pdf,.png,.jpg,.jpeg,.ppt,.pptx" 
+                                       class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <p class="text-xs text-gray-500 mt-1">Formatos aceitos: PDF, PNG, JPEG, PPT/PPTX</p>
+                            </div>
+                        </div>
+
+                        <!-- Visibilidade -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Visibilidade *</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="visibilidade" value="publico" class="mr-2">
+                                    <span class="text-sm">📢 Público (todos os usuários podem visualizar)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="visibilidade" value="departamentos" checked class="mr-2">
+                                    <span class="text-sm">🏢 Departamentos específicos</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Departamentos Permitidos -->
+                        <div id="departamentosSection" class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Departamentos Permitidos</label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-32 overflow-y-auto border border-gray-200 rounded p-3 bg-white">
+                                <?php if (isset($departamentos)): ?>
+                                    <?php foreach ($departamentos as $dept): ?>
+                                    <label class="flex items-center text-sm">
+                                        <input type="checkbox" name="departamentos_permitidos[]" value="<?= $dept['id'] ?>" class="mr-2">
+                                        <?= e($dept['nome']) ?>
+                                    </label>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </div>
+                            <p class="text-xs text-gray-500">Selecione os departamentos que poderão visualizar este registro</p>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="limparFormularioRegistro()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                                Limpar
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                                📝 Registrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Lista de Meus Registros -->
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h4 class="text-lg font-semibold text-gray-900">📋 Meus Registros</h4>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Meus Registros</h3>
-                    <p class="text-gray-600 mb-4">Em construção</p>
-                    <div class="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Funcionalidade em desenvolvimento
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Versão</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arquivo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visibilidade</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaMeusRegistros" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                                        <div class="flex items-center justify-center">
+                                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Carregando registros...
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -276,10 +362,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (activeContent) {
                 activeContent.classList.remove('hidden');
                 
-                // Carregar dados da aba se for cadastro
+                // Carregar dados da aba
                 if (tabId === 'cadastro') {
                     console.log('🔄 Carregando títulos ao clicar na aba...');
                     loadTitulos();
+                } else if (tabId === 'registros') {
+                    console.log('🔄 Carregando registros ao clicar na aba...');
+                    loadMeusRegistros();
+                    loadTitulosDropdown();
                 }
             }
         });
@@ -310,12 +400,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configurar formulário de cadastro
     setupFormularioCadastro();
     
-    // Fallback: garantir que os títulos sejam carregados se a aba de cadastro estiver visível
+    // Configurar formulário de registros
+    setupFormularioRegistros();
+    
+    // Fallback: garantir que os dados sejam carregados se alguma aba estiver visível
     setTimeout(() => {
         const cadastroContent = document.getElementById('content-cadastro');
+        const registrosContent = document.getElementById('content-registros');
+        
         if (cadastroContent && !cadastroContent.classList.contains('hidden')) {
             console.log('🔄 Fallback: Carregando títulos...');
             loadTitulos();
+        } else if (registrosContent && !registrosContent.classList.contains('hidden')) {
+            console.log('🔄 Fallback: Carregando registros...');
+            loadMeusRegistros();
+            loadTitulosDropdown();
         }
     }, 500);
 });
@@ -413,6 +512,7 @@ function setupFormularioCadastro() {
                 alert('✅ ' + result.message);
                 form.reset();
                 loadTitulos(); // Recarregar lista
+                loadTitulosDropdown(); // Atualizar dropdown na aba registros
             } else {
                 alert('❌ ' + result.message);
             }
@@ -422,6 +522,74 @@ function setupFormularioCadastro() {
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Cadastrar Título';
+        }
+    });
+}
+
+// Configurar formulário de registros
+function setupFormularioRegistros() {
+    const form = document.getElementById('formCriarRegistro');
+    if (!form) return;
+    
+    // Configurar toggle de visibilidade
+    const radioButtons = form.querySelectorAll('input[name="visibilidade"]');
+    const departamentosSection = document.getElementById('departamentosSection');
+    
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'publico') {
+                departamentosSection.style.display = 'none';
+            } else {
+                departamentosSection.style.display = 'block';
+            }
+        });
+    });
+    
+    // Configurar submissão do formulário
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        // Validar se pelo menos um departamento foi selecionado (se não for público)
+        const visibilidade = formData.get('visibilidade');
+        if (visibilidade === 'departamentos') {
+            const departamentosSelecionados = formData.getAll('departamentos_permitidos[]');
+            if (departamentosSelecionados.length === 0) {
+                alert('❌ Selecione pelo menos um departamento ou escolha visibilidade pública');
+                return;
+            }
+        }
+        
+        // Desabilitar botão durante envio
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Registrando...';
+        
+        try {
+            const response = await fetch('/pops-its/registro/create', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('✅ ' + result.message);
+                form.reset();
+                // Resetar visibilidade para departamentos
+                document.querySelector('input[name="visibilidade"][value="departamentos"]').checked = true;
+                departamentosSection.style.display = 'block';
+                loadMeusRegistros(); // Recarregar lista
+            } else {
+                alert('❌ ' + result.message);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('❌ Erro ao criar registro');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '📝 Registrar';
         }
     });
 }
@@ -514,6 +682,122 @@ function limparFormulario() {
     document.getElementById('tituloSuggestions').classList.add('hidden');
 }
 
+function limparFormularioRegistro() {
+    const form = document.getElementById('formCriarRegistro');
+    form.reset();
+    // Resetar visibilidade para departamentos
+    document.querySelector('input[name="visibilidade"][value="departamentos"]').checked = true;
+    document.getElementById('departamentosSection').style.display = 'block';
+}
+
+// Carregar títulos para dropdown
+async function loadTitulosDropdown() {
+    try {
+        const response = await fetch('/pops-its/titulos/list');
+        const result = await response.json();
+        
+        const select = document.querySelector('#formCriarRegistro select[name="titulo_id"]');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">Selecione um título...</option>';
+        
+        if (result.success && result.data.length > 0) {
+            result.data.forEach(titulo => {
+                const option = document.createElement('option');
+                option.value = titulo.id;
+                option.textContent = `${titulo.tipo} - ${titulo.titulo} (${titulo.departamento_nome || 'N/A'})`;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar títulos para dropdown:', error);
+    }
+}
+
+// Carregar meus registros
+async function loadMeusRegistros() {
+    try {
+        console.log('🔄 Carregando meus registros...');
+        const response = await fetch('/pops-its/registros/meus');
+        const result = await response.json();
+        
+        const tbody = document.getElementById('listaMeusRegistros');
+        
+        if (result.success && result.data.length > 0) {
+            tbody.innerHTML = result.data.map(registro => {
+                const statusColor = getStatusColor(registro.status);
+                const statusText = getStatusText(registro.status);
+                const visibilidade = registro.publico ? 'Público' : 
+                    (registro.departamentos_permitidos ? registro.departamentos_permitidos.join(', ') : 'Departamentos');
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">${registro.titulo || 'N/A'}</div>
+                            <div class="text-xs text-gray-500">${registro.tipo || ''}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            v${registro.versao}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">
+                                ${statusText}
+                            </span>
+                            ${registro.observacao_reprovacao ? `<div class="text-xs text-red-600 mt-1">${registro.observacao_reprovacao}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">${registro.nome_arquivo}</div>
+                            <div class="text-xs text-gray-500">${registro.extensao.toUpperCase()} - ${formatFileSize(registro.tamanho_arquivo)}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">${registro.publico ? '🌍 Público' : '🏢 Restrito'}</div>
+                            ${!registro.publico && registro.departamentos_permitidos ? 
+                                `<div class="text-xs text-gray-500">${registro.departamentos_permitidos.join(', ')}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${formatDate(registro.criado_em)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <button onclick="downloadArquivo(${registro.id})" 
+                                    class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-2 py-1 rounded">
+                                📥 Download
+                            </button>
+                            ${registro.status === 'REPROVADO' ? 
+                                `<button onclick="editarRegistro(${registro.id})" 
+                                         class="text-green-600 hover:text-green-900 hover:bg-green-50 px-2 py-1 rounded">
+                                    ✏️ Editar
+                                 </button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        <div class="flex flex-col items-center py-8">
+                            <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-900 mb-2">Nenhum registro encontrado</p>
+                            <p class="text-gray-500">Crie seu primeiro registro usando o formulário acima</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar registros:', error);
+        document.getElementById('listaMeusRegistros').innerHTML = `
+            <tr>
+                <td colspan="7" class="px-6 py-4 text-center text-red-500">
+                    Erro ao carregar registros
+                </td>
+            </tr>
+        `;
+    }
+}
+
 function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString('pt-BR', {
         day: '2-digit',
@@ -522,6 +806,47 @@ function formatDate(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function getStatusColor(status) {
+    switch(status) {
+        case 'PENDENTE': return 'bg-yellow-100 text-yellow-800';
+        case 'APROVADO': return 'bg-green-100 text-green-800';
+        case 'REPROVADO': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function getStatusText(status) {
+    switch(status) {
+        case 'PENDENTE': return 'Pendente';
+        case 'APROVADO': return 'Aprovado';
+        case 'REPROVADO': return 'Reprovado';
+        default: return status;
+    }
+}
+
+// Funções de ação para registros
+async function downloadArquivo(registroId) {
+    try {
+        window.open(`/pops-its/arquivo/${registroId}`, '_blank');
+    } catch (error) {
+        console.error('Erro ao baixar arquivo:', error);
+        alert('❌ Erro ao baixar arquivo');
+    }
+}
+
+function editarRegistro(registroId) {
+    // TODO: Implementar modal de edição
+    alert('🚧 Funcionalidade de edição em desenvolvimento');
 }
 
 

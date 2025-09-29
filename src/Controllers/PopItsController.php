@@ -1148,6 +1148,269 @@ public function aprovarRegistro()
         }
     }
     
+    // Criar registro (Aba 2)
+    public function createRegistro()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar permissão
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_meus_registros', 'edit')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para criar registros']);
+                return;
+            }
+            
+            // Verificar se as tabelas existem
+            $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_registros'");
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Tabela pops_its_registros não existe. Execute o script SQL primeiro.']);
+                return;
+            }
+            
+            // Validar dados
+            $titulo_id = (int)($_POST['titulo_id'] ?? 0);
+            $visibilidade = $_POST['visibilidade'] ?? '';
+            $departamentos_permitidos = $_POST['departamentos_permitidos'] ?? [];
+            
+            if ($titulo_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Título é obrigatório']);
+                return;
+            }
+            
+            if (!in_array($visibilidade, ['publico', 'departamentos'])) {
+                echo json_encode(['success' => false, 'message' => 'Visibilidade inválida']);
+                return;
+            }
+            
+            // Validar arquivo
+            if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo é obrigatório']);
+                return;
+            }
+            
+            $file = $_FILES['arquivo'];
+            
+            // Validar tipo de arquivo
+            $allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 
+                           'application/vnd.ms-powerpoint', 
+                           'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+            
+            if (!in_array($file['type'], $allowedTypes)) {
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PDF, PNG, JPEG ou PPT']);
+                return;
+            }
+            
+            // Validar tamanho (10MB)
+            if ($file['size'] > 10 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo muito grande. Máximo 10MB']);
+                return;
+            }
+            
+            // Verificar se o título existe
+            $stmt = $this->db->prepare("SELECT titulo FROM pops_its_titulos WHERE id = ?");
+            $stmt->execute([$titulo_id]);
+            $titulo = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$titulo) {
+                echo json_encode(['success' => false, 'message' => 'Título não encontrado']);
+                return;
+            }
+            
+            // Determinar próxima versão
+            $stmt = $this->db->prepare("SELECT MAX(versao) as max_versao FROM pops_its_registros WHERE titulo_id = ?");
+            $stmt->execute([$titulo_id]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $proxima_versao = ($result['max_versao'] ?? 0) + 1;
+            
+            // Ler arquivo
+            $arquivo_conteudo = file_get_contents($file['tmp_name']);
+            $nome_arquivo = $file['name'];
+            $extensao = strtolower(pathinfo($nome_arquivo, PATHINFO_EXTENSION));
+            $tamanho_arquivo = $file['size'];
+            
+            // Iniciar transação
+            $this->db->beginTransaction();
+            
+            try {
+                // Inserir registro
+                $stmt = $this->db->prepare("
+                    INSERT INTO pops_its_registros 
+                    (titulo_id, versao, arquivo, nome_arquivo, extensao, tamanho_arquivo, publico, criado_por) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+                
+                $publico = ($visibilidade === 'publico') ? 1 : 0;
+                $stmt->execute([
+                    $titulo_id, $proxima_versao, $arquivo_conteudo, $nome_arquivo, 
+                    $extensao, $tamanho_arquivo, $publico, $user_id
+                ]);
+                
+                $registro_id = $this->db->lastInsertId();
+                
+                // Se não é público, inserir departamentos permitidos
+                if ($visibilidade === 'departamentos' && !empty($departamentos_permitidos)) {
+                    $stmt = $this->db->prepare("
+                        INSERT INTO pops_its_registros_departamentos (registro_id, departamento_id) 
+                        VALUES (?, ?)
+                    ");
+                    
+                    foreach ($departamentos_permitidos as $dept_id) {
+                        $stmt->execute([$registro_id, (int)$dept_id]);
+                    }
+                }
+                
+                $this->db->commit();
+                
+                echo json_encode([
+                    'success' => true, 
+                    'message' => "Registro criado com sucesso! {$titulo['titulo']} v{$proxima_versao} está pendente de aprovação."
+                ]);
+                
+            } catch (\Exception $e) {
+                $this->db->rollBack();
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::createRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+    
+    // Listar registros do usuário (Aba 2)
+    public function listMeusRegistros()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se a tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_registros'");
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => true, 'data' => [], 'message' => 'Tabela não existe ainda']);
+                return;
+            }
+            
+            // Buscar registros do usuário
+            $stmt = $this->db->prepare("
+                SELECT 
+                    r.id,
+                    r.versao,
+                    r.nome_arquivo,
+                    r.extensao,
+                    r.tamanho_arquivo,
+                    r.publico,
+                    r.status,
+                    r.criado_em,
+                    r.observacao_reprovacao,
+                    t.titulo,
+                    t.tipo
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE r.criado_por = ?
+                ORDER BY r.criado_em DESC
+            ");
+            
+            $stmt->execute([$user_id]);
+            $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Para cada registro não público, buscar departamentos permitidos
+            foreach ($registros as &$registro) {
+                if (!$registro['publico']) {
+                    $stmt = $this->db->prepare("
+                        SELECT d.nome 
+                        FROM pops_its_registros_departamentos rd
+                        LEFT JOIN departamentos d ON rd.departamento_id = d.id
+                        WHERE rd.registro_id = ?
+                    ");
+                    $stmt->execute([$registro['id']]);
+                    $departamentos = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+                    $registro['departamentos_permitidos'] = $departamentos;
+                }
+            }
+            
+            echo json_encode(['success' => true, 'data' => $registros]);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::listMeusRegistros - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar registros: ' . $e->getMessage()]);
+        }
+    }
+    
+    // Download de arquivo
+    public function downloadArquivo($id)
+    {
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(401);
+                echo "Acesso negado";
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = (int)$id;
+            
+            // Buscar o registro
+            $stmt = $this->db->prepare("
+                SELECT r.*, t.titulo 
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE r.id = ?
+            ");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                http_response_code(404);
+                echo "Arquivo não encontrado";
+                return;
+            }
+            
+            // Verificar permissões
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isOwner = ($registro['criado_por'] == $user_id);
+            
+            // Se não é admin nem dono, verificar se tem acesso
+            if (!$isAdmin && !$isOwner) {
+                // Se é público, pode acessar
+                if (!$registro['publico']) {
+                    // Se não é público, verificar se o departamento do usuário tem acesso
+                    // TODO: Implementar verificação de departamento do usuário
+                    http_response_code(403);
+                    echo "Acesso negado a este arquivo";
+                    return;
+                }
+            }
+            
+            // Definir headers para download
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="' . $registro['nome_arquivo'] . '"');
+            header('Content-Length: ' . $registro['tamanho_arquivo']);
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            
+            // Enviar o arquivo
+            echo $registro['arquivo'];
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::downloadArquivo - Erro: " . $e->getMessage());
+            http_response_code(500);
+            echo "Erro interno do servidor";
+        }
+    }
+    
     // Excluir título (apenas admin)
     public function deleteTitulo()
     {

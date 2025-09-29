@@ -242,6 +242,7 @@ $router->post('/pops-its/titulo/delete', [App\Controllers\PopItsController::clas
 // Aba 2: Meus Registros
 $router->post('/pops-its/registro/create', [App\Controllers\PopItsController::class, 'createRegistro']);
 $router->get('/pops-its/registros/meus', [App\Controllers\PopItsController::class, 'listMeusRegistros']);
+$router->get('/pops-its/arquivo/{id}', [App\Controllers\PopItsController::class, 'downloadArquivo']);
 $router->post('/pops-its/registro/update', [App\Controllers\PopItsController::class, 'updateRegistro']);
 $router->post('/pops-its/registro/delete', [App\Controllers\PopItsController::class, 'deleteRegistro']);
 // Aba 3: Pendente Aprovação
@@ -250,8 +251,6 @@ $router->post('/pops-its/registro/aprovar', [App\Controllers\PopItsController::c
 $router->post('/pops-its/registro/reprovar', [App\Controllers\PopItsController::class, 'reprovarRegistro']);
 // Aba 4: Visualização
 $router->get('/pops-its/visualizacao/list', [App\Controllers\PopItsController::class, 'listVisualizacao']);
-// Download de arquivos
-$router->get('/pops-its/arquivo/{id}', [App\Controllers\PopItsController::class, 'downloadArquivo']);
 // Endpoint de teste
 $router->get('/pops-its/test', [App\Controllers\PopItsController::class, 'testEndpoint']);
 // Sistema de Solicitações
