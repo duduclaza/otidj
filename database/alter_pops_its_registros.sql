@@ -25,6 +25,28 @@ CREATE TABLE IF NOT EXISTS pops_its_logs_visualizacao (
     INDEX idx_visualizado_em (visualizado_em)
 );
 
+-- Criar tabela para solicitações de exclusão
+CREATE TABLE IF NOT EXISTS pops_its_solicitacoes_exclusao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    registro_id INT NOT NULL,
+    solicitante_id INT NOT NULL,
+    motivo TEXT NOT NULL,
+    status ENUM('PENDENTE', 'APROVADA', 'REPROVADA') DEFAULT 'PENDENTE',
+    avaliado_por INT NULL,
+    avaliado_em TIMESTAMP NULL,
+    observacoes_avaliacao TEXT NULL,
+    solicitado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (registro_id) REFERENCES pops_its_registros(id) ON DELETE CASCADE,
+    FOREIGN KEY (solicitante_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (avaliado_por) REFERENCES users(id) ON DELETE SET NULL,
+    
+    INDEX idx_registro_id (registro_id),
+    INDEX idx_solicitante_id (solicitante_id),
+    INDEX idx_status (status),
+    INDEX idx_solicitado_em (solicitado_em)
+);
+
 -- Verificar estrutura da tabela
 DESCRIBE pops_its_registros;
 

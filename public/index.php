@@ -258,7 +258,7 @@ $router->get('/pops-its/logs/visualizacao', [App\Controllers\PopItsController::c
 $router->get('/pops-its/teste-logs', [App\Controllers\PopItsController::class, 'testeLogs']);
 // Endpoint de teste
 $router->get('/pops-its/test', [App\Controllers\PopItsController::class, 'testEndpoint']);
-// Sistema de Solicitações
+// Sistema de Solicitações de Exclusão
 $router->post('/pops-its/solicitacao/create', [App\Controllers\PopItsController::class, 'createSolicitacao']);
 $router->get('/pops-its/solicitacoes/list', [App\Controllers\PopItsController::class, 'listSolicitacoes']);
 $router->post('/pops-its/solicitacao/aprovar', [App\Controllers\PopItsController::class, 'aprovarSolicitacao']);

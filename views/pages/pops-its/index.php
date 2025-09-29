@@ -299,6 +299,33 @@ if (!isset($_SESSION['user_id'])) {
                         </table>
                     </div>
                 </div>
+                
+                <!-- Seção de Solicitações de Exclusão -->
+                <div class="bg-white shadow rounded-lg mt-6">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Solicitações de Exclusão</h3>
+                        <p class="mt-1 text-sm text-gray-500">Gerencie as solicitações de exclusão de registros</p>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Protocolo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registro</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitante</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motivo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaSolicitacoes" class="bg-white divide-y divide-gray-200">
+                                <!-- Conteúdo carregado via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
             <?php endif; ?>
 
@@ -446,6 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (tabId === 'pendentes') {
                     console.log('🔄 Carregando pendências ao clicar na aba...');
                     loadPendentesAprovacao();
+                    loadSolicitacoes();
                 } else if (tabId === 'visualizacao') {
                     console.log('🔄 Carregando visualização ao clicar na aba...');
                     loadVisualizacao();
@@ -849,6 +877,10 @@ async function loadMeusRegistros() {
                                          class="text-green-600 hover:text-green-900 hover:bg-green-50 px-2 py-1 rounded">
                                     ✏️ Editar
                                  </button>` : ''}
+                            <button onclick="solicitarExclusao(${registro.id}, '${registro.titulo}', '${registro.nome_arquivo}')" 
+                                    class="text-red-600 hover:text-red-900 hover:bg-red-50 px-2 py-1 rounded">
+                                🗑️ Excluir
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -929,6 +961,45 @@ async function downloadArquivo(registroId) {
 function editarRegistro(registroId) {
     // TODO: Implementar modal de edição
     alert('🚧 Funcionalidade de edição em desenvolvimento');
+}
+
+// Solicitar exclusão de registro
+async function solicitarExclusao(registroId, titulo, nomeArquivo) {
+    // Modal de confirmação com campo de motivo
+    const motivo = prompt(`🗑️ SOLICITAÇÃO DE EXCLUSÃO\n\nVocê está solicitando a exclusão do registro:\n"${titulo}" (${nomeArquivo})\n\n⚠️ Esta solicitação será enviada para aprovação.\n\nPor favor, informe o motivo da exclusão:`);
+    
+    if (!motivo || motivo.trim() === '') {
+        return; // Usuário cancelou ou não informou motivo
+    }
+    
+    // Confirmação final
+    const confirmacao = confirm(`✅ CONFIRMAR SOLICITAÇÃO\n\nRegistro: ${titulo}\nArquivo: ${nomeArquivo}\nMotivo: ${motivo}\n\n⚠️ Esta solicitação será enviada para aprovação pelos administradores.\n\nConfirma a solicitação de exclusão?`);
+    
+    if (!confirmacao) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('registro_id', registroId);
+        formData.append('motivo', motivo.trim());
+        
+        const response = await fetch('/pops-its/solicitacao/create', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`✅ Solicitação enviada com sucesso!\n\n📋 Protocolo: #${result.solicitacao_id}\n\n⏳ Sua solicitação será avaliada pelos administradores.\nVocê será notificado sobre a decisão.`);
+            loadMeusRegistros(); // Recarregar lista
+        } else {
+            alert('❌ ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao solicitar exclusão:', error);
+        alert('❌ Erro ao enviar solicitação de exclusão');
+    }
 }
 
 
@@ -1045,6 +1116,190 @@ async function loadPendentesAprovacao() {
                 </td>
             </tr>
         `;
+    }
+}
+
+// Carregar solicitações de exclusão
+async function loadSolicitacoes() {
+    try {
+        console.log('🔄 Carregando solicitações de exclusão...');
+        const response = await fetch('/pops-its/solicitacoes/list');
+        const result = await response.json();
+        
+        const tbody = document.getElementById('listaSolicitacoes');
+        
+        if (result.success && result.data.length > 0) {
+            tbody.innerHTML = result.data.map(solicitacao => {
+                const statusColor = getStatusColorSolicitacao(solicitacao.status);
+                const statusText = getStatusTextSolicitacao(solicitacao.status);
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-mono text-gray-900">#${solicitacao.id}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">${solicitacao.titulo}</div>
+                            <div class="text-xs text-gray-500">${solicitacao.tipo} - v${solicitacao.versao}</div>
+                            <div class="text-xs text-gray-400">${solicitacao.nome_arquivo}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">${solicitacao.solicitante_nome}</div>
+                            <div class="text-xs text-gray-500">${solicitacao.solicitante_email}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 max-w-xs truncate" title="${solicitacao.motivo}">
+                                ${solicitacao.motivo}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${formatDate(solicitacao.solicitado_em)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColor}">
+                                ${statusText}
+                            </span>
+                            ${solicitacao.avaliado_em ? `<div class="text-xs text-gray-500 mt-1">em ${formatDate(solicitacao.avaliado_em)}</div>` : ''}
+                            ${solicitacao.observacoes_avaliacao ? `<div class="text-xs text-gray-600 mt-1" title="${solicitacao.observacoes_avaliacao}">📝 ${solicitacao.observacoes_avaliacao.substring(0, 30)}${solicitacao.observacoes_avaliacao.length > 30 ? '...' : ''}</div>` : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            ${solicitacao.status === 'PENDENTE' ? `
+                                <div class="flex space-x-2">
+                                    <button onclick="aprovarSolicitacaoExclusao(${solicitacao.id}, '${solicitacao.titulo}')" 
+                                            class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors">
+                                        ✓ Aprovar
+                                    </button>
+                                    <button onclick="reprovarSolicitacaoExclusao(${solicitacao.id}, '${solicitacao.titulo}')" 
+                                            class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors">
+                                        ✗ Reprovar
+                                    </button>
+                                </div>
+                            ` : `
+                                <span class="text-gray-500 text-xs">
+                                    ${solicitacao.avaliado_por_nome ? `Por: ${solicitacao.avaliado_por_nome}` : 'Processada'}
+                                </span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        <div class="flex flex-col items-center py-8">
+                            <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-900 mb-2">Nenhuma solicitação de exclusão</p>
+                            <p class="text-gray-500">Não há solicitações pendentes ou processadas</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar solicitações:', error);
+        document.getElementById('listaSolicitacoes').innerHTML = `
+            <tr>
+                <td colspan="7" class="px-6 py-4 text-center text-red-500">
+                    Erro ao carregar solicitações de exclusão
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Funções auxiliares para status das solicitações
+function getStatusColorSolicitacao(status) {
+    switch (status) {
+        case 'PENDENTE': return 'bg-yellow-100 text-yellow-800';
+        case 'APROVADA': return 'bg-green-100 text-green-800';
+        case 'REPROVADA': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function getStatusTextSolicitacao(status) {
+    switch (status) {
+        case 'PENDENTE': return '⏳ Pendente';
+        case 'APROVADA': return '✅ Aprovada';
+        case 'REPROVADA': return '❌ Reprovada';
+        default: return status;
+    }
+}
+
+// Aprovar solicitação de exclusão
+async function aprovarSolicitacaoExclusao(solicitacaoId, titulo) {
+    const observacoes = prompt(`✅ APROVAR EXCLUSÃO\n\nVocê está aprovando a exclusão do registro:\n"${titulo}"\n\n⚠️ O registro será PERMANENTEMENTE excluído do sistema.\n\nObservações (opcional):`);
+    
+    if (observacoes === null) return; // Usuário cancelou
+    
+    const confirmacao = confirm(`🔴 CONFIRMAÇÃO FINAL\n\nVocê confirma a APROVAÇÃO da exclusão?\n\nRegistro: ${titulo}\nObservações: ${observacoes || 'Nenhuma'}\n\n⚠️ Esta ação é IRREVERSÍVEL!`);
+    
+    if (!confirmacao) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('solicitacao_id', solicitacaoId);
+        formData.append('observacoes', observacoes || '');
+        
+        const response = await fetch('/pops-its/solicitacao/aprovar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`✅ ${result.message}`);
+            loadSolicitacoes(); // Recarregar lista de solicitações
+            loadPendentesAprovacao(); // Recarregar lista de pendentes
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro ao aprovar solicitação:', error);
+        alert('❌ Erro ao aprovar solicitação');
+    }
+}
+
+// Reprovar solicitação de exclusão
+async function reprovarSolicitacaoExclusao(solicitacaoId, titulo) {
+    const observacoes = prompt(`❌ REPROVAR EXCLUSÃO\n\nVocê está reprovando a exclusão do registro:\n"${titulo}"\n\n📝 Informe o motivo da reprovação (obrigatório):`);
+    
+    if (!observacoes || observacoes.trim() === '') {
+        if (observacoes !== null) { // Se não cancelou
+            alert('❌ O motivo da reprovação é obrigatório');
+        }
+        return;
+    }
+    
+    const confirmacao = confirm(`✅ CONFIRMAR REPROVAÇÃO\n\nRegistro: ${titulo}\nMotivo: ${observacoes}\n\nO solicitante será notificado sobre a reprovação.`);
+    
+    if (!confirmacao) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('solicitacao_id', solicitacaoId);
+        formData.append('observacoes', observacoes.trim());
+        
+        const response = await fetch('/pops-its/solicitacao/reprovar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(`✅ ${result.message}`);
+            loadSolicitacoes(); // Recarregar lista
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro ao reprovar solicitação:', error);
+        alert('❌ Erro ao reprovar solicitação');
     }
 }
 

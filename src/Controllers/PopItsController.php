@@ -1341,4 +1341,327 @@ class PopItsController
         }
     }
 
+    // ===== SISTEMA DE SOLICITAÇÕES DE EXCLUSÃO =====
+
+    // Criar tabela de solicitações se não existir
+    private function criarTabelaSolicitacoesSeNaoExistir()
+    {
+        try {
+            $sql = "
+                CREATE TABLE IF NOT EXISTS pops_its_solicitacoes_exclusao (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    registro_id INT NOT NULL,
+                    solicitante_id INT NOT NULL,
+                    motivo TEXT NOT NULL,
+                    status ENUM('PENDENTE', 'APROVADA', 'REPROVADA') DEFAULT 'PENDENTE',
+                    avaliado_por INT NULL,
+                    avaliado_em TIMESTAMP NULL,
+                    observacoes_avaliacao TEXT NULL,
+                    solicitado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    
+                    FOREIGN KEY (registro_id) REFERENCES pops_its_registros(id) ON DELETE CASCADE,
+                    FOREIGN KEY (solicitante_id) REFERENCES users(id) ON DELETE CASCADE,
+                    FOREIGN KEY (avaliado_por) REFERENCES users(id) ON DELETE SET NULL,
+                    
+                    INDEX idx_registro_id (registro_id),
+                    INDEX idx_solicitante_id (solicitante_id),
+                    INDEX idx_status (status),
+                    INDEX idx_solicitado_em (solicitado_em)
+                )
+            ";
+            $this->db->exec($sql);
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao criar tabela de solicitações: " . $e->getMessage());
+        }
+    }
+
+    // Criar solicitação de exclusão
+    public function createSolicitacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            // Verificar se a tabela existe, se não, criar
+            $this->criarTabelaSolicitacoesSeNaoExistir();
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = (int)($_POST['registro_id'] ?? 0);
+            $motivo = trim($_POST['motivo'] ?? '');
+            
+            if ($registro_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro é obrigatório']);
+                return;
+            }
+            
+            if (empty($motivo)) {
+                echo json_encode(['success' => false, 'message' => 'Motivo da exclusão é obrigatório']);
+                return;
+            }
+            
+            // Verificar se o registro existe e pertence ao usuário
+            $stmt = $this->db->prepare("
+                SELECT r.id, r.criado_por, t.titulo, r.nome_arquivo 
+                FROM pops_its_registros r 
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE r.id = ?
+            ");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
+                return;
+            }
+            
+            if ($registro['criado_por'] != $user_id) {
+                echo json_encode(['success' => false, 'message' => 'Você só pode solicitar exclusão de seus próprios registros']);
+                return;
+            }
+            
+            // Verificar se já existe solicitação pendente para este registro
+            $stmt = $this->db->prepare("
+                SELECT id FROM pops_its_solicitacoes_exclusao 
+                WHERE registro_id = ? AND status = 'PENDENTE'
+            ");
+            $stmt->execute([$registro_id]);
+            
+            if ($stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Já existe uma solicitação de exclusão pendente para este registro']);
+                return;
+            }
+            
+            // Criar a solicitação
+            $stmt = $this->db->prepare("
+                INSERT INTO pops_its_solicitacoes_exclusao 
+                (registro_id, solicitante_id, motivo) 
+                VALUES (?, ?, ?)
+            ");
+            $stmt->execute([$registro_id, $user_id, $motivo]);
+            
+            $solicitacao_id = $this->db->lastInsertId();
+            
+            // Log da ação
+            error_log("SOLICITAÇÃO DE EXCLUSÃO: Usuário $user_id solicitou exclusão do registro $registro_id (Protocolo: #$solicitacao_id)");
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Solicitação de exclusão criada com sucesso',
+                'solicitacao_id' => $solicitacao_id
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::createSolicitacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
+        }
+    }
+
+    // Listar solicitações de exclusão (para Aba 3 - Pendente Aprovação)
+    public function listSolicitacoes()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se tem permissão para aprovar (admin ou permissão específica)
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_pendente_aprovacao', 'view')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para visualizar solicitações']);
+                return;
+            }
+            
+            $stmt = $this->db->prepare("
+                SELECT 
+                    s.id,
+                    s.registro_id,
+                    s.motivo,
+                    s.status,
+                    s.solicitado_em,
+                    s.avaliado_em,
+                    s.observacoes_avaliacao,
+                    u.name as solicitante_nome,
+                    u.email as solicitante_email,
+                    t.titulo,
+                    t.tipo,
+                    r.nome_arquivo,
+                    r.versao,
+                    ua.name as avaliado_por_nome
+                FROM pops_its_solicitacoes_exclusao s
+                LEFT JOIN users u ON s.solicitante_id = u.id
+                LEFT JOIN pops_its_registros r ON s.registro_id = r.id
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                LEFT JOIN users ua ON s.avaliado_por = ua.id
+                ORDER BY s.solicitado_em DESC
+            ");
+            
+            $stmt->execute();
+            $solicitacoes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $solicitacoes]);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::listSolicitacoes - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar solicitações: ' . $e->getMessage()]);
+        }
+    }
+
+    // Aprovar solicitação de exclusão
+    public function aprovarSolicitacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $solicitacao_id = (int)($_POST['solicitacao_id'] ?? 0);
+            $observacoes = trim($_POST['observacoes'] ?? '');
+            
+            // Verificar permissão
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_pendente_aprovacao', 'edit')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para aprovar solicitações']);
+                return;
+            }
+            
+            if ($solicitacao_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID da solicitação é obrigatório']);
+                return;
+            }
+            
+            // Buscar a solicitação
+            $stmt = $this->db->prepare("
+                SELECT s.*, r.nome_arquivo, t.titulo 
+                FROM pops_its_solicitacoes_exclusao s
+                LEFT JOIN pops_its_registros r ON s.registro_id = r.id
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE s.id = ? AND s.status = 'PENDENTE'
+            ");
+            $stmt->execute([$solicitacao_id]);
+            $solicitacao = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$solicitacao) {
+                echo json_encode(['success' => false, 'message' => 'Solicitação não encontrada ou já processada']);
+                return;
+            }
+            
+            // Iniciar transação
+            $this->db->beginTransaction();
+            
+            try {
+                // Atualizar status da solicitação
+                $stmt = $this->db->prepare("
+                    UPDATE pops_its_solicitacoes_exclusao 
+                    SET status = 'APROVADA', avaliado_por = ?, avaliado_em = NOW(), observacoes_avaliacao = ?
+                    WHERE id = ?
+                ");
+                $stmt->execute([$user_id, $observacoes, $solicitacao_id]);
+                
+                // Excluir o registro
+                $stmt = $this->db->prepare("DELETE FROM pops_its_registros WHERE id = ?");
+                $stmt->execute([$solicitacao['registro_id']]);
+                
+                $this->db->commit();
+                
+                // Log da ação
+                error_log("EXCLUSÃO APROVADA: Usuário $user_id aprovou exclusão do registro {$solicitacao['registro_id']} (Protocolo: #$solicitacao_id)");
+                
+                echo json_encode([
+                    'success' => true, 
+                    'message' => "Solicitação aprovada e registro '{$solicitacao['titulo']}' excluído com sucesso"
+                ]);
+                
+            } catch (\Exception $e) {
+                $this->db->rollBack();
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::aprovarSolicitacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
+        }
+    }
+
+    // Reprovar solicitação de exclusão
+    public function reprovarSolicitacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $solicitacao_id = (int)($_POST['solicitacao_id'] ?? 0);
+            $observacoes = trim($_POST['observacoes'] ?? '');
+            
+            // Verificar permissão
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_pendente_aprovacao', 'edit')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para reprovar solicitações']);
+                return;
+            }
+            
+            if ($solicitacao_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID da solicitação é obrigatório']);
+                return;
+            }
+            
+            if (empty($observacoes)) {
+                echo json_encode(['success' => false, 'message' => 'Observações são obrigatórias para reprovação']);
+                return;
+            }
+            
+            // Buscar a solicitação
+            $stmt = $this->db->prepare("
+                SELECT s.*, u.name as solicitante_nome, t.titulo 
+                FROM pops_its_solicitacoes_exclusao s
+                LEFT JOIN users u ON s.solicitante_id = u.id
+                LEFT JOIN pops_its_registros r ON s.registro_id = r.id
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE s.id = ? AND s.status = 'PENDENTE'
+            ");
+            $stmt->execute([$solicitacao_id]);
+            $solicitacao = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$solicitacao) {
+                echo json_encode(['success' => false, 'message' => 'Solicitação não encontrada ou já processada']);
+                return;
+            }
+            
+            // Atualizar status da solicitação
+            $stmt = $this->db->prepare("
+                UPDATE pops_its_solicitacoes_exclusao 
+                SET status = 'REPROVADA', avaliado_por = ?, avaliado_em = NOW(), observacoes_avaliacao = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([$user_id, $observacoes, $solicitacao_id]);
+            
+            // Log da ação
+            error_log("EXCLUSÃO REPROVADA: Usuário $user_id reprovou exclusão do registro {$solicitacao['registro_id']} (Protocolo: #$solicitacao_id)");
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => "Solicitação reprovada. O solicitante ({$solicitacao['solicitante_nome']}) será notificado."
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::reprovarSolicitacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
+        }
+    }
+
 }
