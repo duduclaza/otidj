@@ -163,6 +163,12 @@ class Planos5W2HController
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
+            // Tratar campo howMuch - se vazio ou não informado, usar 0.00
+            $howMuch = 0.00;
+            if (!empty($data['howMuch']) && is_numeric($data['howMuch'])) {
+                $howMuch = floatval($data['howMuch']);
+            }
+            
             $stmt->execute([
                 $data['titulo'],
                 $data['what'],
@@ -171,7 +177,7 @@ class Planos5W2HController
                 $data['when'],
                 $data['who'],
                 $data['how'],
-                $data['howMuch'] ?? 0.00,
+                $howMuch,
                 $data['status'] ?? 'pendente',
                 $data['departamento'],
                 $_SESSION['user_id']
@@ -232,6 +238,12 @@ class Planos5W2HController
                 WHERE id = ?
             ");
             
+            // Tratar campo howMuch - se vazio ou não informado, usar 0.00
+            $howMuch = 0.00;
+            if (!empty($data['howMuch']) && is_numeric($data['howMuch'])) {
+                $howMuch = floatval($data['howMuch']);
+            }
+            
             $stmt->execute([
                 $data['titulo'],
                 $data['what'],
@@ -240,7 +252,7 @@ class Planos5W2HController
                 $data['when'],
                 $data['who'],
                 $data['how'],
-                $data['howMuch'] ?? 0.00,
+                $howMuch,
                 $data['status'] ?? 'pendente',
                 $data['departamento'],
                 $_SESSION['user_id'],

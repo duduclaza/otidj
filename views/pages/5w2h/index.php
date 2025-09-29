@@ -150,11 +150,11 @@ if (!isset($_SESSION['user_id'])) {
                 <!-- QUANTO CUSTA (How Much) -->
                 <div>
                     <label class="block text-sm font-medium text-gray-200 mb-2">
-                        QUANTO custará?
+                        QUANTO custará? <span class="text-gray-400 text-xs">(opcional - padrão R$ 0,00)</span>
                     </label>
                     <input type="number" id="howMuch" name="howMuch" step="0.01" min="0"
                            class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
-                           placeholder="0.00">
+                           placeholder="Deixe vazio para R$ 0,00">
                 </div>
 
                 <!-- Departamento -->
