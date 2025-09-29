@@ -428,4 +428,101 @@ class PopItsController
         }
     }
 
+    // Download de arquivo
+    public function downloadArquivo($id)
+    {
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(401);
+                echo "Acesso negado";
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = (int)$id;
+            
+            // Buscar o registro
+            $stmt = $this->db->prepare("
+                SELECT r.*, t.titulo 
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE r.id = ?
+            ");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                http_response_code(404);
+                echo "Arquivo não encontrado";
+                return;
+            }
+            
+            // Verificar permissões
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isOwner = ($registro['criado_por'] == $user_id);
+            
+            // Se não é admin nem dono, verificar se tem acesso
+            if (!$isAdmin && !$isOwner) {
+                // Se é público, pode acessar
+                if (!$registro['publico']) {
+                    http_response_code(403);
+                    echo "Acesso negado a este arquivo";
+                    return;
+                }
+            }
+            
+            // Definir headers para download
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="' . $registro['nome_arquivo'] . '"');
+            header('Content-Length: ' . $registro['tamanho_arquivo']);
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            
+            // Enviar o arquivo (usando o nome correto da coluna)
+            echo $registro['arquivo'];
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::downloadArquivo - Erro: " . $e->getMessage());
+            http_response_code(500);
+            echo "Erro interno do servidor";
+        }
+    }
+
+    // Método de debug para verificar arquivos no banco
+    public function debugArquivo($id)
+    {
+        try {
+            $registro_id = (int)$id;
+            
+            // Buscar o registro
+            $stmt = $this->db->prepare("
+                SELECT id, nome_arquivo, tamanho_arquivo, extensao, 
+                       LENGTH(arquivo) as tamanho_blob, publico, status
+                FROM pops_its_registros 
+                WHERE id = ?
+            ");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            header('Content-Type: application/json');
+            
+            if (!$registro) {
+                echo json_encode(['error' => 'Registro não encontrado', 'id' => $registro_id]);
+                return;
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'registro' => $registro,
+                'arquivo_existe' => !empty($registro['tamanho_blob']),
+                'tamanho_original' => $registro['tamanho_arquivo'],
+                'tamanho_blob' => $registro['tamanho_blob']
+            ]);
+            
+        } catch (\Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+    }
+
 }

@@ -243,6 +243,7 @@ $router->post('/pops-its/titulo/delete', [App\Controllers\PopItsController::clas
 $router->post('/pops-its/registro/create', [App\Controllers\PopItsController::class, 'createRegistro']);
 $router->get('/pops-its/registros/meus', [App\Controllers\PopItsController::class, 'listMeusRegistros']);
 $router->get('/pops-its/arquivo/{id}', [App\Controllers\PopItsController::class, 'downloadArquivo']);
+$router->get('/pops-its/debug-arquivo/{id}', [App\Controllers\PopItsController::class, 'debugArquivo']);
 $router->post('/pops-its/registro/update', [App\Controllers\PopItsController::class, 'updateRegistro']);
 $router->post('/pops-its/registro/delete', [App\Controllers\PopItsController::class, 'deleteRegistro']);
 // Aba 3: Pendente Aprovação
