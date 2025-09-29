@@ -13,12 +13,20 @@ if (!isset($_SESSION['user_id'])) {
             <h1 class="text-3xl font-bold text-gray-900">5W2H - Planos de Ação</h1>
             <p class="text-gray-600 mt-2">Gerencie seus planos de ação utilizando a metodologia 5W2H</p>
         </div>
-        <button onclick="toggleFormulario()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <span id="btnText">Novo Plano 5W2H</span>
-        </button>
+        <div class="flex gap-3">
+            <button onclick="abrirTutorial5W2H()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m2-10v18a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6l2 2z"></path>
+                </svg>
+                Aprenda a usar
+            </button>
+            <button onclick="toggleFormulario()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                <span id="btnText">Novo Plano 5W2H</span>
+            </button>
+        </div>
     </div>
 
     <!-- Filtros -->
@@ -743,4 +751,168 @@ function getFileIcon(tipo) {
 function downloadAnexo(anexoId) {
     window.open(`/5w2h/anexo/${anexoId}`, '_blank');
 }
+
+// Função para abrir o tutorial 5W2H
+function abrirTutorial5W2H() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <!-- Header do Modal -->
+            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">📚 Tutorial - Como usar 5W2H</h2>
+                    <p class="text-gray-600 mt-1">Aprenda a metodologia 5W2H para criar planos de ação eficazes</p>
+                </div>
+                <button onclick="fecharTutorial()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">
+                    ×
+                </button>
+            </div>
+            
+            <!-- Conteúdo do Modal -->
+            <div class="p-6">
+                <!-- Vídeo Tutorial -->
+                <div class="mb-6">
+                    <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg">
+                        <video id="tutorial5w2h" controls class="w-full h-auto" style="max-height: 400px;">
+                            <source src="/assets/5w2h.mp4" type="video/mp4">
+                            Seu navegador não suporta o elemento de vídeo.
+                        </video>
+                    </div>
+                </div>
+                
+                <!-- Resumo da Metodologia -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">🎯 Os 5 W's</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-start gap-2">
+                                <span class="font-semibold text-blue-700">What:</span>
+                                <span class="text-gray-700">O que será feito?</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="font-semibold text-blue-700">Why:</span>
+                                <span class="text-gray-700">Por que será feito?</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="font-semibold text-blue-700">Who:</span>
+                                <span class="text-gray-700">Quem fará?</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="font-semibold text-blue-700">When:</span>
+                                <span class="text-gray-700">Quando será feito?</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="font-semibold text-blue-700">Where:</span>
+                                <span class="text-gray-700">Onde será feito?</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-green-800 mb-3">💡 Os 2 H's</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-start gap-2">
+                                <span class="font-semibold text-green-700">How:</span>
+                                <span class="text-gray-700">Como será feito?</span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="font-semibold text-green-700">How Much:</span>
+                                <span class="text-gray-700">Quanto custará?</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-green-100 rounded-lg">
+                            <h4 class="font-semibold text-green-800 mb-2">✨ Dica Importante:</h4>
+                            <p class="text-sm text-green-700">
+                                Responder essas 7 perguntas garante que seu plano de ação seja 
+                                completo, claro e executável!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Benefícios -->
+                <div class="mt-6 bg-yellow-50 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-yellow-800 mb-3">🏆 Benefícios da Metodologia 5W2H</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl mb-2">🎯</div>
+                            <h4 class="font-semibold text-yellow-800">Clareza</h4>
+                            <p class="text-sm text-yellow-700">Objetivos bem definidos</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl mb-2">⚡</div>
+                            <h4 class="font-semibold text-yellow-800">Eficiência</h4>
+                            <p class="text-sm text-yellow-700">Execução mais rápida</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl mb-2">📊</div>
+                            <h4 class="font-semibold text-yellow-800">Controle</h4>
+                            <p class="text-sm text-yellow-700">Acompanhamento facilitado</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer do Modal -->
+            <div class="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
+                <div class="text-sm text-gray-600">
+                    💡 Assista ao vídeo completo para dominar a metodologia!
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="iniciarNovoPlano()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg">
+                        Criar Meu Primeiro Plano
+                    </button>
+                    <button onclick="fecharTutorial()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+                        Fechar Tutorial
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Focar no vídeo quando abrir
+    setTimeout(() => {
+        const video = document.getElementById('tutorial5w2h');
+        if (video) {
+            video.focus();
+        }
+    }, 100);
+}
+
+// Função para fechar o tutorial
+function fecharTutorial() {
+    const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-75');
+    if (modal) {
+        // Pausar o vídeo antes de fechar
+        const video = modal.querySelector('video');
+        if (video) {
+            video.pause();
+        }
+        modal.remove();
+    }
+}
+
+// Função para iniciar novo plano após tutorial
+function iniciarNovoPlano() {
+    fecharTutorial();
+    toggleFormulario();
+    // Scroll para o formulário
+    setTimeout(() => {
+        document.getElementById('formularioInline').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }, 300);
+}
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        fecharTutorial();
+    }
+});
 </script>
