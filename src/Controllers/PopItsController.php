@@ -276,19 +276,54 @@ class PopItsController
                 return;
             }
             
+            // Verificar se existem registros vinculados a este título
+            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM pops_its_registros WHERE titulo_id = ?");
+            $stmt->execute([$titulo_id]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $totalRegistros = $result['total'];
+            
+            if ($totalRegistros > 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => "❌ Não é possível excluir este título!\n\nExistem {$totalRegistros} registro(s) vinculado(s) a este título.\n\nPara excluir o título, primeiro exclua todos os registros relacionados."
+                ]);
+                return;
+            }
+            
+            // Buscar informações do título para log
+            $stmt = $this->db->prepare("SELECT titulo, tipo FROM pops_its_titulos WHERE id = ?");
+            $stmt->execute([$titulo_id]);
+            $titulo = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$titulo) {
+                echo json_encode(['success' => false, 'message' => 'Título não encontrado']);
+                return;
+            }
+            
             // Excluir o título
             $stmt = $this->db->prepare("DELETE FROM pops_its_titulos WHERE id = ?");
             $stmt->execute([$titulo_id]);
             
             if ($stmt->rowCount() > 0) {
-                echo json_encode(['success' => true, 'message' => 'Título excluído com sucesso!']);
+                // Log da exclusão
+                error_log("TÍTULO EXCLUÍDO: {$titulo['tipo']} - {$titulo['titulo']} (ID: {$titulo_id}) por usuário {$user_id}");
+                echo json_encode(['success' => true, 'message' => "✅ Título '{$titulo['titulo']}' excluído com sucesso!"]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Título não encontrado']);
+                echo json_encode(['success' => false, 'message' => 'Erro inesperado ao excluir o título']);
             }
             
         } catch (\Exception $e) {
             error_log("PopItsController::deleteTitulo - Erro: " . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+            
+            // Verificar se é erro de constraint de foreign key
+            if (strpos($e->getMessage(), '1451') !== false || strpos($e->getMessage(), 'foreign key constraint') !== false) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => "❌ Não é possível excluir este título!\n\nExistem registros vinculados a este título que impedem sua exclusão.\n\nPara excluir o título, primeiro exclua todos os registros relacionados."
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Erro inesperado ao excluir título. Tente novamente.']);
+            }
         }
     }
 

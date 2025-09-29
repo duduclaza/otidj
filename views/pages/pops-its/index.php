@@ -935,11 +935,11 @@ function editarRegistro(registroId) {
 // Excluir título (apenas admin)
 async function excluirTitulo(id, titulo, tipo) {
     // Confirmação dupla para segurança
-    const confirmacao1 = confirm(`⚠️ Tem certeza que deseja excluir o ${tipo}:\n"${titulo}"?\n\nEsta ação não pode ser desfeita.`);
+    const confirmacao1 = confirm(`⚠️ ATENÇÃO: Exclusão de Título\n\nDeseja excluir o ${tipo}: "${titulo}"?\n\n⚠️ IMPORTANTE: Se existirem registros vinculados a este título, a exclusão será bloqueada.\n\nContinuar?`);
     
     if (!confirmacao1) return;
     
-    const confirmacao2 = confirm(`🔴 CONFIRMAÇÃO FINAL\n\nVocê está prestes a excluir permanentemente:\n${tipo}: "${titulo}"\n\nDigite OK para confirmar ou Cancelar para abortar.`);
+    const confirmacao2 = confirm(`🔴 CONFIRMAÇÃO FINAL\n\nVocê confirma a exclusão de:\n${tipo}: "${titulo}"\n\n✅ Clique OK para confirmar\n❌ Clique Cancelar para abortar`);
     
     if (!confirmacao2) return;
     
