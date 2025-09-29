@@ -121,11 +121,8 @@ if (!isset($_SESSION['user_id'])) {
 
                 <!-- Lista de Títulos Cadastrados -->
                 <div class="bg-white rounded-lg shadow-sm border">
-                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <div class="px-6 py-4 border-b border-gray-200">
                         <h4 class="text-lg font-semibold text-gray-900">📋 Títulos Cadastrados</h4>
-                        <button onclick="testarConexao()" class="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600">
-                            🧪 Testar Conexão
-                        </button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
@@ -527,19 +524,6 @@ function formatDate(dateString) {
     });
 }
 
-// Função de teste para debug
-async function testarConexao() {
-    try {
-        console.log('🧪 Testando conexão...');
-        const response = await fetch('/pops-its/teste');
-        const result = await response.json();
-        console.log('🔍 Teste resultado:', result);
-        alert('Resultado do teste: ' + JSON.stringify(result, null, 2));
-    } catch (error) {
-        console.error('❌ Erro no teste:', error);
-        alert('Erro no teste: ' + error.message);
-    }
-}
 
 // Excluir título (apenas admin)
 async function excluirTitulo(id, titulo, tipo) {
