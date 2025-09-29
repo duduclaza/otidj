@@ -410,8 +410,8 @@ class PopItsController
             // Inserir registro
             $stmt = $this->db->prepare("
                 INSERT INTO pops_its_registros 
-                (titulo_id, versao, arquivo, nome_arquivo, extensao, tamanho_arquivo, publico, criado_por) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (titulo_id, versao, arquivo, nome_arquivo, extensao, tamanho_arquivo, publico, criado_por, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDENTE')
             ");
             
             $publico = ($visibilidade === 'publico') ? 1 : 0;

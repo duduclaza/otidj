@@ -267,27 +267,29 @@ if (!isset($_SESSION['user_id'])) {
             <!-- ABA 3: PENDENTE APROVAÇÃO (Apenas Admin) -->
             <?php if ($canViewPendenteAprovacao): ?>
             <div id="content-pendentes" class="tab-content hidden">
-                <div class="text-center py-16">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
-                        <svg class="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Registros Pendentes de Aprovação</h3>
+                        <p class="mt-1 text-sm text-gray-500">Gerencie os registros que aguardam aprovação</p>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Pendente Aprovação</h3>
-                    <p class="text-gray-600 mb-4">Em construção</p>
-                    <div class="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Funcionalidade em desenvolvimento
-                    </div>
-                    <div class="mt-4 text-sm text-gray-500">
-                        <span class="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 rounded-full">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
-                            Acesso restrito a administradores
-                        </span>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Versão</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Autor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anexo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaPendentes" class="bg-white divide-y divide-gray-200">
+                                <!-- Conteúdo carregado via JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -370,6 +372,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('🔄 Carregando registros ao clicar na aba...');
                     loadMeusRegistros();
                     loadTitulosDropdown();
+                } else if (tabId === 'pendentes') {
+                    console.log('🔄 Carregando pendências ao clicar na aba...');
+                    loadPendentesAprovacao();
                 }
             }
         });
@@ -883,6 +888,148 @@ async function excluirTitulo(id, titulo, tipo) {
         alert('❌ Erro ao excluir título');
     }
 }
+
+// ===== ABA 3: PENDENTE APROVAÇÃO =====
+
+// Carregar registros pendentes de aprovação
+async function loadPendentesAprovacao() {
+    try {
+        console.log('🔄 Carregando registros pendentes...');
+        const response = await fetch('/pops-its/pendentes/list');
+        const result = await response.json();
+        
+        const tbody = document.getElementById('listaPendentes');
+        
+        if (result.success && result.data.length > 0) {
+            tbody.innerHTML = result.data.map(registro => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${registro.tipo === 'POP' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                            ${registro.tipo}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${registro.titulo}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        v${registro.versao}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${registro.autor_nome}</div>
+                        <div class="text-sm text-gray-500">${registro.autor_email}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${formatDate(registro.criado_em)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <a href="/pops-its/arquivo/${registro.id}" target="_blank" 
+                           class="text-blue-600 hover:text-blue-900 flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            ${registro.nome_arquivo}
+                        </a>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <div class="flex space-x-2">
+                            <button onclick="aprovarRegistro(${registro.id})" 
+                                    class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors">
+                                ✓ Aprovar
+                            </button>
+                            <button onclick="reprovarRegistro(${registro.id})" 
+                                    class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors">
+                                ✗ Reprovar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                        <div class="flex flex-col items-center py-8">
+                            <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-900 mb-2">Nenhum registro pendente</p>
+                            <p class="text-gray-500">Todos os registros foram processados</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar pendências:', error);
+        document.getElementById('listaPendentes').innerHTML = `
+            <tr>
+                <td colspan="7" class="px-6 py-4 text-center text-red-500">
+                    Erro ao carregar registros pendentes
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Aprovar registro
+async function aprovarRegistro(registroId) {
+    if (!confirm('Tem certeza que deseja aprovar este registro?')) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('registro_id', registroId);
+        
+        const response = await fetch('/pops-its/registro/aprovar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ ' + result.message);
+            loadPendentesAprovacao(); // Recarregar lista
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro ao aprovar registro:', error);
+        alert('❌ Erro ao aprovar registro');
+    }
+}
+
+// Reprovar registro
+async function reprovarRegistro(registroId) {
+    const observacao = prompt('Digite a observação de reprovação:');
+    if (!observacao || observacao.trim() === '') {
+        alert('Observação é obrigatória para reprovação');
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('registro_id', registroId);
+        formData.append('observacao', observacao.trim());
+        
+        const response = await fetch('/pops-its/registro/reprovar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ ' + result.message);
+            loadPendentesAprovacao(); // Recarregar lista
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro ao reprovar registro:', error);
+        alert('❌ Erro ao reprovar registro');
+    }
+}
+
 </script>
 
 
