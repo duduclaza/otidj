@@ -29,25 +29,33 @@ class PermissionMiddleware
         '/controle-de-descartes' => 'controle_descartes',
         '/femea' => 'femea',
         '/pops-e-its' => 'pops_its_visualizacao', // Rota principal vai para visualização (todos podem ver)
-        '/fluxogramas' => 'fluxogramas',
+        '/fluxogramas' => 'fluxogramas_visualizacao', // Rota principal vai para visualização
         
         // POPs e ITs - Rotas específicas por aba
         '/pops-its/titulo/create' => 'pops_its_cadastro_titulos',
         '/pops-its/titulos/list' => 'pops_its_cadastro_titulos',
-        '/pops-its/registro/create' => 'pops_its_meus_registros',
         '/pops-its/registros/meus' => 'pops_its_meus_registros',
         '/pops-its/registro/update' => 'pops_its_meus_registros',
         '/pops-its/registro/delete' => 'pops_its_meus_registros',
         '/pops-its/pendentes/list' => 'pops_its_pendente_aprovacao',
         '/pops-its/registro/aprovar' => 'pops_its_pendente_aprovacao',
-        '/pops-its/registro/reprovar' => 'pops_its_pendente_aprovacao',
         '/pops-its/visualizacao/list' => 'pops_its_visualizacao',
-        '/pops-its/arquivo' => 'pops_its_visualizacao', // Download de arquivos
+        '/pops-its/visualizar' => 'pops_its_visualizacao',
+        '/pops-its/logs/visualizacao' => 'pops_its_logs_visualizacao',
+        
+        // Fluxogramas - Rotas específicas por aba
+        '/fluxogramas/titulo/create' => 'fluxogramas_cadastro_titulos',
+        '/fluxogramas/titulos/list' => 'fluxogramas_cadastro_titulos',
+        '/fluxogramas/registro/create' => 'fluxogramas_meus_registros',
+        '/fluxogramas/registros/meus' => 'fluxogramas_meus_registros',
+        '/fluxogramas/registro/editar' => 'fluxogramas_meus_registros',
+        '/fluxogramas/arquivo' => 'fluxogramas_visualizacao', // Download de arquivos
         // Melhoria Contínua
         '/melhoria-continua' => 'melhoria_continua',
         '/melhoria-continua/list' => 'melhoria_continua',
         '/melhoria-continua/departamentos' => 'melhoria_continua',
         '/melhoria-continua/usuarios' => 'melhoria_continua',
+{{ ... }}
         '/melhoria-continua/store' => 'melhoria_continua',
         '/controle-de-rc' => 'controle_rc',
         
