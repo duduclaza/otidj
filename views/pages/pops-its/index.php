@@ -1354,16 +1354,18 @@ function visualizarArquivo(registroId, nomeArquivo, tipo) {
                 <iframe src="/pops-its/visualizar/${registroId}" 
                         class="w-full h-full border-0 rounded" 
                         title="Visualização protegida"
-                        onload="aplicarProtecoes()"
-                        style="pointer-events: none; background: #f8f9fa;">
+                        onload="aplicarProtecoesPorTipo('${tipo}')"
+                        style="background: #f8f9fa; ${tipo === 'pdf' ? 'pointer-events: auto;' : 'pointer-events: none;'}">
                 </iframe>
-                <!-- Overlay invisível para bloquear interações -->
+                <!-- Overlay para imagens (não para PDFs) -->
+                ${tipo === 'imagem' ? `
                 <div class="absolute inset-4 pointer-events-auto" 
                      oncontextmenu="return false;" 
                      ondragstart="return false;" 
                      onselectstart="return false;"
                      style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
                 </div>
+                ` : ''}
             </div>
         </div>
     `;
@@ -1416,12 +1418,23 @@ function removerProtecoesSistema() {
     document.removeEventListener('keydown', bloquearFerramentasDesenvolvedor);
 }
 
-// Bloquear teclas proibidas
+// Bloquear teclas proibidas (com exceções para PDFs)
 function bloquearTeclasProibidas(e) {
-    // Ctrl+S (Salvar), Ctrl+P (Print), Ctrl+A (Selecionar tudo)
-    if (e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'a')) {
+    // Verificar se é PDF para permitir algumas teclas de navegação
+    const modal = document.getElementById('modalVisualizacao');
+    const isPDF = modal && modal.innerHTML.includes('📄');
+    
+    // Ctrl+S (Salvar), Ctrl+P (Print) - sempre bloqueados
+    if (e.ctrlKey && (e.key === 's' || e.key === 'p')) {
         e.preventDefault();
         mostrarAvisoProtecao('Função bloqueada por segurança');
+        return false;
+    }
+    
+    // Ctrl+A (Selecionar tudo) - bloquear apenas para imagens
+    if (e.ctrlKey && e.key === 'a' && !isPDF) {
+        e.preventDefault();
+        mostrarAvisoProtecao('Seleção bloqueada por segurança');
         return false;
     }
     
@@ -1430,6 +1443,15 @@ function bloquearTeclasProibidas(e) {
         e.preventDefault();
         mostrarAvisoProtecao('Print Screen bloqueado por segurança');
         return false;
+    }
+    
+    // Permitir teclas de navegação para PDFs (setas, Page Up/Down, Home, End)
+    if (isPDF && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
+                  e.key === 'PageUp' || e.key === 'PageDown' || 
+                  e.key === 'Home' || e.key === 'End' || 
+                  e.key === 'Space')) {
+        // Permitir navegação em PDFs
+        return true;
     }
 }
 
@@ -1440,8 +1462,17 @@ function bloquearContextMenu(e) {
     return false;
 }
 
-// Bloquear seleção de texto
+// Bloquear seleção de texto (exceto para PDFs)
 function bloquearSelecao(e) {
+    // Verificar se é PDF para permitir seleção (necessária para scroll)
+    const modal = document.getElementById('modalVisualizacao');
+    const isPDF = modal && modal.innerHTML.includes('📄');
+    
+    // Permitir seleção em PDFs para funcionalidade de scroll
+    if (isPDF) {
+        return true;
+    }
+    
     e.preventDefault();
     return false;
 }
@@ -1512,20 +1543,53 @@ function mostrarAvisoProtecao(mensagem) {
     }, 3000);
 }
 
-// Aplicar proteções no iframe (chamado quando carrega)
-function aplicarProtecoes() {
-    // Adicionar CSS para bloquear seleção no iframe
-    const style = document.createElement('style');
-    style.textContent = `
-        iframe {
-            -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
-            user-select: none !important;
-            pointer-events: none !important;
+// Aplicar proteções específicas por tipo de arquivo
+function aplicarProtecoesPorTipo(tipo) {
+    if (tipo === 'pdf') {
+        // Para PDFs, permitir scroll mas bloquear outras interações
+        const style = document.createElement('style');
+        style.textContent = `
+            .pdf-iframe {
+                -webkit-user-select: none !important;
+                -moz-user-select: none !important;
+                -ms-user-select: none !important;
+                user-select: none !important;
+                /* Permitir pointer-events para scroll em PDFs */
+                pointer-events: auto !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Adicionar classe específica ao iframe do PDF
+        const iframe = document.querySelector('iframe[title="Visualização protegida"]');
+        if (iframe) {
+            iframe.classList.add('pdf-iframe');
         }
-    `;
-    document.head.appendChild(style);
+    } else {
+        // Para imagens, bloquear todas as interações
+        const style = document.createElement('style');
+        style.textContent = `
+            .image-iframe {
+                -webkit-user-select: none !important;
+                -moz-user-select: none !important;
+                -ms-user-select: none !important;
+                user-select: none !important;
+                pointer-events: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Adicionar classe específica ao iframe da imagem
+        const iframe = document.querySelector('iframe[title="Visualização protegida"]');
+        if (iframe) {
+            iframe.classList.add('image-iframe');
+        }
+    }
+}
+
+// Manter função antiga para compatibilidade
+function aplicarProtecoes() {
+    aplicarProtecoesPorTipo('imagem');
 }
 
 // Função auxiliar para formatar data e hora
