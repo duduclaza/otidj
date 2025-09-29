@@ -812,9 +812,9 @@ class PopItsController
                 
                 $stmt->execute();
             } else {
-                // Usuário comum - controle de acesso por departamento
-                $user_dept_id = $this->getUserDepartmentId($user_id);
-                error_log("CONTROLE DE ACESSO: Usuário $user_id -> Departamento ID: $user_dept_id");
+                // NOVA LÓGICA: Buscar setor do usuário diretamente
+                $user_setor = $this->getUserSetor($user_id);
+                error_log("NOVA LÓGICA - Usuário $user_id -> Setor: '$user_setor'");
                 
                 $stmt = $this->db->prepare("
                     SELECT 
@@ -848,8 +848,9 @@ class PopItsController
                         r.publico = 1 
                         OR r.criado_por = ?
                         OR EXISTS (
-                            SELECT 1 FROM pops_its_registros_departamentos rd2 
-                            WHERE rd2.registro_id = r.id AND rd2.departamento_id = ?
+                            SELECT 1 FROM pops_its_registros_departamentos rd3
+                            INNER JOIN departamentos d3 ON rd3.departamento_id = d3.id
+                            WHERE rd3.registro_id = r.id AND d3.nome = ?
                         )
                     )
                     GROUP BY r.id, r.versao, r.nome_arquivo, r.extensao, r.tamanho_arquivo, 
@@ -858,8 +859,27 @@ class PopItsController
                     ORDER BY r.aprovado_em DESC
                 ");
                 
-                error_log("QUERY PARAMS: user_id=$user_id, user_dept_id=$user_dept_id");
-                $stmt->execute([$user_id, $user_dept_id]);
+                error_log("NOVA QUERY PARAMS: user_id=$user_id, user_setor='$user_setor'");
+                
+                // Debug: testar se o registro 4 tem acesso para o setor RH
+                if ($user_setor) {
+                    $debug_stmt = $this->db->prepare("
+                        SELECT r.id, r.publico, r.criado_por, t.titulo,
+                               EXISTS (
+                                   SELECT 1 FROM pops_its_registros_departamentos rd3
+                                   INNER JOIN departamentos d3 ON rd3.departamento_id = d3.id
+                                   WHERE rd3.registro_id = r.id AND d3.nome = ?
+                               ) as tem_acesso_setor
+                        FROM pops_its_registros r
+                        LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                        WHERE r.status = 'APROVADO' AND r.id = 4
+                    ");
+                    $debug_stmt->execute([$user_setor]);
+                    $debug_result = $debug_stmt->fetch(\PDO::FETCH_ASSOC);
+                    error_log("DEBUG REGISTRO 4 - NOVA LÓGICA: " . json_encode($debug_result));
+                }
+                
+                $stmt->execute([$user_id, $user_setor]);
             }
             
             $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -1078,7 +1098,25 @@ class PopItsController
         }
     }
 
-    // Método auxiliar para obter departamento do usuário
+    // Método auxiliar para obter setor do usuário (NOVA LÓGICA)
+    private function getUserSetor($user_id)
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT setor, name FROM users WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            $setor = $result['setor'] ?? null;
+            error_log("SETOR DO USUÁRIO: {$result['name']} (ID: $user_id) -> Setor: '$setor'");
+            
+            return $setor;
+        } catch (\Exception $e) {
+            error_log("Erro ao obter setor do usuário: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Método auxiliar para obter departamento do usuário (MÉTODO ANTIGO)
     private function getUserDepartmentId($user_id)
     {
         try {
@@ -1095,6 +1133,20 @@ class PopItsController
             $dept_id = $result['departamento_id'] ?? null;
             $setor = $result['setor'] ?? 'N/A';
             error_log("SETOR DO USUÁRIO: {$result['name']} (ID: $user_id) -> Setor: '$setor' -> Departamento ID: $dept_id");
+            
+            // Debug adicional: verificar se o departamento existe
+            if (!$dept_id && $setor !== 'N/A') {
+                $stmt2 = $this->db->prepare("SELECT id, nome FROM departamentos WHERE nome = ?");
+                $stmt2->execute([$setor]);
+                $dept_result = $stmt2->fetch(\PDO::FETCH_ASSOC);
+                error_log("BUSCA DEPARTAMENTO '$setor': " . json_encode($dept_result));
+                
+                // Se encontrou o departamento, retornar o ID
+                if ($dept_result) {
+                    $dept_id = $dept_result['id'];
+                    error_log("DEPARTAMENTO ENCONTRADO: '$setor' -> ID: $dept_id");
+                }
+            }
             
             return $dept_id;
         } catch (\Exception $e) {
