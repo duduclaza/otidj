@@ -837,16 +837,19 @@ class PopItsController
                     LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
                     LEFT JOIN departamentos d ON rd.departamento_id = d.id
                     WHERE r.status = 'APROVADO'
-                    AND (
-                        r.publico = 1 
-                        OR rd.departamento_id = ?
-                        OR r.criado_por = ?
-                    )
                     AND r.versao = (
                         SELECT MAX(r2.versao) 
                         FROM pops_its_registros r2 
                         WHERE r2.titulo_id = r.titulo_id 
                         AND r2.status = 'APROVADO'
+                    )
+                    AND (
+                        r.publico = 1 
+                        OR r.criado_por = ?
+                        OR EXISTS (
+                            SELECT 1 FROM pops_its_registros_departamentos rd2 
+                            WHERE rd2.registro_id = r.id AND rd2.departamento_id = ?
+                        )
                     )
                     GROUP BY r.id, r.versao, r.nome_arquivo, r.extensao, r.tamanho_arquivo, 
                              r.publico, r.criado_em, r.aprovado_em, t.titulo, t.tipo, 
@@ -1077,15 +1080,24 @@ class PopItsController
     private function getUserDepartmentId($user_id)
     {
         try {
-            // Simplificado - assumindo que existe uma relação user->departamento
-            // Ajustar conforme a estrutura real do banco
-            $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
+            // Buscar o setor do usuário e encontrar o departamento correspondente
+            $stmt = $this->db->prepare("
+                SELECT u.setor, u.name, d.id as departamento_id 
+                FROM users u 
+                LEFT JOIN departamentos d ON u.setor = d.nome 
+                WHERE u.id = ?
+            ");
             $stmt->execute([$user_id]);
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             
-            return $result['departamento_id'] ?? 0;
+            $dept_id = $result['departamento_id'] ?? null;
+            $setor = $result['setor'] ?? 'N/A';
+            error_log("SETOR DO USUÁRIO: {$result['name']} (ID: $user_id) -> Setor: '$setor' -> Departamento ID: $dept_id");
+            
+            return $dept_id;
         } catch (\Exception $e) {
-            return 0; // Fallback
+            error_log("Erro ao obter departamento do usuário: " . $e->getMessage());
+            return null;
         }
     }
 
