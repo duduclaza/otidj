@@ -843,7 +843,9 @@ class PopItsController
             }
             
             // REGISTRAR LOG DE VISUALIZAÇÃO
+            error_log("INICIANDO LOG: Usuário $user_id vai visualizar registro $registro_id");
             $this->registrarLogVisualizacao($registro_id, $user_id);
+            error_log("LOG FINALIZADO para registro $registro_id");
             
             // Apenas PDFs podem ser visualizados em iframe por segurança
             if (strtolower($registro['extensao']) !== 'pdf') {
@@ -875,19 +877,53 @@ class PopItsController
     private function registrarLogVisualizacao($registro_id, $user_id)
     {
         try {
+            // Verificar se a tabela existe, se não, criar
+            $this->criarTabelaLogsSeNaoExistir();
+            
             $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
             $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
             
             $stmt = $this->db->prepare("
                 INSERT INTO pops_its_logs_visualizacao 
-                (registro_id, usuario_id, ip_address, user_agent) 
-                VALUES (?, ?, ?, ?)
+                (registro_id, usuario_id, ip_address, user_agent, visualizado_em) 
+                VALUES (?, ?, ?, ?, NOW())
             ");
-            $stmt->execute([$registro_id, $user_id, $ip_address, $user_agent]);
+            $result = $stmt->execute([$registro_id, $user_id, $ip_address, $user_agent]);
+            
+            if ($result) {
+                error_log("LOG REGISTRADO: Usuário $user_id visualizou registro $registro_id em " . date('Y-m-d H:i:s'));
+            } else {
+                error_log("ERRO: Falha ao registrar log de visualização");
+            }
             
         } catch (\Exception $e) {
-            error_log("Erro ao registrar log de visualização: " . $e->getMessage());
+            error_log("ERRO ao registrar log de visualização: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             // Não falha a visualização se o log der erro
+        }
+    }
+
+    // Criar tabela de logs se não existir
+    private function criarTabelaLogsSeNaoExistir()
+    {
+        try {
+            $sql = "
+                CREATE TABLE IF NOT EXISTS pops_its_logs_visualizacao (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    registro_id INT NOT NULL,
+                    usuario_id INT NOT NULL,
+                    visualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    ip_address VARCHAR(45) NULL,
+                    user_agent TEXT NULL,
+                    INDEX idx_registro_id (registro_id),
+                    INDEX idx_usuario_id (usuario_id),
+                    INDEX idx_visualizado_em (visualizado_em)
+                )
+            ";
+            $this->db->exec($sql);
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao criar tabela de logs: " . $e->getMessage());
         }
     }
 
@@ -1001,6 +1037,56 @@ class PopItsController
         } catch (\Exception $e) {
             error_log("PopItsController::listLogsVisualizacao - Erro: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar logs: ' . $e->getMessage()]);
+        }
+    }
+
+    // Método de teste para verificar logs
+    public function testeLogs()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar se a tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_logs_visualizacao'");
+            $tabelaExiste = $stmt->fetch() !== false;
+            
+            // Contar registros na tabela
+            $totalLogs = 0;
+            if ($tabelaExiste) {
+                $stmt = $this->db->query("SELECT COUNT(*) as total FROM pops_its_logs_visualizacao");
+                $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+                $totalLogs = $result['total'];
+            }
+            
+            // Buscar últimos 5 logs
+            $ultimosLogs = [];
+            if ($tabelaExiste && $totalLogs > 0) {
+                $stmt = $this->db->query("
+                    SELECT l.*, u.name as usuario_nome, r.nome_arquivo, t.titulo
+                    FROM pops_its_logs_visualizacao l
+                    LEFT JOIN users u ON l.usuario_id = u.id
+                    LEFT JOIN pops_its_registros r ON l.registro_id = r.id
+                    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                    ORDER BY l.visualizado_em DESC 
+                    LIMIT 5
+                ");
+                $ultimosLogs = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'tabela_existe' => $tabelaExiste,
+                'total_logs' => $totalLogs,
+                'ultimos_logs' => $ultimosLogs,
+                'timestamp_atual' => date('Y-m-d H:i:s')
+            ]);
+            
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 

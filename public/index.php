@@ -255,6 +255,7 @@ $router->get('/pops-its/visualizacao/list', [App\Controllers\PopItsController::c
 $router->get('/pops-its/visualizar/{id}', [App\Controllers\PopItsController::class, 'visualizarArquivo']);
 // Aba 5: Log de Visualizações
 $router->get('/pops-its/logs/visualizacao', [App\Controllers\PopItsController::class, 'listLogsVisualizacao']);
+$router->get('/pops-its/teste-logs', [App\Controllers\PopItsController::class, 'testeLogs']);
 // Endpoint de teste
 $router->get('/pops-its/test', [App\Controllers\PopItsController::class, 'testEndpoint']);
 // Sistema de Solicitações

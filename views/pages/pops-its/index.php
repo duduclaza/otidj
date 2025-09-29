@@ -355,10 +355,14 @@ if (!isset($_SESSION['user_id'])) {
                                 <input type="date" id="dataFim" 
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
                             </div>
-                            <div>
+                            <div class="flex space-x-2">
                                 <button onclick="filtrarLogs()" 
-                                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                                        class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
                                     Filtrar
+                                </button>
+                                <button onclick="testarLogs()" 
+                                        class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
+                                    🔧 Teste
                                 </button>
                             </div>
                         </div>
@@ -1261,6 +1265,45 @@ async function loadLogsVisualizacao() {
 // Filtrar logs
 function filtrarLogs() {
     loadLogsVisualizacao();
+}
+
+// Testar sistema de logs
+async function testarLogs() {
+    try {
+        console.log('🔧 Testando sistema de logs...');
+        const response = await fetch('/pops-its/teste-logs');
+        const result = await response.json();
+        
+        console.log('📊 Resultado do teste:', result);
+        
+        if (result.success) {
+            let message = `✅ TESTE DE LOGS:\n\n`;
+            message += `📋 Tabela existe: ${result.tabela_existe ? 'SIM' : 'NÃO'}\n`;
+            message += `📊 Total de logs: ${result.total_logs}\n`;
+            message += `🕐 Timestamp atual: ${result.timestamp_atual}\n\n`;
+            
+            if (result.ultimos_logs && result.ultimos_logs.length > 0) {
+                message += `📝 Últimos logs:\n`;
+                result.ultimos_logs.forEach((log, index) => {
+                    message += `${index + 1}. ${log.usuario_nome} - ${log.titulo} (${log.visualizado_em})\n`;
+                });
+            } else {
+                message += `⚠️ Nenhum log encontrado\n`;
+            }
+            
+            alert(message);
+            
+            // Recarregar a lista de logs
+            loadLogsVisualizacao();
+        } else {
+            alert(`❌ Erro no teste: ${result.error}`);
+            console.error('Erro completo:', result);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao testar logs:', error);
+        alert('❌ Erro ao executar teste de logs');
+    }
 }
 
 // Visualizar PDF em iframe (modal)
