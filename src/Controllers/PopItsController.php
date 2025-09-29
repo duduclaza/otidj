@@ -60,69 +60,10 @@ class PopItsController
 
 
     // ===== ABA 1: CADASTRO DE TÍTULOS =====
-    
-    public function createTitulo()
-    {
-        try {
-            $titulo = trim($_POST['titulo'] ?? '');
-            $departamento_id = (int)($_POST['departamento_id'] ?? 0);
-            $user_id = $_SESSION['user_id'];
-
-            if (empty($titulo) || $departamento_id <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Título e departamento são obrigatórios']);
-                exit();
-            }
-
-            // Verificar se já existe título igual no mesmo departamento
-            $stmt = $this->db->prepare("
-                SELECT COUNT(*) FROM pops_its_titulos 
-                WHERE titulo = ? AND departamento_id = ?
-            ");
-            $stmt->execute([$titulo, $departamento_id]);
-            
-            if ($stmt->fetchColumn() > 0) {
-                echo json_encode(['success' => false, 'message' => 'Já existe um título com este nome neste departamento']);
-                exit();
-            }
-
-            // Inserir novo título
-            $stmt = $this->db->prepare("
-                INSERT INTO pops_its_titulos (titulo, departamento_id, created_by) 
-                VALUES (?, ?, ?)
-            ");
-            $stmt->execute([$titulo, $departamento_id, $user_id]);
-
-            echo json_encode(['success' => true, 'message' => 'Título cadastrado com sucesso!']);
-            exit();
-
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao cadastrar título: ' . $e->getMessage()]);
-            exit();
-        }
-    }
+    // Método createTitulo() implementado no final do arquivo
 
     // ===== ABA 1: LISTAR TÍTULOS =====
-    
-    public function listTitulos()
-    {
-        header('Content-Type: application/json');
-        
-        try {
-            $stmt = $this->db->prepare("
-                SELECT t.*, d.nome as departamento_nome, u.name as criador_nome 
-                FROM pops_its_titulos t
-                LEFT JOIN departamentos d ON t.departamento_id = d.id
-                LEFT JOIN users u ON t.created_by = u.id
-                ORDER BY t.created_at DESC
-            ");
-            $stmt->execute();
-            $titulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
-            echo json_encode(['success' => true, 'data' => $titulos]);
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao carregar títulos: ' . $e->getMessage()]);
-        }
-    }
+    // Método listTitulos() implementado no final do arquivo
 
     // ===== ABA 2: MEUS REGISTROS =====
 
@@ -1061,6 +1002,18 @@ public function aprovarRegistro()
                 return;
             }
             
+            // Verificar se a tabela existe
+            try {
+                $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_titulos'");
+                if (!$stmt->fetch()) {
+                    echo json_encode(['success' => false, 'message' => 'Tabela pops_its_titulos não existe. Execute o script SQL primeiro.']);
+                    return;
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao verificar tabela: ' . $e->getMessage()]);
+                return;
+            }
+            
             // Validar dados
             $tipo = $_POST['tipo'] ?? '';
             $titulo = trim($_POST['titulo'] ?? '');
@@ -1099,6 +1052,8 @@ public function aprovarRegistro()
             echo json_encode(['success' => true, 'message' => 'Título cadastrado com sucesso!']);
             
         } catch (\Exception $e) {
+            // Log detalhado do erro
+            error_log("PopItsController::createTitulo - Erro: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
             echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
         }
     }
@@ -1180,6 +1135,141 @@ public function aprovarRegistro()
         $titulo = preg_replace('/[^a-z0-9\s]/', '', $titulo);
         $titulo = preg_replace('/\s+/', ' ', $titulo);
         return trim($titulo);
+    }
+    
+    // Método de diagnóstico para verificar estrutura do banco
+    public function diagnostico()
+    {
+        // Verificar se é admin
+        if (!\App\Services\PermissionService::isAdmin($_SESSION['user_id'])) {
+            http_response_code(403);
+            echo "<h1>Acesso Negado</h1><p>Apenas administradores podem acessar o diagnóstico.</p>";
+            return;
+        }
+
+        try {
+            echo "<!DOCTYPE html>
+            <html lang='pt-br'>
+            <head>
+                <meta charset='UTF-8'>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <title>Diagnóstico POPs e ITs</title>
+                <script src='https://cdn.tailwindcss.com'></script>
+            </head>
+            <body class='bg-gray-100 p-8'>
+                <div class='max-w-4xl mx-auto space-y-6'>";
+
+            echo "<div class='bg-white rounded-lg shadow p-6'>
+                    <h1 class='text-2xl font-bold mb-4'>🔍 Diagnóstico POPs e ITs</h1>
+                    <p class='text-gray-600'>Verificando estrutura do banco de dados...</p>
+                  </div>";
+
+            // 1. Verificar se a tabela existe
+            echo "<div class='bg-white rounded-lg shadow p-6'>
+                    <h2 class='text-xl font-semibold mb-4'>📋 Verificação da Tabela</h2>";
+            
+            $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_titulos'");
+            $tabelaExiste = $stmt->fetch();
+            
+            if ($tabelaExiste) {
+                echo "<p class='text-green-600 font-semibold'>✅ Tabela 'pops_its_titulos' existe</p>";
+                
+                // Verificar estrutura da tabela
+                $stmt = $this->db->query("DESCRIBE pops_its_titulos");
+                $colunas = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                
+                echo "<h3 class='font-semibold mt-4 mb-2'>Estrutura da tabela:</h3>";
+                echo "<div class='overflow-x-auto'>";
+                echo "<table class='min-w-full border border-gray-300'>";
+                echo "<thead class='bg-gray-50'>";
+                echo "<tr><th class='border border-gray-300 px-4 py-2'>Campo</th><th class='border border-gray-300 px-4 py-2'>Tipo</th><th class='border border-gray-300 px-4 py-2'>Null</th><th class='border border-gray-300 px-4 py-2'>Key</th><th class='border border-gray-300 px-4 py-2'>Default</th></tr>";
+                echo "</thead><tbody>";
+                
+                foreach ($colunas as $coluna) {
+                    echo "<tr>";
+                    echo "<td class='border border-gray-300 px-4 py-2'>" . $coluna['Field'] . "</td>";
+                    echo "<td class='border border-gray-300 px-4 py-2'>" . $coluna['Type'] . "</td>";
+                    echo "<td class='border border-gray-300 px-4 py-2'>" . $coluna['Null'] . "</td>";
+                    echo "<td class='border border-gray-300 px-4 py-2'>" . $coluna['Key'] . "</td>";
+                    echo "<td class='border border-gray-300 px-4 py-2'>" . ($coluna['Default'] ?? 'NULL') . "</td>";
+                    echo "</tr>";
+                }
+                echo "</tbody></table></div>";
+                
+                // Contar registros
+                $stmt = $this->db->query("SELECT COUNT(*) as total FROM pops_its_titulos");
+                $total = $stmt->fetch(\PDO::FETCH_ASSOC);
+                echo "<p class='mt-4'>📊 Total de registros: <strong>" . $total['total'] . "</strong></p>";
+                
+            } else {
+                echo "<p class='text-red-600 font-semibold'>❌ Tabela 'pops_its_titulos' NÃO existe</p>";
+                echo "<div class='mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded'>";
+                echo "<h4 class='font-semibold text-yellow-800'>🔧 Solução:</h4>";
+                echo "<p class='text-yellow-700'>Execute o script SQL localizado em:</p>";
+                echo "<code class='bg-yellow-100 px-2 py-1 rounded'>database/create_pops_its_titulos.sql</code>";
+                echo "</div>";
+            }
+            echo "</div>";
+
+            // 2. Verificar tabela departamentos
+            echo "<div class='bg-white rounded-lg shadow p-6'>
+                    <h2 class='text-xl font-semibold mb-4'>🏢 Verificação de Departamentos</h2>";
+            
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM departamentos");
+            $totalDept = $stmt->fetch(\PDO::FETCH_ASSOC);
+            echo "<p>📊 Total de departamentos: <strong>" . $totalDept['total'] . "</strong></p>";
+            
+            if ($totalDept['total'] > 0) {
+                $stmt = $this->db->query("SELECT id, nome FROM departamentos ORDER BY nome LIMIT 5");
+                $depts = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                echo "<h4 class='font-semibold mt-2'>Primeiros 5 departamentos:</h4>";
+                echo "<ul class='list-disc list-inside'>";
+                foreach ($depts as $dept) {
+                    echo "<li>ID: " . $dept['id'] . " - " . $dept['nome'] . "</li>";
+                }
+                echo "</ul>";
+            }
+            echo "</div>";
+
+            // 3. Verificar permissões
+            echo "<div class='bg-white rounded-lg shadow p-6'>
+                    <h2 class='text-xl font-semibold mb-4'>🔐 Verificação de Permissões</h2>";
+            
+            $user_id = $_SESSION['user_id'];
+            $permissoes = [
+                'pops_its_cadastro_titulos' => 'Cadastro de Títulos',
+                'pops_its_meus_registros' => 'Meus Registros',
+                'pops_its_pendente_aprovacao' => 'Pendente Aprovação',
+                'pops_its_visualizacao' => 'Visualização'
+            ];
+            
+            echo "<table class='min-w-full border border-gray-300'>";
+            echo "<thead class='bg-gray-50'>";
+            echo "<tr><th class='border border-gray-300 px-4 py-2'>Módulo</th><th class='border border-gray-300 px-4 py-2'>View</th><th class='border border-gray-300 px-4 py-2'>Edit</th></tr>";
+            echo "</thead><tbody>";
+            
+            foreach ($permissoes as $modulo => $nome) {
+                $hasView = \App\Services\PermissionService::hasPermission($user_id, $modulo, 'view') ? '✅' : '❌';
+                $hasEdit = \App\Services\PermissionService::hasPermission($user_id, $modulo, 'edit') ? '✅' : '❌';
+                echo "<tr>";
+                echo "<td class='border border-gray-300 px-4 py-2'>" . $nome . "</td>";
+                echo "<td class='border border-gray-300 px-4 py-2'>" . $hasView . "</td>";
+                echo "<td class='border border-gray-300 px-4 py-2'>" . $hasEdit . "</td>";
+                echo "</tr>";
+            }
+            echo "</tbody></table>";
+            echo "</div>";
+
+            echo "</div></body></html>";
+
+        } catch (\Exception $e) {
+            echo "<div class='bg-red-50 border border-red-200 rounded p-4'>
+                    <h3 class='text-red-800 font-semibold'>❌ Erro no Diagnóstico:</h3>
+                    <p class='text-red-700'>" . htmlspecialchars($e->getMessage()) . "</p>
+                    <p class='text-red-600 text-sm'>Arquivo: " . htmlspecialchars($e->getFile()) . "</p>
+                    <p class='text-red-600 text-sm'>Linha: " . $e->getLine() . "</p>
+                  </div>";
+        }
     }
 
 }
