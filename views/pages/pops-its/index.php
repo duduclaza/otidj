@@ -959,8 +959,94 @@ async function downloadArquivo(registroId) {
 }
 
 function editarRegistro(registroId) {
-    // TODO: Implementar modal de edição
-    alert('🚧 Funcionalidade de edição em desenvolvimento');
+    // Criar modal de edição
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.id = 'modalEdicao';
+    
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="text-lg font-medium text-gray-900">📝 Editar Registro Reprovado</h3>
+                <button onclick="fecharModalEdicao()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form id="formEdicaoRegistro" enctype="multipart/form-data" class="p-6">
+                <input type="hidden" name="registro_id" value="${registroId}">
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Novo Arquivo * (PDF, PNG, JPEG - Max 10MB)
+                    </label>
+                    <input type="file" name="arquivo" required 
+                           accept=".pdf,.png,.jpg,.jpeg" 
+                           class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="text-xs text-gray-500 mt-1">Substitua o arquivo reprovado por uma nova versão</p>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="fecharModalEdicao()" 
+                            class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                        💾 Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    // Configurar submissão do formulário
+    const form = document.getElementById('formEdicaoRegistro');
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        // Desabilitar botão durante envio
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Salvando...';
+        
+        try {
+            const response = await fetch('/pops-its/registro/editar', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('✅ ' + result.message);
+                fecharModalEdicao();
+                loadMeusRegistros(); // Recarregar lista
+            } else {
+                alert('❌ ' + result.message);
+            }
+        } catch (error) {
+            console.error('Erro ao editar registro:', error);
+            alert('❌ Erro ao editar registro');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '💾 Salvar Alterações';
+        }
+    });
+}
+
+function fecharModalEdicao() {
+    const modal = document.getElementById('modalEdicao');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = 'auto';
+    }
 }
 
 // Solicitar exclusão de registro

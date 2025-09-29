@@ -241,6 +241,7 @@ $router->get('/pops-its/titulos/search', [App\Controllers\PopItsController::clas
 $router->post('/pops-its/titulo/delete', [App\Controllers\PopItsController::class, 'deleteTitulo']);
 // Aba 2: Meus Registros
 $router->post('/pops-its/registro/create', [App\Controllers\PopItsController::class, 'createRegistro']);
+$router->post('/pops-its/registro/editar', [App\Controllers\PopItsController::class, 'editarRegistro']);
 $router->get('/pops-its/registros/meus', [App\Controllers\PopItsController::class, 'listMeusRegistros']);
 $router->get('/pops-its/arquivo/{id}', [App\Controllers\PopItsController::class, 'downloadArquivo']);
 $router->get('/pops-its/debug-arquivo/{id}', [App\Controllers\PopItsController::class, 'debugArquivo']);

@@ -579,7 +579,14 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         'pop': '/pops-e-its',
         'fluxograma': '/fluxogramas',
         'user': '/admin/users',
-        'profile': '/admin/profiles'
+        'profile': '/admin/profiles',
+        // Notificações de POPs e ITs
+        'pops_its_pendente': '/pops-e-its?tab=pendentes',
+        'pops_its_aprovado': '/pops-e-its?tab=registros',
+        'pops_its_reprovado': '/pops-e-its?tab=registros',
+        'pops_its_exclusao_pendente': '/pops-e-its?tab=pendentes',
+        'pops_its_exclusao_aprovada': '/pops-e-its?tab=registros',
+        'pops_its_exclusao_reprovada': '/pops-e-its?tab=registros'
       };
       
       // Primeiro, tentar mapear por related_type

@@ -1537,6 +1537,101 @@ class PopItsController
         }
     }
 
+    // Editar registro reprovado
+    public function editarRegistro()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = (int)($_POST['registro_id'] ?? 0);
+            
+            if ($registro_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro é obrigatório']);
+                return;
+            }
+            
+            // Verificar se o registro existe, está reprovado e pertence ao usuário
+            $stmt = $this->db->prepare("
+                SELECT r.id, r.status, r.criado_por, r.titulo_id, r.versao, r.publico
+                FROM pops_its_registros r 
+                WHERE r.id = ? AND r.status = 'REPROVADO' AND r.criado_por = ?
+            ");
+            $stmt->execute([$registro_id, $user_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado, não está reprovado ou não pertence a você']);
+                return;
+            }
+            
+            // Validar novo arquivo
+            if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Novo arquivo é obrigatório']);
+                return;
+            }
+            
+            $file = $_FILES['arquivo'];
+            
+            // Validar tipo de arquivo
+            $allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+            if (!in_array($file['type'], $allowedTypes)) {
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PDF, PNG ou JPEG']);
+                return;
+            }
+            
+            // Validar tamanho (10MB)
+            if ($file['size'] > 10 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo muito grande. Máximo 10MB']);
+                return;
+            }
+            
+            $novo_arquivo = file_get_contents($file['tmp_name']);
+            $nome_arquivo = $file['name'];
+            $extensao = strtolower(pathinfo($nome_arquivo, PATHINFO_EXTENSION));
+            $tamanho_arquivo = $file['size'];
+            
+            // Atualizar registro
+            $stmt = $this->db->prepare("
+                UPDATE pops_its_registros 
+                SET arquivo = ?, nome_arquivo = ?, extensao = ?, tamanho_arquivo = ?, 
+                    status = 'PENDENTE', observacao_reprovacao = NULL
+                WHERE id = ?
+            ");
+            $stmt->execute([$novo_arquivo, $nome_arquivo, $extensao, $tamanho_arquivo, $registro_id]);
+            
+            // Buscar informações do título para notificação
+            $stmt_titulo = $this->db->prepare("
+                SELECT t.titulo, t.tipo 
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE r.id = ?
+            ");
+            $stmt_titulo->execute([$registro_id]);
+            $titulo_info = $stmt_titulo->fetch(\PDO::FETCH_ASSOC);
+            
+            // Notificar administradores sobre registro reeditado
+            $this->notificarAdministradores(
+                "📝 " . $titulo_info['tipo'] . " Reeditado",
+                "O registro '{$titulo_info['titulo']}' v{$registro['versao']} foi reeditado após reprovação e aguarda nova aprovação.",
+                "pops_its_pendente",
+                "pops_its_registro",
+                $registro_id
+            );
+            
+            echo json_encode(['success' => true, 'message' => 'Registro reeditado com sucesso! Aguarda nova aprovação.']);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::editarRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+
     // ===== SISTEMA DE NOTIFICAÇÕES =====
 
     // Criar notificação para usuários
