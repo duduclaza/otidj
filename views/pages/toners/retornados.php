@@ -43,11 +43,39 @@
 
       <!-- Modelo e Serial -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
+        <div class="relative">
           <label for="modeloToner" class="block text-sm font-medium text-gray-700 mb-2">Modelo do Toner *</label>
-          <select id="modeloToner" name="modelo" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Selecione um modelo</option>
-          </select>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="modeloToner" 
+              name="modelo" 
+              required 
+              placeholder="🔍 Digite para buscar um modelo..."
+              autocomplete="off"
+              class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+          
+          <!-- Dropdown com resultados da busca -->
+          <div id="modeloDropdown" class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-60 overflow-y-auto">
+            <div id="modeloOptions" class="py-1">
+              <!-- Opções serão inseridas aqui via JavaScript -->
+            </div>
+            <div id="noResults" class="px-3 py-2 text-sm text-gray-500 hidden">
+              <div class="flex items-center justify-center">
+                <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Nenhum modelo encontrado
+              </div>
+            </div>
+          </div>
         </div>
         <div>
           <label for="codigoCliente" class="block text-sm font-medium text-gray-700 mb-2">Código Cliente *</label>
@@ -481,17 +509,10 @@ function carregarModelos() {
         
         if (Array.isArray(data)) {
           modelosData = data;
-          const select = document.getElementById('modeloToner');
-          select.innerHTML = '<option value="">Selecione um modelo</option>';
+          console.log(`${data.length} modelos carregados para busca`);
           
-          data.forEach(modelo => {
-            const option = document.createElement('option');
-            option.value = modelo.id;
-            option.textContent = modelo.modelo;
-            select.appendChild(option);
-          });
-          
-          console.log(`${data.length} modelos carregados`);
+          // Configurar funcionalidade de busca
+          setupModeloSearch();
         } else {
           console.error('Resposta não é um array:', data);
         }
@@ -503,6 +524,121 @@ function carregarModelos() {
     .catch(error => {
       console.error('Erro ao carregar modelos:', error);
     });
+}
+
+// Configurar funcionalidade de busca de modelos
+function setupModeloSearch() {
+  const input = document.getElementById('modeloToner');
+  const dropdown = document.getElementById('modeloDropdown');
+  const optionsContainer = document.getElementById('modeloOptions');
+  const noResults = document.getElementById('noResults');
+  let selectedModeloId = null;
+  
+  // Função para filtrar e exibir modelos
+  function filterModelos(searchTerm) {
+    const filtered = modelosData.filter(modelo => 
+      modelo.modelo.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    optionsContainer.innerHTML = '';
+    
+    if (filtered.length === 0) {
+      noResults.classList.remove('hidden');
+      optionsContainer.classList.add('hidden');
+    } else {
+      noResults.classList.add('hidden');
+      optionsContainer.classList.remove('hidden');
+      
+      filtered.forEach(modelo => {
+        const option = document.createElement('div');
+        option.className = 'px-3 py-2 cursor-pointer hover:bg-blue-50 hover:text-blue-700 text-sm';
+        option.textContent = modelo.modelo;
+        option.dataset.modeloId = modelo.id;
+        option.dataset.modeloNome = modelo.modelo;
+        
+        option.addEventListener('click', () => {
+          input.value = modelo.modelo;
+          selectedModeloId = modelo.id;
+          dropdown.classList.add('hidden');
+          
+          // Disparar evento change para carregar dados do modelo
+          const changeEvent = new Event('change', { bubbles: true });
+          Object.defineProperty(changeEvent, 'target', {
+            writable: false,
+            value: { id: 'modeloToner', value: modelo.id }
+          });
+          document.dispatchEvent(changeEvent);
+        });
+        
+        optionsContainer.appendChild(option);
+      });
+    }
+  }
+  
+  // Evento de input para busca
+  input.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.trim();
+    
+    if (searchTerm.length === 0) {
+      dropdown.classList.add('hidden');
+      selectedModeloId = null;
+      return;
+    }
+    
+    filterModelos(searchTerm);
+    dropdown.classList.remove('hidden');
+  });
+  
+  // Mostrar todos os modelos ao focar no campo
+  input.addEventListener('focus', () => {
+    if (input.value.length === 0) {
+      filterModelos(''); // Mostrar todos
+      dropdown.classList.remove('hidden');
+    }
+  });
+  
+  // Fechar dropdown ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+  
+  // Navegação por teclado
+  input.addEventListener('keydown', (e) => {
+    const options = optionsContainer.querySelectorAll('div');
+    const currentActive = optionsContainer.querySelector('.bg-blue-100');
+    let activeIndex = -1;
+    
+    if (currentActive) {
+      activeIndex = Array.from(options).indexOf(currentActive);
+    }
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (currentActive) currentActive.classList.remove('bg-blue-100');
+      
+      activeIndex = activeIndex < options.length - 1 ? activeIndex + 1 : 0;
+      if (options[activeIndex]) {
+        options[activeIndex].classList.add('bg-blue-100');
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (currentActive) currentActive.classList.remove('bg-blue-100');
+      
+      activeIndex = activeIndex > 0 ? activeIndex - 1 : options.length - 1;
+      if (options[activeIndex]) {
+        options[activeIndex].classList.add('bg-blue-100');
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (currentActive) {
+        currentActive.click();
+      }
+    } else if (e.key === 'Escape') {
+      dropdown.classList.add('hidden');
+    }
+  });
 }
 
 // Carregar parâmetros gerais com retry automático
