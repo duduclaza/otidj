@@ -703,45 +703,81 @@ class PopItsController
             
             $user_id = $_SESSION['user_id'];
             
-            // Buscar departamento do usuário (simplificado - assumindo que existe uma relação)
-            $user_dept_id = $this->getUserDepartmentId($user_id);
+            // Verificar se é admin - admin vê tudo
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
-            // Buscar últimas versões aprovadas com controle de acesso
-            $stmt = $this->db->prepare("
-                SELECT 
-                    r.id,
-                    r.versao,
-                    r.nome_arquivo,
-                    r.extensao,
-                    r.tamanho_arquivo,
-                    r.publico,
-                    r.criado_em,
-                    r.aprovado_em,
-                    t.titulo,
-                    t.tipo,
-                    u.name as autor_nome,
-                    ua.name as aprovado_por_nome
-                FROM pops_its_registros r
-                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
-                LEFT JOIN users u ON r.criado_por = u.id
-                LEFT JOIN users ua ON r.aprovado_por = ua.id
-                LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
-                WHERE r.status = 'APROVADO'
-                AND (
-                    r.publico = 1 
-                    OR rd.departamento_id = ?
-                    OR r.criado_por = ?
-                )
-                AND r.versao = (
-                    SELECT MAX(r2.versao) 
-                    FROM pops_its_registros r2 
-                    WHERE r2.titulo_id = r.titulo_id 
-                    AND r2.status = 'APROVADO'
-                )
-                ORDER BY r.aprovado_em DESC
-            ");
+            if ($isAdmin) {
+                // Admin vê todos os registros aprovados
+                $stmt = $this->db->prepare("
+                    SELECT 
+                        r.id,
+                        r.versao,
+                        r.nome_arquivo,
+                        r.extensao,
+                        r.tamanho_arquivo,
+                        r.publico,
+                        r.criado_em,
+                        r.aprovado_em,
+                        t.titulo,
+                        t.tipo,
+                        u.name as autor_nome,
+                        ua.name as aprovado_por_nome
+                    FROM pops_its_registros r
+                    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                    LEFT JOIN users u ON r.criado_por = u.id
+                    LEFT JOIN users ua ON r.aprovado_por = ua.id
+                    WHERE r.status = 'APROVADO'
+                    AND r.versao = (
+                        SELECT MAX(r2.versao) 
+                        FROM pops_its_registros r2 
+                        WHERE r2.titulo_id = r.titulo_id 
+                        AND r2.status = 'APROVADO'
+                    )
+                    ORDER BY r.aprovado_em DESC
+                ");
+                
+                $stmt->execute();
+            } else {
+                // Usuário comum - controle de acesso por departamento
+                $user_dept_id = $this->getUserDepartmentId($user_id);
+                
+                $stmt = $this->db->prepare("
+                    SELECT 
+                        r.id,
+                        r.versao,
+                        r.nome_arquivo,
+                        r.extensao,
+                        r.tamanho_arquivo,
+                        r.publico,
+                        r.criado_em,
+                        r.aprovado_em,
+                        t.titulo,
+                        t.tipo,
+                        u.name as autor_nome,
+                        ua.name as aprovado_por_nome
+                    FROM pops_its_registros r
+                    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                    LEFT JOIN users u ON r.criado_por = u.id
+                    LEFT JOIN users ua ON r.aprovado_por = ua.id
+                    LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
+                    WHERE r.status = 'APROVADO'
+                    AND (
+                        r.publico = 1 
+                        OR rd.departamento_id = ?
+                        OR r.criado_por = ?
+                    )
+                    AND r.versao = (
+                        SELECT MAX(r2.versao) 
+                        FROM pops_its_registros r2 
+                        WHERE r2.titulo_id = r.titulo_id 
+                        AND r2.status = 'APROVADO'
+                    )
+                    ORDER BY r.aprovado_em DESC
+                ");
+                
+                $stmt->execute([$user_dept_id, $user_id]);
+            }
             
-            $stmt->execute([$user_dept_id, $user_id]);
             $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
             echo json_encode(['success' => true, 'data' => $registros]);
