@@ -233,6 +233,7 @@ $router->get('/fmea/{id}/print', [App\Controllers\FMEAController::class, 'print'
 // POPs e ITs routes
 $router->get('/pops-e-its', [App\Controllers\PopItsController::class, 'index']);
 $router->get('/pops-its/diagnostico', [App\Controllers\PopItsController::class, 'diagnostico']);
+$router->get('/pops-its/teste', [App\Controllers\PopItsController::class, 'testeTitulos']);
 // Aba 1: Cadastro de Títulos
 $router->post('/pops-its/titulo/create', [App\Controllers\PopItsController::class, 'createTitulo']);
 $router->get('/pops-its/titulos/list', [App\Controllers\PopItsController::class, 'listTitulos']);

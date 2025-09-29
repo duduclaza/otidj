@@ -1064,6 +1064,23 @@ public function aprovarRegistro()
         header('Content-Type: application/json');
         
         try {
+            // Primeiro verificar se a tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_titulos'");
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Tabela pops_its_titulos não existe']);
+                return;
+            }
+            
+            // Verificar se há registros na tabela
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM pops_its_titulos");
+            $total = $stmt->fetchColumn();
+            
+            if ($total == 0) {
+                echo json_encode(['success' => true, 'data' => [], 'message' => 'Nenhum título cadastrado']);
+                return;
+            }
+            
+            // Buscar todos os títulos
             $stmt = $this->db->query("
                 SELECT 
                     t.id,
@@ -1080,9 +1097,13 @@ public function aprovarRegistro()
             
             $titulos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
-            echo json_encode(['success' => true, 'data' => $titulos]);
+            // Log para debug
+            error_log("PopIts listTitulos: Encontrados " . count($titulos) . " títulos");
+            
+            echo json_encode(['success' => true, 'data' => $titulos, 'total' => count($titulos)]);
             
         } catch (\Exception $e) {
+            error_log("PopIts listTitulos ERRO: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar títulos: ' . $e->getMessage()]);
         }
     }
@@ -1213,6 +1234,52 @@ public function aprovarRegistro()
         $titulo = preg_replace('/[^a-z0-9\s]/', '', $titulo);
         $titulo = preg_replace('/\s+/', ' ', $titulo);
         return trim($titulo);
+    }
+    
+    // Teste simples para verificar se a rota funciona
+    public function testeTitulos()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Teste básico de conexão
+            $stmt = $this->db->query("SELECT 1 as teste");
+            $teste = $stmt->fetch();
+            
+            // Verificar se a tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_titulos'");
+            $tabelaExiste = $stmt->fetch() ? true : false;
+            
+            $resultado = [
+                'success' => true,
+                'conexao_db' => $teste ? 'OK' : 'ERRO',
+                'tabela_existe' => $tabelaExiste,
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+            
+            if ($tabelaExiste) {
+                // Contar registros
+                $stmt = $this->db->query("SELECT COUNT(*) as total FROM pops_its_titulos");
+                $total = $stmt->fetchColumn();
+                $resultado['total_registros'] = $total;
+                
+                // Se há registros, buscar alguns
+                if ($total > 0) {
+                    $stmt = $this->db->query("SELECT id, titulo, tipo FROM pops_its_titulos LIMIT 3");
+                    $resultado['exemplos'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                }
+            }
+            
+            echo json_encode($resultado);
+            
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'erro' => $e->getMessage(),
+                'arquivo' => $e->getFile(),
+                'linha' => $e->getLine()
+            ]);
+        }
     }
     
     // Método de diagnóstico para verificar estrutura do banco
