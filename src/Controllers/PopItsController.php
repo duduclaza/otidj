@@ -882,15 +882,19 @@ class PopItsController
             $this->registrarLogVisualizacao($registro_id, $user_id);
             error_log("LOG FINALIZADO para registro $registro_id");
             
-            // Apenas PDFs podem ser visualizados em iframe por segurança
-            if (strtolower($registro['extensao']) !== 'pdf') {
+            // Verificar se é PDF ou imagem
+            $extensao = strtolower($registro['extensao']);
+            $tiposPermitidos = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'];
+            
+            if (!in_array($extensao, $tiposPermitidos)) {
                 http_response_code(403);
-                echo "Apenas arquivos PDF podem ser visualizados por segurança";
+                echo "Apenas arquivos PDF e imagens podem ser visualizados por segurança";
                 return;
             }
             
             // Headers para visualização segura em iframe
-            header('Content-Type: application/pdf');
+            $content_type = $this->getContentType($registro['extensao']);
+            header('Content-Type: ' . $content_type);
             header('Content-Disposition: inline; filename="' . $registro['nome_arquivo'] . '"');
             header('Content-Length: ' . $registro['tamanho_arquivo']);
             header('X-Frame-Options: SAMEORIGIN'); // Permite iframe apenas do mesmo domínio
@@ -898,7 +902,11 @@ class PopItsController
             header('Pragma: no-cache');
             header('Expires: 0');
             
-            // Enviar o arquivo PDF
+            // Headers adicionais para proteção contra download
+            header('X-Content-Type-Options: nosniff');
+            header('Referrer-Policy: no-referrer');
+            
+            // Enviar o arquivo
             echo $registro['arquivo'];
             
         } catch (\Exception $e) {
@@ -985,6 +993,9 @@ class PopItsController
             'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',
             'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'bmp' => 'image/bmp',
+            'svg' => 'image/svg+xml',
             'ppt' => 'application/vnd.ms-powerpoint',
             'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
         ];

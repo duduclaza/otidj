@@ -1107,6 +1107,38 @@ async function reprovarRegistro(registroId) {
     }
 }
 
+// Função auxiliar para gerar botão de visualização baseado no tipo de arquivo
+function getVisualizarButton(registro) {
+    const extensao = registro.extensao.toLowerCase();
+    const tiposImagem = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];
+    
+    if (extensao === 'pdf') {
+        return `
+            <button onclick="visualizarArquivo(${registro.id}, '${registro.nome_arquivo}', 'pdf')" 
+                    class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                📄 Ver PDF
+            </button>
+        `;
+    } else if (tiposImagem.includes(extensao)) {
+        return `
+            <button onclick="visualizarArquivo(${registro.id}, '${registro.nome_arquivo}', 'imagem')" 
+                    class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                🖼️ Ver Imagem
+            </button>
+        `;
+    } else {
+        return `
+            <span class="text-gray-500 text-xs">Tipo não suportado</span>
+        `;
+    }
+}
+
 // ===== ABA 4: VISUALIZAÇÃO =====
 
 // Carregar registros aprovados para visualização
@@ -1145,14 +1177,7 @@ async function loadVisualizacao() {
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div class="flex space-x-2">
-                            <button onclick="visualizarPDF(${registro.id}, '${registro.nome_arquivo}')" 
-                                    class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                Visualizar PDF
-                            </button>
+                            ${getVisualizarButton(registro)}
                         </div>
                     </td>
                 </tr>
@@ -1302,32 +1327,52 @@ async function testarLogs() {
     }
 }
 
-// Visualizar PDF em iframe (modal)
-function visualizarPDF(registroId, nomeArquivo) {
+// Visualizar arquivo em iframe (modal) com proteções
+function visualizarArquivo(registroId, nomeArquivo, tipo) {
     // Criar modal
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
+    modal.id = 'modalVisualizacao';
+    
+    const icone = tipo === 'pdf' ? '📄' : '🖼️';
+    const titulo = tipo === 'pdf' ? 'PDF' : 'Imagem';
+    
     modal.innerHTML = `
-        <div class="bg-white rounded-lg shadow-xl w-11/12 h-5/6 max-w-6xl">
-            <div class="flex justify-between items-center p-4 border-b">
-                <h3 class="text-lg font-medium text-gray-900">📄 ${nomeArquivo}</h3>
-                <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+        <div class="bg-white rounded-lg shadow-xl w-11/12 h-5/6 max-w-6xl relative">
+            <div class="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t-lg">
+                <h3 class="text-lg font-medium text-gray-900">${icone} ${titulo}: ${nomeArquivo}</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-red-600 font-medium">🔒 Visualização Protegida</span>
+                    <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <div class="p-4 h-full">
+            <div class="p-4 h-full relative">
                 <iframe src="/pops-its/visualizar/${registroId}" 
                         class="w-full h-full border-0 rounded" 
-                        title="Visualização do PDF">
+                        title="Visualização protegida"
+                        onload="aplicarProtecoes()"
+                        style="pointer-events: none;">
                 </iframe>
+                <!-- Overlay invisível para bloquear interações -->
+                <div class="absolute inset-4 pointer-events-auto" 
+                     oncontextmenu="return false;" 
+                     ondragstart="return false;" 
+                     onselectstart="return false;"
+                     style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
+                </div>
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
     document.body.style.overflow = 'hidden'; // Prevenir scroll
+    
+    // Aplicar proteções adicionais
+    aplicarProtecoesSistema();
 }
 
 // Fechar modal
@@ -1336,7 +1381,151 @@ function fecharModal() {
     if (modal) {
         modal.remove();
         document.body.style.overflow = 'auto'; // Restaurar scroll
+        removerProtecoesSistema(); // Remover proteções ao fechar
     }
+}
+
+// Aplicar proteções do sistema
+function aplicarProtecoesSistema() {
+    // Bloquear teclas de atalho
+    document.addEventListener('keydown', bloquearTeclasProibidas);
+    
+    // Bloquear menu de contexto
+    document.addEventListener('contextmenu', bloquearContextMenu);
+    
+    // Bloquear seleção de texto
+    document.addEventListener('selectstart', bloquearSelecao);
+    
+    // Bloquear arrastar
+    document.addEventListener('dragstart', bloquearArrastar);
+    
+    // Detectar tentativas de print
+    window.addEventListener('beforeprint', bloquearPrint);
+    
+    // Bloquear F12, Ctrl+Shift+I, etc.
+    document.addEventListener('keydown', bloquearFerramentasDesenvolvedor);
+}
+
+// Remover proteções do sistema
+function removerProtecoesSistema() {
+    document.removeEventListener('keydown', bloquearTeclasProibidas);
+    document.removeEventListener('contextmenu', bloquearContextMenu);
+    document.removeEventListener('selectstart', bloquearSelecao);
+    document.removeEventListener('dragstart', bloquearArrastar);
+    window.removeEventListener('beforeprint', bloquearPrint);
+    document.removeEventListener('keydown', bloquearFerramentasDesenvolvedor);
+}
+
+// Bloquear teclas proibidas
+function bloquearTeclasProibidas(e) {
+    // Ctrl+S (Salvar), Ctrl+P (Print), Ctrl+A (Selecionar tudo)
+    if (e.ctrlKey && (e.key === 's' || e.key === 'p' || e.key === 'a')) {
+        e.preventDefault();
+        mostrarAvisoProtecao('Função bloqueada por segurança');
+        return false;
+    }
+    
+    // Print Screen
+    if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        mostrarAvisoProtecao('Print Screen bloqueado por segurança');
+        return false;
+    }
+}
+
+// Bloquear menu de contexto (botão direito)
+function bloquearContextMenu(e) {
+    e.preventDefault();
+    mostrarAvisoProtecao('Menu de contexto bloqueado por segurança');
+    return false;
+}
+
+// Bloquear seleção de texto
+function bloquearSelecao(e) {
+    e.preventDefault();
+    return false;
+}
+
+// Bloquear arrastar elementos
+function bloquearArrastar(e) {
+    e.preventDefault();
+    return false;
+}
+
+// Bloquear print
+function bloquearPrint(e) {
+    e.preventDefault();
+    mostrarAvisoProtecao('Impressão bloqueada por segurança');
+    return false;
+}
+
+// Bloquear ferramentas de desenvolvedor
+function bloquearFerramentasDesenvolvedor(e) {
+    // F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+        mostrarAvisoProtecao('Ferramentas de desenvolvedor bloqueadas');
+        return false;
+    }
+    
+    // Ctrl+Shift+I (DevTools)
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        mostrarAvisoProtecao('Ferramentas de desenvolvedor bloqueadas');
+        return false;
+    }
+    
+    // Ctrl+Shift+C (Inspect)
+    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        mostrarAvisoProtecao('Inspeção de elementos bloqueada');
+        return false;
+    }
+    
+    // Ctrl+U (View Source)
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        mostrarAvisoProtecao('Visualização de código fonte bloqueada');
+        return false;
+    }
+}
+
+// Mostrar aviso de proteção
+function mostrarAvisoProtecao(mensagem) {
+    // Criar toast de aviso
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center';
+    toast.innerHTML = `
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        🔒 ${mensagem}
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Remover toast após 3 segundos
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 3000);
+}
+
+// Aplicar proteções no iframe (chamado quando carrega)
+function aplicarProtecoes() {
+    // Adicionar CSS para bloquear seleção no iframe
+    const style = document.createElement('style');
+    style.textContent = `
+        iframe {
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            pointer-events: none !important;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Função auxiliar para formatar data e hora
