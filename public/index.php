@@ -267,16 +267,19 @@ $router->get('/pops-its/solicitacoes/list', [App\Controllers\PopItsController::c
 $router->post('/pops-its/solicitacao/aprovar', [App\Controllers\PopItsController::class, 'aprovarSolicitacao']);
 $router->post('/pops-its/solicitacao/reprovar', [App\Controllers\PopItsController::class, 'reprovarSolicitacao']);
 
-// Fluxogramas routes - TEMPORARIAMENTE DESABILITADAS
+// Fluxogramas routes - reativação gradual (somente leitura/teste)
 // $router->get('/fluxogramas', [App\Controllers\FluxogramasController::class, 'index']);
+// Escrita permanece desabilitada por enquanto:
 // $router->post('/fluxogramas/titulo/create', [App\Controllers\FluxogramasController::class, 'createTitulo']);
-// $router->get('/fluxogramas/titulos/list', [App\Controllers\FluxogramasController::class, 'listTitulos']);
-// $router->get('/fluxogramas/titulos/search', [App\Controllers\FluxogramasController::class, 'searchTitulos']);
 // $router->post('/fluxogramas/titulo/delete', [App\Controllers\FluxogramasController::class, 'deleteTitulo']);
 // $router->post('/fluxogramas/registro/create', [App\Controllers\FluxogramasController::class, 'createRegistro']);
 // $router->post('/fluxogramas/registro/editar', [App\Controllers\FluxogramasController::class, 'editarRegistro']);
-// $router->get('/fluxogramas/registros/meus', [App\Controllers\FluxogramasController::class, 'listMeusRegistros']);
+// Download também permanece desabilitado até existirem aprovados:
 // $router->get('/fluxogramas/arquivo/{id}', [App\Controllers\FluxogramasController::class, 'downloadArquivo']);
+// Apenas leitura:
+ $router->get('/fluxogramas/titulos/list', [App\Controllers\FluxogramasController::class, 'listTitulos']);
+ $router->get('/fluxogramas/titulos/search', [App\Controllers\FluxogramasController::class, 'searchTitulos']);
+ $router->get('/fluxogramas/registros/meus', [App\Controllers\FluxogramasController::class, 'listMeusRegistros']);
 
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
