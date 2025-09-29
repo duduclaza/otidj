@@ -773,7 +773,7 @@ function abrirTutorial5W2H() {
             <div class="p-6">
                 <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg">
                     <video id="tutorial5w2h" controls class="w-full h-auto" style="max-height: 500px;">
-                        <source src="assets/5w2h.mp4" type="video/mp4">
+                        <source src="public/assets/5w2h.mp4" type="video/mp4">
                         Seu navegador não suporta o elemento de vídeo.
                     </video>
                 </div>
