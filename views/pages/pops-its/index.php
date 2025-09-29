@@ -1107,6 +1107,60 @@ async function reprovarRegistro(registroId) {
     }
 }
 
+// Função auxiliar para exibir visibilidade com departamentos
+function getVisibilidadeDisplay(registro) {
+    if (registro.publico) {
+        return `
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                🌐 Público
+            </span>
+        `;
+    } else {
+        // Documento restrito - mostrar departamentos permitidos
+        const departamentos = registro.departamentos_permitidos;
+        
+        if (departamentos && departamentos.trim() !== '') {
+            // Limitar exibição para não quebrar layout
+            const deptList = departamentos.split(', ');
+            const maxVisible = 2;
+            
+            if (deptList.length <= maxVisible) {
+                return `
+                    <div class="text-xs">
+                        <span class="inline-flex px-2 py-1 font-semibold rounded-full bg-yellow-100 text-yellow-800 mb-1">
+                            🔒 Restrito
+                        </span>
+                        <div class="text-gray-600 text-xs">
+                            ${departamentos}
+                        </div>
+                    </div>
+                `;
+            } else {
+                const visibleDepts = deptList.slice(0, maxVisible).join(', ');
+                const remainingCount = deptList.length - maxVisible;
+                
+                return `
+                    <div class="text-xs">
+                        <span class="inline-flex px-2 py-1 font-semibold rounded-full bg-yellow-100 text-yellow-800 mb-1">
+                            🔒 Restrito
+                        </span>
+                        <div class="text-gray-600 text-xs" title="${departamentos}">
+                            ${visibleDepts}
+                            <span class="text-gray-400">+${remainingCount} mais</span>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            return `
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                    🚫 Sem Acesso
+                </span>
+            `;
+        }
+    }
+}
+
 // Função auxiliar para gerar botão de visualização baseado no tipo de arquivo
 function getVisualizarButton(registro) {
     const extensao = registro.extensao.toLowerCase();
@@ -1171,9 +1225,7 @@ async function loadVisualizacao() {
                         ${formatDate(registro.aprovado_em)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${registro.publico ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                            ${registro.publico ? 'Público' : 'Restrito'}
-                        </span>
+                        ${getVisibilidadeDisplay(registro)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div class="flex space-x-2">

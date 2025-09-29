@@ -743,7 +743,7 @@ class PopItsController
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
             if ($isAdmin) {
-                // Admin vê todos os registros aprovados
+                // Admin vê todos os registros aprovados com departamentos permitidos
                 $stmt = $this->db->prepare("
                     SELECT 
                         r.id,
@@ -757,11 +757,14 @@ class PopItsController
                         t.titulo,
                         t.tipo,
                         u.name as autor_nome,
-                        ua.name as aprovado_por_nome
+                        ua.name as aprovado_por_nome,
+                        GROUP_CONCAT(d.nome ORDER BY d.nome SEPARATOR ', ') as departamentos_permitidos
                     FROM pops_its_registros r
                     LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
                     LEFT JOIN users u ON r.criado_por = u.id
                     LEFT JOIN users ua ON r.aprovado_por = ua.id
+                    LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
+                    LEFT JOIN departamentos d ON rd.departamento_id = d.id
                     WHERE r.status = 'APROVADO'
                     AND r.versao = (
                         SELECT MAX(r2.versao) 
@@ -769,6 +772,9 @@ class PopItsController
                         WHERE r2.titulo_id = r.titulo_id 
                         AND r2.status = 'APROVADO'
                     )
+                    GROUP BY r.id, r.versao, r.nome_arquivo, r.extensao, r.tamanho_arquivo, 
+                             r.publico, r.criado_em, r.aprovado_em, t.titulo, t.tipo, 
+                             u.name, ua.name
                     ORDER BY r.aprovado_em DESC
                 ");
                 
@@ -790,12 +796,14 @@ class PopItsController
                         t.titulo,
                         t.tipo,
                         u.name as autor_nome,
-                        ua.name as aprovado_por_nome
+                        ua.name as aprovado_por_nome,
+                        GROUP_CONCAT(d.nome ORDER BY d.nome SEPARATOR ', ') as departamentos_permitidos
                     FROM pops_its_registros r
                     LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
                     LEFT JOIN users u ON r.criado_por = u.id
                     LEFT JOIN users ua ON r.aprovado_por = ua.id
                     LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
+                    LEFT JOIN departamentos d ON rd.departamento_id = d.id
                     WHERE r.status = 'APROVADO'
                     AND (
                         r.publico = 1 
@@ -808,6 +816,9 @@ class PopItsController
                         WHERE r2.titulo_id = r.titulo_id 
                         AND r2.status = 'APROVADO'
                     )
+                    GROUP BY r.id, r.versao, r.nome_arquivo, r.extensao, r.tamanho_arquivo, 
+                             r.publico, r.criado_em, r.aprovado_em, t.titulo, t.tipo, 
+                             u.name, ua.name
                     ORDER BY r.aprovado_em DESC
                 ");
                 
