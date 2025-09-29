@@ -525,4 +525,317 @@ class PopItsController
         }
     }
 
+    // ===== ABA 3: PENDENTE APROVAÇÃO =====
+
+    // Listar registros pendentes de aprovação (apenas admins)
+    public function listPendentesAprovacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se tem permissão para aprovar
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_pendente_aprovacao', 'view')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para visualizar pendências']);
+                return;
+            }
+            
+            // Buscar registros pendentes
+            $stmt = $this->db->prepare("
+                SELECT 
+                    r.id,
+                    r.versao,
+                    r.nome_arquivo,
+                    r.extensao,
+                    r.tamanho_arquivo,
+                    r.publico,
+                    r.criado_em,
+                    t.titulo,
+                    t.tipo,
+                    u.name as autor_nome,
+                    u.email as autor_email
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                LEFT JOIN users u ON r.criado_por = u.id
+                WHERE r.status = 'PENDENTE'
+                ORDER BY r.criado_em ASC
+            ");
+            
+            $stmt->execute();
+            $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $registros]);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::listPendentesAprovacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar pendências: ' . $e->getMessage()]);
+        }
+    }
+
+    // Aprovar registro
+    public function aprovarRegistro()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se tem permissão para aprovar
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_pendente_aprovacao', 'edit')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para aprovar registros']);
+                return;
+            }
+            
+            $registro_id = (int)($_POST['registro_id'] ?? 0);
+            
+            if ($registro_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro é obrigatório']);
+                return;
+            }
+            
+            // Verificar se o registro existe e está pendente
+            $stmt = $this->db->prepare("SELECT id, status FROM pops_its_registros WHERE id = ? AND status = 'PENDENTE'");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou já processado']);
+                return;
+            }
+            
+            // Aprovar o registro
+            $stmt = $this->db->prepare("
+                UPDATE pops_its_registros 
+                SET status = 'APROVADO', aprovado_por = ?, aprovado_em = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$user_id, $registro_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::aprovarRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao aprovar registro: ' . $e->getMessage()]);
+        }
+    }
+
+    // Reprovar registro
+    public function reprovarRegistro()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se tem permissão para reprovar
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_pendente_aprovacao', 'edit')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para reprovar registros']);
+                return;
+            }
+            
+            $registro_id = (int)($_POST['registro_id'] ?? 0);
+            $observacao = trim($_POST['observacao'] ?? '');
+            
+            if ($registro_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro é obrigatório']);
+                return;
+            }
+            
+            if (empty($observacao)) {
+                echo json_encode(['success' => false, 'message' => 'Observação de reprovação é obrigatória']);
+                return;
+            }
+            
+            // Verificar se o registro existe e está pendente
+            $stmt = $this->db->prepare("SELECT id, status FROM pops_its_registros WHERE id = ? AND status = 'PENDENTE'");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou já processado']);
+                return;
+            }
+            
+            // Reprovar o registro
+            $stmt = $this->db->prepare("
+                UPDATE pops_its_registros 
+                SET status = 'REPROVADO', observacao_reprovacao = ?, aprovado_por = ?, aprovado_em = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$observacao, $user_id, $registro_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Registro reprovado com sucesso!']);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::reprovarRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao reprovar registro: ' . $e->getMessage()]);
+        }
+    }
+
+    // ===== ABA 4: VISUALIZAÇÃO =====
+
+    // Listar registros aprovados para visualização
+    public function listVisualizacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Buscar departamento do usuário (simplificado - assumindo que existe uma relação)
+            $user_dept_id = $this->getUserDepartmentId($user_id);
+            
+            // Buscar últimas versões aprovadas com controle de acesso
+            $stmt = $this->db->prepare("
+                SELECT 
+                    r.id,
+                    r.versao,
+                    r.nome_arquivo,
+                    r.extensao,
+                    r.tamanho_arquivo,
+                    r.publico,
+                    r.criado_em,
+                    r.aprovado_em,
+                    t.titulo,
+                    t.tipo,
+                    u.name as autor_nome,
+                    ua.name as aprovado_por_nome
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                LEFT JOIN users u ON r.criado_por = u.id
+                LEFT JOIN users ua ON r.aprovado_por = ua.id
+                LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
+                WHERE r.status = 'APROVADO'
+                AND (
+                    r.publico = 1 
+                    OR rd.departamento_id = ?
+                    OR r.criado_por = ?
+                )
+                AND r.versao = (
+                    SELECT MAX(r2.versao) 
+                    FROM pops_its_registros r2 
+                    WHERE r2.titulo_id = r.titulo_id 
+                    AND r2.status = 'APROVADO'
+                )
+                ORDER BY r.aprovado_em DESC
+            ");
+            
+            $stmt->execute([$user_dept_id, $user_id]);
+            $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $registros]);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::listVisualizacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar registros: ' . $e->getMessage()]);
+        }
+    }
+
+    // Visualizar arquivo (PDF viewer ou download)
+    public function visualizarArquivo($id)
+    {
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(401);
+                echo "Acesso negado";
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = (int)$id;
+            $user_dept_id = $this->getUserDepartmentId($user_id);
+            
+            // Buscar o registro com verificação de acesso
+            $stmt = $this->db->prepare("
+                SELECT r.*, t.titulo 
+                FROM pops_its_registros r
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
+                WHERE r.id = ? 
+                AND r.status = 'APROVADO'
+                AND (
+                    r.publico = 1 
+                    OR rd.departamento_id = ?
+                    OR r.criado_por = ?
+                )
+            ");
+            $stmt->execute([$registro_id, $user_dept_id, $user_id]);
+            $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                http_response_code(404);
+                echo "Arquivo não encontrado ou sem permissão";
+                return;
+            }
+            
+            // Definir headers para visualização inline
+            $content_type = $this->getContentType($registro['extensao']);
+            header('Content-Type: ' . $content_type);
+            header('Content-Disposition: inline; filename="' . $registro['nome_arquivo'] . '"');
+            header('Content-Length: ' . $registro['tamanho_arquivo']);
+            header('Cache-Control: public, max-age=3600');
+            
+            // Enviar o arquivo
+            echo $registro['arquivo'];
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::visualizarArquivo - Erro: " . $e->getMessage());
+            http_response_code(500);
+            echo "Erro interno do servidor";
+        }
+    }
+
+    // Método auxiliar para obter departamento do usuário
+    private function getUserDepartmentId($user_id)
+    {
+        try {
+            // Simplificado - assumindo que existe uma relação user->departamento
+            // Ajustar conforme a estrutura real do banco
+            $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            return $result['departamento_id'] ?? 0;
+        } catch (\Exception $e) {
+            return 0; // Fallback
+        }
+    }
+
+    // Método auxiliar para obter content-type correto
+    private function getContentType($extensao)
+    {
+        $types = [
+            'pdf' => 'application/pdf',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        ];
+        
+        return $types[strtolower($extensao)] ?? 'application/octet-stream';
+    }
+
 }

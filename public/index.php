@@ -252,6 +252,7 @@ $router->post('/pops-its/registro/aprovar', [App\Controllers\PopItsController::c
 $router->post('/pops-its/registro/reprovar', [App\Controllers\PopItsController::class, 'reprovarRegistro']);
 // Aba 4: Visualização
 $router->get('/pops-its/visualizacao/list', [App\Controllers\PopItsController::class, 'listVisualizacao']);
+$router->get('/pops-its/visualizar/{id}', [App\Controllers\PopItsController::class, 'visualizarArquivo']);
 // Endpoint de teste
 $router->get('/pops-its/test', [App\Controllers\PopItsController::class, 'testEndpoint']);
 // Sistema de Solicitações
