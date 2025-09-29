@@ -17,8 +17,15 @@ class PopItsController
     public function index()
     {
         try {
-            $departamentos = $this->getDepartamentos();
-            $titulos = $this->getTitulos();
+            // Verificar permissões para cada aba
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            // Verificar permissões específicas para cada aba
+            $canViewCadastroTitulos = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_cadastro_titulos', 'view');
+            $canViewMeusRegistros = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_meus_registros', 'view');
+            $canViewPendenteAprovacao = $isAdmin; // Apenas admin pode ver pendente aprovação
+            $canViewVisualizacao = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_visualizacao', 'view');
             
             // Usar o layout padrão com TailwindCSS
             $title = 'POPs e ITs - SGQ OTI DJ';
