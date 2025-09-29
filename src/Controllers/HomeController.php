@@ -20,11 +20,25 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.1.9';
-        $lastUpdate = '26/09/2025';
+        $systemVersion = '2.2.0';
+        $lastUpdate = '29/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.0',
+                'date' => '29/09/2025',
+                'type' => 'Melhoria',
+                'title' => 'Aprimoramento Completo do Sistema POPs e ITs',
+                'description' => 'Melhorias significativas no módulo POPs e ITs com correções de acesso e otimizações',
+                'items' => [
+                    'Corrigido sistema de acesso para páginas "Em Breve"',
+                    'Fluxogramas agora mostra interface amigável em vez de erro',
+                    'Otimizado PermissionMiddleware para rotas públicas',
+                    'Melhorada experiência do usuário em módulos em desenvolvimento',
+                    'Sistema de diagnóstico e correção automática implementado'
+                ]
+            ],
             [
                 'version' => '2.1.9',
                 'date' => '26/09/2025',
