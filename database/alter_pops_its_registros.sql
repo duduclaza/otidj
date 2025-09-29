@@ -11,6 +11,21 @@ ALTER TABLE pops_its_registros
 ALTER TABLE pops_its_registros 
   MODIFY COLUMN status ENUM('PENDENTE', 'APROVADO', 'REPROVADO') DEFAULT 'PENDENTE';
 
+-- Criar tabela para logs de visualização
+CREATE TABLE IF NOT EXISTS pops_its_logs_visualizacao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    registro_id INT NOT NULL,
+    usuario_id INT NOT NULL,
+    visualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45) NULL,
+    user_agent TEXT NULL,
+    FOREIGN KEY (registro_id) REFERENCES pops_its_registros(id) ON DELETE CASCADE,
+    FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_registro_id (registro_id),
+    INDEX idx_usuario_id (usuario_id),
+    INDEX idx_visualizado_em (visualizado_em)
+);
+
 -- Verificar estrutura da tabela
 DESCRIBE pops_its_registros;
 

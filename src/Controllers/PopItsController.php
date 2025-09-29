@@ -26,6 +26,7 @@ class PopItsController
             $canViewMeusRegistros = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_meus_registros', 'view');
             $canViewPendenteAprovacao = $isAdmin; // Apenas admin pode ver pendente aprovação
             $canViewVisualizacao = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_visualizacao', 'view');
+            $canViewLogsVisualizacao = $isAdmin; // Apenas admin pode ver logs
             
             // Carregar departamentos para o formulário
             $departamentos = $this->getDepartamentos();
@@ -788,7 +789,7 @@ class PopItsController
         }
     }
 
-    // Visualizar arquivo (PDF viewer ou download)
+    // Visualizar arquivo (PDF em iframe com log de segurança)
     public function visualizarArquivo($id)
     {
         try {
@@ -800,23 +801,39 @@ class PopItsController
             
             $user_id = $_SESSION['user_id'];
             $registro_id = (int)$id;
-            $user_dept_id = $this->getUserDepartmentId($user_id);
             
-            // Buscar o registro com verificação de acesso
-            $stmt = $this->db->prepare("
-                SELECT r.*, t.titulo 
-                FROM pops_its_registros r
-                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
-                LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
-                WHERE r.id = ? 
-                AND r.status = 'APROVADO'
-                AND (
-                    r.publico = 1 
-                    OR rd.departamento_id = ?
-                    OR r.criado_por = ?
-                )
-            ");
-            $stmt->execute([$registro_id, $user_dept_id, $user_id]);
+            // Verificar se é admin - admin vê tudo
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if ($isAdmin) {
+                // Admin vê todos os registros aprovados
+                $stmt = $this->db->prepare("
+                    SELECT r.*, t.titulo 
+                    FROM pops_its_registros r
+                    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                    WHERE r.id = ? AND r.status = 'APROVADO'
+                ");
+                $stmt->execute([$registro_id]);
+            } else {
+                // Usuário comum - controle de acesso
+                $user_dept_id = $this->getUserDepartmentId($user_id);
+                
+                $stmt = $this->db->prepare("
+                    SELECT r.*, t.titulo 
+                    FROM pops_its_registros r
+                    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                    LEFT JOIN pops_its_registros_departamentos rd ON r.id = rd.registro_id
+                    WHERE r.id = ? 
+                    AND r.status = 'APROVADO'
+                    AND (
+                        r.publico = 1 
+                        OR rd.departamento_id = ?
+                        OR r.criado_por = ?
+                    )
+                ");
+                $stmt->execute([$registro_id, $user_dept_id, $user_id]);
+            }
+            
             $registro = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if (!$registro) {
@@ -825,20 +842,52 @@ class PopItsController
                 return;
             }
             
-            // Definir headers para visualização inline
-            $content_type = $this->getContentType($registro['extensao']);
-            header('Content-Type: ' . $content_type);
+            // REGISTRAR LOG DE VISUALIZAÇÃO
+            $this->registrarLogVisualizacao($registro_id, $user_id);
+            
+            // Apenas PDFs podem ser visualizados em iframe por segurança
+            if (strtolower($registro['extensao']) !== 'pdf') {
+                http_response_code(403);
+                echo "Apenas arquivos PDF podem ser visualizados por segurança";
+                return;
+            }
+            
+            // Headers para visualização segura em iframe
+            header('Content-Type: application/pdf');
             header('Content-Disposition: inline; filename="' . $registro['nome_arquivo'] . '"');
             header('Content-Length: ' . $registro['tamanho_arquivo']);
-            header('Cache-Control: public, max-age=3600');
+            header('X-Frame-Options: SAMEORIGIN'); // Permite iframe apenas do mesmo domínio
+            header('Cache-Control: private, no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
             
-            // Enviar o arquivo
+            // Enviar o arquivo PDF
             echo $registro['arquivo'];
             
         } catch (\Exception $e) {
             error_log("PopItsController::visualizarArquivo - Erro: " . $e->getMessage());
             http_response_code(500);
             echo "Erro interno do servidor";
+        }
+    }
+
+    // Registrar log de visualização
+    private function registrarLogVisualizacao($registro_id, $user_id)
+    {
+        try {
+            $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+            $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+            
+            $stmt = $this->db->prepare("
+                INSERT INTO pops_its_logs_visualizacao 
+                (registro_id, usuario_id, ip_address, user_agent) 
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt->execute([$registro_id, $user_id, $ip_address, $user_agent]);
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao registrar log de visualização: " . $e->getMessage());
+            // Não falha a visualização se o log der erro
         }
     }
 
@@ -872,6 +921,87 @@ class PopItsController
         ];
         
         return $types[strtolower($extensao)] ?? 'application/octet-stream';
+    }
+
+    // ===== ABA 5: LOG DE VISUALIZAÇÕES =====
+
+    // Listar logs de visualização (apenas admin)
+    public function listLogsVisualizacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se é admin
+            if (!\App\Services\PermissionService::isAdmin($user_id)) {
+                echo json_encode(['success' => false, 'message' => 'Acesso restrito a administradores']);
+                return;
+            }
+            
+            // Filtros de busca
+            $search = $_GET['search'] ?? '';
+            $data_inicio = $_GET['data_inicio'] ?? '';
+            $data_fim = $_GET['data_fim'] ?? '';
+            
+            $sql = "
+                SELECT 
+                    l.id,
+                    l.visualizado_em,
+                    l.ip_address,
+                    u.name as usuario_nome,
+                    u.email as usuario_email,
+                    r.versao,
+                    r.nome_arquivo,
+                    t.titulo,
+                    t.tipo
+                FROM pops_its_logs_visualizacao l
+                LEFT JOIN users u ON l.usuario_id = u.id
+                LEFT JOIN pops_its_registros r ON l.registro_id = r.id
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                WHERE 1=1
+            ";
+            
+            $params = [];
+            
+            // Filtro de busca
+            if (!empty($search)) {
+                $sql .= " AND (u.name LIKE ? OR t.titulo LIKE ? OR r.nome_arquivo LIKE ?)";
+                $searchParam = '%' . $search . '%';
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+                $params[] = $searchParam;
+            }
+            
+            // Filtro de data início
+            if (!empty($data_inicio)) {
+                $sql .= " AND DATE(l.visualizado_em) >= ?";
+                $params[] = $data_inicio;
+            }
+            
+            // Filtro de data fim
+            if (!empty($data_fim)) {
+                $sql .= " AND DATE(l.visualizado_em) <= ?";
+                $params[] = $data_fim;
+            }
+            
+            $sql .= " ORDER BY l.visualizado_em DESC LIMIT 500";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $logs = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $logs]);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::listLogsVisualizacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar logs: ' . $e->getMessage()]);
+        }
     }
 
 }

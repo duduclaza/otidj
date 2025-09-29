@@ -47,6 +47,13 @@ if (!isset($_SESSION['user_id'])) {
                     Visualização
                 </button>
                 <?php endif; ?>
+
+                <!-- Aba 5: Log de Visualizações (Apenas Admin) -->
+                <?php if ($canViewLogsVisualizacao): ?>
+                <button id="tab-logs" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                    Log de Visualizações
+                </button>
+                <?php endif; ?>
             </nav>
         </div>
 
@@ -326,8 +333,60 @@ if (!isset($_SESSION['user_id'])) {
             </div>
             <?php endif; ?>
 
+            <!-- ABA 5: LOG DE VISUALIZAÇÕES (Apenas Admin) -->
+            <?php if ($canViewLogsVisualizacao): ?>
+            <div id="content-logs" class="tab-content hidden">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Log de Visualizações</h3>
+                        <p class="mt-1 text-sm text-gray-500">Histórico de acessos aos documentos</p>
+                        
+                        <!-- Filtros de Busca -->
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <input type="text" id="searchLogs" placeholder="Buscar usuário, documento..." 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                            <div>
+                                <input type="date" id="dataInicio" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                            <div>
+                                <input type="date" id="dataFim" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
+                            </div>
+                            <div>
+                                <button onclick="filtrarLogs()" 
+                                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                                    Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Versão</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaLogs" class="bg-white divide-y divide-gray-200">
+                                <!-- Conteúdo carregado via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <!-- Mensagem caso não tenha permissão para nenhuma aba -->
-            <?php if (!$canViewCadastroTitulos && !$canViewMeusRegistros && !$canViewPendenteAprovacao && !$canViewVisualizacao): ?>
+            <?php if (!$canViewCadastroTitulos && !$canViewMeusRegistros && !$canViewPendenteAprovacao && !$canViewVisualizacao && !$canViewLogsVisualizacao): ?>
             <div class="text-center py-16">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
                     <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -387,6 +446,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (tabId === 'visualizacao') {
                     console.log('🔄 Carregando visualização ao clicar na aba...');
                     loadVisualizacao();
+                } else if (tabId === 'logs') {
+                    console.log('🔄 Carregando logs ao clicar na aba...');
+                    loadLogsVisualizacao();
                 }
             }
         });
@@ -1080,21 +1142,14 @@ async function loadVisualizacao() {
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         <div class="flex space-x-2">
-                            <a href="/pops-its/visualizar/${registro.id}" target="_blank" 
-                               class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center">
+                            <button onclick="visualizarPDF(${registro.id}, '${registro.nome_arquivo}')" 
+                                    class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center">
                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                 </svg>
-                                Visualizar
-                            </a>
-                            <a href="/pops-its/arquivo/${registro.id}" target="_blank" 
-                               class="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors flex items-center">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                                Download
-                            </a>
+                                Visualizar PDF
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -1124,6 +1179,137 @@ async function loadVisualizacao() {
             </tr>
         `;
     }
+}
+
+// ===== ABA 5: LOG DE VISUALIZAÇÕES =====
+
+// Carregar logs de visualização
+async function loadLogsVisualizacao() {
+    try {
+        console.log('🔄 Carregando logs de visualização...');
+        
+        // Obter filtros
+        const search = document.getElementById('searchLogs')?.value || '';
+        const dataInicio = document.getElementById('dataInicio')?.value || '';
+        const dataFim = document.getElementById('dataFim')?.value || '';
+        
+        // Construir URL com parâmetros
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (dataInicio) params.append('data_inicio', dataInicio);
+        if (dataFim) params.append('data_fim', dataFim);
+        
+        const response = await fetch(`/pops-its/logs/visualizacao?${params}`);
+        const result = await response.json();
+        
+        const tbody = document.getElementById('listaLogs');
+        
+        if (result.success && result.data.length > 0) {
+            tbody.innerHTML = result.data.map(log => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${formatDateTime(log.visualizado_em)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${log.usuario_nome}</div>
+                        <div class="text-sm text-gray-500">${log.usuario_email}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${log.titulo}</div>
+                        <div class="text-sm text-gray-500">${log.nome_arquivo}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${log.tipo === 'POP' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                            ${log.tipo}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        v${log.versao}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${log.ip_address}
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        <div class="flex flex-col items-center py-8">
+                            <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-900 mb-2">Nenhum log encontrado</p>
+                            <p class="text-gray-500">Não há visualizações registradas com os filtros aplicados</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar logs:', error);
+        document.getElementById('listaLogs').innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-4 text-center text-red-500">
+                    Erro ao carregar logs de visualização
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Filtrar logs
+function filtrarLogs() {
+    loadLogsVisualizacao();
+}
+
+// Visualizar PDF em iframe (modal)
+function visualizarPDF(registroId, nomeArquivo) {
+    // Criar modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl w-11/12 h-5/6 max-w-6xl">
+            <div class="flex justify-between items-center p-4 border-b">
+                <h3 class="text-lg font-medium text-gray-900">📄 ${nomeArquivo}</h3>
+                <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-4 h-full">
+                <iframe src="/pops-its/visualizar/${registroId}" 
+                        class="w-full h-full border-0 rounded" 
+                        title="Visualização do PDF">
+                </iframe>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden'; // Prevenir scroll
+}
+
+// Fechar modal
+function fecharModal() {
+    const modal = document.querySelector('.fixed.inset-0');
+    if (modal) {
+        modal.remove();
+        document.body.style.overflow = 'auto'; // Restaurar scroll
+    }
+}
+
+// Função auxiliar para formatar data e hora
+function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 }
 
 </script>
