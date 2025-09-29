@@ -651,11 +651,70 @@ class PopItsController
             $stmt->execute();
             $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
+            // NOVA LÓGICA SIMPLES: Notificar sobre registros muito recentes (últimos 2 minutos)
+            $this->notificarRegistrosRecentes($registros);
+            
             echo json_encode(['success' => true, 'data' => $registros]);
             
         } catch (\Exception $e) {
             error_log("PopItsController::listPendentesAprovacao - Erro: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar pendências: ' . $e->getMessage()]);
+        }
+    }
+
+    // Método simples para notificar sobre registros recentes
+    private function notificarRegistrosRecentes($registros)
+    {
+        try {
+            error_log("🔍 VERIFICANDO REGISTROS RECENTES...");
+            
+            foreach ($registros as $registro) {
+                // Verificar se foi criado nos últimos 2 minutos
+                $criado_em = strtotime($registro['criado_em']);
+                $agora = time();
+                $diferenca_minutos = ($agora - $criado_em) / 60;
+                
+                if ($diferenca_minutos <= 2) {
+                    error_log("📋 REGISTRO RECENTE ENCONTRADO: {$registro['titulo']} (criado há " . round($diferenca_minutos, 1) . " min)");
+                    
+                    // Verificar se já foi notificado
+                    $stmt = $this->db->prepare("
+                        SELECT COUNT(*) FROM notifications 
+                        WHERE related_type = 'pops_its_registro' 
+                        AND related_id = ? 
+                        AND type = 'pops_its_pendente'
+                        AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                    ");
+                    $stmt->execute([$registro['id']]);
+                    $ja_notificado = $stmt->fetchColumn() > 0;
+                    
+                    if (!$ja_notificado) {
+                        // Criar notificação simples
+                        $titulo = "🔔 Novo {$registro['tipo']} Pendente";
+                        $mensagem = "'{$registro['titulo']}' v{$registro['versao']} por {$registro['autor_nome']} aguarda aprovação.";
+                        
+                        error_log("📤 ENVIANDO NOTIFICAÇÃO: $titulo");
+                        
+                        $sucesso = $this->notificarAdministradores(
+                            $titulo,
+                            $mensagem,
+                            'pops_its_pendente',
+                            'pops_its_registro',
+                            $registro['id']
+                        );
+                        
+                        if ($sucesso) {
+                            error_log("✅ NOTIFICAÇÃO ENVIADA COM SUCESSO para registro {$registro['id']}");
+                        } else {
+                            error_log("❌ FALHA ao enviar notificação para registro {$registro['id']}");
+                        }
+                    } else {
+                        error_log("⏭️ REGISTRO {$registro['id']} já foi notificado recentemente");
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            error_log("❌ ERRO ao verificar registros recentes: " . $e->getMessage());
         }
     }
 
