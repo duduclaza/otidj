@@ -100,6 +100,13 @@ class PermissionMiddleware
             '/profile'  // Perfil próprio deve ser acessível a todos os usuários logados
         ];
         
+        // Rotas "Em Breve" - acessíveis a todos os usuários logados (via PageController)
+        $comingSoonRoutes = [
+            '/fluxogramas',
+            '/controle-de-rc', 
+            '/homologacoes'
+        ];
+        
         // Rotas de API que têm verificação própria
         $apiRoutes = ['/api/', '/admin/users/create', '/admin/users/update', '/admin/users/delete', '/admin/users/send-credentials', '/admin/test-email', '/debug/'];
         
@@ -120,6 +127,13 @@ class PermissionMiddleware
         // Se não está logado, não tem permissão
         if (!isset($_SESSION['user_id'])) {
             return false;
+        }
+        
+        // Verificar se é rota "Em Breve" - permitir para usuários logados
+        foreach ($comingSoonRoutes as $comingSoonRoute) {
+            if ($route === $comingSoonRoute) {
+                return true; // Permitir acesso para usuários logados
+            }
         }
         
         $userId = $_SESSION['user_id'];
