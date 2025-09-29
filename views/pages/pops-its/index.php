@@ -377,7 +377,6 @@ if (!isset($_SESSION['user_id'])) {
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Versão</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP</th>
                                 </tr>
                             </thead>
                             <tbody id="listaLogs" class="bg-white divide-y divide-gray-200">
@@ -1230,15 +1229,12 @@ async function loadLogsVisualizacao() {
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         v${log.versao}
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${log.ip_address}
-                    </td>
                 </tr>
             `).join('');
         } else {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
                         <div class="flex flex-col items-center py-8">
                             <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -1254,7 +1250,7 @@ async function loadLogsVisualizacao() {
         console.error('Erro ao carregar logs:', error);
         document.getElementById('listaLogs').innerHTML = `
             <tr>
-                <td colspan="6" class="px-6 py-4 text-center text-red-500">
+                <td colspan="5" class="px-6 py-4 text-center text-red-500">
                     Erro ao carregar logs de visualização
                 </td>
             </tr>

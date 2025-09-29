@@ -880,15 +880,14 @@ class PopItsController
             // Verificar se a tabela existe, se não, criar
             $this->criarTabelaLogsSeNaoExistir();
             
-            $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
             $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
             
             $stmt = $this->db->prepare("
                 INSERT INTO pops_its_logs_visualizacao 
-                (registro_id, usuario_id, ip_address, user_agent, visualizado_em) 
-                VALUES (?, ?, ?, ?, NOW())
+                (registro_id, usuario_id, user_agent, visualizado_em) 
+                VALUES (?, ?, ?, NOW())
             ");
-            $result = $stmt->execute([$registro_id, $user_id, $ip_address, $user_agent]);
+            $result = $stmt->execute([$registro_id, $user_id, $user_agent]);
             
             if ($result) {
                 error_log("LOG REGISTRADO: Usuário $user_id visualizou registro $registro_id em " . date('Y-m-d H:i:s'));
@@ -913,7 +912,6 @@ class PopItsController
                     registro_id INT NOT NULL,
                     usuario_id INT NOT NULL,
                     visualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    ip_address VARCHAR(45) NULL,
                     user_agent TEXT NULL,
                     INDEX idx_registro_id (registro_id),
                     INDEX idx_usuario_id (usuario_id),
@@ -989,7 +987,6 @@ class PopItsController
                 SELECT 
                     l.id,
                     l.visualizado_em,
-                    l.ip_address,
                     u.name as usuario_nome,
                     u.email as usuario_email,
                     r.versao,

@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS pops_its_logs_visualizacao (
     registro_id INT NOT NULL,
     usuario_id INT NOT NULL,
     visualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ip_address VARCHAR(45) NULL,
     user_agent TEXT NULL,
     FOREIGN KEY (registro_id) REFERENCES pops_its_registros(id) ON DELETE CASCADE,
     FOREIGN KEY (usuario_id) REFERENCES users(id) ON DELETE CASCADE,
