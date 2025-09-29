@@ -485,6 +485,20 @@ class PopItsController
                 }
             }
             
+            // Buscar informações do título para notificação
+            $stmt_titulo = $this->db->prepare("SELECT titulo, tipo FROM pops_its_titulos WHERE id = ?");
+            $stmt_titulo->execute([$titulo_id]);
+            $titulo_info = $stmt_titulo->fetch(\PDO::FETCH_ASSOC);
+            
+            // Notificar administradores sobre novo registro pendente
+            $this->notificarAdministradores(
+                "📋 Novo " . $titulo_info['tipo'] . " Pendente",
+                "Um novo registro '{$titulo_info['titulo']}' v{$proxima_versao} foi criado e aguarda aprovação.",
+                "pops_its_pendente",
+                "pops_its_registro",
+                $registro_id
+            );
+            
             echo json_encode(['success' => true, 'message' => "Registro criado com sucesso! Versão v{$proxima_versao} está pendente de aprovação."]);
             
         } catch (\Exception $e) {
@@ -687,6 +701,28 @@ class PopItsController
             ");
             $stmt->execute([$user_id, $registro_id]);
             
+            // Buscar informações do registro para notificação
+            $stmt_info = $this->db->prepare("
+                SELECT r.criado_por, r.versao, t.titulo, t.tipo 
+                FROM pops_its_registros r 
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id 
+                WHERE r.id = ?
+            ");
+            $stmt_info->execute([$registro_id]);
+            $registro_info = $stmt_info->fetch(\PDO::FETCH_ASSOC);
+            
+            // Notificar o autor sobre aprovação
+            if ($registro_info) {
+                $this->criarNotificacao(
+                    $registro_info['criado_por'],
+                    "✅ " . $registro_info['tipo'] . " Aprovado!",
+                    "Seu registro '{$registro_info['titulo']}' v{$registro_info['versao']} foi aprovado e está disponível para visualização.",
+                    "pops_its_aprovado",
+                    "pops_its_registro",
+                    $registro_id
+                );
+            }
+            
             echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
             
         } catch (\Exception $e) {
@@ -744,6 +780,28 @@ class PopItsController
                 WHERE id = ?
             ");
             $stmt->execute([$observacao, $user_id, $registro_id]);
+            
+            // Buscar informações do registro para notificação
+            $stmt_info = $this->db->prepare("
+                SELECT r.criado_por, r.versao, t.titulo, t.tipo 
+                FROM pops_its_registros r 
+                LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id 
+                WHERE r.id = ?
+            ");
+            $stmt_info->execute([$registro_id]);
+            $registro_info = $stmt_info->fetch(\PDO::FETCH_ASSOC);
+            
+            // Notificar o autor sobre reprovação
+            if ($registro_info) {
+                $this->criarNotificacao(
+                    $registro_info['criado_por'],
+                    "❌ " . $registro_info['tipo'] . " Reprovado",
+                    "Seu registro '{$registro_info['titulo']}' v{$registro_info['versao']} foi reprovado. Motivo: {$observacao}",
+                    "pops_its_reprovado",
+                    "pops_its_registro",
+                    $registro_id
+                );
+            }
             
             echo json_encode(['success' => true, 'message' => 'Registro reprovado com sucesso!']);
             
@@ -1477,6 +1535,59 @@ class PopItsController
         }
     }
 
+    // ===== SISTEMA DE NOTIFICAÇÕES =====
+
+    // Criar notificação para usuários
+    private function criarNotificacao($user_id, $titulo, $mensagem, $tipo, $related_type = null, $related_id = null)
+    {
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO notifications (user_id, title, message, type, related_type, related_id) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$user_id, $titulo, $mensagem, $tipo, $related_type, $related_id]);
+            
+            error_log("NOTIFICAÇÃO CRIADA: $titulo para usuário $user_id");
+            return true;
+        } catch (\Exception $e) {
+            error_log("Erro ao criar notificação: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Notificar todos os administradores
+    private function notificarAdministradores($titulo, $mensagem, $tipo, $related_type = null, $related_id = null)
+    {
+        try {
+            // Buscar todos os administradores
+            $stmt = $this->db->prepare("
+                SELECT DISTINCT u.id 
+                FROM users u
+                INNER JOIN user_profiles up ON u.id = up.user_id
+                INNER JOIN profiles p ON up.profile_id = p.id
+                WHERE p.name = 'Administrador' OR u.is_admin = 1
+            ");
+            $stmt->execute();
+            $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            foreach ($admins as $admin) {
+                $this->criarNotificacao(
+                    $admin['id'], 
+                    $titulo, 
+                    $mensagem, 
+                    $tipo, 
+                    $related_type, 
+                    $related_id
+                );
+            }
+            
+            error_log("NOTIFICAÇÃO ENVIADA PARA " . count($admins) . " administradores");
+            return true;
+        } catch (\Exception $e) {
+            error_log("Erro ao notificar administradores: " . $e->getMessage());
+            return false;
+        }
+    }
 
     // ===== SISTEMA DE SOLICITAÇÕES DE EXCLUSÃO =====
 
@@ -1585,6 +1696,15 @@ class PopItsController
             
             // Log da ação
             error_log("SOLICITAÇÃO DE EXCLUSÃO: Usuário $user_id solicitou exclusão do registro $registro_id (Protocolo: #$solicitacao_id)");
+            
+            // Notificar administradores sobre nova solicitação de exclusão
+            $this->notificarAdministradores(
+                "🗑️ Nova Solicitação de Exclusão",
+                "Solicitação #$solicitacao_id para exclusão do registro '{$registro['titulo']}' aguarda aprovação. Motivo: $motivo",
+                "pops_its_exclusao_pendente",
+                "pops_its_solicitacao",
+                $solicitacao_id
+            );
             
             echo json_encode([
                 'success' => true, 
@@ -1715,6 +1835,16 @@ class PopItsController
                 // Log da ação
                 error_log("EXCLUSÃO APROVADA: Usuário $user_id aprovou exclusão do registro {$solicitacao['registro_id']} (Protocolo: #$solicitacao_id)");
                 
+                // Notificar o solicitante sobre aprovação da exclusão
+                $this->criarNotificacao(
+                    $solicitacao['solicitante_id'],
+                    "✅ Solicitação de Exclusão Aprovada",
+                    "Sua solicitação #$solicitacao_id para exclusão do registro '{$solicitacao['titulo']}' foi aprovada e o registro foi removido do sistema.",
+                    "pops_its_exclusao_aprovada",
+                    "pops_its_solicitacao",
+                    $solicitacao_id
+                );
+                
                 echo json_encode([
                     'success' => true, 
                     'message' => "Solicitação aprovada e registro '{$solicitacao['titulo']}' excluído com sucesso"
@@ -1789,6 +1919,16 @@ class PopItsController
             
             // Log da ação
             error_log("EXCLUSÃO REPROVADA: Usuário $user_id reprovou exclusão do registro {$solicitacao['registro_id']} (Protocolo: #$solicitacao_id)");
+            
+            // Notificar o solicitante sobre reprovação da exclusão
+            $this->criarNotificacao(
+                $solicitacao['solicitante_id'],
+                "❌ Solicitação de Exclusão Reprovada",
+                "Sua solicitação #$solicitacao_id para exclusão do registro '{$solicitacao['titulo']}' foi reprovada. Motivo: $observacoes",
+                "pops_its_exclusao_reprovada",
+                "pops_its_solicitacao",
+                $solicitacao_id
+            );
             
             echo json_encode([
                 'success' => true, 
