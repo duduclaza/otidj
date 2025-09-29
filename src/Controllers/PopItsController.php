@@ -456,6 +456,35 @@ class PopItsController
                 $extensao, $tamanho_arquivo, $publico, $user_id
             ]);
             
+            $registro_id = $this->db->lastInsertId();
+            
+            // Se não for público, salvar departamentos permitidos
+            if ($visibilidade === 'departamentos') {
+                $departamentos_permitidos = $_POST['departamentos_permitidos'] ?? [];
+                
+                if (empty($departamentos_permitidos)) {
+                    echo json_encode(['success' => false, 'message' => 'Selecione pelo menos um departamento para visibilidade restrita']);
+                    return;
+                }
+                
+                // Criar tabela se não existir
+                $this->criarTabelaDepartamentosSeNaoExistir();
+                
+                // Inserir departamentos permitidos
+                $stmt_dept = $this->db->prepare("
+                    INSERT INTO pops_its_registros_departamentos (registro_id, departamento_id) 
+                    VALUES (?, ?)
+                ");
+                
+                foreach ($departamentos_permitidos as $dept_id) {
+                    $dept_id = (int)$dept_id;
+                    if ($dept_id > 0) {
+                        $stmt_dept->execute([$registro_id, $dept_id]);
+                        error_log("DEPARTAMENTO SALVO: Registro $registro_id -> Departamento $dept_id");
+                    }
+                }
+            }
+            
             echo json_encode(['success' => true, 'message' => "Registro criado com sucesso! Versão v{$proxima_versao} está pendente de aprovação."]);
             
         } catch (\Exception $e) {
@@ -739,6 +768,9 @@ class PopItsController
             
             $user_id = $_SESSION['user_id'];
             
+            // Verificar se as tabelas existem, se não, criar
+            $this->criarTabelaDepartamentosSeNaoExistir();
+            
             // Verificar se é admin - admin vê tudo
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
@@ -831,6 +863,19 @@ class PopItsController
             error_log("VISUALIZAÇÃO - Total registros: " . count($registros));
             foreach ($registros as $reg) {
                 error_log("REGISTRO: {$reg['titulo']} - Público: {$reg['publico']} - Departamentos: " . ($reg['departamentos_permitidos'] ?? 'NULL'));
+                
+                // Debug adicional: verificar se existem departamentos na tabela de relacionamento
+                if (!$reg['publico'] && empty($reg['departamentos_permitidos'])) {
+                    $debugStmt = $this->db->prepare("
+                        SELECT rd.registro_id, rd.departamento_id, d.nome 
+                        FROM pops_its_registros_departamentos rd 
+                        LEFT JOIN departamentos d ON rd.departamento_id = d.id 
+                        WHERE rd.registro_id = ?
+                    ");
+                    $debugStmt->execute([$reg['id']]);
+                    $depts = $debugStmt->fetchAll(\PDO::FETCH_ASSOC);
+                    error_log("DEBUG DEPARTAMENTOS para registro {$reg['id']}: " . json_encode($depts));
+                }
             }
             
             echo json_encode(['success' => true, 'data' => $registros]);
@@ -1000,6 +1045,31 @@ class PopItsController
             
         } catch (\Exception $e) {
             error_log("Erro ao criar tabela de logs: " . $e->getMessage());
+        }
+    }
+
+    // Criar tabela de departamentos se não existir
+    private function criarTabelaDepartamentosSeNaoExistir()
+    {
+        try {
+            $sql = "
+                CREATE TABLE IF NOT EXISTS pops_its_registros_departamentos (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    registro_id INT NOT NULL,
+                    departamento_id INT NOT NULL,
+                    
+                    INDEX idx_registro_id (registro_id),
+                    INDEX idx_departamento_id (departamento_id),
+                    UNIQUE KEY uniq_registro_departamento (registro_id, departamento_id),
+                    
+                    FOREIGN KEY (registro_id) REFERENCES pops_its_registros(id) ON DELETE CASCADE ON UPDATE CASCADE,
+                    FOREIGN KEY (departamento_id) REFERENCES departamentos(id) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ";
+            $this->db->exec($sql);
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao criar tabela de departamentos: " . $e->getMessage());
         }
     }
 
