@@ -827,6 +827,12 @@ class PopItsController
             
             $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
+            // Debug: Log para verificar dados
+            error_log("VISUALIZAÇÃO - Total registros: " . count($registros));
+            foreach ($registros as $reg) {
+                error_log("REGISTRO: {$reg['titulo']} - Público: {$reg['publico']} - Departamentos: " . ($reg['departamentos_permitidos'] ?? 'NULL'));
+            }
+            
             echo json_encode(['success' => true, 'data' => $registros]);
             
         } catch (\Exception $e) {

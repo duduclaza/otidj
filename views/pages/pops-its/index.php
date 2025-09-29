@@ -1152,10 +1152,18 @@ function getVisibilidadeDisplay(registro) {
                 `;
             }
         } else {
+            // Documento restrito sem departamentos específicos
+            // Para admins, mostrar como "Restrito - Admin" 
+            // Para usuários comuns, não deveria aparecer na lista
             return `
-                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                    🚫 Sem Acesso
-                </span>
+                <div class="text-xs">
+                    <span class="inline-flex px-2 py-1 font-semibold rounded-full bg-orange-100 text-orange-800 mb-1">
+                        🔒 Restrito
+                    </span>
+                    <div class="text-gray-600 text-xs">
+                        Sem departamentos definidos
+                    </div>
+                </div>
             `;
         }
     }
