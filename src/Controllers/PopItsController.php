@@ -892,22 +892,40 @@ class PopItsController
                 return;
             }
             
-            // Headers para visualização segura em iframe
-            $content_type = $this->getContentType($registro['extensao']);
-            header('Content-Type: ' . $content_type);
-            header('Content-Disposition: inline; filename="' . $registro['nome_arquivo'] . '"');
-            header('Content-Length: ' . $registro['tamanho_arquivo']);
-            header('X-Frame-Options: SAMEORIGIN'); // Permite iframe apenas do mesmo domínio
-            header('Cache-Control: private, no-cache, no-store, must-revalidate');
-            header('Pragma: no-cache');
-            header('Expires: 0');
+            // Verificar se é imagem para criar wrapper HTML
+            $tiposImagem = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];
+            $isImagem = in_array($extensao, $tiposImagem);
             
-            // Headers adicionais para proteção contra download
-            header('X-Content-Type-Options: nosniff');
-            header('Referrer-Policy: no-referrer');
-            
-            // Enviar o arquivo
-            echo $registro['arquivo'];
+            if ($isImagem) {
+                // Para imagens, criar um HTML wrapper para melhor exibição
+                header('Content-Type: text/html; charset=utf-8');
+                header('X-Frame-Options: SAMEORIGIN');
+                header('Cache-Control: private, no-cache, no-store, must-revalidate');
+                header('Pragma: no-cache');
+                header('Expires: 0');
+                header('X-Content-Type-Options: nosniff');
+                header('Referrer-Policy: no-referrer');
+                
+                // Criar base64 da imagem
+                $base64 = base64_encode($registro['arquivo']);
+                $content_type = $this->getContentType($registro['extensao']);
+                
+                echo $this->gerarHtmlImagem($base64, $content_type, $registro['nome_arquivo']);
+            } else {
+                // Para PDFs, servir diretamente
+                $content_type = $this->getContentType($registro['extensao']);
+                header('Content-Type: ' . $content_type);
+                header('Content-Disposition: inline; filename="' . $registro['nome_arquivo'] . '"');
+                header('Content-Length: ' . $registro['tamanho_arquivo']);
+                header('X-Frame-Options: SAMEORIGIN');
+                header('Cache-Control: private, no-cache, no-store, must-revalidate');
+                header('Pragma: no-cache');
+                header('Expires: 0');
+                header('X-Content-Type-Options: nosniff');
+                header('Referrer-Policy: no-referrer');
+                
+                echo $registro['arquivo'];
+            }
             
         } catch (\Exception $e) {
             error_log("PopItsController::visualizarArquivo - Erro: " . $e->getMessage());
@@ -1001,6 +1019,179 @@ class PopItsController
         ];
         
         return $types[strtolower($extensao)] ?? 'application/octet-stream';
+    }
+
+    // Gerar HTML otimizado para exibição de imagens
+    private function gerarHtmlImagem($base64, $content_type, $nome_arquivo)
+    {
+        return '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização Protegida - ' . htmlspecialchars($nome_arquivo) . '</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+            /* Proteções contra seleção e interação */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .container {
+            max-width: 100%;
+            max-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .image-wrapper {
+            position: relative;
+            max-width: 100%;
+            max-height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 10px;
+        }
+        
+        img {
+            max-width: 100%;
+            max-height: calc(100vh - 100px);
+            object-fit: contain;
+            border-radius: 4px;
+            
+            /* Proteções específicas para imagem */
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+        }
+        
+        .watermark {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            z-index: 10;
+        }
+        
+        /* Proteções adicionais */
+        ::selection {
+            background: transparent;
+        }
+        
+        ::-moz-selection {
+            background: transparent;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;" ondragstart="return false;" onselectstart="return false;">
+    <div class="container">
+        <div class="image-wrapper">
+            <div class="watermark">🔒 PROTEGIDO</div>
+            <img src="data:' . $content_type . ';base64,' . $base64 . '" 
+                 alt="' . htmlspecialchars($nome_arquivo) . '"
+                 oncontextmenu="return false;"
+                 ondragstart="return false;"
+                 onselectstart="return false;"
+                 onmousedown="return false;">
+        </div>
+    </div>
+    
+    <script>
+        // Proteções JavaScript
+        document.addEventListener("keydown", function(e) {
+            // Bloquear Ctrl+S, Ctrl+P, Ctrl+A, F12, Print Screen
+            if ((e.ctrlKey && (e.key === "s" || e.key === "p" || e.key === "a")) || 
+                e.key === "F12" || e.key === "PrintScreen" ||
+                (e.ctrlKey && e.shiftKey && e.key === "I") ||
+                (e.ctrlKey && e.key === "u")) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Bloquear menu de contexto
+        document.addEventListener("contextmenu", function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Bloquear seleção
+        document.addEventListener("selectstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Bloquear arrastar
+        document.addEventListener("dragstart", function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Bloquear print
+        window.addEventListener("beforeprint", function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Detectar tentativas de DevTools
+        let devtools = {open: false, orientation: null};
+        setInterval(function() {
+            if (window.outerHeight - window.innerHeight > 200 || 
+                window.outerWidth - window.innerWidth > 200) {
+                if (!devtools.open) {
+                    devtools.open = true;
+                    console.clear();
+                    console.log("%c🔒 ACESSO NEGADO", "color: red; font-size: 20px; font-weight: bold;");
+                    console.log("%cEste conteúdo é protegido por direitos autorais.", "color: red; font-size: 14px;");
+                }
+            } else {
+                devtools.open = false;
+            }
+        }, 500);
+        
+        // Limpar console periodicamente
+        setInterval(function() {
+            console.clear();
+        }, 1000);
+    </script>
+</body>
+</html>';
     }
 
     // ===== ABA 5: LOG DE VISUALIZAÇÕES =====

@@ -1350,12 +1350,12 @@ function visualizarArquivo(registroId, nomeArquivo, tipo) {
                     </button>
                 </div>
             </div>
-            <div class="p-4 h-full relative">
+            <div class="p-4 relative" style="height: calc(100% - 80px);">
                 <iframe src="/pops-its/visualizar/${registroId}" 
                         class="w-full h-full border-0 rounded" 
                         title="Visualização protegida"
                         onload="aplicarProtecoes()"
-                        style="pointer-events: none;">
+                        style="pointer-events: none; background: #f8f9fa;">
                 </iframe>
                 <!-- Overlay invisível para bloquear interações -->
                 <div class="absolute inset-4 pointer-events-auto" 
