@@ -814,6 +814,7 @@ class PopItsController
             } else {
                 // Usuário comum - controle de acesso por departamento
                 $user_dept_id = $this->getUserDepartmentId($user_id);
+                error_log("CONTROLE DE ACESSO: Usuário $user_id -> Departamento ID: $user_dept_id");
                 
                 $stmt = $this->db->prepare("
                     SELECT 
@@ -857,7 +858,8 @@ class PopItsController
                     ORDER BY r.aprovado_em DESC
                 ");
                 
-                $stmt->execute([$user_dept_id, $user_id]);
+                error_log("QUERY PARAMS: user_id=$user_id, user_dept_id=$user_dept_id");
+                $stmt->execute([$user_id, $user_dept_id]);
             }
             
             $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -1411,6 +1413,66 @@ class PopItsController
                 'tabela_existe' => $tabelaExiste,
                 'total_logs' => $totalLogs,
                 'ultimos_logs' => $ultimosLogs,
+                'timestamp_atual' => date('Y-m-d H:i:s')
+            ]);
+            
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+    }
+
+    // Método de teste para verificar departamentos
+    public function testeDepartamentos()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar se a tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'pops_its_registros_departamentos'");
+            $tabelaExiste = $stmt->fetch() !== false;
+            
+            // Contar registros na tabela
+            $totalRelacionamentos = 0;
+            if ($tabelaExiste) {
+                $stmt = $this->db->query("SELECT COUNT(*) as total FROM pops_its_registros_departamentos");
+                $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+                $totalRelacionamentos = $result['total'];
+            }
+            
+            // Buscar todos os relacionamentos
+            $relacionamentos = [];
+            if ($tabelaExiste && $totalRelacionamentos > 0) {
+                $stmt = $this->db->query("
+                    SELECT rd.registro_id, rd.departamento_id, d.nome as departamento_nome, 
+                           r.publico, t.titulo
+                    FROM pops_its_registros_departamentos rd
+                    LEFT JOIN departamentos d ON rd.departamento_id = d.id
+                    LEFT JOIN pops_its_registros r ON rd.registro_id = r.id
+                    LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
+                    ORDER BY rd.registro_id
+                ");
+                $relacionamentos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            }
+            
+            // Verificar usuário atual
+            $user_id = $_SESSION['user_id'] ?? null;
+            $user_info = null;
+            if ($user_id) {
+                $stmt = $this->db->prepare("SELECT id, name, setor FROM users WHERE id = ?");
+                $stmt->execute([$user_id]);
+                $user_info = $stmt->fetch(\PDO::FETCH_ASSOC);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'tabela_existe' => $tabelaExiste,
+                'total_relacionamentos' => $totalRelacionamentos,
+                'relacionamentos' => $relacionamentos,
+                'user_info' => $user_info,
                 'timestamp_atual' => date('Y-m-d H:i:s')
             ]);
             

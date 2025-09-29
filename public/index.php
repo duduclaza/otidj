@@ -256,6 +256,7 @@ $router->get('/pops-its/visualizar/{id}', [App\Controllers\PopItsController::cla
 // Aba 5: Log de Visualizações
 $router->get('/pops-its/logs/visualizacao', [App\Controllers\PopItsController::class, 'listLogsVisualizacao']);
 $router->get('/pops-its/teste-logs', [App\Controllers\PopItsController::class, 'testeLogs']);
+$router->get('/pops-its/teste-departamentos', [App\Controllers\PopItsController::class, 'testeDepartamentos']);
 // Endpoint de teste
 $router->get('/pops-its/test', [App\Controllers\PopItsController::class, 'testEndpoint']);
 // Sistema de Solicitações de Exclusão

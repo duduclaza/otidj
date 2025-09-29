@@ -334,8 +334,16 @@ if (!isset($_SESSION['user_id'])) {
             <div id="content-visualizacao" class="tab-content hidden">
                 <div class="bg-white shadow rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
-                        <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
+                                <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                            </div>
+                            <button onclick="testarDepartamentos()" 
+                                    class="bg-orange-600 text-white px-4 py-2 rounded-md text-sm hover:bg-orange-700">
+                                🔧 Teste Departamentos
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
@@ -1639,6 +1647,50 @@ async function testarLogs() {
     } catch (error) {
         console.error('Erro ao testar logs:', error);
         alert('❌ Erro ao executar teste de logs');
+    }
+}
+
+// Testar sistema de departamentos
+async function testarDepartamentos() {
+    try {
+        console.log('🔧 Testando sistema de departamentos...');
+        const response = await fetch('/pops-its/teste-departamentos');
+        const result = await response.json();
+        
+        console.log('📊 Resultado do teste:', result);
+        
+        if (result.success) {
+            let message = `✅ TESTE DE DEPARTAMENTOS:\n\n`;
+            message += `📋 Tabela existe: ${result.tabela_existe ? 'SIM' : 'NÃO'}\n`;
+            message += `📊 Total relacionamentos: ${result.total_relacionamentos}\n`;
+            message += `🕐 Timestamp atual: ${result.timestamp_atual}\n\n`;
+            
+            if (result.user_info) {
+                message += `👤 USUÁRIO ATUAL:\n`;
+                message += `Nome: ${result.user_info.name}\n`;
+                message += `Setor: ${result.user_info.setor || 'N/A'}\n\n`;
+            }
+            
+            if (result.relacionamentos && result.relacionamentos.length > 0) {
+                message += `📝 RELACIONAMENTOS REGISTRO-DEPARTAMENTO:\n`;
+                result.relacionamentos.forEach((rel, index) => {
+                    message += `${index + 1}. Registro ${rel.registro_id} (${rel.titulo}) → ${rel.departamento_nome}\n`;
+                });
+            } else {
+                message += `⚠️ Nenhum relacionamento encontrado\n`;
+                message += `Isso significa que nenhum registro restrito foi criado ainda.\n`;
+            }
+            
+            alert(message);
+            
+        } else {
+            alert(`❌ Erro no teste: ${result.error}`);
+            console.error('Erro completo:', result);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao testar departamentos:', error);
+        alert('❌ Erro ao executar teste de departamentos');
     }
 }
 
