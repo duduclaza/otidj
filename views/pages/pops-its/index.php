@@ -281,6 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Carregar dados da aba se for cadastro
                 if (tabId === 'cadastro') {
+                    console.log('🔄 Carregando títulos ao clicar na aba...');
                     loadTitulos();
                 }
             }
@@ -293,11 +294,33 @@ document.addEventListener('DOMContentLoaded', function() {
         firstTab.click();
     }
     
+    // Carregar dados da primeira aba ativa imediatamente (após um pequeno delay para garantir que a aba foi ativada)
+    setTimeout(() => {
+        const activeTab = document.querySelector('.tab-button.active');
+        if (activeTab) {
+            const tabId = activeTab.id.replace('tab-', '');
+            console.log('🎯 Aba ativa detectada:', tabId);
+            if (tabId === 'cadastro') {
+                console.log('📋 Carregando títulos da aba ativa...');
+                loadTitulos();
+            }
+        }
+    }, 100);
+    
     // Configurar autocomplete para títulos
     setupTituloAutocomplete();
     
     // Configurar formulário de cadastro
     setupFormularioCadastro();
+    
+    // Fallback: garantir que os títulos sejam carregados se a aba de cadastro estiver visível
+    setTimeout(() => {
+        const cadastroContent = document.getElementById('content-cadastro');
+        if (cadastroContent && !cadastroContent.classList.contains('hidden')) {
+            console.log('🔄 Fallback: Carregando títulos...');
+            loadTitulos();
+        }
+    }, 500);
 });
 
 // Autocomplete para títulos
