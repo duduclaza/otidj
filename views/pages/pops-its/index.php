@@ -56,19 +56,99 @@ if (!isset($_SESSION['user_id'])) {
             <!-- ABA 1: CADASTRO DE TÍTULOS -->
             <?php if ($canViewCadastroTitulos): ?>
             <div id="content-cadastro" class="tab-content">
-                <div class="text-center py-16">
-                    <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
+                <!-- Formulário de Cadastro -->
+                <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📝 Cadastrar Novo Título</h3>
+                    
+                    <form id="formCadastroTitulo" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Tipo -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Tipo *</label>
+                                <select name="tipo" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Selecione o tipo...</option>
+                                    <option value="POP">POP - Procedimento Operacional Padrão</option>
+                                    <option value="IT">IT - Instrução de Trabalho</option>
+                                </select>
+                            </div>
+
+                            <!-- Departamento -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Departamento *</label>
+                                <select name="departamento_id" required class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Selecione o departamento...</option>
+                                    <?php if (isset($departamentos)): ?>
+                                        <?php foreach ($departamentos as $dept): ?>
+                                            <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Título -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Título do POP/IT *</label>
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    name="titulo" 
+                                    id="tituloInput"
+                                    required 
+                                    maxlength="255"
+                                    class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                    placeholder="Digite o título do procedimento..."
+                                    autocomplete="off"
+                                >
+                                <!-- Lista de sugestões -->
+                                <div id="tituloSuggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 hidden max-h-48 overflow-y-auto">
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">O sistema verificará automaticamente se já existe um título similar</p>
+                        </div>
+
+                        <!-- Botões -->
+                        <div class="flex justify-end space-x-3">
+                            <button type="button" onclick="limparFormulario()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                                Limpar
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                                Cadastrar Título
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Lista de Títulos Cadastrados -->
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h4 class="text-lg font-semibold text-gray-900">📋 Títulos Cadastrados</h4>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Cadastro de Títulos</h3>
-                    <p class="text-gray-600 mb-4">Em construção</p>
-                    <div class="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        Funcionalidade em desenvolvimento
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaTitulos" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                        <div class="flex items-center justify-center">
+                                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            Carregando títulos...
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -192,6 +272,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const activeContent = document.getElementById(`content-${tabId}`);
             if (activeContent) {
                 activeContent.classList.remove('hidden');
+                
+                // Carregar dados da aba se for cadastro
+                if (tabId === 'cadastro') {
+                    loadTitulos();
+                }
             }
         });
     });
@@ -201,7 +286,191 @@ document.addEventListener('DOMContentLoaded', function() {
     if (firstTab && !document.querySelector('.tab-button.active')) {
         firstTab.click();
     }
+    
+    // Configurar autocomplete para títulos
+    setupTituloAutocomplete();
+    
+    // Configurar formulário de cadastro
+    setupFormularioCadastro();
 });
+
+// Autocomplete para títulos
+function setupTituloAutocomplete() {
+    const input = document.getElementById('tituloInput');
+    const suggestions = document.getElementById('tituloSuggestions');
+    const tipoSelect = document.querySelector('select[name="tipo"]');
+    
+    if (!input || !suggestions) return;
+    
+    let timeout;
+    
+    input.addEventListener('input', function() {
+        clearTimeout(timeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            suggestions.classList.add('hidden');
+            return;
+        }
+        
+        timeout = setTimeout(() => {
+            const tipo = tipoSelect.value;
+            searchTitulos(query, tipo);
+        }, 300);
+    });
+    
+    // Fechar sugestões ao clicar fora
+    document.addEventListener('click', function(e) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.classList.add('hidden');
+        }
+    });
+}
+
+async function searchTitulos(query, tipo = '') {
+    try {
+        const url = `/pops-its/titulos/search?q=${encodeURIComponent(query)}&tipo=${encodeURIComponent(tipo)}`;
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        const suggestions = document.getElementById('tituloSuggestions');
+        
+        if (result.success && result.data.length > 0) {
+            suggestions.innerHTML = result.data.map(item => `
+                <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                     onclick="selectTitulo('${item.titulo}', '${item.tipo}')">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-900">${item.titulo}</span>
+                        <span class="text-xs px-2 py-1 rounded-full ${item.tipo === 'POP' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">${item.tipo}</span>
+                    </div>
+                </div>
+            `).join('');
+            suggestions.classList.remove('hidden');
+        } else {
+            suggestions.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Erro na busca:', error);
+    }
+}
+
+function selectTitulo(titulo, tipo) {
+    document.getElementById('tituloInput').value = titulo;
+    document.querySelector('select[name="tipo"]').value = tipo;
+    document.getElementById('tituloSuggestions').classList.add('hidden');
+}
+
+// Configurar formulário de cadastro
+function setupFormularioCadastro() {
+    const form = document.getElementById('formCadastroTitulo');
+    if (!form) return;
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        // Desabilitar botão durante envio
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Cadastrando...';
+        
+        try {
+            const response = await fetch('/pops-its/titulo/create', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('✅ ' + result.message);
+                form.reset();
+                loadTitulos(); // Recarregar lista
+            } else {
+                alert('❌ ' + result.message);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('❌ Erro ao cadastrar título');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Cadastrar Título';
+        }
+    });
+}
+
+// Carregar lista de títulos
+async function loadTitulos() {
+    try {
+        const response = await fetch('/pops-its/titulos/list');
+        const result = await response.json();
+        
+        const tbody = document.getElementById('listaTitulos');
+        
+        if (result.success && result.data.length > 0) {
+            tbody.innerHTML = result.data.map(titulo => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${titulo.tipo === 'POP' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
+                            ${titulo.tipo}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm font-medium text-gray-900">${titulo.titulo}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${titulo.departamento_nome || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${titulo.criador_nome || 'N/A'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${formatDate(titulo.criado_em)}
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                        <div class="flex flex-col items-center py-8">
+                            <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <p class="text-lg font-medium text-gray-900 mb-2">Nenhum título cadastrado</p>
+                            <p class="text-gray-500">Comece cadastrando o primeiro título usando o formulário acima</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar títulos:', error);
+        document.getElementById('listaTitulos').innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                    Erro ao carregar títulos
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function limparFormulario() {
+    document.getElementById('formCadastroTitulo').reset();
+    document.getElementById('tituloSuggestions').classList.add('hidden');
+}
+
+function formatDate(dateString) {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
 </script>
 
 

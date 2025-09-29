@@ -235,6 +235,7 @@ $router->get('/pops-e-its', [App\Controllers\PopItsController::class, 'index']);
 // Aba 1: Cadastro de Títulos
 $router->post('/pops-its/titulo/create', [App\Controllers\PopItsController::class, 'createTitulo']);
 $router->get('/pops-its/titulos/list', [App\Controllers\PopItsController::class, 'listTitulos']);
+$router->get('/pops-its/titulos/search', [App\Controllers\PopItsController::class, 'searchTitulos']);
 // Aba 2: Meus Registros
 $router->post('/pops-its/registro/create', [App\Controllers\PopItsController::class, 'createRegistro']);
 $router->get('/pops-its/registros/meus', [App\Controllers\PopItsController::class, 'listMeusRegistros']);

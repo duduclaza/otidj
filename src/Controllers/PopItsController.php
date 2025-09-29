@@ -27,6 +27,9 @@ class PopItsController
             $canViewPendenteAprovacao = $isAdmin; // Apenas admin pode ver pendente aprovação
             $canViewVisualizacao = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_visualizacao', 'view');
             
+            // Carregar departamentos para o formulário
+            $departamentos = $this->getDepartamentos();
+            
             // Usar o layout padrão com TailwindCSS
             $title = 'POPs e ITs - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/pops-its/index.php';
@@ -1038,6 +1041,145 @@ public function aprovarRegistro()
                     <p class='text-red-600 text-sm'>Linha: " . $e->getLine() . "</p>
                   </div>";
         }
+    }
+
+    // Criar título
+    public function createTitulo()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar permissão
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'pops_its_cadastro_titulos', 'edit')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para criar títulos']);
+                return;
+            }
+            
+            // Validar dados
+            $tipo = $_POST['tipo'] ?? '';
+            $titulo = trim($_POST['titulo'] ?? '');
+            $departamento_id = $_POST['departamento_id'] ?? '';
+            
+            if (empty($tipo) || empty($titulo) || empty($departamento_id)) {
+                echo json_encode(['success' => false, 'message' => 'Todos os campos são obrigatórios']);
+                return;
+            }
+            
+            if (!in_array($tipo, ['POP', 'IT'])) {
+                echo json_encode(['success' => false, 'message' => 'Tipo inválido']);
+                return;
+            }
+            
+            // Normalizar título para verificação de duplicidade
+            $titulo_normalizado = $this->normalizarTitulo($titulo);
+            
+            // Verificar se já existe
+            $stmt = $this->db->prepare("SELECT id FROM pops_its_titulos WHERE tipo = ? AND titulo_normalizado = ?");
+            $stmt->execute([$tipo, $titulo_normalizado]);
+            
+            if ($stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Já existe um ' . $tipo . ' com este título']);
+                return;
+            }
+            
+            // Inserir no banco
+            $stmt = $this->db->prepare("
+                INSERT INTO pops_its_titulos (tipo, titulo, titulo_normalizado, departamento_id, criado_por) 
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            
+            $stmt->execute([$tipo, $titulo, $titulo_normalizado, $departamento_id, $user_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Título cadastrado com sucesso!']);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+    
+    // Listar títulos
+    public function listTitulos()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->query("
+                SELECT 
+                    t.id,
+                    t.tipo,
+                    t.titulo,
+                    t.criado_em,
+                    d.nome as departamento_nome,
+                    u.name as criador_nome
+                FROM pops_its_titulos t
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN users u ON t.criado_por = u.id
+                ORDER BY t.criado_em DESC
+            ");
+            
+            $titulos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $titulos]);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar títulos: ' . $e->getMessage()]);
+        }
+    }
+    
+    // Buscar títulos para autocomplete
+    public function searchTitulos()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $query = $_GET['q'] ?? '';
+            $tipo = $_GET['tipo'] ?? '';
+            
+            if (strlen($query) < 2) {
+                echo json_encode(['success' => true, 'data' => []]);
+                return;
+            }
+            
+            $sql = "
+                SELECT DISTINCT titulo, tipo
+                FROM pops_its_titulos 
+                WHERE titulo LIKE ?
+            ";
+            $params = ['%' . $query . '%'];
+            
+            if (!empty($tipo)) {
+                $sql .= " AND tipo = ?";
+                $params[] = $tipo;
+            }
+            
+            $sql .= " ORDER BY titulo LIMIT 10";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            
+            $resultados = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $resultados]);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro na busca: ' . $e->getMessage()]);
+        }
+    }
+    
+    private function normalizarTitulo($titulo)
+    {
+        // Remove acentos, converte para minúsculas e remove caracteres especiais
+        $titulo = strtolower($titulo);
+        $titulo = iconv('UTF-8', 'ASCII//TRANSLIT', $titulo);
+        $titulo = preg_replace('/[^a-z0-9\s]/', '', $titulo);
+        $titulo = preg_replace('/\s+/', ' ', $titulo);
+        return trim($titulo);
     }
 
 }
