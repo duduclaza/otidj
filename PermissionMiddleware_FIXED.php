@@ -50,6 +50,7 @@ class PermissionMiddleware
         '/fluxogramas/registros/meus' => 'fluxogramas_meus_registros',
         '/fluxogramas/registro/editar' => 'fluxogramas_meus_registros',
         '/fluxogramas/arquivo' => 'fluxogramas_visualizacao', // Download de arquivos
+        
         // Melhoria Contínua
         '/melhoria-continua' => 'melhoria_continua',
         '/melhoria-continua/list' => 'melhoria_continua',
