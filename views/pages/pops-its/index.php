@@ -334,8 +334,16 @@ if (!isset($_SESSION['user_id'])) {
             <div id="content-visualizacao" class="tab-content hidden">
                 <div class="bg-white shadow rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
-                        <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
+                                <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                            </div>
+                            <button onclick="testarNotificacoes()" 
+                                    class="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700">
+                                🔧 Teste Notificações
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">

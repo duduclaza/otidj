@@ -1652,97 +1652,92 @@ class PopItsController
         }
     }
 
-    // Notificar todos os administradores
+    // Notificar todos os administradores - VERSÃO SIMPLIFICADA
     private function notificarAdministradores($titulo, $mensagem, $tipo, $related_type = null, $related_id = null)
     {
         try {
-            // Verificar se a tabela de notificações existe
-            $stmt = $this->db->query("SHOW TABLES LIKE 'notifications'");
-            if (!$stmt->fetch()) {
-                error_log("ERRO: Tabela 'notifications' não existe!");
-                return false;
-            }
+            error_log("=== INICIANDO NOTIFICAÇÃO PARA ADMINS ===");
+            error_log("TÍTULO: $titulo");
+            error_log("MENSAGEM: $mensagem");
+            error_log("TIPO: $tipo");
             
-            // Buscar todos os administradores (múltiplas estratégias)
+            // Buscar administradores de forma simples e direta
             $admins = [];
             
-            // Estratégia 1: Por perfil "Administrador"
+            // Primeira tentativa: Por campo is_admin (mais simples)
             try {
-                $stmt = $this->db->prepare("
-                    SELECT DISTINCT u.id, u.name, u.email
-                    FROM users u
-                    INNER JOIN user_profiles up ON u.id = up.user_id
-                    INNER JOIN profiles p ON up.profile_id = p.id
-                    WHERE p.name = 'Administrador'
-                ");
+                $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE is_admin = 1");
                 $stmt->execute();
-                $admins_perfil = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                $admins = array_merge($admins, $admins_perfil);
-                error_log("ADMINS POR PERFIL: " . count($admins_perfil));
-            } catch (\Exception $e) {
-                error_log("Erro ao buscar admins por perfil: " . $e->getMessage());
-            }
-            
-            // Estratégia 2: Por campo is_admin
-            try {
-                $stmt = $this->db->prepare("
-                    SELECT DISTINCT id, name, email
-                    FROM users 
-                    WHERE is_admin = 1
-                ");
-                $stmt->execute();
-                $admins_flag = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                error_log("ADMINS ENCONTRADOS POR is_admin: " . count($admins));
                 
-                // Evitar duplicatas
-                foreach ($admins_flag as $admin_flag) {
-                    $existe = false;
-                    foreach ($admins as $admin_existente) {
-                        if ($admin_existente['id'] == $admin_flag['id']) {
-                            $existe = true;
-                            break;
-                        }
-                    }
-                    if (!$existe) {
-                        $admins[] = $admin_flag;
-                    }
+                foreach ($admins as $admin) {
+                    error_log("ADMIN ENCONTRADO: {$admin['name']} (ID: {$admin['id']})");
                 }
-                error_log("ADMINS POR FLAG: " . count($admins_flag));
             } catch (\Exception $e) {
-                error_log("Erro ao buscar admins por flag: " . $e->getMessage());
+                error_log("ERRO ao buscar por is_admin: " . $e->getMessage());
             }
             
-            error_log("TOTAL ADMINS ENCONTRADOS: " . count($admins));
+            // Se não encontrou por is_admin, tentar por perfil
+            if (empty($admins)) {
+                try {
+                    $stmt = $this->db->prepare("
+                        SELECT DISTINCT u.id, u.name, u.email
+                        FROM users u
+                        INNER JOIN user_profiles up ON u.id = up.user_id
+                        INNER JOIN profiles p ON up.profile_id = p.id
+                        WHERE p.name = 'Administrador'
+                    ");
+                    $stmt->execute();
+                    $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                    error_log("ADMINS ENCONTRADOS POR PERFIL: " . count($admins));
+                } catch (\Exception $e) {
+                    error_log("ERRO ao buscar por perfil: " . $e->getMessage());
+                }
+            }
             
             if (empty($admins)) {
-                error_log("NENHUM ADMINISTRADOR ENCONTRADO!");
+                error_log("❌ NENHUM ADMINISTRADOR ENCONTRADO NO SISTEMA!");
                 return false;
             }
             
+            // Criar notificações para cada admin
             $notificacoes_criadas = 0;
             foreach ($admins as $admin) {
-                $sucesso = $this->criarNotificacao(
-                    $admin['id'], 
-                    $titulo, 
-                    $mensagem, 
-                    $tipo, 
-                    $related_type, 
-                    $related_id
-                );
-                if ($sucesso) {
-                    $notificacoes_criadas++;
+                error_log("--- CRIANDO NOTIFICAÇÃO PARA {$admin['name']} (ID: {$admin['id']}) ---");
+                
+                try {
+                    $stmt = $this->db->prepare("
+                        INSERT INTO notifications (user_id, title, message, type, related_type, related_id) 
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ");
+                    $resultado = $stmt->execute([$admin['id'], $titulo, $mensagem, $tipo, $related_type, $related_id]);
+                    
+                    if ($resultado) {
+                        $notificacoes_criadas++;
+                        error_log("✅ NOTIFICAÇÃO CRIADA COM SUCESSO para {$admin['name']}");
+                    } else {
+                        error_log("❌ FALHA ao criar notificação para {$admin['name']}");
+                    }
+                } catch (\Exception $e) {
+                    error_log("❌ ERRO ao criar notificação para {$admin['name']}: " . $e->getMessage());
                 }
-                error_log("NOTIFICAÇÃO PARA {$admin['name']} (ID: {$admin['id']}): " . ($sucesso ? 'OK' : 'FALHA'));
             }
             
+            error_log("=== RESULTADO FINAL ===");
             error_log("NOTIFICAÇÕES CRIADAS: $notificacoes_criadas de " . count($admins));
+            error_log("=== FIM NOTIFICAÇÃO ADMINS ===");
+            
             return $notificacoes_criadas > 0;
+            
         } catch (\Exception $e) {
-            error_log("Erro ao notificar administradores: " . $e->getMessage());
+            error_log("❌ ERRO GERAL ao notificar administradores: " . $e->getMessage());
+            error_log("STACK TRACE: " . $e->getTraceAsString());
             return false;
         }
     }
 
-    // Método de teste para notificações
+    // Método de teste para notificações - FOCO EM ADMINISTRADORES
     public function testeNotificacoes()
     {
         header('Content-Type: application/json');
@@ -1750,58 +1745,92 @@ class PopItsController
         try {
             $user_id = $_SESSION['user_id'] ?? null;
             
-            // Verificar se a tabela notifications existe
-            $stmt = $this->db->query("SHOW TABLES LIKE 'notifications'");
-            $tabela_existe = $stmt->fetch() !== false;
+            // 1. Verificar administradores por múltiplas estratégias
+            $admins_perfil = [];
+            $admins_flag = [];
+            $erro_perfil = null;
+            $erro_flag = null;
             
-            // Buscar administradores
-            $admins = [];
-            if ($tabela_existe) {
+            // Estratégia 1: Por perfil "Administrador"
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT DISTINCT u.id, u.name, u.email, 'perfil' as fonte
+                    FROM users u
+                    INNER JOIN user_profiles up ON u.id = up.user_id
+                    INNER JOIN profiles p ON up.profile_id = p.id
+                    WHERE p.name = 'Administrador'
+                ");
+                $stmt->execute();
+                $admins_perfil = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                $erro_perfil = $e->getMessage();
+            }
+            
+            // Estratégia 2: Por campo is_admin
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT id, name, email, 'flag' as fonte
+                    FROM users 
+                    WHERE is_admin = 1
+                ");
+                $stmt->execute();
+                $admins_flag = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                $erro_flag = $e->getMessage();
+            }
+            
+            // 2. Verificar estrutura das tabelas
+            $tabelas_existem = [];
+            $tabelas_check = ['users', 'profiles', 'user_profiles', 'notifications'];
+            
+            foreach ($tabelas_check as $tabela) {
+                $stmt = $this->db->query("SHOW TABLES LIKE '$tabela'");
+                $tabelas_existem[$tabela] = $stmt->fetch() !== false;
+            }
+            
+            // 3. Verificar perfil "Administrador"
+            $perfil_admin = null;
+            if ($tabelas_existem['profiles']) {
+                $stmt = $this->db->prepare("SELECT * FROM profiles WHERE name = 'Administrador'");
+                $stmt->execute();
+                $perfil_admin = $stmt->fetch(\PDO::FETCH_ASSOC);
+            }
+            
+            // 4. Teste manual de criação de notificação
+            $teste_manual = false;
+            if ($tabelas_existem['notifications'] && $user_id) {
                 try {
                     $stmt = $this->db->prepare("
-                        SELECT DISTINCT u.id, u.name, u.email, u.is_admin
-                        FROM users u
-                        LEFT JOIN user_profiles up ON u.id = up.user_id
-                        LEFT JOIN profiles p ON up.profile_id = p.id
-                        WHERE p.name = 'Administrador' OR u.is_admin = 1
+                        INSERT INTO notifications (user_id, title, message, type) 
+                        VALUES (?, ?, ?, ?)
                     ");
-                    $stmt->execute();
-                    $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                    $stmt->execute([
+                        $user_id,
+                        "🧪 Teste Manual Admin",
+                        "Teste criado em " . date('Y-m-d H:i:s') . " para verificar notificações",
+                        "info"
+                    ]);
+                    $teste_manual = true;
                 } catch (\Exception $e) {
-                    // Fallback: buscar apenas por is_admin
-                    $stmt = $this->db->prepare("SELECT id, name, email, is_admin FROM users WHERE is_admin = 1");
-                    $stmt->execute();
-                    $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                    $teste_manual = "ERRO: " . $e->getMessage();
                 }
-            }
-            
-            // Contar notificações existentes
-            $total_notificacoes = 0;
-            if ($tabela_existe) {
-                $stmt = $this->db->query("SELECT COUNT(*) FROM notifications");
-                $total_notificacoes = $stmt->fetchColumn();
-            }
-            
-            // Teste: criar uma notificação
-            $teste_notificacao = false;
-            if ($tabela_existe && !empty($admins) && $user_id) {
-                $teste_notificacao = $this->criarNotificacao(
-                    $user_id,
-                    "🧪 Teste de Notificação",
-                    "Esta é uma notificação de teste criada em " . date('Y-m-d H:i:s'),
-                    "teste",
-                    "teste",
-                    999
-                );
             }
             
             echo json_encode([
                 'success' => true,
-                'tabela_existe' => $tabela_existe,
-                'total_admins' => count($admins),
-                'admins' => $admins,
-                'total_notificacoes' => $total_notificacoes,
-                'teste_notificacao_criada' => $teste_notificacao,
+                'tabelas_existem' => $tabelas_existem,
+                'admins_por_perfil' => [
+                    'count' => count($admins_perfil),
+                    'dados' => $admins_perfil,
+                    'erro' => $erro_perfil
+                ],
+                'admins_por_flag' => [
+                    'count' => count($admins_flag),
+                    'dados' => $admins_flag,
+                    'erro' => $erro_flag
+                ],
+                'perfil_administrador' => $perfil_admin,
+                'teste_manual_notificacao' => $teste_manual,
                 'user_id_atual' => $user_id,
                 'timestamp' => date('Y-m-d H:i:s')
             ]);
