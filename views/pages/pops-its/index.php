@@ -133,6 +133,9 @@ if (!isset($_SESSION['user_id'])) {
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                    <?php if ($canViewPendenteAprovacao): // Apenas admin pode excluir ?>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody id="listaTitulos" class="bg-white divide-y divide-gray-200">
@@ -409,6 +412,9 @@ async function loadTitulos() {
         const tbody = document.getElementById('listaTitulos');
         
         if (result.success && result.data.length > 0) {
+            // Verificar se usuário é admin (baseado na presença da aba pendente aprovação)
+            const isAdmin = document.getElementById('tab-pendentes') !== null;
+            
             tbody.innerHTML = result.data.map(titulo => `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -428,12 +434,27 @@ async function loadTitulos() {
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         ${formatDate(titulo.criado_em)}
                     </td>
+                    ${isAdmin ? `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <button onclick="excluirTitulo(${titulo.id}, '${titulo.titulo.replace(/'/g, "\\'")}', '${titulo.tipo}')" 
+                                class="text-red-600 hover:text-red-900 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                                title="Excluir título">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </td>
+                    ` : ''}
                 </tr>
             `).join('');
         } else {
+            // Verificar se usuário é admin para ajustar colspan
+            const isAdmin = document.getElementById('tab-pendentes') !== null;
+            const colspan = isAdmin ? 6 : 5;
+            
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                    <td colspan="${colspan}" class="px-6 py-4 text-center text-gray-500">
                         <div class="flex flex-col items-center py-8">
                             <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -447,9 +468,13 @@ async function loadTitulos() {
         }
     } catch (error) {
         console.error('Erro ao carregar títulos:', error);
+        // Verificar se usuário é admin para ajustar colspan
+        const isAdmin = document.getElementById('tab-pendentes') !== null;
+        const colspan = isAdmin ? 6 : 5;
+        
         document.getElementById('listaTitulos').innerHTML = `
             <tr>
-                <td colspan="5" class="px-6 py-4 text-center text-red-500">
+                <td colspan="${colspan}" class="px-6 py-4 text-center text-red-500">
                     Erro ao carregar títulos
                 </td>
             </tr>
@@ -470,6 +495,40 @@ function formatDate(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+// Excluir título (apenas admin)
+async function excluirTitulo(id, titulo, tipo) {
+    // Confirmação dupla para segurança
+    const confirmacao1 = confirm(`⚠️ Tem certeza que deseja excluir o ${tipo}:\n"${titulo}"?\n\nEsta ação não pode ser desfeita.`);
+    
+    if (!confirmacao1) return;
+    
+    const confirmacao2 = confirm(`🔴 CONFIRMAÇÃO FINAL\n\nVocê está prestes a excluir permanentemente:\n${tipo}: "${titulo}"\n\nDigite OK para confirmar ou Cancelar para abortar.`);
+    
+    if (!confirmacao2) return;
+    
+    try {
+        const formData = new FormData();
+        formData.append('titulo_id', id);
+        
+        const response = await fetch('/pops-its/titulo/delete', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ ' + result.message);
+            loadTitulos(); // Recarregar lista
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro ao excluir título:', error);
+        alert('❌ Erro ao excluir título');
+    }
 }
 </script>
 

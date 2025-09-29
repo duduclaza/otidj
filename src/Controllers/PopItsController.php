@@ -1127,6 +1127,84 @@ public function aprovarRegistro()
         }
     }
     
+    // Excluir título (apenas admin)
+    public function deleteTitulo()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar se é admin
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            if (!\App\Services\PermissionService::isAdmin($user_id)) {
+                echo json_encode(['success' => false, 'message' => 'Apenas administradores podem excluir títulos']);
+                return;
+            }
+            
+            $titulo_id = (int)($_POST['titulo_id'] ?? 0);
+            
+            if ($titulo_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID do título é obrigatório']);
+                return;
+            }
+            
+            // Verificar se o título existe
+            $stmt = $this->db->prepare("SELECT titulo, tipo FROM pops_its_titulos WHERE id = ?");
+            $stmt->execute([$titulo_id]);
+            $titulo = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$titulo) {
+                echo json_encode(['success' => false, 'message' => 'Título não encontrado']);
+                return;
+            }
+            
+            // Verificar se existem registros aprovados com este título
+            // Assumindo que existe uma tabela pops_its_registros com status 'aprovado'
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT COUNT(*) as total 
+                    FROM pops_its_registros 
+                    WHERE titulo_id = ? AND status = 'aprovado'
+                ");
+                $stmt->execute([$titulo_id]);
+                $registrosAprovados = $stmt->fetchColumn();
+                
+                if ($registrosAprovados > 0) {
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => "Não é possível excluir este título. Existem {$registrosAprovados} registro(s) aprovado(s) vinculado(s) a ele."
+                    ]);
+                    return;
+                }
+            } catch (\Exception $e) {
+                // Se a tabela pops_its_registros não existir, continua com a exclusão
+                // mas registra o aviso
+                error_log("Aviso: Tabela pops_its_registros não encontrada - " . $e->getMessage());
+            }
+            
+            // Excluir o título
+            $stmt = $this->db->prepare("DELETE FROM pops_its_titulos WHERE id = ?");
+            $stmt->execute([$titulo_id]);
+            
+            if ($stmt->rowCount() > 0) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => "Título \"{$titulo['titulo']}\" ({$titulo['tipo']}) excluído com sucesso!"
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Erro ao excluir título']);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::deleteTitulo - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+    
     private function normalizarTitulo($titulo)
     {
         // Remove acentos, converte para minúsculas e remove caracteres especiais
