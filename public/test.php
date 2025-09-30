@@ -5,19 +5,19 @@ echo "PHP Version: " . phpversion() . "<br>";
 echo "Servidor: " . $_SERVER['SERVER_SOFTWARE'] ?? 'N/A' . "<br>";
 
 // Testar se o autoload funciona
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     echo "✅ Autoload encontrado<br>";
-    require_once __DIR__ . '/vendor/autoload.php';
+    require_once __DIR__ . '/../vendor/autoload.php';
     echo "✅ Autoload carregado com sucesso<br>";
 } else {
     echo "❌ Autoload não encontrado<br>";
 }
 
 // Testar se o .env funciona
-if (file_exists(__DIR__ . '/.env')) {
+if (file_exists(__DIR__ . '/../.env')) {
     echo "✅ Arquivo .env encontrado<br>";
     try {
-        $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+        $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
         $dotenv->safeLoad();
         echo "✅ .env carregado com sucesso<br>";
         echo "APP_NAME: " . ($_ENV['APP_NAME'] ?? 'N/A') . "<br>";

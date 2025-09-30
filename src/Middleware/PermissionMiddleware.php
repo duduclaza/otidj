@@ -41,7 +41,7 @@ class PermissionMiddleware
         '/pops-its/registro/aprovar' => 'pops_its_pendente_aprovacao',
         '/pops-its/visualizacao/list' => 'pops_its_visualizacao',
         '/pops-its/visualizar' => 'pops_its_visualizacao',
-        '/pops-its/logs/visualizacao' => 'pops_its_logs_visualizacao',
+        // '/pops-its/logs/visualizacao' => 'pops_its_logs_visualizacao', // Removido - verificação feita no controller
         
         // Fluxogramas - Rotas específicas por aba
         '/fluxogramas/titulo/create' => 'fluxogramas_cadastro_titulos',
@@ -108,7 +108,7 @@ class PermissionMiddleware
         ];
         
         // Rotas de API que têm verificação própria
-        $apiRoutes = ['/api/', '/admin/users/create', '/admin/users/update', '/admin/users/delete', '/admin/users/send-credentials', '/admin/test-email', '/debug/'];
+        $apiRoutes = ['/api/', '/admin/users/create', '/admin/users/update', '/admin/users/delete', '/admin/users/send-credentials', '/admin/test-email', '/debug/', '/pops-its/logs/', '/pops-its/teste-'];
         
         // Verificar se é rota pública
         foreach ($publicRoutes as $publicRoute) {

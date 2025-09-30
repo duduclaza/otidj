@@ -257,6 +257,7 @@ $router->get('/pops-its/visualizar/{id}', [App\Controllers\PopItsController::cla
 // Aba 5: Log de Visualizações
 $router->get('/pops-its/logs/visualizacao', [App\Controllers\PopItsController::class, 'listLogsVisualizacao']);
 $router->get('/pops-its/teste-logs', [App\Controllers\PopItsController::class, 'testeLogs']);
+$router->get('/pops-its/diagnostico-permissoes', [App\Controllers\PopItsController::class, 'diagnosticoPermissoes']);
 $router->get('/pops-its/teste-notificacoes', [App\Controllers\PopItsController::class, 'testeNotificacoes']);
 $router->post('/pops-its/teste-notificacao-manual', [App\Controllers\PopItsController::class, 'testeNotificacaoManual']);
 // Endpoint de teste

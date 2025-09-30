@@ -1546,6 +1546,52 @@ class PopItsController
         }
     }
 
+    // Diagnóstico rápido de permissões
+    public function diagnosticoPermissoes()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $user_id = $_SESSION['user_id'] ?? null;
+            
+            if (!$user_id) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não logado']);
+                return;
+            }
+            
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
+            
+            // Buscar informações do usuário
+            $stmt = $this->db->prepare("
+                SELECT u.name, u.email, p.name as profile_name 
+                FROM users u 
+                LEFT JOIN profiles p ON u.profile_id = p.id 
+                WHERE u.id = ?
+            ");
+            $stmt->execute([$user_id]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'user_id' => $user_id,
+                'user_name' => $user['name'] ?? 'N/A',
+                'user_email' => $user['email'] ?? 'N/A',
+                'profile_name' => $user['profile_name'] ?? 'N/A',
+                'is_admin' => $isAdmin,
+                'is_super_admin' => $isSuperAdmin,
+                'can_view_logs' => $isAdmin,
+                'timestamp' => date('Y-m-d H:i:s')
+            ]);
+            
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
     // Método de teste para verificar logs
     public function testeLogs()
     {
