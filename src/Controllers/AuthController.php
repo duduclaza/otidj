@@ -47,7 +47,7 @@ class AuthController
         try {
             // Lazy DB connection
             if ($this->db === null) {
-                $this->db = Database::getInstance();
+                $this->db = Database::getInstance()->getConnection();
             }
 
             $email = trim($_POST['email'] ?? '');
