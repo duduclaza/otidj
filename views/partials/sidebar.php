@@ -39,7 +39,7 @@ $menu = [
     'href' => '#', 
     'icon' => '📊', 
     'category' => true,
-    'modules' => ['homologacoes', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', '5w2h', 'auditorias', 'melhoria_continua', 'controle_rc'],
+    'modules' => ['homologacoes', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', '5w2h', 'auditorias', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc'],
     'submenu' => [
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
       ['label' => 'FMEA', 'href' => '/fmea', 'icon' => '📈', 'module' => 'fmea'],
@@ -49,6 +49,7 @@ $menu = [
       ['label' => 'Auditorias', 'href' => '/auditorias', 'icon' => '🔍', 'module' => 'auditorias'],
       // Melhoria Contínua (com abas internas)
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
+      ['label' => 'Melhoria Contínua 2.0', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2', 'beta' => true],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
     ]
   ],
@@ -157,9 +158,14 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                   $subActive = rtrim($sub['href'], '/') === $current;
                 ?>
                   <li>
-                    <a href="<?= e($sub['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $subActive?'bg-blue-500 text-white shadow-md':'text-slate-400 hover:text-white'; ?>">
+                    <a href="<?= e($sub['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $subActive?'bg-blue-500 text-white shadow-md':'text-slate-400 hover:text-white'; ?> <?php echo isset($sub['beta']) && $sub['beta'] ? 'beta-menu' : ''; ?>">
                       <span class="text-base"><?= e($sub['icon']) ?></span>
-                      <span><?= e($sub['label']) ?></span>
+                      <span class="flex items-center gap-2">
+                        <?= e($sub['label']) ?>
+                        <?php if (isset($sub['beta']) && $sub['beta']): ?>
+                          <span class="beta-badge">BETA</span>
+                        <?php endif; ?>
+                      </span>
                     </a>
                   </li>
                 <?php endforeach; ?>
@@ -303,6 +309,60 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       <?php endforeach; ?>
     </nav>
   </div>
+  
+  <style>
+    /* Efeito brilhante para menu beta */
+    .beta-menu {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .beta-menu::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      animation: shine 2s infinite;
+      z-index: 1;
+    }
+    
+    .beta-badge {
+      background: linear-gradient(45deg, #ff6b6b, #feca57);
+      color: white;
+      font-size: 0.6rem;
+      font-weight: bold;
+      padding: 1px 4px;
+      border-radius: 3px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      animation: pulse 2s infinite;
+      position: relative;
+      z-index: 2;
+    }
+    
+    @keyframes shine {
+      0% { left: -100%; }
+      50% { left: 100%; }
+      100% { left: 100%; }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    /* Efeito adicional no hover */
+    .beta-menu:hover::before {
+      animation: shine 0.5s;
+    }
+    
+    .beta-menu:hover .beta-badge {
+      animation: pulse 0.5s;
+    }
+  </style>
+  
   <script>
     const btn = document.getElementById('menuBtn');
     const overlay = document.getElementById('mobileMenu');

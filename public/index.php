@@ -112,6 +112,13 @@ $router->post('/toners/retornados/import', [App\Controllers\TonersController::cl
 $router->post('/toners/import', [App\Controllers\TonersController::class, 'import']);
 $router->get('/toners/export', [App\Controllers\TonersController::class, 'exportExcelAdvanced']);
 
+// Melhoria Contínua 2.0 routes
+$router->get('/melhoria-continua-2', [App\Controllers\MelhoriaContinua2Controller::class, 'index']);
+$router->post('/melhoria-continua-2/store', [App\Controllers\MelhoriaContinua2Controller::class, 'store']);
+$router->post('/melhoria-continua-2/update', [App\Controllers\MelhoriaContinua2Controller::class, 'update']);
+$router->post('/melhoria-continua-2/update-status', [App\Controllers\MelhoriaContinua2Controller::class, 'updateStatus']);
+$router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2Controller::class, 'delete']);
+
 // Other routes
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
