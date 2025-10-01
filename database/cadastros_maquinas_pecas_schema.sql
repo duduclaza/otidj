@@ -1,5 +1,5 @@
 -- Criar tabela de Cadastro de Máquinas
-CREATE TABLE IF NOT EXISTS cadastros_maquinas (
+CREATE TABLE IF NOT EXISTS cadastro_maquinas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     modelo VARCHAR(255) NOT NULL,
     cod_referencia VARCHAR(100) NOT NULL,
@@ -68,19 +68,17 @@ WHERE NOT EXISTS (
 );
 
 -- Verificar se as tabelas foram criadas
-SELECT 
     TABLE_NAME,
     TABLE_ROWS,
     CREATE_TIME
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = DATABASE()
-AND TABLE_NAME IN ('cadastros_maquinas', 'cadastro_pecas');
+AND TABLE_NAME IN ('cadastro_maquinas', 'cadastro_pecas');
 
 -- Verificar se as permissões foram criadas
 SELECT 
-    p.name as perfil,
+    p.name as Perfil,
     pp.module,
-    pp.can_view,
     pp.can_edit,
     pp.can_delete
 FROM profile_permissions pp

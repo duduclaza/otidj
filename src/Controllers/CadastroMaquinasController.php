@@ -29,7 +29,7 @@ class CadastroMaquinasController
             // Buscar máquinas
             $stmt = $this->db->prepare('
                 SELECT m.*, u.name as criador_nome
-                FROM cadastros_maquinas m
+                FROM cadastro_maquinas m
                 LEFT JOIN users u ON m.created_by = u.id
                 ORDER BY m.created_at DESC
             ');
@@ -62,7 +62,7 @@ class CadastroMaquinasController
             }
 
             $stmt = $this->db->prepare('
-                INSERT INTO cadastros_maquinas (modelo, cod_referencia, created_by, created_at, updated_at)
+                INSERT INTO cadastro_maquinas (modelo, cod_referencia, created_by, created_at, updated_at)
                 VALUES (:modelo, :cod_referencia, :created_by, NOW(), NOW())
             ');
 
@@ -99,7 +99,7 @@ class CadastroMaquinasController
             }
 
             $stmt = $this->db->prepare('
-                UPDATE cadastros_maquinas 
+                UPDATE cadastro_maquinas 
                 SET modelo = :modelo, cod_referencia = :cod_referencia, updated_at = NOW()
                 WHERE id = :id
             ');
@@ -134,7 +134,7 @@ class CadastroMaquinasController
                 return;
             }
 
-            $stmt = $this->db->prepare('DELETE FROM cadastros_maquinas WHERE id = :id');
+            $stmt = $this->db->prepare('DELETE FROM cadastro_maquinas WHERE id = :id');
             $stmt->execute([':id' => $id]);
 
             echo json_encode(['success' => true, 'message' => 'Máquina excluída com sucesso!']);
