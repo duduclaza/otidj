@@ -40,61 +40,63 @@ class AuthController
     /**
      * Process login
      */
-    public function authenticate(): void
+    public function authenticate()
     {
         header('Content-Type: application/json');
-
+        
+        $email = $_POST['email'] ?? '';
+        $password = $_POST['password'] ?? '';
+        
+        if (empty($email) || empty($password)) {
+            echo json_encode(['success' => false, 'message' => 'Email e senha são obrigatórios']);
+            return;
+        }
+        
         try {
-            // Lazy DB connection
+            // Ensure DB connection (lazy)
             if ($this->db === null) {
-                try {
-                    $this->db = Database::getInstance()->getConnection();
-                } catch (\Exception $dbError) {
-                    error_log('DB Connection error: ' . $dbError->getMessage());
-                    echo json_encode(['success' => false, 'message' => 'Erro de conexão com banco de dados']);
+                $this->db = Database::getInstance();
+            }
+            $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if ($user && password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
+                $_SESSION['user_setor'] = $user['setor'];
+                $_SESSION['user_filial'] = $user['filial'];
+                
+                // Load user profile information
+                $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
+                $_SESSION['user_profile'] = $profileInfo;
+                
+                // Verificar se é primeiro acesso (se a coluna existir)
+                if (isset($user['first_access']) && $user['first_access'] == 1) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Primeiro acesso detectado',
+                        'redirect' => '/auth/first-access'
+                    ]);
                     return;
                 }
+                
+                // TODOS os usuários são direcionados para a página Início após login
+                $redirectUrl = '/inicio';
+                
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Login realizado com sucesso!',
+                    'redirect' => $redirectUrl
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Email ou senha incorretos']);
             }
-
-            $email = trim($_POST['email'] ?? '');
-            $password = $_POST['password'] ?? '';
-
-            if (empty($email) || empty($password)) {
-                echo json_encode(['success' => false, 'message' => 'Email e senha são obrigatórios']);
-                return;
-            }
-
-            // Buscar usuário
-            $stmt = $this->db->prepare('SELECT * FROM users WHERE email = ?');
-            $stmt->execute([$email]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            if (!$user) {
-                echo json_encode(['success' => false, 'message' => 'Credenciais inválidas']);
-                return;
-            }
-
-            // Verificar senha
-            if (!password_verify($password, $user['password'])) {
-                echo json_encode(['success' => false, 'message' => 'Credenciais inválidas']);
-                return;
-            }
-
-            // Criar sessão
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['name'];
-            $_SESSION['user_email'] = $user['email'];
-            $_SESSION['user_role'] = $user['role'];
-            $_SESSION['user_filial_id'] = $user['filial_id'];
-
-            echo json_encode([
-                'success' => true,
-                'redirect' => '/'
-            ]);
         } catch (\Exception $e) {
             error_log('Authenticate error: ' . $e->getMessage());
-            error_log('Stack trace: ' . $e->getTraceAsString());
-            echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
         }
     }
     
