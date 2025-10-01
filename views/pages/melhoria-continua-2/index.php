@@ -184,31 +184,50 @@ $userId = $_SESSION['user_id'];
               <?= e($melhoria['resultado_esperado'] ?? 'N/A') ?>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?>">
-                <?= e($melhoria['status']) ?>
-              </span>
+              <?php if ($isAdmin): ?>
+                <select onchange="updateStatusInline(<?= $melhoria['id'] ?>, this.value)" class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?> border-0 cursor-pointer">
+                  <option value="Pendente análise" <?= $melhoria['status'] === 'Pendente análise' ? 'selected' : '' ?>>Pendente análise</option>
+                  <option value="Em andamento" <?= $melhoria['status'] === 'Em andamento' ? 'selected' : '' ?>>Em andamento</option>
+                  <option value="Concluída" <?= $melhoria['status'] === 'Concluída' ? 'selected' : '' ?>>Concluída</option>
+                  <option value="Recusada" <?= $melhoria['status'] === 'Recusada' ? 'selected' : '' ?>>Recusada</option>
+                  <option value="Pendente Adaptação" <?= $melhoria['status'] === 'Pendente Adaptação' ? 'selected' : '' ?>>Pendente Adaptação</option>
+                </select>
+              <?php else: ?>
+                <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?>">
+                  <?= e($melhoria['status']) ?>
+                </span>
+              <?php endif; ?>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
               <?= e($melhoria['responsaveis_nomes'] ?? $melhoria['criador_nome']) ?>
             </td>
             <?php if ($isAdmin): ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <?= $melhoria['pontuacao'] ? $melhoria['pontuacao'] . '/10' : '-' ?>
+              <input type="number" min="0" max="10" value="<?= $melhoria['pontuacao'] ?? '' ?>" 
+                     onchange="updatePontuacaoInline(<?= $melhoria['id'] ?>, this.value)"
+                     class="w-16 border border-gray-300 rounded px-2 py-1 text-center"
+                     placeholder="0-10">
             </td>
             <?php endif; ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-              <button onclick="viewMelhoria(<?= $melhoria['id'] ?>)" class="text-blue-600 hover:text-blue-900">Ver</button>
+              <button onclick="viewMelhoria(<?= $melhoria['id'] ?>)" class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
+                👁️ Ver
+              </button>
               
-              <?php if ($melhoria['criado_por'] == $userId && $melhoria['status'] === 'Pendente Adaptação'): ?>
-              <button onclick="editMelhoria(<?= $melhoria['id'] ?>)" class="text-green-600 hover:text-green-900">Editar</button>
-              <?php endif; ?>
+              <button onclick="printMelhoria(<?= $melhoria['id'] ?>)" class="text-gray-600 hover:text-gray-900" title="Imprimir">
+                🖨️ Imprimir
+              </button>
               
-              <?php if ($isAdmin): ?>
-              <button onclick="updateStatus(<?= $melhoria['id'] ?>)" class="text-purple-600 hover:text-purple-900">Status</button>
+              <?php if ($isAdmin || ($melhoria['criado_por'] == $userId && $melhoria['status'] === 'Pendente Adaptação')): ?>
+              <button onclick="editMelhoria(<?= $melhoria['id'] ?>)" class="text-green-600 hover:text-green-900" title="Editar">
+                ✏️ Editar
+              </button>
               <?php endif; ?>
               
               <?php if ($melhoria['criado_por'] == $userId && $melhoria['status'] === 'Recusada'): ?>
-              <button onclick="deleteMelhoria(<?= $melhoria['id'] ?>)" class="text-red-600 hover:text-red-900">Excluir</button>
+              <button onclick="deleteMelhoria(<?= $melhoria['id'] ?>)" class="text-red-600 hover:text-red-900" title="Excluir">
+                🗑️ Excluir
+              </button>
               <?php endif; ?>
             </td>
           </tr>
@@ -218,6 +237,25 @@ $userId = $_SESSION['user_id'];
     </div>
   </div>
 </section>
+
+<!-- Modal Ver Detalhes -->
+<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" style="z-index: 9999;">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <h2 class="text-2xl font-bold text-gray-900">📋 Detalhes da Melhoria</h2>
+        <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="viewModalContent" class="p-6">
+        <!-- Conteúdo carregado dinamicamente -->
+      </div>
+    </div>
+  </div>
+</div>
 
 <style>
 
@@ -348,25 +386,251 @@ document.getElementById('melhoriaForm').addEventListener('submit', async functio
   }
 });
 
-function viewMelhoria(id) {
-  // Implementar modal de visualização
-  alert('Visualizar melhoria ID: ' + id);
+// Atualizar Status Inline (Admin)
+async function updateStatusInline(id, status) {
+  try {
+    const response = await fetch(`/melhoria-continua-2/${id}/update-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      alert('✅ Status atualizado com sucesso!');
+      location.reload();
+    } else {
+      alert('❌ Erro: ' + data.message);
+    }
+  } catch (error) {
+    alert('❌ Erro ao atualizar status');
+  }
+}
+
+// Atualizar Pontuação Inline (Admin)
+async function updatePontuacaoInline(id, pontuacao) {
+  if (pontuacao < 0 || pontuacao > 10) {
+    alert('❌ Pontuação deve estar entre 0 e 10');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/melhoria-continua-2/${id}/update-pontuacao`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pontuacao })
+    });
+    
+    const data = await response.json();
+    if (data.success) {
+      alert('✅ Pontuação atualizada com sucesso!');
+    } else {
+      alert('❌ Erro: ' + data.message);
+    }
+  } catch (error) {
+    alert('❌ Erro ao atualizar pontuação');
+  }
+}
+
+// Ver Detalhes da Melhoria
+async function viewMelhoria(id) {
+  const modal = document.getElementById('viewModal');
+  const content = document.getElementById('viewModalContent');
+  
+  content.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p class="mt-4 text-gray-600">Carregando...</p></div>';
+  modal.classList.remove('hidden');
+  
+  try {
+    const response = await fetch(`/melhoria-continua-2/${id}/details`);
+    const data = await response.json();
+    
+    if (data.success) {
+      content.innerHTML = generateDetailHTML(data.melhoria);
+    } else {
+      content.innerHTML = '<div class="text-red-600">Erro ao carregar detalhes</div>';
+    }
+  } catch (error) {
+    content.innerHTML = '<div class="text-red-600">Erro ao carregar detalhes</div>';
+  }
+}
+
+function closeViewModal() {
+  document.getElementById('viewModal').classList.add('hidden');
+}
+
+// Gerar HTML dos Detalhes
+function generateDetailHTML(m) {
+  return `
+    <div class="space-y-6">
+      <div class="grid grid-cols-2 gap-4">
+        <div><strong>📅 Data:</strong> ${m.created_at}</div>
+        <div><strong>🏢 Departamento:</strong> ${m.departamento_nome || 'N/A'}</div>
+        <div><strong>👤 Criado por:</strong> ${m.criador_nome}</div>
+        <div><strong>📊 Status:</strong> <span class="status-badge status-${m.status.toLowerCase().replace(/ /g, '-')}">${m.status}</span></div>
+        ${m.pontuacao ? `<div><strong>⭐ Pontuação:</strong> ${m.pontuacao}/10</div>` : ''}
+      </div>
+      
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-lg mb-2">📝 Título</h3>
+        <p>${m.titulo}</p>
+      </div>
+      
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-lg mb-2">📄 Descrição</h3>
+        <p>${m.resultado_esperado}</p>
+      </div>
+      
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-lg mb-2">🎯 Metodologia 5W2H</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div><strong>O quê:</strong> ${m.o_que}</div>
+          <div><strong>Como:</strong> ${m.como}</div>
+          <div><strong>Onde:</strong> ${m.onde}</div>
+          <div><strong>Por quê:</strong> ${m.porque}</div>
+          <div><strong>Quando:</strong> ${m.quando}</div>
+          <div><strong>Quanto:</strong> ${m.quanto_custa ? 'R$ ' + m.quanto_custa : 'N/A'}</div>
+        </div>
+      </div>
+      
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-lg mb-2">👥 Responsáveis</h3>
+        <p>${m.responsaveis_nomes || 'Nenhum'}</p>
+      </div>
+      
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-lg mb-2">💡 Idealizador</h3>
+        <p>${m.idealizador}</p>
+      </div>
+      
+      ${m.observacao ? `
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-lg mb-2">📌 Observações</h3>
+        <p>${m.observacao}</p>
+      </div>
+      ` : ''}
+      
+      ${m.anexos && m.anexos.length > 0 ? `
+      <div class="border-t pt-4">
+        <h3 class="font-bold text-lg mb-2">📎 Anexos (${m.anexos.length})</h3>
+        <div class="space-y-2">
+          ${m.anexos.map(a => `<div><a href="${a.url}" target="_blank" class="text-blue-600 hover:underline">📄 ${a.nome}</a></div>`).join('')}
+        </div>
+      </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// Imprimir Melhoria
+async function printMelhoria(id) {
+  try {
+    const response = await fetch(`/melhoria-continua-2/${id}/details`);
+    const data = await response.json();
+    
+    if (data.success) {
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(generatePrintHTML(data.melhoria));
+      printWindow.document.close();
+      setTimeout(() => printWindow.print(), 500);
+    }
+  } catch (error) {
+    alert('❌ Erro ao gerar impressão');
+  }
+}
+
+// Gerar HTML para Impressão
+function generatePrintHTML(m) {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Melhoria Contínua - ${m.titulo}</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; }
+        .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
+        .section { margin-bottom: 25px; page-break-inside: avoid; }
+        .section-title { background: #2563eb; color: white; padding: 10px; font-weight: bold; margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .field { margin-bottom: 10px; }
+        .field strong { display: block; color: #1e40af; margin-bottom: 5px; }
+        .anexo-page { page-break-before: always; text-align: center; }
+        .anexo-page img { max-width: 100%; max-height: 90vh; }
+        @media print { .no-print { display: none; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>🚀 MELHORIA CONTÍNUA 2.0</h1>
+        <p>Sistema de Gestão da Qualidade - OTI DJ</p>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">📋 INFORMAÇÕES GERAIS</div>
+        <div class="grid">
+          <div class="field"><strong>Data:</strong> ${m.created_at}</div>
+          <div class="field"><strong>Departamento:</strong> ${m.departamento_nome || 'N/A'}</div>
+          <div class="field"><strong>Criado por:</strong> ${m.criador_nome}</div>
+          <div class="field"><strong>Status:</strong> ${m.status}</div>
+          ${m.pontuacao ? `<div class="field"><strong>Pontuação:</strong> ${m.pontuacao}/10 ⭐</div>` : ''}
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">📝 TÍTULO E DESCRIÇÃO</div>
+        <div class="field"><strong>Título:</strong> ${m.titulo}</div>
+        <div class="field"><strong>Descrição:</strong> ${m.resultado_esperado}</div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">🎯 METODOLOGIA 5W2H</div>
+        <div class="grid">
+          <div class="field"><strong>O que será feito?</strong> ${m.o_que}</div>
+          <div class="field"><strong>Como será feito?</strong> ${m.como}</div>
+          <div class="field"><strong>Onde será feito?</strong> ${m.onde}</div>
+          <div class="field"><strong>Por que será feito?</strong> ${m.porque}</div>
+          <div class="field"><strong>Quando será feito?</strong> ${m.quando}</div>
+          <div class="field"><strong>Quanto custa?</strong> ${m.quanto_custa ? 'R$ ' + m.quanto_custa : 'N/A'}</div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">👥 RESPONSÁVEIS E IDEALIZADOR</div>
+        <div class="field"><strong>Idealizador:</strong> ${m.idealizador}</div>
+        <div class="field"><strong>Responsáveis:</strong> ${m.responsaveis_nomes || 'Nenhum'}</div>
+      </div>
+      
+      ${m.observacao ? `
+      <div class="section">
+        <div class="section-title">📌 OBSERVAÇÕES</div>
+        <p>${m.observacao}</p>
+      </div>
+      ` : ''}
+      
+      ${m.anexos && m.anexos.length > 0 ? `
+      ${m.anexos.map((a, i) => `
+        <div class="anexo-page">
+          <h2>📎 Anexo ${i + 1}: ${a.nome}</h2>
+          ${a.tipo.includes('image') ? `<img src="${a.url}" alt="${a.nome}">` : `<p>Arquivo: ${a.nome}</p>`}
+        </div>
+      `).join('')}
+      ` : ''}
+      
+      <div style="margin-top: 50px; text-align: center; color: #666; font-size: 12px;">
+        <p>Documento gerado em ${new Date().toLocaleString('pt-BR')}</p>
+        <p>Sistema SGQ OTI DJ - Melhoria Contínua 2.0</p>
+      </div>
+    </body>
+    </html>
+  `;
 }
 
 function editMelhoria(id) {
-  // Implementar edição
-  alert('Editar melhoria ID: ' + id);
-}
-
-function updateStatus(id) {
-  // Implementar modal de atualização de status (apenas admin)
-  alert('Atualizar status da melhoria ID: ' + id);
+  alert('🚧 Função de edição em desenvolvimento. ID: ' + id);
 }
 
 function deleteMelhoria(id) {
-  if (confirm('Tem certeza que deseja excluir esta melhoria?')) {
-    // Implementar exclusão
-    alert('Excluir melhoria ID: ' + id);
+  if (confirm('⚠️ Tem certeza que deseja excluir esta melhoria?')) {
+    alert('🗑️ Excluir melhoria ID: ' + id);
   }
 }
 </script>

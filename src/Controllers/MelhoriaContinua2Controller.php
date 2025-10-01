@@ -250,8 +250,10 @@ class MelhoriaContinua2Controller
         }
     }
 
-    public function updateStatus(): void
+    public function updateStatus($id = null): void
     {
+        header('Content-Type: application/json');
+        
         // Apenas admins podem alterar status
         if ($_SESSION['user_role'] !== 'admin') {
             http_response_code(403);
@@ -260,9 +262,16 @@ class MelhoriaContinua2Controller
         }
 
         try {
-            $id = (int)($_POST['id'] ?? 0);
-            $status = $_POST['status'] ?? '';
-            $pontuacao = !empty($_POST['pontuacao']) ? (int)$_POST['pontuacao'] : null;
+            // Suportar tanto POST quanto JSON
+            if ($id) {
+                $data = json_decode(file_get_contents('php://input'), true);
+                $status = $data['status'] ?? '';
+                $pontuacao = null;
+            } else {
+                $id = (int)($_POST['id'] ?? 0);
+                $status = $_POST['status'] ?? '';
+                $pontuacao = !empty($_POST['pontuacao']) ? (int)$_POST['pontuacao'] : null;
+            }
 
             $statusValidos = ['Pendente análise', 'Em andamento', 'Concluída', 'Recusada', 'Pendente Adaptação'];
             if (!in_array($status, $statusValidos)) {
@@ -272,17 +281,21 @@ class MelhoriaContinua2Controller
 
             $stmt = $this->db->prepare('
                 UPDATE melhoria_continua_2 SET 
-                    status = :status, 
-                    pontuacao = :pontuacao,
+                    status = :status' . ($pontuacao !== null ? ', pontuacao = :pontuacao' : '') . ',
                     updated_at = NOW()
                 WHERE id = :id
             ');
 
-            $stmt->execute([
+            $params = [
                 ':id' => $id,
-                ':status' => $status,
-                ':pontuacao' => $pontuacao
-            ]);
+                ':status' => $status
+            ];
+            
+            if ($pontuacao !== null) {
+                $params[':pontuacao'] = $pontuacao;
+            }
+            
+            $stmt->execute($params);
 
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
 
@@ -389,5 +402,67 @@ class MelhoriaContinua2Controller
         // Aqui você pode implementar o envio de email usando o EmailService
         // Por enquanto, apenas log
         error_log("Notificação enviada para melhoria ID: $melhoriaId - Título: $titulo");
+    }
+
+
+    // Atualizar Pontuação Inline (Admin)
+    public function updatePontuacao($id): void
+    {
+        header('Content-Type: application/json');
+        
+        if ($_SESSION['user_role'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+            return;
+        }
+
+        try {
+            $data = json_decode(file_get_contents('php://input'), true);
+            $pontuacao = (int)($data['pontuacao'] ?? 0);
+
+            $stmt = $this->db->prepare('UPDATE melhoria_continua_2 SET pontuacao = :pontuacao WHERE id = :id');
+            $stmt->execute([':pontuacao' => $pontuacao, ':id' => $id]);
+
+            echo json_encode(['success' => true, 'message' => 'Pontuação atualizada com sucesso']);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar pontuação']);
+        }
+    }
+
+    // Ver Detalhes da Melhoria
+    public function details($id): void
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $stmt = $this->db->prepare('
+                SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
+                       GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
+                FROM melhoria_continua_2 m
+                LEFT JOIN users u ON m.criado_por = u.id
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
+                WHERE m.id = :id
+                GROUP BY m.id
+            ');
+            $stmt->execute([':id' => $id]);
+            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$melhoria) {
+                echo json_encode(['success' => false, 'message' => 'Melhoria não encontrada']);
+                return;
+            }
+
+            // Buscar anexos
+            $anexos = [];
+            if (!empty($melhoria['anexos'])) {
+                $anexos = json_decode($melhoria['anexos'], true) ?? [];
+            }
+            $melhoria['anexos'] = $anexos;
+
+            echo json_encode(['success' => true, 'melhoria' => $melhoria]);
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes']);
+        }
     }
 }
