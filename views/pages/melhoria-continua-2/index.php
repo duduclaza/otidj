@@ -236,7 +236,7 @@ $userId = $_SESSION['user_id'];
   width: 100vw !important;
   height: 100vh !important;
   background-color: rgba(0, 0, 0, 0.5) !important;
-  display: none !important;
+  display: none;
   z-index: 999999 !important;
   align-items: center !important;
   justify-content: center !important;
@@ -244,6 +244,8 @@ $userId = $_SESSION['user_id'];
 
 #melhoriaModal.show {
   display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 #melhoriaModal > div {
@@ -308,16 +310,26 @@ $userId = $_SESSION['user_id'];
 function openMelhoriaModal() {
   const modal = document.getElementById('melhoriaModal');
   if (modal) {
+    console.log('Antes:', modal.className, 'Display:', window.getComputedStyle(modal).display);
     modal.classList.add('show');
+    console.log('Depois:', modal.className, 'Display:', window.getComputedStyle(modal).display);
     document.body.style.overflow = 'hidden';
+    
+    // Forçar display como fallback
+    setTimeout(() => {
+      if (window.getComputedStyle(modal).display === 'none') {
+        console.warn('Display ainda é none! Forçando...');
+        modal.style.display = 'flex';
+      }
+    }, 100);
   }
 }
 
 function closeMelhoriaModal() {
-  console.log('Fechando modal...');
   const modal = document.getElementById('melhoriaModal');
   if (modal) {
     modal.classList.remove('show');
+    modal.style.display = ''; // Remover style inline
     document.body.style.overflow = '';
     document.getElementById('melhoriaForm').reset();
   }
