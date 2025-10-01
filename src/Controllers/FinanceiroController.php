@@ -21,67 +21,19 @@ class FinanceiroController
 
     public function index(): void
     {
-        try {
-            if ($this->db === null) {
-                throw new \Exception("Erro de conexão com banco de dados");
-            }
-
-            $isAdmin = $_SESSION['user_role'] === 'admin';
-            
-            // Verificar se sistema está bloqueado
-            $bloqueado = $this->verificarBloqueio();
-            
-            if ($bloqueado && !$isAdmin) {
-                $title = 'Sistema Bloqueado - SGQ OTI DJ';
-                $viewFile = __DIR__ . '/../../views/pages/financeiro/bloqueado.php';
-                include __DIR__ . '/../../views/layouts/main.php';
-                return;
-            }
-            
-            // Verificar permissões (apenas se não for admin)
-            if (!$isAdmin) {
-                try {
-                    if (!PermissionService::hasPermission($_SESSION['user_id'], 'financeiro', 'view')) {
-                        http_response_code(403);
-                        echo "Acesso negado. Execute o SQL financeiro_schema.sql para criar as permissões.";
-                        return;
-                    }
-                } catch (\Exception $e) {
-                    // Se der erro nas permissões, permite acesso temporário
-                    error_log("Erro ao verificar permissões financeiro: " . $e->getMessage());
-                }
-            }
-
-            // Buscar histórico de pagamentos
-            $stmt = $this->db->prepare('
-                SELECT p.*, u.name as anexado_por_nome
-                FROM financeiro_pagamentos p
-                LEFT JOIN users u ON p.anexado_por = u.id
-                ORDER BY p.ano DESC, p.mes DESC
-            ');
-            $stmt->execute();
-            $pagamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Verificar pagamento atual
-            $mesAtual = (int)date('n');
-            $anoAtual = (int)date('Y');
-            
-            $stmt = $this->db->prepare('
-                SELECT * FROM financeiro_pagamentos 
-                WHERE mes = :mes AND ano = :ano
-            ');
-            $stmt->execute([':mes' => $mesAtual, ':ano' => $anoAtual]);
-            $pagamentoAtual = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $title = 'Financeiro - SGQ OTI DJ';
-            $viewFile = __DIR__ . '/../../views/pages/financeiro/index.php';
-            include __DIR__ . '/../../views/layouts/main.php';
-
-        } catch (\Exception $e) {
-            error_log("Erro em Financeiro: " . $e->getMessage());
-            http_response_code(500);
-            echo "Erro ao carregar o módulo: " . $e->getMessage();
+        $isAdmin = $_SESSION['user_role'] === 'admin';
+        
+        // Apenas admin pode acessar
+        if (!$isAdmin) {
+            http_response_code(403);
+            echo "Acesso negado. Apenas administradores podem acessar este módulo.";
+            return;
         }
+
+        // Página em breve
+        $title = 'Financeiro - SGQ OTI DJ';
+        $viewFile = __DIR__ . '/../../views/pages/financeiro/em-breve.php';
+        include __DIR__ . '/../../views/layouts/main.php';
     }
 
     public function anexarComprovante(): void
