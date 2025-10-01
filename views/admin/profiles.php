@@ -113,6 +113,8 @@ let currentProfileId = null;
 const modules = [
   { key: 'dashboard', name: 'Dashboard' },
   { key: 'toners_cadastro', name: 'Cadastro de Toners' },
+  { key: 'cadastro_maquinas', name: 'Cadastro de Máquinas 🖨️' },
+  { key: 'cadastro_pecas', name: 'Cadastro de Peças 🔧' },
   { key: 'toners_retornados', name: 'Registro de Retornados' },
   { key: 'homologacoes', name: 'Homologações' },
   { key: 'amostragens', name: 'Amostragens' },

@@ -129,6 +129,18 @@ $router->post('/amostragens-2/store', [App\Controllers\Amostragens2Controller::c
 $router->get('/amostragens-2/export', [App\Controllers\Amostragens2Controller::class, 'exportExcel']);
 $router->get('/amostragens-2/graficos', [App\Controllers\Amostragens2Controller::class, 'graficos']);
 
+// Cadastro de Máquinas routes
+$router->get('/cadastro-maquinas', [App\Controllers\CadastroMaquinasController::class, 'index']);
+$router->post('/cadastro-maquinas/store', [App\Controllers\CadastroMaquinasController::class, 'store']);
+$router->post('/cadastro-maquinas/update', [App\Controllers\CadastroMaquinasController::class, 'update']);
+$router->post('/cadastro-maquinas/delete', [App\Controllers\CadastroMaquinasController::class, 'delete']);
+
+// Cadastro de Peças routes
+$router->get('/cadastro-pecas', [App\Controllers\CadastroPecasController::class, 'index']);
+$router->post('/cadastro-pecas/store', [App\Controllers\CadastroPecasController::class, 'store']);
+$router->post('/cadastro-pecas/update', [App\Controllers\CadastroPecasController::class, 'update']);
+$router->post('/cadastro-pecas/delete', [App\Controllers\CadastroPecasController::class, 'delete']);
+
 // Other routes
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
