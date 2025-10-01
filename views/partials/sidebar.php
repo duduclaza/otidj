@@ -89,7 +89,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       <div class="text-xs text-slate-400">Gestão da Qualidade</div>
     </div>
   </div>
-  <nav class="flex-1 overflow-y-auto py-4">
+  <nav class="flex-1 overflow-y-auto py-4 sidebar-scroll">
     <ul class="space-y-1 px-3">
       <!-- Início - acessível a todos os usuários autenticados -->
       <li>
@@ -360,6 +360,26 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     
     .beta-menu:hover .beta-badge {
       animation: pulse 0.5s;
+    }
+    
+    /* Ocultar scrollbar da sidebar */
+    .sidebar-scroll {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* Internet Explorer 10+ */
+    }
+    
+    .sidebar-scroll::-webkit-scrollbar {
+      display: none; /* WebKit */
+    }
+    
+    /* Ocultar scrollbar dos submenus */
+    .submenu {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* Internet Explorer 10+ */
+    }
+    
+    .submenu::-webkit-scrollbar {
+      display: none; /* WebKit */
     }
   </style>
   
