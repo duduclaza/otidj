@@ -210,7 +210,7 @@ $userId = $_SESSION['user_id'];
             </td>
             <?php endif; ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-              <button onclick="viewMelhoria(<?= $melhoria['id'] ?>)" class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
+              <button onclick="viewMelhoria(<?= $melhoria['id'] ?>); return false;" class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
                 👁️ Ver
               </button>
               
@@ -434,11 +434,26 @@ async function updatePontuacaoInline(id, pontuacao) {
 
 // Ver Detalhes da Melhoria
 async function viewMelhoria(id) {
+  console.log('viewMelhoria chamada com ID:', id);
+  
   const modal = document.getElementById('viewModal');
   const content = document.getElementById('viewModalContent');
   
+  if (!modal) {
+    console.error('Modal viewModal não encontrado!');
+    alert('❌ Erro: Modal não encontrado no DOM');
+    return;
+  }
+  
+  if (!content) {
+    console.error('viewModalContent não encontrado!');
+    alert('❌ Erro: Container de conteúdo não encontrado');
+    return;
+  }
+  
   content.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p class="mt-4 text-gray-600">Carregando...</p></div>';
   modal.classList.remove('hidden');
+  console.log('Modal aberto');
   
   try {
     console.log('Buscando detalhes da melhoria ID:', id);
@@ -446,20 +461,23 @@ async function viewMelhoria(id) {
     console.log('Response status:', response.status);
     
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Erro na resposta:', errorText);
       throw new Error(`HTTP ${response.status}`);
     }
     
     const data = await response.json();
     console.log('Dados recebidos:', data);
     
-    if (data.success) {
+    if (data.success && data.melhoria) {
       content.innerHTML = generateDetailHTML(data.melhoria);
+      console.log('Conteúdo renderizado com sucesso');
     } else {
-      content.innerHTML = `<div class="text-red-600">❌ Erro: ${data.message || 'Erro desconhecido'}</div>`;
+      content.innerHTML = `<div class="text-red-600 p-4">❌ Erro: ${data.message || 'Dados não encontrados'}</div>`;
     }
   } catch (error) {
     console.error('Erro ao carregar detalhes:', error);
-    content.innerHTML = `<div class="text-red-600">❌ Erro ao carregar detalhes: ${error.message}</div>`;
+    content.innerHTML = `<div class="text-red-600 p-4">❌ Erro ao carregar detalhes: ${error.message}<br><br>Verifique o console para mais detalhes.</div>`;
   }
 }
 

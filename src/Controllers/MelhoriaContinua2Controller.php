@@ -31,10 +31,11 @@ class MelhoriaContinua2Controller
         if ($isAdmin) {
             // Admin vê todas as melhorias
             $stmt = $this->db->prepare('
-                SELECT m.*, u.name as criador_nome,
+                SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
                        GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
                 FROM melhoria_continua_2 m
                 LEFT JOIN users u ON m.criado_por = u.id
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
                 LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
                 GROUP BY m.id
                 ORDER BY m.created_at DESC
@@ -43,10 +44,11 @@ class MelhoriaContinua2Controller
         } else {
             // Usuário comum vê apenas suas melhorias e aquelas onde é responsável
             $stmt = $this->db->prepare('
-                SELECT m.*, u.name as criador_nome,
+                SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
                        GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
                 FROM melhoria_continua_2 m
                 LEFT JOIN users u ON m.criado_por = u.id
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
                 LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
                 WHERE m.criado_por = :user_id OR FIND_IN_SET(:user_id, m.responsaveis)
                 GROUP BY m.id
