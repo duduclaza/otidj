@@ -526,7 +526,7 @@ async function editarAmostragem(id) {
     console.log('Response text:', text);
     
     if (!text || text.trim() === '') {
-      alert('Funcionalidade de edição em desenvolvimento. Servidor retornou resposta vazia.');
+      alert('Funcionalidade de edição em desenvolvimento. Em breve fica prontinha :)');
       return;
     }
     
@@ -590,7 +590,7 @@ async function editarAmostragem(id) {
     }
   } catch (error) {
     console.error('Erro ao carregar dados:', error);
-    alert('Funcionalidade de edição em desenvolvimento. Erro: ' + error.message);
+    alert('Funcionalidade de edição em desenvolvimento. Em breve fica prontinha :)');
   }
 }
 
