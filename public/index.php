@@ -127,8 +127,10 @@ $router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2C
 $router->get('/amostragens-2', [App\Controllers\Amostragens2Controller::class, 'index']);
 $router->post('/amostragens-2/store', [App\Controllers\Amostragens2Controller::class, 'store']);
 $router->get('/amostragens-2/{id}/download-nf', [App\Controllers\Amostragens2Controller::class, 'downloadNf']);
+$router->get('/amostragens-2/{id}/details', [App\Controllers\Amostragens2Controller::class, 'details']);
 $router->get('/amostragens-2/{id}/evidencias', [App\Controllers\Amostragens2Controller::class, 'getEvidencias']);
 $router->get('/amostragens-2/{id}/download-evidencia/{evidenciaId}', [App\Controllers\Amostragens2Controller::class, 'downloadEvidencia']);
+$router->post('/amostragens-2/update', [App\Controllers\Amostragens2Controller::class, 'update']);
 $router->post('/amostragens-2/delete', [App\Controllers\Amostragens2Controller::class, 'delete']);
 $router->get('/amostragens-2/export', [App\Controllers\Amostragens2Controller::class, 'exportExcel']);
 $router->get('/amostragens-2/graficos', [App\Controllers\Amostragens2Controller::class, 'graficos']);

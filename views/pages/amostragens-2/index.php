@@ -497,9 +497,64 @@ function closeEvidenciasModal() {
 }
 
 // Editar amostragem
-function editarAmostragem(id) {
-  alert('Funcionalidade de edição em desenvolvimento');
-  // TODO: Implementar edição
+async function editarAmostragem(id) {
+  try {
+    const response = await fetch(`/amostragens-2/${id}/details`);
+    const data = await response.json();
+    
+    if (data.success) {
+      const amostra = data.amostragem;
+      
+      // Preencher formulário
+      document.getElementById('amostragemFormContainer').classList.remove('hidden');
+      document.querySelector('input[name="numero_nf"]').value = amostra.numero_nf;
+      document.getElementById('tipoProduto').value = amostra.tipo_produto;
+      
+      // Carregar produtos do tipo selecionado
+      carregarProdutos();
+      
+      // Aguardar um pouco para produtos carregarem
+      setTimeout(() => {
+        document.getElementById('produtoSelect').value = amostra.produto_id;
+        document.getElementById('codigoProduto').value = amostra.codigo_produto;
+        document.getElementById('nomeProduto').value = amostra.nome_produto;
+      }, 100);
+      
+      document.querySelector('input[name="quantidade_recebida"]').value = amostra.quantidade_recebida;
+      document.querySelector('input[name="quantidade_testada"]').value = amostra.quantidade_testada;
+      document.querySelector('input[name="quantidade_aprovada"]').value = amostra.quantidade_aprovada;
+      document.querySelector('input[name="quantidade_reprovada"]').value = amostra.quantidade_reprovada;
+      document.querySelector('select[name="fornecedor_id"]').value = amostra.fornecedor_id;
+      document.querySelector('select[name="status_final"]').value = amostra.status_final;
+      
+      // Selecionar responsáveis
+      if (amostra.responsaveis) {
+        const responsaveisIds = amostra.responsaveis.split(',');
+        const responsaveisSelect = document.querySelector('select[name="responsaveis[]"]');
+        Array.from(responsaveisSelect.options).forEach(option => {
+          option.selected = responsaveisIds.includes(option.value);
+        });
+      }
+      
+      // Adicionar campo hidden com ID
+      let hiddenId = document.querySelector('input[name="amostragem_id"]');
+      if (!hiddenId) {
+        hiddenId = document.createElement('input');
+        hiddenId.type = 'hidden';
+        hiddenId.name = 'amostragem_id';
+        document.getElementById('amostragemForm').appendChild(hiddenId);
+      }
+      hiddenId.value = id;
+      
+      // Mudar action do form
+      document.getElementById('amostragemForm').action = '/amostragens-2/update';
+      
+      // Scroll para o formulário
+      document.getElementById('amostragemFormContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+  } catch (error) {
+    alert('Erro ao carregar dados para edição');
+  }
 }
 
 // Excluir amostragem

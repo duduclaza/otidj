@@ -399,6 +399,105 @@ class Amostragens2Controller
         }
     }
 
+    public function details($id = null): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $id = (int)$id;
+            
+            $stmt = $this->db->prepare('SELECT * FROM amostragens_2 WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$amostragem) {
+                echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
+                return;
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'amostragem' => $amostragem
+            ]);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes']);
+        }
+    }
+
+    public function update(): void
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $id = (int)($_POST['amostragem_id'] ?? 0);
+            
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                return;
+            }
+
+            $numeroNf = trim($_POST['numero_nf'] ?? '');
+            $tipoProduto = $_POST['tipo_produto'] ?? '';
+            $produtoId = (int)($_POST['produto_id'] ?? 0);
+            $codigoProduto = trim($_POST['codigo_produto'] ?? '');
+            $nomeProduto = trim($_POST['nome_produto'] ?? '');
+            $quantidadeRecebida = (int)($_POST['quantidade_recebida'] ?? 0);
+            $quantidadeTestada = (int)($_POST['quantidade_testada'] ?? 0);
+            $quantidadeAprovada = (int)($_POST['quantidade_aprovada'] ?? 0);
+            $quantidadeReprovada = (int)($_POST['quantidade_reprovada'] ?? 0);
+            $fornecedorId = (int)($_POST['fornecedor_id'] ?? 0);
+            $responsaveis = $_POST['responsaveis'] ?? [];
+            $statusFinal = $_POST['status_final'] ?? 'Pendente';
+            
+            $responsaveisStr = !empty($responsaveis) ? implode(',', $responsaveis) : '';
+
+            $stmt = $this->db->prepare('
+                UPDATE amostragens_2 SET
+                    numero_nf = :numero_nf,
+                    tipo_produto = :tipo_produto,
+                    produto_id = :produto_id,
+                    codigo_produto = :codigo_produto,
+                    nome_produto = :nome_produto,
+                    quantidade_recebida = :quantidade_recebida,
+                    quantidade_testada = :quantidade_testada,
+                    quantidade_aprovada = :quantidade_aprovada,
+                    quantidade_reprovada = :quantidade_reprovada,
+                    fornecedor_id = :fornecedor_id,
+                    responsaveis = :responsaveis,
+                    status_final = :status_final,
+                    updated_at = NOW()
+                WHERE id = :id
+            ');
+
+            $stmt->execute([
+                ':id' => $id,
+                ':numero_nf' => $numeroNf,
+                ':tipo_produto' => $tipoProduto,
+                ':produto_id' => $produtoId,
+                ':codigo_produto' => $codigoProduto,
+                ':nome_produto' => $nomeProduto,
+                ':quantidade_recebida' => $quantidadeRecebida,
+                ':quantidade_testada' => $quantidadeTestada,
+                ':quantidade_aprovada' => $quantidadeAprovada,
+                ':quantidade_reprovada' => $quantidadeReprovada,
+                ':fornecedor_id' => $fornecedorId,
+                ':responsaveis' => $responsaveisStr,
+                ':status_final' => $statusFinal
+            ]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Amostragem atualizada com sucesso!',
+                'redirect' => '/amostragens-2'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao atualizar amostragem: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar: ' . $e->getMessage()]);
+        }
+    }
+
     public function delete(): void
     {
         header('Content-Type: application/json');
