@@ -22,7 +22,7 @@ $userId = $_SESSION['user_id'];
 
   <!-- Filtros -->
   <div class="bg-white border rounded-lg p-4">
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
         <input type="text" id="searchInput" placeholder="Título, descrição..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -35,17 +35,119 @@ $userId = $_SESSION['user_id'];
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
         <input type="date" id="dateTo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
-      <div class="flex items-end">
-        <button onclick="filterData()" class="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors">
+      <div class="flex items-end space-x-2">
+        <button onclick="filterData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
           Filtrar
         </button>
-      </div>
-      <div class="flex items-end">
-        <button onclick="clearFilters()" class="w-full bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition-colors">
+        <button onclick="clearFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
           Limpar
         </button>
       </div>
     </div>
+  </div>
+
+  <!-- Formulário Inline -->
+  <div id="melhoriaFormContainer" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-lg font-semibold text-gray-100">🚀 Nova Melhoria Contínua 2.0 <span class="beta-badge ml-2">BETA</span></h2>
+      <button onclick="closeMelhoriaModal()" class="text-gray-400 hover:text-gray-200">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form id="melhoriaForm" class="space-y-6" enctype="multipart/form-data">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Data de Registro</label>
+          <input type="text" value="<?= date('d/m/Y H:i') ?>" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 cursor-not-allowed" readonly>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Departamento *</label>
+          <select name="departamento_id" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Selecione o departamento...</option>
+            <?php foreach ($departamentos as $dept): ?>
+              <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Título *</label>
+        <input type="text" name="titulo" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Título da melhoria...">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Descrição da Melhoria *</label>
+        <textarea name="resultado_esperado" required rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
+      </div>
+      
+      <!-- 5W2H Compacto -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">O que será feito? *</label>
+          <textarea name="o_que" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="O que será implementado..."></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Como será feito? *</label>
+          <textarea name="como" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Como será executado..."></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Onde será feito? *</label>
+          <textarea name="onde" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Local de aplicação..."></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Por que será feito? *</label>
+          <textarea name="porque" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Justificativa..."></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Quando será feito? *</label>
+          <input type="date" name="quando" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Quanto custa?</label>
+          <input type="number" step="0.01" name="quanto_custa" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="R$ 0,00">
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Idealizador da Ideia *</label>
+          <input type="text" name="idealizador" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nome do idealizador...">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-200 mb-1">Responsáveis</label>
+          <select name="responsaveis[]" multiple class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" style="min-height: 100px;">
+            <?php foreach ($usuarios as $usuario): ?>
+              <option value="<?= $usuario['id'] ?>"><?= e($usuario['name']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          <p class="text-xs text-gray-400 mt-1">Segure Ctrl para selecionar múltiplos</p>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Observações</label>
+        <textarea name="observacao" rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Observações adicionais..."></textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Anexos</label>
+        <input type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.ppt,.pptx" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200">
+        <p class="text-xs text-gray-400 mt-1">Máximo 5 arquivos de 10MB cada. Formatos: JPG, PNG, GIF, PDF, PPT, PPTX</p>
+      </div>
+      
+      <div class="flex justify-end space-x-3 pt-4">
+        <button type="button" onclick="closeMelhoriaModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+          Cancelar
+        </button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Salvar Melhoria
+        </button>
+      </div>
+    </form>
   </div>
 
   <!-- Tabela de Melhorias -->
@@ -117,192 +219,7 @@ $userId = $_SESSION['user_id'];
   </div>
 </section>
 
-<!-- Modal Nova Melhoria -->
-<div id="melhoriaModal">
-    <div class="modal-content-wrapper">
-      <div class="bg-gray-800 w-full">
-        <div class="flex justify-between items-center p-6 border-b border-gray-700">
-          <h2 class="text-xl font-semibold text-white">Nova Melhoria Contínua</h2>
-          <button onclick="closeMelhoriaModal()" class="text-gray-400 hover:text-white">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <form id="melhoriaForm" class="p-6 space-y-6" enctype="multipart/form-data">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Data de Registro</label>
-              <input type="text" value="<?= date('d/m/Y H:i') ?>" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white" readonly>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Departamento *</label>
-              <select name="departamento_id" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white">
-                <option value="">Selecione o departamento...</option>
-                <?php foreach ($departamentos as $dept): ?>
-                  <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Título *</label>
-            <input type="text" name="titulo" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="Título da melhoria...">
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Descrição da Melhoria *</label>
-            <textarea name="resultado_esperado" required rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white resize-none" placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
-          </div>
-          
-          <!-- 5W2H Compacto -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">O que será feito? *</label>
-              <textarea name="o_que" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white resize-none" placeholder="O que será implementado..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Como será feito? *</label>
-              <textarea name="como" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white resize-none" placeholder="Como será executado..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Onde será feito? *</label>
-              <textarea name="onde" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white resize-none" placeholder="Local de aplicação..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Por que será feito? *</label>
-              <textarea name="porque" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white resize-none" placeholder="Justificativa..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Quando será feito? *</label>
-              <input type="date" name="quando" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Quanto custa?</label>
-              <input type="number" step="0.01" name="quanto_custa" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="R$ 0,00">
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Idealizador da Ideia *</label>
-              <input type="text" name="idealizador" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white" placeholder="Nome do idealizador...">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Responsáveis</label>
-              <select name="responsaveis[]" multiple class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white" style="height: 100px;">
-                <?php foreach ($usuarios as $usuario): ?>
-                  <option value="<?= $usuario['id'] ?>"><?= e($usuario['name']) ?></option>
-                <?php endforeach; ?>
-              </select>
-              <p class="text-xs text-gray-400 mt-1">Segure Ctrl para selecionar múltiplos</p>
-            </div>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Observações</label>
-            <textarea name="observacao" rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white resize-none" placeholder="Observações adicionais..."></textarea>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Anexos</label>
-            <input type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.ppt,.pptx" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white">
-            <p class="text-xs text-gray-400 mt-1">Máximo 5 arquivos de 10MB cada. Formatos: JPG, PNG, GIF, PDF, PPT, PPTX</p>
-          </div>
-          
-          <div class="flex justify-end space-x-3 pt-4">
-            <button type="button" onclick="closeMelhoriaModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-              Cancelar
-            </button>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Salvar Melhoria
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-</div>
-
 <style>
-/* Modal - Overlay que cobre TUDO */
-#melhoriaModal {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background-color: rgba(0, 0, 0, 0.7) !important;
-  display: none;
-  z-index: 999999 !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-#melhoriaModal.show {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* Container do formulário - GRANDE e SEM bordas */
-.modal-content-wrapper {
-  position: relative !important;
-  z-index: 1000000 !important;
-  max-width: 1400px !important;
-  width: 98% !important;
-  max-height: 98vh !important;
-  overflow-y: auto !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-}
-
-/* ESCONDER scrollbar completamente */
-.modal-content-wrapper::-webkit-scrollbar {
-  width: 0px;
-  display: none;
-}
-
-.modal-content-wrapper::-webkit-scrollbar-track {
-  display: none;
-}
-
-.modal-content-wrapper::-webkit-scrollbar-thumb {
-  display: none;
-}
-
-/* Firefox - esconder scrollbar */
-.modal-content-wrapper {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-/* Formulário interno - bordas arredondadas */
-#melhoriaModal .bg-gray-800 {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
-  border-radius: 12px !important;
-  overflow: visible !important;
-}
-
-/* Garantir que modal fique acima de sidebar e outros elementos */
-body.modal-open {
-  overflow: hidden !important;
-}
-
-.sidebar,
-nav,
-header,
-.navbar {
-  position: relative !important;
-  z-index: 100 !important;
-}
 
 /* Badge BETA */
 .beta-badge {
@@ -357,30 +274,20 @@ header,
 </style>
 
 <script>
-// Funções do Modal
+// Funções do Formulário Inline
 function openMelhoriaModal() {
-  const modal = document.getElementById('melhoriaModal');
-  if (modal) {
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
-    document.body.style.overflow = 'hidden';
-    
-    // Forçar display como fallback
-    setTimeout(() => {
-      if (window.getComputedStyle(modal).display === 'none') {
-        modal.style.display = 'flex';
-      }
-    }, 50);
+  const formContainer = document.getElementById('melhoriaFormContainer');
+  if (formContainer) {
+    formContainer.classList.remove('hidden');
+    // Scroll suave até o formulário
+    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
 function closeMelhoriaModal() {
-  const modal = document.getElementById('melhoriaModal');
-  if (modal) {
-    modal.classList.remove('show');
-    modal.style.display = '';
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
+  const formContainer = document.getElementById('melhoriaFormContainer');
+  if (formContainer) {
+    formContainer.classList.add('hidden');
     document.getElementById('melhoriaForm').reset();
   }
 }
@@ -403,30 +310,15 @@ function clearFilters() {
   window.location.reload();
 }
 
-// Mover modal para container global e configurar eventos
+// Configurar eventos
 document.addEventListener('DOMContentLoaded', function() {
-  const modal = document.getElementById('melhoriaModal');
-  const globalContainer = document.getElementById('global-modals-container');
-  
-  if (modal && globalContainer) {
-    // Mover modal para fora do container principal
-    globalContainer.appendChild(modal);
-    console.log('✅ Modal movido para container global');
-    
-    // Clicar fora do modal
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        closeMelhoriaModal();
-      }
-    });
-    
-    // Pressionar ESC
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && modal.classList.contains('show')) {
-        closeMelhoriaModal();
-      }
-    });
-  }
+  // Pressionar ESC para fechar formulário
+  document.addEventListener('keydown', function(e) {
+    const formContainer = document.getElementById('melhoriaFormContainer');
+    if (e.key === 'Escape' && formContainer && !formContainer.classList.contains('hidden')) {
+      closeMelhoriaModal();
+    }
+  });
 });
 
 // Submit do formulário
