@@ -18,13 +18,19 @@ class MelhoriaContinua2Controller
     public function index(): void
     {
         try {
+            error_log("=== MELHORIA CONTINUA 2.0 INDEX ===");
+            error_log("User ID: " . ($_SESSION['user_id'] ?? 'NULL'));
+            error_log("User Role: " . ($_SESSION['user_role'] ?? 'NULL'));
+            
             // Verificar permissão (admin sempre tem acesso)
             if ($_SESSION['user_role'] !== 'admin' && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
+                error_log("ACESSO NEGADO - Sem permissão");
                 http_response_code(403);
                 echo "Acesso negado";
                 return;
             }
 
+            error_log("Permissão OK - Carregando dados");
             $userId = $_SESSION['user_id'];
             $isAdmin = $_SESSION['user_role'] === 'admin';
 
@@ -75,9 +81,13 @@ class MelhoriaContinua2Controller
             include __DIR__ . '/../../views/layouts/main.php';
             
         } catch (\Exception $e) {
-            error_log("Erro no módulo Melhoria Contínua 2.0: " . $e->getMessage());
+            error_log("=== ERRO MELHORIA CONTINUA 2.0 ===");
+            error_log("Mensagem: " . $e->getMessage());
+            error_log("Arquivo: " . $e->getFile());
+            error_log("Linha: " . $e->getLine());
+            error_log("Stack trace: " . $e->getTraceAsString());
             http_response_code(500);
-            echo "Erro ao carregar o módulo. Por favor, tente novamente.";
+            echo "Erro ao carregar o módulo: " . $e->getMessage();
         }
     }
 
