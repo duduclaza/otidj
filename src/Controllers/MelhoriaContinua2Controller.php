@@ -184,8 +184,9 @@ class MelhoriaContinua2Controller
                 return;
             }
 
-            // Só pode editar se for o criador e status for "Pendente Adaptação"
-            if ($melhoria['criado_por'] != $userId || $melhoria['status'] !== 'Pendente Adaptação') {
+            // Admin pode editar qualquer melhoria, usuário comum só se for criador e status "Pendente Adaptação"
+            $isAdmin = $_SESSION['user_role'] === 'admin';
+            if (!$isAdmin && ($melhoria['criado_por'] != $userId || $melhoria['status'] !== 'Pendente Adaptação')) {
                 echo json_encode(['success' => false, 'message' => 'Você não pode editar esta melhoria']);
                 return;
             }
@@ -206,12 +207,20 @@ class MelhoriaContinua2Controller
 
             $responsaveis_str = !empty($responsaveis) ? implode(',', $responsaveis) : '';
 
-            // Processar novos anexos se houver
-            $anexos_existentes = json_decode($melhoria['anexos'] ?? '[]', true);
+            // Processar anexos
+            // 1. Pegar anexos atuais (já filtrados pelo frontend - removidos os deletados)
+            $anexos_atuais = [];
+            if (!empty($_POST['anexos_atuais'])) {
+                $anexos_atuais = json_decode($_POST['anexos_atuais'], true) ?? [];
+            }
+            
+            // 2. Processar novos anexos se houver
             if (!empty($_FILES['anexos']['name'][0])) {
                 $novos_anexos = $this->processarAnexos($_FILES['anexos']);
-                $anexos_existentes = array_merge($anexos_existentes, $novos_anexos);
+                $anexos_atuais = array_merge($anexos_atuais, $novos_anexos);
             }
+            
+            error_log("Anexos finais para update: " . print_r($anexos_atuais, true));
 
             $stmt = $this->db->prepare('
                 UPDATE melhoria_continua_2 SET
@@ -238,7 +247,7 @@ class MelhoriaContinua2Controller
                 ':resultado_esperado' => $resultado_esperado,
                 ':idealizador' => $idealizador,
                 ':observacao' => $observacao,
-                ':anexos' => json_encode($anexos_existentes)
+                ':anexos' => json_encode($anexos_atuais)
             ]);
 
             // Enviar notificações

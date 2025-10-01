@@ -133,8 +133,16 @@ $userId = $_SESSION['user_id'];
         <textarea name="observacao" rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Observações adicionais..."></textarea>
       </div>
       
+      <!-- Anexos Existentes -->
+      <div id="anexosExistentesContainer" class="hidden">
+        <label class="block text-sm font-medium text-gray-200 mb-2">Anexos Atuais</label>
+        <div id="anexosExistentesList" class="space-y-2 mb-4">
+          <!-- Anexos carregados dinamicamente -->
+        </div>
+      </div>
+      
       <div>
-        <label class="block text-sm font-medium text-gray-200 mb-1">Anexos</label>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Adicionar Novos Anexos</label>
         <input type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.ppt,.pptx" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200">
         <p class="text-xs text-gray-400 mt-1">Máximo 5 arquivos de 10MB cada. Formatos: JPG, PNG, GIF, PDF, PPT, PPTX</p>
       </div>
@@ -316,6 +324,9 @@ $userId = $_SESSION['user_id'];
 function openMelhoriaModal() {
   const formContainer = document.getElementById('melhoriaFormContainer');
   if (formContainer) {
+    // Limpar formulário para nova melhoria
+    limparFormulario();
+    
     formContainer.classList.remove('hidden');
     // Scroll suave até o formulário
     formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -326,8 +337,25 @@ function closeMelhoriaModal() {
   const formContainer = document.getElementById('melhoriaFormContainer');
   if (formContainer) {
     formContainer.classList.add('hidden');
-    document.getElementById('melhoriaForm').reset();
+    limparFormulario();
   }
+}
+
+function limparFormulario() {
+  const form = document.getElementById('melhoriaForm');
+  form.reset();
+  form.action = '/melhoria-continua-2/store';
+  
+  // Remover campos hidden de edição
+  const hiddenId = document.querySelector('[name="id"]');
+  if (hiddenId) hiddenId.remove();
+  
+  const anexosField = document.querySelector('[name="anexos_atuais"]');
+  if (anexosField) anexosField.remove();
+  
+  // Esconder anexos existentes
+  document.getElementById('anexosExistentesContainer').classList.add('hidden');
+  document.getElementById('anexosExistentesList').innerHTML = '';
 }
 
 // Funções de Filtro
@@ -821,6 +849,39 @@ async function editMelhoria(id) {
         });
       }
       
+      // Mostrar anexos existentes
+      const anexosContainer = document.getElementById('anexosExistentesContainer');
+      const anexosList = document.getElementById('anexosExistentesList');
+      
+      if (m.anexos && m.anexos.length > 0) {
+        anexosContainer.classList.remove('hidden');
+        anexosList.innerHTML = m.anexos.map((anexo, index) => `
+          <div class="flex items-center justify-between bg-gray-700 p-3 rounded-lg" id="anexo-${index}">
+            <div class="flex items-center space-x-3">
+              ${anexo.tipo && anexo.tipo.includes('image') ? '🖼️' : '📄'}
+              <span class="text-gray-200">${anexo.nome}</span>
+              <span class="text-xs text-gray-400">(${(anexo.tamanho / 1024).toFixed(1)} KB)</span>
+            </div>
+            <button type="button" onclick="removerAnexo(${index}, '${anexo.arquivo}')" 
+                    class="text-red-400 hover:text-red-600 px-3 py-1 rounded">
+              🗑️ Remover
+            </button>
+          </div>
+        `).join('');
+        
+        // Guardar anexos atuais em campo hidden
+        let anexosField = document.querySelector('[name="anexos_atuais"]');
+        if (!anexosField) {
+          anexosField = document.createElement('input');
+          anexosField.type = 'hidden';
+          anexosField.name = 'anexos_atuais';
+          document.getElementById('melhoriaForm').appendChild(anexosField);
+        }
+        anexosField.value = JSON.stringify(m.anexos);
+      } else {
+        anexosContainer.classList.add('hidden');
+      }
+      
       // Adicionar campo hidden com ID para update
       let hiddenId = document.querySelector('[name="id"]');
       if (!hiddenId) {
@@ -831,7 +892,7 @@ async function editMelhoria(id) {
       }
       hiddenId.value = id;
       
-      // Alterar action do formulário
+      // Alterar action do formulário para update
       document.getElementById('melhoriaForm').action = '/melhoria-continua-2/update';
       
       // Abrir formulário
@@ -841,7 +902,34 @@ async function editMelhoria(id) {
       document.getElementById('melhoriaFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   } catch (error) {
+    console.error('Erro ao carregar dados:', error);
     alert('❌ Erro ao carregar dados para edição');
+  }
+}
+
+// Remover anexo da lista
+function removerAnexo(index, arquivo) {
+  if (!confirm('Tem certeza que deseja remover este anexo?')) {
+    return;
+  }
+  
+  // Remover da interface
+  const elemento = document.getElementById(`anexo-${index}`);
+  if (elemento) {
+    elemento.remove();
+  }
+  
+  // Atualizar campo hidden
+  const anexosField = document.querySelector('[name="anexos_atuais"]');
+  if (anexosField) {
+    const anexos = JSON.parse(anexosField.value);
+    anexos.splice(index, 1);
+    anexosField.value = JSON.stringify(anexos);
+    
+    // Se não há mais anexos, esconder container
+    if (anexos.length === 0) {
+      document.getElementById('anexosExistentesContainer').classList.add('hidden');
+    }
   }
 }
 
