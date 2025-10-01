@@ -21,19 +21,34 @@ class FinanceiroController
 
     public function index(): void
     {
-        $isAdmin = $_SESSION['user_role'] === 'admin';
-        
-        // Apenas admin pode acessar
-        if (!$isAdmin) {
-            http_response_code(403);
-            echo "Acesso negado. Apenas administradores podem acessar este módulo.";
-            return;
-        }
+        try {
+            $isAdmin = $_SESSION['user_role'] === 'admin';
+            
+            // Apenas admin pode acessar
+            if (!$isAdmin) {
+                http_response_code(403);
+                echo "Acesso negado. Apenas administradores podem acessar este módulo.";
+                return;
+            }
 
-        // Página em breve
-        $title = 'Financeiro - SGQ OTI DJ';
-        $viewFile = __DIR__ . '/../../views/pages/financeiro/em-breve.php';
-        include __DIR__ . '/../../views/layouts/main.php';
+            // Página em breve
+            $title = 'Financeiro - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/financeiro/em-breve.php';
+            
+            error_log("FinanceiroController - Caminho do arquivo: " . $viewFile);
+            error_log("FinanceiroController - Arquivo existe? " . (file_exists($viewFile) ? 'SIM' : 'NÃO'));
+            
+            if (!file_exists($viewFile)) {
+                echo "<h1>Erro: Arquivo não encontrado</h1>";
+                echo "<p>Caminho: " . $viewFile . "</p>";
+                return;
+            }
+            
+            include __DIR__ . '/../../views/layouts/main.php';
+        } catch (\Exception $e) {
+            error_log("Erro no FinanceiroController: " . $e->getMessage());
+            echo "Erro: " . $e->getMessage();
+        }
     }
 
     public function anexarComprovante(): void
