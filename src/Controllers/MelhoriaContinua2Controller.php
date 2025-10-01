@@ -17,15 +17,16 @@ class MelhoriaContinua2Controller
 
     public function index(): void
     {
-        // Verificar permissão (admin sempre tem acesso)
-        if ($_SESSION['user_role'] !== 'admin' && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
-            http_response_code(403);
-            echo "Acesso negado";
-            return;
-        }
+        try {
+            // Verificar permissão (admin sempre tem acesso)
+            if ($_SESSION['user_role'] !== 'admin' && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
+                http_response_code(403);
+                echo "Acesso negado";
+                return;
+            }
 
-        $userId = $_SESSION['user_id'];
-        $isAdmin = $_SESSION['user_role'] === 'admin';
+            $userId = $_SESSION['user_id'];
+            $isAdmin = $_SESSION['user_role'] === 'admin';
 
         // Buscar melhorias baseado nas regras de visibilidade
         if ($isAdmin) {
@@ -69,9 +70,15 @@ class MelhoriaContinua2Controller
         $stmt->execute();
         $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $title = 'Melhoria Contínua 2.0 - SGQ OTI DJ';
-        $viewFile = __DIR__ . '/../../views/pages/melhoria-continua-2/index.php';
-        include __DIR__ . '/../../views/layouts/main.php';
+            $title = 'Melhoria Contínua 2.0 - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/melhoria-continua-2/index.php';
+            include __DIR__ . '/../../views/layouts/main.php';
+            
+        } catch (\Exception $e) {
+            error_log("Erro no módulo Melhoria Contínua 2.0: " . $e->getMessage());
+            http_response_code(500);
+            echo "Erro ao carregar o módulo. Por favor, tente novamente.";
+        }
     }
 
     public function store(): void
