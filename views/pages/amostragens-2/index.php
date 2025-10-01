@@ -516,9 +516,14 @@ function closeEvidenciasModal() {
 
 // Editar amostragem
 async function editarAmostragem(id) {
+  console.log('Carregando dados para edição, ID:', id);
+  
   try {
     const response = await fetch(`/amostragens-2/${id}/details`);
+    console.log('Response status:', response.status);
+    
     const data = await response.json();
+    console.log('Dados recebidos:', data);
     
     if (data.success) {
       const amostra = data.amostragem;
@@ -569,9 +574,15 @@ async function editarAmostragem(id) {
       
       // Scroll para o formulário
       document.getElementById('amostragemFormContainer').scrollIntoView({ behavior: 'smooth' });
+      
+      console.log('Formulário preenchido com sucesso!');
+    } else {
+      console.error('Erro na resposta:', data.message);
+      alert('Erro: ' + (data.message || 'Não foi possível carregar os dados'));
     }
   } catch (error) {
-    alert('Erro ao carregar dados para edição');
+    console.error('Erro ao carregar dados:', error);
+    alert('Funcionalidade de edição em desenvolvimento. Erro: ' + error.message);
   }
 }
 
