@@ -85,7 +85,6 @@ $menu = [
       ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
       ['label' => 'Solicitações de Acesso', 'href' => '/admin/access-requests', 'icon' => '📧', 'module' => 'admin_convites'],
       ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
-      ['label' => 'Financeiro', 'href' => '/financeiro', 'icon' => '💰', 'module' => 'financeiro'],
     ]
   ],
 ];
