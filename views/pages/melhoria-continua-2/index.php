@@ -1,7 +1,7 @@
-<?php
-$pageTitle = 'Melhoria Contínua 2.0';
-$currentPage = 'melhoria-continua-2';
-include __DIR__ . '/../../layouts/header.php';
+<?php 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $isAdmin = $_SESSION['user_role'] === 'admin';
 $userId = $_SESSION['user_id'];
@@ -356,5 +356,3 @@ function deleteMelhoria(id) {
   }
 }
 </script>
-
-<?php include __DIR__ . '/../../layouts/footer.php'; ?>

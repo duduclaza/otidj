@@ -67,7 +67,9 @@ class MelhoriaContinua2Controller
         $stmt->execute();
         $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        include __DIR__ . '/../../views/pages/melhoria-continua-2/index.php';
+        $title = 'Melhoria Contínua 2.0 - SGQ OTI DJ';
+        $viewFile = __DIR__ . '/../../views/pages/melhoria-continua-2/index.php';
+        include __DIR__ . '/../../views/layouts/main.php';
     }
 
     public function store(): void
