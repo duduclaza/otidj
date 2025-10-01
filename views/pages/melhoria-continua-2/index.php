@@ -151,8 +151,8 @@ $userId = $_SESSION['user_id'];
         <button type="button" onclick="closeMelhoriaModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
           Cancelar
         </button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Salvar Melhoria
+        <button type="submit" id="submitButton" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          💾 Salvar Melhoria
         </button>
       </div>
     </form>
@@ -337,6 +337,11 @@ function limparFormulario() {
   // Esconder anexos existentes
   document.getElementById('anexosExistentesContainer').classList.add('hidden');
   document.getElementById('anexosExistentesList').innerHTML = '';
+  
+  // Mudar botão para "Salvar"
+  const submitButton = document.getElementById('submitButton');
+  submitButton.innerHTML = '💾 Salvar Melhoria';
+  submitButton.className = 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors';
 }
 
 // Funções de Filtro
@@ -862,6 +867,11 @@ async function editMelhoria(id) {
       // Alterar action do formulário para update
       form.action = '/melhoria-continua-2/update';
       console.log('Action alterada para:', form.action);
+      
+      // Mudar botão para "Atualizar"
+      const submitButton = document.getElementById('submitButton');
+      submitButton.innerHTML = '🔄 Atualizar Melhoria';
+      submitButton.className = 'px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors';
       
       // Abrir formulário (sem limpar!)
       const formContainer = document.getElementById('melhoriaFormContainer');
