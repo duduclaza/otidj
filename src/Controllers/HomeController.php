@@ -20,11 +20,26 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.8';
+        $systemVersion = '2.2.9';
         $lastUpdate = '01/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.9',
+                'date' => '01/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Botão Limpar Filtros em Registro de Retornados',
+                'description' => 'Adicionado botão para limpar filtros rapidamente no módulo de retornados',
+                'items' => [
+                    'Novo botão "Limpar" ao lado do botão "Filtrar"',
+                    'Limpa automaticamente busca por texto, data inicial e data final',
+                    'Mostra todas as linhas da tabela novamente',
+                    'Feedback visual com notificação de sucesso',
+                    'Layout responsivo ajustado para 6 colunas',
+                    'Ícone de lixeira para identificação visual clara'
+                ]
+            ],
             [
                 'version' => '2.2.8',
                 'date' => '01/10/2025',
