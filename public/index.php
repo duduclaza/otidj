@@ -120,6 +120,7 @@ $router->post('/melhoria-continua-2/update-status', [App\Controllers\MelhoriaCon
 $router->post('/melhoria-continua-2/{id}/update-status', [App\Controllers\MelhoriaContinua2Controller::class, 'updateStatus']);
 $router->post('/melhoria-continua-2/{id}/update-pontuacao', [App\Controllers\MelhoriaContinua2Controller::class, 'updatePontuacao']);
 $router->get('/melhoria-continua-2/{id}/details', [App\Controllers\MelhoriaContinua2Controller::class, 'details']);
+$router->get('/melhoria-continua-2/{id}/view', [App\Controllers\MelhoriaContinua2Controller::class, 'view']);
 $router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2Controller::class, 'delete']);
 
 // Other routes

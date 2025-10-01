@@ -459,7 +459,7 @@ class MelhoriaContinua2Controller
         }
     }
 
-    // Ver Detalhes da Melhoria
+    // Ver Detalhes da Melhoria (JSON para AJAX)
     public function details($id): void
     {
         header('Content-Type: application/json');
@@ -493,6 +493,35 @@ class MelhoriaContinua2Controller
             echo json_encode(['success' => true, 'melhoria' => $melhoria]);
         } catch (\Exception $e) {
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes']);
+        }
+    }
+
+    // Ver Detalhes da Melhoria (Página HTML)
+    public function view($id): void
+    {
+        try {
+            $stmt = $this->db->prepare('
+                SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
+                       GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
+                FROM melhoria_continua_2 m
+                LEFT JOIN users u ON m.criado_por = u.id
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
+                WHERE m.id = :id
+                GROUP BY m.id
+            ');
+            $stmt->execute([':id' => $id]);
+            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$melhoria) {
+                echo "Melhoria não encontrada";
+                return;
+            }
+
+            // Incluir a view
+            include __DIR__ . '/../../views/pages/melhoria-continua-2/view.php';
+        } catch (\Exception $e) {
+            echo "Erro ao carregar detalhes: " . $e->getMessage();
         }
     }
 }

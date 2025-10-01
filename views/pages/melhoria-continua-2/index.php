@@ -246,25 +246,6 @@ $userId = $_SESSION['user_id'];
   </div>
 </section>
 
-<!-- Modal Ver Detalhes -->
-<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" style="z-index: 9999;" onclick="if(event.target === this) closeViewModal()">
-  <div class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-      <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <h2 class="text-2xl font-bold text-gray-900">📋 Detalhes da Melhoria</h2>
-        <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div id="viewModalContent" class="p-6">
-        <!-- Conteúdo carregado dinamicamente -->
-      </div>
-    </div>
-  </div>
-</div>
-
 <style>
 
 /* Badge BETA */
@@ -460,57 +441,11 @@ async function updatePontuacaoInline(id, pontuacao) {
   }
 }
 
-// Ver Detalhes da Melhoria
-async function viewMelhoria(id) {
-  console.log('viewMelhoria chamada com ID:', id);
-  
-  const modal = document.getElementById('viewModal');
-  const content = document.getElementById('viewModalContent');
-  
-  if (!modal) {
-    console.error('Modal viewModal não encontrado!');
-    alert('❌ Erro: Modal não encontrado no DOM');
-    return;
-  }
-  
-  if (!content) {
-    console.error('viewModalContent não encontrado!');
-    alert('❌ Erro: Container de conteúdo não encontrado');
-    return;
-  }
-  
-  content.innerHTML = '<div class="text-center py-8"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p class="mt-4 text-gray-600">Carregando...</p></div>';
-  modal.classList.remove('hidden');
-  console.log('Modal aberto');
-  
-  try {
-    console.log('Buscando detalhes da melhoria ID:', id);
-    const response = await fetch(`/melhoria-continua-2/${id}/details`);
-    console.log('Response status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erro na resposta:', errorText);
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log('Dados recebidos:', data);
-    
-    if (data.success && data.melhoria) {
-      content.innerHTML = generateDetailHTML(data.melhoria);
-      console.log('Conteúdo renderizado com sucesso');
-    } else {
-      content.innerHTML = `<div class="text-red-600 p-4">❌ Erro: ${data.message || 'Dados não encontrados'}</div>`;
-    }
-  } catch (error) {
-    console.error('Erro ao carregar detalhes:', error);
-    content.innerHTML = `<div class="text-red-600 p-4">❌ Erro ao carregar detalhes: ${error.message}<br><br>Verifique o console para mais detalhes.</div>`;
-  }
-}
-
-function closeViewModal() {
-  document.getElementById('viewModal').classList.add('hidden');
+// Ver Detalhes da Melhoria - Abre em nova página
+function viewMelhoria(id) {
+  console.log('Abrindo detalhes da melhoria ID:', id);
+  // Abre em nova aba
+  window.open(`/melhoria-continua-2/${id}/view`, '_blank', 'width=1200,height=900');
 }
 
 // Gerar HTML dos Detalhes
