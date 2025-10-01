@@ -20,11 +20,26 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.1';
+        $systemVersion = '2.2.2';
         $lastUpdate = '30/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.2',
+                'date' => '30/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção Específica do Modo Percentual em Retornados',
+                'description' => 'Corrigido problema específico onde o modo percentual não mostrava orientações e botões de destino',
+                'items' => [
+                    'Corrigido evento oninput no campo percentual do chip',
+                    'Melhorada função calcularPercentual() com logs detalhados',
+                    'Implementada busca de modelo por ID e nome',
+                    'Adicionada validação robusta para percentuais (0-100%)',
+                    'Criada função de teste testarModoPercentual()',
+                    'Garantidos valores padrão para modelos sem dados completos'
+                ]
+            ],
             [
                 'version' => '2.2.1',
                 'date' => '30/09/2025',

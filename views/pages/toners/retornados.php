@@ -137,7 +137,7 @@
       <div id="camposPercentual" class="hidden">
         <div>
           <label for="percentualChip" class="block text-sm font-medium text-gray-700 mb-2">% do Chip *</label>
-          <input type="number" id="percentualChip" name="percentual_chip" min="0" max="100" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="calcularPercentual()">
+          <input type="number" id="percentualChip" name="percentual_chip" min="0" max="100" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" oninput="calcularPercentual()" onchange="calcularPercentual()">
         </div>
       </div>
 
@@ -398,6 +398,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('excluirRetornado disponível:', typeof window.excluirRetornado === 'function');
     console.log('filterData disponível:', typeof window.filterData === 'function');
     console.log('exportToExcel disponível:', typeof window.exportToExcel === 'function');
+    console.log('calcularPercentual disponível:', typeof calcularPercentual === 'function');
+    console.log('mostrarResultados disponível:', typeof mostrarResultados === 'function');
+    console.log('forcarExibicaoDestinos disponível:', typeof forcarExibicaoDestinos === 'function');
   }, 1000);
   
   carregarModelos();
@@ -745,11 +748,23 @@ function mostrarNotificacaoParametros(mensagem, tipo = 'info') {
 // Ao selecionar modelo
 document.addEventListener('change', function(e) {
   if (e.target.id === 'modeloToner') {
-    const modeloId = e.target.value;
-    if (modeloId) {
-      const modelo = modelosData.find(m => m.id == modeloId);
+    const modeloValue = e.target.value;
+    console.log('🔍 Modelo selecionado:', modeloValue);
+    
+    if (modeloValue) {
+      // Buscar modelo por ID ou por nome
+      let modelo = modelosData.find(m => m.id == modeloValue);
+      if (!modelo) {
+        modelo = modelosData.find(m => m.modelo === modeloValue);
+      }
+      
+      console.log('📋 Modelo encontrado:', modelo);
+      
       if (modelo) {
         exibirDadosModelo(modelo);
+      } else {
+        console.log('⚠️ Modelo não encontrado nos dados carregados');
+        document.getElementById('dadosModelo').classList.add('hidden');
       }
     } else {
       document.getElementById('dadosModelo').classList.add('hidden');
@@ -839,25 +854,100 @@ function calcularGramatura() {
 
 // Calcular a partir do percentual
 function calcularPercentual() {
+  console.log('🔢 Calculando por percentual do chip...');
+  
   const modeloId = document.getElementById('modeloToner').value;
-  const percentual = parseFloat(document.getElementById('percentualChip').value);
+  const percentualInput = document.getElementById('percentualChip').value;
+  const percentual = parseFloat(percentualInput);
   
-  if (!modeloId || isNaN(percentual)) return;
+  console.log('📊 Dados do cálculo por percentual:', {
+    modeloId,
+    percentualInput,
+    percentual,
+    isNaN: isNaN(percentual)
+  });
   
-  const modelo = modelosData.find(m => m.id == modeloId);
-  if (!modelo) return;
+  if (!modeloId) {
+    console.log('⚠️ Modelo não selecionado');
+    // Ocultar seções se não há modelo
+    document.getElementById('resultadoCalculo').classList.add('hidden');
+    document.getElementById('selecaoDestino').classList.add('hidden');
+    return;
+  }
   
+  if (isNaN(percentual) || percentual < 0 || percentual > 100) {
+    console.log('⚠️ Percentual inválido:', percentual);
+    // Ocultar seções se percentual inválido
+    document.getElementById('resultadoCalculo').classList.add('hidden');
+    document.getElementById('selecaoDestino').classList.add('hidden');
+    return;
+  }
+  
+  // Permitir percentual 0 (toner vazio)
+  if (percentual === 0) {
+    console.log('📊 Percentual é 0% - toner vazio');
+  }
+  
+  // Buscar modelo por ID ou por nome
+  let modelo = modelosData.find(m => m.id == modeloId);
+  if (!modelo) {
+    modelo = modelosData.find(m => m.modelo === modeloId);
+  }
+  
+  if (!modelo) {
+    console.log('⚠️ Modelo não encontrado nos dados:', modeloId);
+    console.log('📋 Modelos disponíveis:', modelosData.map(m => ({id: m.id, modelo: m.modelo})));
+    // Ainda assim, tentar mostrar os botões de destino
+    forcarExibicaoDestinos();
+    return;
+  }
+  
+  console.log('✅ Chamando mostrarResultados com percentual:', percentual);
   mostrarResultados(percentual, modelo);
+}
+
+// Função de teste para modo percentual
+window.testarModoPercentual = function(percentualTeste = 50) {
+  console.log('🧪 TESTE DO MODO PERCENTUAL');
+  console.log('Simulando entrada de', percentualTeste + '%');
+  
+  // Simular seleção de modelo
+  const modeloInput = document.getElementById('modeloToner');
+  if (modeloInput && modelosData.length > 0) {
+    modeloInput.value = modelosData[0].id || modelosData[0].modelo;
+    console.log('✅ Modelo selecionado:', modeloInput.value);
+  }
+  
+  // Simular entrada de percentual
+  const percentualInput = document.getElementById('percentualChip');
+  if (percentualInput) {
+    percentualInput.value = percentualTeste;
+    console.log('✅ Percentual definido:', percentualInput.value);
+    
+    // Chamar função de cálculo
+    calcularPercentual();
+    console.log('✅ Função calcularPercentual() chamada');
+  } else {
+    console.error('❌ Campo percentualChip não encontrado');
+  }
 }
 
 function mostrarResultados(percentualRestante, modelo) {
   console.log('🎯 Mostrando resultados para:', percentualRestante + '%');
+  console.log('📋 Modelo recebido:', modelo);
+  
+  // Garantir que o modelo tenha valores padrão se necessário
+  const modeloSeguro = {
+    rendimento: modelo?.rendimento || 1500,
+    valor: modelo?.valor || 150,
+    ...modelo
+  };
   
   // Calcular folhas estimadas
-  const folhasEstimadas = modelo.rendimento ? Math.round((percentualRestante / 100) * modelo.rendimento) : 0;
+  const folhasEstimadas = Math.round((percentualRestante / 100) * modeloSeguro.rendimento);
   
   // Calcular valor estimado (simulação)
-  const valorEstimado = modelo.valor ? (percentualRestante / 100) * modelo.valor : 0;
+  const valorEstimado = (percentualRestante / 100) * modeloSeguro.valor;
   
   // Atualizar display
   document.getElementById('percentualRestante').textContent = percentualRestante.toFixed(1) + '%';
