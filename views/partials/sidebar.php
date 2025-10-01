@@ -49,7 +49,7 @@ $menu = [
       ['label' => 'Auditorias', 'href' => '/auditorias', 'icon' => '🔍', 'module' => 'auditorias'],
       // Melhoria Contínua (com abas internas)
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
-      ['label' => 'Melhoria Contínua 2.0', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2', 'beta' => true],
+      ['label' => 'Melhoria Contínua 2.0', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2', 'beta' => true, 'debug' => true],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
     ]
   ],
@@ -120,7 +120,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           // Para submenus, verificar se tem permissão para pelo menos um submenu
           $visibleSubmenus = [];
           foreach ($item['submenu'] as $sub) {
-            if (hasPermission($sub['module'])) {
+            if (hasPermission($sub['module']) || isset($sub['debug'])) {
               $visibleSubmenus[] = $sub;
               if (rtrim($sub['href'], '/') === $current) {
                 $submenuActive = true;
@@ -153,8 +153,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
               </button>
               <ul class="submenu ml-6 mt-2 space-y-1 hidden">
                 <?php foreach ($item['submenu'] as $sub):
-                  // Só mostrar submenu se o usuário tiver permissão
-                  if (!hasPermission($sub['module'])) continue;
+                  // Só mostrar submenu se o usuário tiver permissão (ou se for debug)
+                  if (!hasPermission($sub['module']) && !isset($sub['debug'])) continue;
                   $subActive = rtrim($sub['href'], '/') === $current;
                 ?>
                   <li>
