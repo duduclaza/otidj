@@ -7,58 +7,42 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
 $userId = $_SESSION['user_id'];
 ?>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="space-y-6">
     
-    <!-- Header Profissional -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl mb-8">
-      <div class="absolute inset-0 bg-black/20"></div>
-      <div class="relative px-8 py-12">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-4 mb-4">
-              <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                <span class="text-4xl">🚀</span>
-              </div>
-              <div>
-                <h1 class="text-5xl font-black text-white tracking-tight">Melhoria Contínua 2.0</h1>
-                <div class="flex items-center gap-3 mt-2">
-                  <span class="beta-badge-large">BETA</span>
-                  <span class="px-3 py-1 bg-white/20 rounded-full text-white text-sm font-medium backdrop-blur-sm">
-                    Nova Versão
-                  </span>
-                </div>
-              </div>
-            </div>
-            <p class="text-white/90 text-xl font-medium max-w-2xl">
-              Sistema avançado de gestão de melhorias com controle inteligente de visibilidade e notificações automáticas
-            </p>
+    <!-- Header Compacto -->
+    <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl shadow-xl p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+            <span class="text-2xl">🚀</span>
           </div>
-          <div class="hidden lg:block">
-            <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <span class="text-6xl">📊</span>
+          <div>
+            <h1 class="text-3xl font-bold text-white">Melhoria Contínua 2.0</h1>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="beta-badge-large">BETA</span>
+              <span class="text-white/80 text-sm">Sistema avançado de gestão de melhorias</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Formulário Inline Profissional -->
-    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 mb-8 overflow-hidden">
+    <!-- Formulário Inline -->
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
       <!-- Header do Formulário -->
-      <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-200">
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-blue-100 rounded-2xl">
-            <span class="text-2xl">📝</span>
+      <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-blue-100 rounded-xl">
+            <span class="text-xl">📝</span>
           </div>
           <div>
-            <h2 class="text-3xl font-bold text-gray-900">Nova Melhoria</h2>
-            <p class="text-gray-600 text-lg mt-1">Registre sua ideia de melhoria seguindo a metodologia 5W2H</p>
+            <h2 class="text-2xl font-bold text-gray-900">Nova Melhoria</h2>
+            <p class="text-gray-600 text-sm mt-1">Registre sua ideia seguindo a metodologia 5W2H</p>
           </div>
         </div>
       </div>
       
-      <form id="melhoriaForm" class="p-8 space-y-8" enctype="multipart/form-data">
+      <form id="melhoriaForm" class="p-6 space-y-6" enctype="multipart/form-data">
         
         <!-- Seção: Informações Básicas -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
@@ -66,7 +50,7 @@ $userId = $_SESSION['user_id'];
             <div class="p-2 bg-blue-500 rounded-lg">
               <span class="text-white text-lg">ℹ️</span>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900">Informações Básicas</h3>
+            <h3 class="text-xl font-bold text-gray-900">Informações Básicas</h3>
           </div>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -92,7 +76,7 @@ $userId = $_SESSION['user_id'];
             <div class="p-2 bg-purple-500 rounded-lg">
               <span class="text-white text-lg">📋</span>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900">Metodologia 5W2H</h3>
+            <h3 class="text-xl font-bold text-gray-900">Metodologia 5W2H</h3>
           </div>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -155,7 +139,7 @@ $userId = $_SESSION['user_id'];
             <div class="p-2 bg-green-500 rounded-lg">
               <span class="text-white text-lg">👥</span>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900">Responsáveis</h3>
+            <h3 class="text-xl font-bold text-gray-900">Responsáveis</h3>
           </div>
           
           <div class="bg-white rounded-xl p-4 max-h-48 overflow-y-auto border border-green-200">
@@ -176,7 +160,7 @@ $userId = $_SESSION['user_id'];
             <div class="p-2 bg-orange-500 rounded-lg">
               <span class="text-white text-lg">📝</span>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900">Detalhes Complementares</h3>
+            <h3 class="text-xl font-bold text-gray-900">Detalhes Complementares</h3>
           </div>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -202,7 +186,7 @@ $userId = $_SESSION['user_id'];
             <div class="p-2 bg-gray-600 rounded-lg">
               <span class="text-white text-lg">📎</span>
             </div>
-            <h3 class="text-2xl font-bold text-gray-900">Anexos</h3>
+            <h3 class="text-xl font-bold text-gray-900">Anexos</h3>
           </div>
           
           <div class="space-y-4">
@@ -229,15 +213,15 @@ $userId = $_SESSION['user_id'];
     </div>
 
     <!-- Grid de Melhorias -->
-    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-      <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-200">
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-blue-100 rounded-2xl">
-            <span class="text-2xl">📊</span>
+    <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-6 py-4 border-b border-gray-200">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-blue-100 rounded-xl">
+            <span class="text-xl">📊</span>
           </div>
           <div>
-            <h2 class="text-3xl font-bold text-gray-900">Minhas Melhorias</h2>
-            <p class="text-gray-600 text-lg mt-1">Acompanhe o status das suas sugestões</p>
+            <h2 class="text-2xl font-bold text-gray-900">Minhas Melhorias</h2>
+            <p class="text-gray-600 text-sm mt-1">Acompanhe o status das suas sugestões</p>
           </div>
         </div>
       </div>
@@ -304,8 +288,7 @@ $userId = $_SESSION['user_id'];
         </table>
       </div>
     </div>
-  </div>
-</div>
+</section>
 
 <style>
 /* Badge BETA com efeito brilhante */
