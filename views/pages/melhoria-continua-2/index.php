@@ -115,9 +115,10 @@ $userId = $_SESSION['user_id'];
       </table>
     </div>
   </div>
+</section>
 
-  <!-- Modal Nova Melhoria -->
-  <div id="melhoriaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+<!-- Modal Nova Melhoria -->
+<div id="melhoriaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" style="z-index: 9999;">
     <div class="flex items-center justify-center min-h-screen p-4">
       <div class="bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center p-6 border-b border-gray-700">
@@ -222,8 +223,7 @@ $userId = $_SESSION['user_id'];
         </form>
       </div>
     </div>
-  </div>
-</section>
+</div>
 
 <style>
 /* Badge BETA */
@@ -281,12 +281,23 @@ $userId = $_SESSION['user_id'];
 <script>
 // Funções do Modal
 function openMelhoriaModal() {
-  document.getElementById('melhoriaModal').classList.remove('hidden');
+  console.log('Abrindo modal...');
+  const modal = document.getElementById('melhoriaModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    console.log('Modal aberto!');
+  } else {
+    console.error('Modal não encontrado!');
+  }
 }
 
 function closeMelhoriaModal() {
-  document.getElementById('melhoriaModal').classList.add('hidden');
-  document.getElementById('melhoriaForm').reset();
+  console.log('Fechando modal...');
+  const modal = document.getElementById('melhoriaModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.getElementById('melhoriaForm').reset();
+  }
 }
 
 // Funções de Filtro
@@ -306,6 +317,26 @@ function clearFilters() {
   // Recarregar dados
   window.location.reload();
 }
+
+// Fechar modal ao clicar fora ou pressionar ESC
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('melhoriaModal');
+  if (modal) {
+    // Clicar fora do modal
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeMelhoriaModal();
+      }
+    });
+    
+    // Pressionar ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeMelhoriaModal();
+      }
+    });
+  }
+});
 
 // Submit do formulário
 document.getElementById('melhoriaForm').addEventListener('submit', async function(e) {
