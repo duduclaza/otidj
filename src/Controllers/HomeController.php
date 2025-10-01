@@ -20,11 +20,26 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.4';
+        $systemVersion = '2.2.5';
         $lastUpdate = '30/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.5',
+                'date' => '30/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção "Modelo não cadastrado" em Retornados',
+                'description' => 'Corrigido problema onde modelos cadastrados apareciam como "não cadastrados"',
+                'items' => [
+                    'Corrigida busca de modelo no backend para aceitar ID ou nome',
+                    'Adicionado campo hidden modelo_id no frontend',
+                    'Melhorada seleção de modelo com logs detalhados',
+                    'Sistema agora detecta corretamente modelos cadastrados',
+                    'Compatibilidade mantida com busca por nome como fallback',
+                    'Logs de debug para facilitar diagnóstico de problemas'
+                ]
+            ],
             [
                 'version' => '2.2.4',
                 'date' => '30/09/2025',

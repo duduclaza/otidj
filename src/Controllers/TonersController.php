@@ -256,12 +256,26 @@ class TonersController
                 return;
             }
 
-            // Check if modelo exists in toners table
-            $stmt = $this->db->prepare('SELECT peso_cheio, peso_vazio, gramatura, capacidade_folhas, custo_por_folha FROM toners WHERE id = :modelo');
-            $stmt->execute([':modelo' => $modelo]);
-            $tonerData = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Check if modelo exists in toners table (prefer ID if available, fallback to name)
+            $modelo_id = $_POST['modelo_id'] ?? null;
             
+            if ($modelo_id) {
+                // Use ID if provided
+                $stmt = $this->db->prepare('SELECT peso_cheio, peso_vazio, gramatura, capacidade_folhas, custo_por_folha FROM toners WHERE id = :modelo_id');
+                $stmt->execute([':modelo_id' => $modelo_id]);
+                error_log('Buscando modelo por ID: ' . $modelo_id);
+            } else {
+                // Fallback to search by name
+                $stmt = $this->db->prepare('SELECT peso_cheio, peso_vazio, gramatura, capacidade_folhas, custo_por_folha FROM toners WHERE modelo = :modelo');
+                $stmt->execute([':modelo' => $modelo]);
+                error_log('Buscando modelo por nome: ' . $modelo);
+            }
+            
+            $tonerData = $stmt->fetch(PDO::FETCH_ASSOC);
             $modelo_cadastrado = $tonerData ? 1 : 0;
+            
+            // Log para debug
+            error_log('Verificando modelo cadastrado: ' . $modelo . ' (ID: ' . ($modelo_id ?: 'N/A') . ') - Encontrado: ' . ($modelo_cadastrado ? 'SIM' : 'NÃO'));
             $gramatura_existente = null;
             $percentual_restante = null;
             $valor_calculado = 0.00;

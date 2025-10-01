@@ -55,6 +55,7 @@
               autocomplete="off"
               class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
+            <input type="hidden" id="modeloId" name="modelo_id" value="">
             <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -562,7 +563,19 @@ function setupModeloSearch() {
         option.addEventListener('click', () => {
           input.value = modelo.modelo;
           selectedModeloId = modelo.id;
+          
+          // Definir o ID no campo hidden
+          const modeloIdField = document.getElementById('modeloId');
+          if (modeloIdField) {
+            modeloIdField.value = modelo.id;
+          }
+          
           dropdown.classList.add('hidden');
+          
+          console.log('✅ Modelo selecionado:', {
+            nome: modelo.modelo,
+            id: modelo.id
+          });
           
           // Disparar evento change para carregar dados do modelo
           const changeEvent = new Event('change', { bubbles: true });
