@@ -34,6 +34,7 @@ class AuthController
         
         $title = 'Login - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/auth/login.php';
+        include __DIR__ . '/../../views/layouts/auth.php';
     }
     
     /**
