@@ -20,11 +20,26 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.3';
+        $systemVersion = '2.2.4';
         $lastUpdate = '30/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.4',
+                'date' => '30/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção para Usar Parâmetros Configurados',
+                'description' => 'Sistema agora usa APENAS as orientações configuradas nos parâmetros de retornados',
+                'items' => [
+                    'Removidas orientações inventadas pelo sistema',
+                    'Prioridade total para parâmetros configurados em Configurações',
+                    'Sistema busca orientações nas faixas de percentual configuradas',
+                    'Fallback apenas para recarregar parâmetros se necessário',
+                    'Mensagem clara quando percentual está fora das faixas configuradas',
+                    'Logs detalhados para verificar uso dos parâmetros corretos'
+                ]
+            ],
             [
                 'version' => '2.2.3',
                 'date' => '30/09/2025',

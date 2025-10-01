@@ -644,9 +644,9 @@ function setupModeloSearch() {
   });
 }
 
-// Carregar parâmetros gerais com retry automático
+// Carregar parâmetros gerais com retry automático - SEMPRE usar os parâmetros configurados
 function carregarParametrosGerais(tentativa = 1, maxTentativas = 3) {
-  console.log(`📡 Carregando parâmetros de retornados... (tentativa ${tentativa}/${maxTentativas})`);
+  console.log(`📡 Carregando parâmetros de retornados configurados... (tentativa ${tentativa}/${maxTentativas})`);
   
   return fetch('/api/parametros', {
     method: 'GET',
@@ -1127,72 +1127,54 @@ function gerarOrientacao(percentual) {
   console.log('🎯 Gerando orientação para percentual:', percentual);
   console.log('📋 Parâmetros disponíveis:', parametrosGerais);
   
-  // Se não há parâmetros carregados, usar orientações padrão baseadas em lógica comum
-  if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
-    console.log('⚠️ Nenhum parâmetro carregado, usando orientação padrão baseada em lógica');
+  // SEMPRE tentar usar os parâmetros configurados primeiro
+  if (Array.isArray(parametrosGerais) && parametrosGerais.length > 0) {
+    console.log('✅ Usando parâmetros configurados do sistema');
     
-    // Orientações padrão baseadas em percentual com mais detalhes
-    if (percentual <= 0) {
-      return '🚨 Toner VAZIO (0%) - DESCARTE obrigatório. Não possui tinta restante.';
-    } else if (percentual <= 10) {
-      return '🔴 Percentual muito baixo (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Pouca tinta restante.';
-    } else if (percentual <= 39) {
-      return '🟡 Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Não compensa reuso.';
-    } else if (percentual <= 69) {
-      return '🟠 Percentual médio (' + percentual.toFixed(1) + '%) - USO INTERNO recomendado. Teste a qualidade antes.';
-    } else if (percentual <= 89) {
-      return '🟢 Bom percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo. Teste qualidade e marque %.';
-    } else if (percentual < 100) {
-      return '✅ Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo. Teste qualidade e marque %.';
-    } else {
-      return '🎯 Toner CHEIO (100%) - ESTOQUE como novo. Verifique se não há defeito.';
-    }
-  }
-  
-  // Ordenar parâmetros por faixa_min para garantir ordem correta
-  const parametrosOrdenados = [...parametrosGerais].sort((a, b) => a.faixa_min - b.faixa_min);
-  console.log('📊 Parâmetros ordenados:', parametrosOrdenados);
-  
-  // Encontrar o parâmetro correspondente ao percentual
-  for (const parametro of parametrosOrdenados) {
-    const faixaMin = parseFloat(parametro.faixa_min);
-    const faixaMax = parametro.faixa_max ? parseFloat(parametro.faixa_max) : null;
+    // Ordenar parâmetros por faixa_min para garantir ordem correta
+    const parametrosOrdenados = [...parametrosGerais].sort((a, b) => a.faixa_min - b.faixa_min);
+    console.log('📊 Parâmetros ordenados:', parametrosOrdenados);
     
-    console.log(`🔍 Verificando faixa: ${faixaMin}% - ${faixaMax ? faixaMax + '%' : '∞'}`);
-    
-    // Se tem faixa máxima, verificar se está dentro do intervalo
-    if (faixaMax !== null) {
-      if (percentual >= faixaMin && percentual <= faixaMax) {
-        console.log(`✅ Percentual ${percentual}% está na faixa ${faixaMin}% - ${faixaMax}%`);
-        return parametro.orientacao;
-      }
-    } else {
-      // Se não tem faixa máxima, verificar se é maior ou igual ao mínimo
-      if (percentual >= faixaMin) {
-        console.log(`✅ Percentual ${percentual}% está na faixa ${faixaMin}% - ∞`);
-        return parametro.orientacao;
+    // Encontrar o parâmetro correspondente ao percentual
+    for (const parametro of parametrosOrdenados) {
+      const faixaMin = parseFloat(parametro.faixa_min);
+      const faixaMax = parametro.faixa_max ? parseFloat(parametro.faixa_max) : null;
+      
+      console.log(`🔍 Verificando faixa: ${faixaMin}% - ${faixaMax ? faixaMax + '%' : '∞'}`);
+      
+      // Se tem faixa máxima, verificar se está dentro do intervalo
+      if (faixaMax !== null) {
+        if (percentual >= faixaMin && percentual <= faixaMax) {
+          console.log(`✅ Percentual ${percentual}% está na faixa ${faixaMin}% - ${faixaMax}%`);
+          return parametro.orientacao;
+        }
+      } else {
+        // Se não tem faixa máxima, verificar se é maior ou igual ao mínimo
+        if (percentual >= faixaMin) {
+          console.log(`✅ Percentual ${percentual}% está na faixa ${faixaMin}% - ∞`);
+          return parametro.orientacao;
+        }
       }
     }
+    
+    // Se não encontrou parâmetro correspondente, mas tem parâmetros carregados
+    console.log('⚠️ Percentual fora das faixas configuradas nos parâmetros');
+    return 'Percentual (' + percentual.toFixed(1) + '%) fora das faixas configuradas. Verifique os parâmetros de retornados.';
   }
   
-  // Se não encontrou nenhum parâmetro correspondente, usar lógica padrão
-  console.log('❌ Nenhum parâmetro encontrado para o percentual:', percentual, '- usando lógica padrão');
+  // APENAS se não conseguir carregar os parâmetros, usar fallback mínimo
+  console.log('❌ Parâmetros não carregados - tentando recarregar...');
   
-  if (percentual <= 0) {
-    return '🚨 Toner VAZIO (0%) - DESCARTE obrigatório. Não possui tinta restante.';
-  } else if (percentual <= 10) {
-    return '🔴 Percentual muito baixo (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Pouca tinta restante.';
-  } else if (percentual <= 39) {
-    return '🟡 Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Não compensa reuso.';
-  } else if (percentual <= 69) {
-    return '🟠 Percentual médio (' + percentual.toFixed(1) + '%) - USO INTERNO recomendado. Teste a qualidade antes.';
-  } else if (percentual <= 89) {
-    return '🟢 Bom percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo. Teste qualidade e marque %.';
-  } else if (percentual < 100) {
-    return '✅ Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo. Teste qualidade e marque %.';
-  } else {
-    return '🎯 Toner CHEIO (100%) - ESTOQUE como novo. Verifique se não há defeito.';
-  }
+  // Tentar recarregar parâmetros uma vez
+  carregarParametrosGerais().then(() => {
+    console.log('🔄 Parâmetros recarregados, gerando orientação novamente...');
+    const novaOrientacao = gerarOrientacao(percentual);
+    atualizarOrientacaoVisual(novaOrientacao, percentual);
+  }).catch(() => {
+    console.log('❌ Falha ao recarregar parâmetros');
+  });
+  
+  return 'Carregando orientações dos parâmetros configurados...';
 }
 
 function selecionarDestino(destino) {
