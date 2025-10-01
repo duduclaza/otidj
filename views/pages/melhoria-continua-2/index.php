@@ -119,8 +119,8 @@ $userId = $_SESSION['user_id'];
 
 <!-- Modal Nova Melhoria -->
 <div id="melhoriaModal">
-    <div class="w-full max-w-4xl p-4">
-      <div class="bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div class="modal-content-wrapper">
+      <div class="bg-gray-800 w-full">
         <div class="flex justify-between items-center p-6 border-b border-gray-700">
           <h2 class="text-xl font-semibold text-white">Nova Melhoria Contínua</h2>
           <button onclick="closeMelhoriaModal()" class="text-gray-400 hover:text-white">
@@ -250,19 +250,50 @@ $userId = $_SESSION['user_id'];
   opacity: 1 !important;
 }
 
-/* Container do formulário */
-#melhoriaModal > div {
+/* Container do formulário - SEM bordas brancas */
+.modal-content-wrapper {
   position: relative !important;
   z-index: 1000000 !important;
   max-width: 900px !important;
   width: 90% !important;
   max-height: 90vh !important;
   overflow-y: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border-radius: 12px !important;
 }
 
-/* Formulário interno */
+/* Scrollbar estilizada (tema escuro) */
+.modal-content-wrapper::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-content-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+}
+
+.modal-content-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(75, 85, 99, 0.7);
+  border-radius: 10px;
+}
+
+.modal-content-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.9);
+}
+
+/* Firefox scrollbar */
+.modal-content-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 85, 99, 0.7) rgba(0, 0, 0, 0.4);
+}
+
+/* Formulário interno - bordas arredondadas */
 #melhoriaModal .bg-gray-800 {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 12px !important;
+  overflow: visible !important;
 }
 
 /* Garantir que modal fique acima de sidebar e outros elementos */
