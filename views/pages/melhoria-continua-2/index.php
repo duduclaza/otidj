@@ -441,16 +441,25 @@ async function viewMelhoria(id) {
   modal.classList.remove('hidden');
   
   try {
+    console.log('Buscando detalhes da melhoria ID:', id);
     const response = await fetch(`/melhoria-continua-2/${id}/details`);
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
     const data = await response.json();
+    console.log('Dados recebidos:', data);
     
     if (data.success) {
       content.innerHTML = generateDetailHTML(data.melhoria);
     } else {
-      content.innerHTML = '<div class="text-red-600">Erro ao carregar detalhes</div>';
+      content.innerHTML = `<div class="text-red-600">❌ Erro: ${data.message || 'Erro desconhecido'}</div>`;
     }
   } catch (error) {
-    content.innerHTML = '<div class="text-red-600">Erro ao carregar detalhes</div>';
+    console.error('Erro ao carregar detalhes:', error);
+    content.innerHTML = `<div class="text-red-600">❌ Erro ao carregar detalhes: ${error.message}</div>`;
   }
 }
 
@@ -523,32 +532,55 @@ function generateDetailHTML(m) {
 
 // Imprimir Melhoria - Abre em nova aba para salvar como PDF
 async function printMelhoria(id) {
+  let loadingMsg;
   try {
     // Mostrar loading
-    const loadingMsg = document.createElement('div');
+    loadingMsg = document.createElement('div');
     loadingMsg.innerHTML = '<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:20px;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:99999;"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p class="mt-4 text-gray-600">Gerando documento...</p></div>';
     document.body.appendChild(loadingMsg);
     
+    console.log('Gerando impressão para ID:', id);
     const response = await fetch(`/melhoria-continua-2/${id}/details`);
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+    }
+    
     const data = await response.json();
+    console.log('Dados recebidos:', data);
     
-    document.body.removeChild(loadingMsg);
+    if (loadingMsg && loadingMsg.parentNode) {
+      document.body.removeChild(loadingMsg);
+    }
     
-    if (data.success) {
+    if (data.success && data.melhoria) {
       const printWindow = window.open('', '_blank', 'width=1200,height=800');
-      printWindow.document.write(generatePrintHTML(data.melhoria));
+      
+      if (!printWindow) {
+        alert('❌ Pop-up bloqueado! Por favor, permita pop-ups para este site.');
+        return;
+      }
+      
+      const htmlContent = generatePrintHTML(data.melhoria);
+      printWindow.document.write(htmlContent);
       printWindow.document.close();
       
       // Aguardar carregamento de imagens antes de imprimir
       printWindow.onload = function() {
         setTimeout(() => {
           printWindow.focus();
-          printWindow.print();
-        }, 1000);
+        }, 500);
       };
+    } else {
+      alert(`❌ Erro: ${data.message || 'Dados não encontrados'}`);
     }
   } catch (error) {
-    alert('❌ Erro ao gerar impressão');
+    console.error('Erro ao gerar impressão:', error);
+    if (loadingMsg && loadingMsg.parentNode) {
+      document.body.removeChild(loadingMsg);
+    }
+    alert(`❌ Erro ao gerar impressão: ${error.message}`);
   }
 }
 
