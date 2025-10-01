@@ -47,13 +47,6 @@
       <div class="text-sm">Entrando...</div>
     </div>
   </div>
-
-  <!-- Master Access Key (Hidden - Bottom Right) -->
-  <a href="/master/login" 
-     class="fixed bottom-4 right-4 opacity-0 hover:opacity-100 transition-opacity duration-500 text-3xl z-50"
-     title="Master Access">
-    🔑
-  </a>
 </div>
 
 <script>

@@ -57,25 +57,7 @@ class AuthController
                 return;
             }
 
-            // Verificar se é o Master
-            if ($email === 'du.claza@gmail.com' && $password === 'Pipoca@1989') {
-                $_SESSION['user_id'] = 0; // ID especial para master
-                $_SESSION['user_name'] = 'Master Admin';
-                $_SESSION['user_email'] = 'du.claza@gmail.com';
-                $_SESSION['user_role'] = 'master';
-                $_SESSION['user_filial_id'] = null;
-                $_SESSION['is_master'] = true;
-
-                error_log("Login Master realizado - IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
-
-                echo json_encode([
-                    'success' => true,
-                    'redirect' => '/master/dashboard'
-                ]);
-                return;
-            }
-
-            // Buscar usuário normal
+            // Buscar usuário
             $stmt = $this->db->prepare('SELECT * FROM users WHERE email = :email');
             $stmt->execute([':email' => $email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -97,7 +79,6 @@ class AuthController
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_role'] = $user['role'];
             $_SESSION['user_filial_id'] = $user['filial_id'];
-            $_SESSION['is_master'] = false;
 
             echo json_encode([
                 'success' => true,
