@@ -57,11 +57,11 @@ class MelhoriaContinua2Controller
                 LEFT JOIN users u ON m.criado_por = u.id
                 LEFT JOIN departamentos d ON m.departamento_id = d.id
                 LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
-                WHERE m.criado_por = :user_id OR FIND_IN_SET(:user_id, m.responsaveis)
+                WHERE m.criado_por = :user_id OR FIND_IN_SET(:user_id2, m.responsaveis)
                 GROUP BY m.id
                 ORDER BY m.created_at DESC
             ');
-            $stmt->execute([':user_id' => $userId]);
+            $stmt->execute([':user_id' => $userId, ':user_id2' => $userId]);
         }
 
         $melhorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
