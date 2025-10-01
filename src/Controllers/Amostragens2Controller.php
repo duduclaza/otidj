@@ -133,7 +133,15 @@ class Amostragens2Controller
 
         try {
             $userId = $_SESSION['user_id'];
+            // Buscar filial do usuário ou usar primeira filial disponível
             $filialId = $_SESSION['user_filial_id'] ?? null;
+            
+            if (!$filialId) {
+                $stmt = $this->db->prepare('SELECT id FROM filiais LIMIT 1');
+                $stmt->execute();
+                $filial = $stmt->fetch(PDO::FETCH_ASSOC);
+                $filialId = $filial['id'] ?? 1;
+            }
 
             // Validar dados
             $numeroNf = trim($_POST['numero_nf'] ?? '');
@@ -148,6 +156,8 @@ class Amostragens2Controller
             $fornecedorId = (int)($_POST['fornecedor_id'] ?? 0);
             $responsaveis = $_POST['responsaveis'] ?? [];
             $statusFinal = $_POST['status_final'] ?? 'Pendente';
+
+            error_log("Dados recebidos - NF: $numeroNf, Tipo: $tipoProduto, Produto: $produtoId, Fornecedor: $fornecedorId");
 
             if (empty($numeroNf) || empty($tipoProduto) || $produtoId <= 0 || $quantidadeRecebida <= 0 || $quantidadeTestada <= 0 || $fornecedorId <= 0) {
                 echo json_encode(['success' => false, 'message' => 'Preencha todos os campos obrigatórios']);
@@ -228,7 +238,8 @@ class Amostragens2Controller
 
         } catch (\Exception $e) {
             error_log('Erro ao salvar amostragem: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode(['success' => false, 'message' => 'Erro ao salvar: ' . $e->getMessage()]);
         }
     }
 
