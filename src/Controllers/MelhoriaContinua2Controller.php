@@ -164,7 +164,9 @@ class MelhoriaContinua2Controller
 
     public function update(): void
     {
-        if (!PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'edit')) {
+        // Admin ou usuário com permissão de view pode editar suas próprias melhorias
+        $isAdmin = $_SESSION['user_role'] === 'admin';
+        if (!$isAdmin && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Acesso negado']);
             return;
