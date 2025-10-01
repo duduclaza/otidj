@@ -126,6 +126,9 @@ $router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2C
 // Amostragens 2.0 routes
 $router->get('/amostragens-2', [App\Controllers\Amostragens2Controller::class, 'index']);
 $router->post('/amostragens-2/store', [App\Controllers\Amostragens2Controller::class, 'store']);
+$router->get('/amostragens-2/{id}/download-nf', [App\Controllers\Amostragens2Controller::class, 'downloadNf']);
+$router->get('/amostragens-2/{id}/evidencias', [App\Controllers\Amostragens2Controller::class, 'getEvidencias']);
+$router->get('/amostragens-2/{id}/download-evidencia/{evidenciaId}', [App\Controllers\Amostragens2Controller::class, 'downloadEvidencia']);
 $router->get('/amostragens-2/export', [App\Controllers\Amostragens2Controller::class, 'exportExcel']);
 $router->get('/amostragens-2/graficos', [App\Controllers\Amostragens2Controller::class, 'graficos']);
 

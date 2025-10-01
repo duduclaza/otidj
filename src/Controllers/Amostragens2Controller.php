@@ -307,6 +307,92 @@ class Amostragens2Controller
         }
     }
 
+    public function downloadNf($id = null): void
+    {
+        try {
+            $id = (int)$id;
+            
+            $stmt = $this->db->prepare('
+                SELECT anexo_nf, anexo_nf_nome, anexo_nf_tipo 
+                FROM amostragens_2 
+                WHERE id = :id
+            ');
+            $stmt->execute([':id' => $id]);
+            $amostra = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$amostra || !$amostra['anexo_nf']) {
+                http_response_code(404);
+                echo "Anexo não encontrado";
+                return;
+            }
+            
+            header('Content-Type: ' . $amostra['anexo_nf_tipo']);
+            header('Content-Disposition: attachment; filename="' . $amostra['anexo_nf_nome'] . '"');
+            header('Content-Length: ' . strlen($amostra['anexo_nf']));
+            echo $amostra['anexo_nf'];
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo "Erro ao baixar anexo";
+        }
+    }
+
+    public function getEvidencias($id = null): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $id = (int)$id;
+            
+            $stmt = $this->db->prepare('
+                SELECT id, nome, tipo, tamanho, ordem
+                FROM amostragens_2_evidencias 
+                WHERE amostragem_id = :id
+                ORDER BY ordem
+            ');
+            $stmt->execute([':id' => $id]);
+            $evidencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'evidencias' => $evidencias
+            ]);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar evidências']);
+        }
+    }
+
+    public function downloadEvidencia($id = null, $evidenciaId = null): void
+    {
+        try {
+            $evidenciaId = (int)$evidenciaId;
+            
+            $stmt = $this->db->prepare('
+                SELECT evidencia, nome, tipo 
+                FROM amostragens_2_evidencias 
+                WHERE id = :id
+            ');
+            $stmt->execute([':id' => $evidenciaId]);
+            $evidencia = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$evidencia) {
+                http_response_code(404);
+                echo "Evidência não encontrada";
+                return;
+            }
+            
+            header('Content-Type: ' . $evidencia['tipo']);
+            header('Content-Disposition: attachment; filename="' . $evidencia['nome'] . '"');
+            header('Content-Length: ' . strlen($evidencia['evidencia']));
+            echo $evidencia['evidencia'];
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo "Erro ao baixar evidência";
+        }
+    }
+
     public function exportExcel(): void
     {
         // TODO: Implementar exportação para Excel

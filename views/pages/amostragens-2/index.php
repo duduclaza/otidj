@@ -247,6 +247,7 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aprovada</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reprovada</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Anexo NF</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evidências</th>
           </tr>
         </thead>
@@ -300,7 +301,25 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-              <?= $amostra['total_evidencias'] ?> 📷
+              <?php if (!empty($amostra['anexo_nf_nome'])): ?>
+                <a href="/amostragens-2/<?= $amostra['id'] ?>/download-nf" 
+                   class="text-blue-600 hover:text-blue-800" 
+                   title="<?= e($amostra['anexo_nf_nome']) ?>">
+                  📄 Baixar
+                </a>
+              <?php else: ?>
+                <span class="text-gray-400">-</span>
+              <?php endif; ?>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+              <?php if ($amostra['total_evidencias'] > 0): ?>
+                <button onclick="verEvidencias(<?= $amostra['id'] ?>)" 
+                        class="text-blue-600 hover:text-blue-800">
+                  <?= $amostra['total_evidencias'] ?> 📷 Ver
+                </button>
+              <?php else: ?>
+                <span class="text-gray-400">0</span>
+              <?php endif; ?>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -309,6 +328,23 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
     </div>
   </div>
 </section>
+
+<!-- Modal de Evidências -->
+<div id="evidenciasModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+  <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold">📷 Evidências da Amostragem</h3>
+      <button onclick="closeEvidenciasModal()" class="text-gray-500 hover:text-gray-700">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <div id="evidenciasContent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Evidências serão carregadas aqui -->
+    </div>
+  </div>
+</div>
 
 <style>
 .beta-badge {
@@ -416,4 +452,36 @@ document.getElementById('amostragemForm').addEventListener('submit', async funct
     alert('Erro ao enviar formulário');
   }
 });
+
+// Ver evidências
+async function verEvidencias(amostragemId) {
+  try {
+    const response = await fetch(`/amostragens-2/${amostragemId}/evidencias`);
+    const data = await response.json();
+    
+    const content = document.getElementById('evidenciasContent');
+    
+    if (data.success && data.evidencias.length > 0) {
+      content.innerHTML = data.evidencias.map(ev => `
+        <div class="border rounded-lg p-4">
+          <p class="text-sm font-medium mb-2">${ev.nome}</p>
+          <a href="/amostragens-2/${amostragemId}/download-evidencia/${ev.id}" 
+             class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+            📥 Baixar
+          </a>
+        </div>
+      `).join('');
+    } else {
+      content.innerHTML = '<p class="text-gray-500">Nenhuma evidência encontrada</p>';
+    }
+    
+    document.getElementById('evidenciasModal').classList.remove('hidden');
+  } catch (error) {
+    alert('Erro ao carregar evidências');
+  }
+}
+
+function closeEvidenciasModal() {
+  document.getElementById('evidenciasModal').classList.add('hidden');
+}
 </script>
