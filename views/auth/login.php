@@ -41,12 +41,10 @@
   </div>
 
   <!-- Master Access Key (Hidden) -->
-  <div class="mt-4 text-center relative">
-    <button id="masterKeyBtn" 
-            class="opacity-0 hover:opacity-100 transition-opacity duration-300 text-xs text-white"
-            onclick="openMasterLogin()">
+  <div class="mt-2 text-center">
+    <a href="/master/login" class="opacity-0 hover:opacity-100 transition-opacity duration-300 text-2xl inline-block">
       🔑
-    </button>
+    </a>
   </div>
 
   <!-- Loading Overlay -->
@@ -87,8 +85,4 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     alert('Erro de conexão. Tente novamente.');
   });
 });
-
-function openMasterLogin() {
-  window.location.href = '/master/login';
-}
 </script>
