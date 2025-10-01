@@ -344,6 +344,8 @@ class Amostragens2Controller
         try {
             $id = (int)$id;
             
+            error_log("Buscando evidências para amostragem ID: $id");
+            
             $stmt = $this->db->prepare('
                 SELECT id, nome, tipo, tamanho, ordem
                 FROM amostragens_2_evidencias 
@@ -353,13 +355,17 @@ class Amostragens2Controller
             $stmt->execute([':id' => $id]);
             $evidencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
+            error_log("Evidências encontradas: " . count($evidencias));
+            
             echo json_encode([
                 'success' => true,
-                'evidencias' => $evidencias
+                'evidencias' => $evidencias,
+                'count' => count($evidencias)
             ]);
             
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao carregar evidências']);
+            error_log("Erro ao buscar evidências: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar evidências: ' . $e->getMessage()]);
         }
     }
 
