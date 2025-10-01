@@ -40,13 +40,6 @@
     </p>
   </div>
 
-  <!-- Master Access Key (Hidden) -->
-  <div class="mt-2 text-center">
-    <a href="/master/login" class="opacity-0 hover:opacity-100 transition-opacity duration-300 text-2xl inline-block">
-      🔑
-    </a>
-  </div>
-
   <!-- Loading Overlay -->
   <div id="loginLoading" class="hidden absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
     <div class="text-white text-center">
@@ -54,6 +47,13 @@
       <div class="text-sm">Entrando...</div>
     </div>
   </div>
+
+  <!-- Master Access Key (Hidden - Bottom Right) -->
+  <a href="/master/login" 
+     class="fixed bottom-4 right-4 opacity-0 hover:opacity-100 transition-opacity duration-500 text-3xl z-50"
+     title="Master Access">
+    🔑
+  </a>
 </div>
 
 <script>
