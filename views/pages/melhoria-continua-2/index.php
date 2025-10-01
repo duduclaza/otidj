@@ -228,20 +228,27 @@ $userId = $_SESSION['user_id'];
 <style>
 /* Modal */
 #melhoriaModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: none;
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  display: none !important;
+  z-index: 999999 !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 #melhoriaModal.show {
   display: flex !important;
+}
+
+#melhoriaModal > div {
+  position: relative !important;
+  z-index: 1000000 !important;
 }
 
 /* Badge BETA */
@@ -299,18 +306,10 @@ $userId = $_SESSION['user_id'];
 <script>
 // Funções do Modal
 function openMelhoriaModal() {
-  alert('Função chamada!'); // TESTE
-  console.log('Abrindo modal...');
   const modal = document.getElementById('melhoriaModal');
-  console.log('Modal element:', modal);
   if (modal) {
     modal.classList.add('show');
     document.body.style.overflow = 'hidden';
-    console.log('Modal aberto! Classes:', modal.className);
-    console.log('Display:', window.getComputedStyle(modal).display);
-  } else {
-    console.error('Modal não encontrado!');
-    alert('ERRO: Modal não encontrado!');
   }
 }
 
