@@ -74,7 +74,8 @@ class MelhoriaContinua2Controller
 
     public function store(): void
     {
-        if (!PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'edit')) {
+        // Verificar permissão de view (usuário pode criar se tem acesso ao módulo)
+        if ($_SESSION['user_role'] !== 'admin' && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Acesso negado']);
             return;
