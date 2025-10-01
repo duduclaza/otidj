@@ -210,16 +210,45 @@ class MelhoriaContinua2Controller
             $responsaveis_str = !empty($responsaveis) ? implode(',', $responsaveis) : '';
 
             // Processar anexos
-            // 1. Pegar anexos atuais (já filtrados pelo frontend - removidos os deletados)
+            // 1. Buscar anexos antigos do banco
+            $stmt = $this->db->prepare('SELECT anexos FROM melhoria_continua_2 WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            $melhoriaAnexos = $stmt->fetch(PDO::FETCH_ASSOC);
+            $anexos_antigos = !empty($melhoriaAnexos['anexos']) ? json_decode($melhoriaAnexos['anexos'], true) : [];
+            
+            // 2. Pegar anexos atuais (já filtrados pelo frontend - removidos os deletados)
             $anexos_atuais = [];
             if (!empty($_POST['anexos_atuais'])) {
                 $anexos_atuais = json_decode($_POST['anexos_atuais'], true) ?? [];
             }
             
-            // 2. Processar novos anexos se houver
+            // 3. Identificar anexos removidos e deletar arquivos físicos
+            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/storage/uploads/melhorias/';
+            foreach ($anexos_antigos as $anexo_antigo) {
+                $foi_removido = true;
+                foreach ($anexos_atuais as $anexo_atual) {
+                    if (isset($anexo_antigo['arquivo']) && isset($anexo_atual['arquivo']) && 
+                        $anexo_antigo['arquivo'] === $anexo_atual['arquivo']) {
+                        $foi_removido = false;
+                        break;
+                    }
+                }
+                
+                // Se foi removido, deletar arquivo físico
+                if ($foi_removido && isset($anexo_antigo['arquivo'])) {
+                    $filePath = $uploadDir . $anexo_antigo['arquivo'];
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                        error_log("Arquivo removido na edição: $filePath");
+                    }
+                }
+            }
+            
+            // 4. Processar novos anexos se houver
             if (!empty($_FILES['anexos']['name'][0])) {
                 $novos_anexos = $this->processarAnexos($_FILES['anexos']);
                 $anexos_atuais = array_merge($anexos_atuais, $novos_anexos);
+                error_log("Novos anexos adicionados: " . count($novos_anexos));
             }
             
             error_log("Anexos finais para update: " . print_r($anexos_atuais, true));
