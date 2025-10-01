@@ -756,24 +756,32 @@ function generatePrintHTML(m) {
 // Editar Melhoria
 async function editMelhoria(id) {
   try {
+    console.log('Carregando melhoria para edição, ID:', id);
     const response = await fetch(`/melhoria-continua-2/${id}/details`);
     const data = await response.json();
     
-    if (data.success) {
+    console.log('Dados recebidos:', data);
+    
+    if (data.success && data.melhoria) {
       const m = data.melhoria;
+      console.log('Melhoria:', m);
       
       // Preencher formulário
-      document.querySelector('[name="departamento_id"]').value = m.departamento_id;
-      document.querySelector('[name="titulo"]').value = m.titulo;
-      document.querySelector('[name="resultado_esperado"]').value = m.resultado_esperado;
-      document.querySelector('[name="o_que"]').value = m.o_que;
-      document.querySelector('[name="como"]').value = m.como;
-      document.querySelector('[name="onde"]').value = m.onde;
-      document.querySelector('[name="porque"]').value = m.porque;
-      document.querySelector('[name="quando"]').value = m.quando;
-      document.querySelector('[name="quanto_custa"]').value = m.quanto_custa || '';
-      document.querySelector('[name="idealizador"]').value = m.idealizador;
-      document.querySelector('[name="observacao"]').value = m.observacao || '';
+      const form = document.getElementById('melhoriaForm');
+      
+      form.querySelector('[name="departamento_id"]').value = m.departamento_id || '';
+      form.querySelector('[name="titulo"]').value = m.titulo || '';
+      form.querySelector('[name="resultado_esperado"]').value = m.resultado_esperado || '';
+      form.querySelector('[name="o_que"]').value = m.o_que || '';
+      form.querySelector('[name="como"]').value = m.como || '';
+      form.querySelector('[name="onde"]').value = m.onde || '';
+      form.querySelector('[name="porque"]').value = m.porque || '';
+      form.querySelector('[name="quando"]').value = m.quando || '';
+      form.querySelector('[name="quanto_custa"]').value = m.quanto_custa || '';
+      form.querySelector('[name="idealizador"]').value = m.idealizador || '';
+      form.querySelector('[name="observacao"]').value = m.observacao || '';
+      
+      console.log('Formulário preenchido');
       
       // Selecionar responsáveis
       if (m.responsaveis) {
@@ -852,17 +860,24 @@ async function editMelhoria(id) {
       hiddenId.value = id;
       
       // Alterar action do formulário para update
-      document.getElementById('melhoriaForm').action = '/melhoria-continua-2/update';
+      form.action = '/melhoria-continua-2/update';
+      console.log('Action alterada para:', form.action);
       
-      // Abrir formulário
-      openMelhoriaModal();
+      // Abrir formulário (sem limpar!)
+      const formContainer = document.getElementById('melhoriaFormContainer');
+      formContainer.classList.remove('hidden');
+      console.log('Formulário aberto');
       
       // Scroll até o topo do formulário
-      document.getElementById('melhoriaFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
+    } else {
+      console.error('Dados inválidos:', data);
+      alert('❌ Erro: Dados da melhoria não encontrados');
     }
   } catch (error) {
     console.error('Erro ao carregar dados:', error);
-    alert('❌ Erro ao carregar dados para edição');
+    alert('❌ Erro ao carregar dados para edição: ' + error.message);
   }
 }
 
