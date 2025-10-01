@@ -239,9 +239,9 @@ $userId = $_SESSION['user_id'];
 </section>
 
 <!-- Modal Ver Detalhes -->
-<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50" style="z-index: 9999;">
+<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden" style="z-index: 9999;" onclick="if(event.target === this) closeViewModal()">
   <div class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
       <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
         <h2 class="text-2xl font-bold text-gray-900">📋 Detalhes da Melhoria</h2>
         <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600">
@@ -521,17 +521,31 @@ function generateDetailHTML(m) {
   `;
 }
 
-// Imprimir Melhoria
+// Imprimir Melhoria - Abre em nova aba para salvar como PDF
 async function printMelhoria(id) {
   try {
+    // Mostrar loading
+    const loadingMsg = document.createElement('div');
+    loadingMsg.innerHTML = '<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:20px;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,0.1);z-index:99999;"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div><p class="mt-4 text-gray-600">Gerando documento...</p></div>';
+    document.body.appendChild(loadingMsg);
+    
     const response = await fetch(`/melhoria-continua-2/${id}/details`);
     const data = await response.json();
     
+    document.body.removeChild(loadingMsg);
+    
     if (data.success) {
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open('', '_blank', 'width=1200,height=800');
       printWindow.document.write(generatePrintHTML(data.melhoria));
       printWindow.document.close();
-      setTimeout(() => printWindow.print(), 500);
+      
+      // Aguardar carregamento de imagens antes de imprimir
+      printWindow.onload = function() {
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 1000);
+      };
     }
   } catch (error) {
     alert('❌ Erro ao gerar impressão');
@@ -546,22 +560,85 @@ function generatePrintHTML(m) {
     <head>
       <title>Melhoria Contínua - ${m.titulo}</title>
       <style>
-        body { font-family: Arial, sans-serif; padding: 40px; }
-        .header { text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; }
-        .section { margin-bottom: 25px; page-break-inside: avoid; }
-        .section-title { background: #2563eb; color: white; padding: 10px; font-weight: bold; margin-bottom: 10px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .field { margin-bottom: 10px; }
-        .field strong { display: block; color: #1e40af; margin-bottom: 5px; }
-        .anexo-page { page-break-before: always; text-align: center; }
-        .anexo-page img { max-width: 100%; max-height: 90vh; }
-        @media print { .no-print { display: none; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+          padding: 40px; 
+          line-height: 1.6;
+          color: #333;
+        }
+        .header { 
+          text-align: center; 
+          border-bottom: 4px solid #2563eb; 
+          padding-bottom: 20px; 
+          margin-bottom: 30px; 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 30px;
+          border-radius: 10px 10px 0 0;
+        }
+        .header h1 { font-size: 32px; margin-bottom: 10px; }
+        .header p { font-size: 16px; opacity: 0.9; }
+        .section { 
+          margin-bottom: 30px; 
+          page-break-inside: avoid; 
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        .section-title { 
+          background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+          color: white; 
+          padding: 12px 15px; 
+          font-weight: bold; 
+          font-size: 16px;
+          letter-spacing: 0.5px;
+        }
+        .section-content { padding: 20px; }
+        .grid { 
+          display: grid; 
+          grid-template-columns: 1fr 1fr; 
+          gap: 20px; 
+          padding: 20px;
+        }
+        .field { 
+          margin-bottom: 15px; 
+          padding: 10px;
+          background: #f9fafb;
+          border-radius: 6px;
+        }
+        .field strong { 
+          display: block; 
+          color: #1e40af; 
+          margin-bottom: 5px; 
+          font-size: 14px;
+        }
+        .field-value {
+          color: #374151;
+          font-size: 15px;
+        }
+        @media print { 
+          .no-print { display: none; }
+          body { padding: 20px; }
+          .section { page-break-inside: avoid; }
+          img { max-width: 100%; height: auto; }
+        }
       </style>
     </head>
     <body>
+      <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <button onclick="window.print()" style="background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-right: 10px;">
+          🖨️ Imprimir / Salvar PDF
+        </button>
+        <button onclick="window.close()" style="background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;">
+          ✖️ Fechar
+        </button>
+      </div>
+      
       <div class="header">
         <h1>🚀 MELHORIA CONTÍNUA 2.0</h1>
         <p>Sistema de Gestão da Qualidade - OTI DJ</p>
+        <p style="margin-top: 10px; font-size: 14px;">Melhoria #${m.id} - ${m.titulo}</p>
       </div>
       
       <div class="section">
@@ -607,12 +684,34 @@ function generatePrintHTML(m) {
       ` : ''}
       
       ${m.anexos && m.anexos.length > 0 ? `
-      ${m.anexos.map((a, i) => `
-        <div class="anexo-page">
-          <h2>📎 Anexo ${i + 1}: ${a.nome}</h2>
-          ${a.tipo.includes('image') ? `<img src="${a.url}" alt="${a.nome}">` : `<p>Arquivo: ${a.nome}</p>`}
-        </div>
-      `).join('')}
+      <div class="section">
+        <div class="section-title">📎 ANEXOS (${m.anexos.length})</div>
+        ${m.anexos.map((a, i) => {
+          const isImage = a.nome.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i);
+          const isPdf = a.nome.match(/\.pdf$/i);
+          return `
+            <div class="anexo-item" style="margin-bottom: 20px; page-break-inside: avoid;">
+              <h3 style="color: #2563eb; margin-bottom: 10px;">Anexo ${i + 1}: ${a.nome}</h3>
+              ${isImage ? `
+                <div style="text-align: center; padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                  <img src="${a.url}" alt="${a.nome}" style="max-width: 100%; max-height: 600px; object-fit: contain;">
+                </div>
+              ` : isPdf ? `
+                <div style="padding: 20px; background: #f3f4f6; border-radius: 8px; text-align: center;">
+                  <p style="font-size: 18px; margin-bottom: 10px;">📄 Documento PDF</p>
+                  <p style="color: #666;">Este documento contém um arquivo PDF anexo.</p>
+                  <p style="margin-top: 10px;"><strong>Arquivo:</strong> ${a.nome}</p>
+                </div>
+              ` : `
+                <div style="padding: 20px; background: #f3f4f6; border-radius: 8px;">
+                  <p><strong>Tipo:</strong> Arquivo anexo</p>
+                  <p><strong>Nome:</strong> ${a.nome}</p>
+                </div>
+              `}
+            </div>
+          `;
+        }).join('')}
+      </div>
       ` : ''}
       
       <div style="margin-top: 50px; text-align: center; color: #666; font-size: 12px;">
@@ -624,13 +723,86 @@ function generatePrintHTML(m) {
   `;
 }
 
-function editMelhoria(id) {
-  alert('🚧 Função de edição em desenvolvimento. ID: ' + id);
+// Editar Melhoria
+async function editMelhoria(id) {
+  try {
+    const response = await fetch(`/melhoria-continua-2/${id}/details`);
+    const data = await response.json();
+    
+    if (data.success) {
+      const m = data.melhoria;
+      
+      // Preencher formulário
+      document.querySelector('[name="departamento_id"]').value = m.departamento_id;
+      document.querySelector('[name="titulo"]').value = m.titulo;
+      document.querySelector('[name="resultado_esperado"]').value = m.resultado_esperado;
+      document.querySelector('[name="o_que"]').value = m.o_que;
+      document.querySelector('[name="como"]').value = m.como;
+      document.querySelector('[name="onde"]').value = m.onde;
+      document.querySelector('[name="porque"]').value = m.porque;
+      document.querySelector('[name="quando"]').value = m.quando;
+      document.querySelector('[name="quanto_custa"]').value = m.quanto_custa || '';
+      document.querySelector('[name="idealizador"]').value = m.idealizador;
+      document.querySelector('[name="observacao"]').value = m.observacao || '';
+      
+      // Selecionar responsáveis
+      if (m.responsaveis) {
+        const responsaveisIds = m.responsaveis.split(',');
+        const select = document.querySelector('[name="responsaveis[]"]');
+        Array.from(select.options).forEach(option => {
+          option.selected = responsaveisIds.includes(option.value);
+        });
+      }
+      
+      // Adicionar campo hidden com ID para update
+      let hiddenId = document.querySelector('[name="id"]');
+      if (!hiddenId) {
+        hiddenId = document.createElement('input');
+        hiddenId.type = 'hidden';
+        hiddenId.name = 'id';
+        document.getElementById('melhoriaForm').appendChild(hiddenId);
+      }
+      hiddenId.value = id;
+      
+      // Alterar action do formulário
+      document.getElementById('melhoriaForm').action = '/melhoria-continua-2/update';
+      
+      // Abrir formulário
+      openMelhoriaModal();
+      
+      // Scroll até o topo do formulário
+      document.getElementById('melhoriaFormContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } catch (error) {
+    alert('❌ Erro ao carregar dados para edição');
+  }
 }
 
-function deleteMelhoria(id) {
-  if (confirm('⚠️ Tem certeza que deseja excluir esta melhoria?')) {
-    alert('🗑️ Excluir melhoria ID: ' + id);
+// Excluir Melhoria
+async function deleteMelhoria(id) {
+  if (!confirm('⚠️ Tem certeza que deseja excluir esta melhoria?\n\nEsta ação não pode ser desfeita!')) {
+    return;
+  }
+  
+  try {
+    const formData = new FormData();
+    formData.append('id', id);
+    
+    const response = await fetch('/melhoria-continua-2/delete', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Melhoria excluída com sucesso!');
+      location.reload();
+    } else {
+      alert('❌ Erro: ' + data.message);
+    }
+  } catch (error) {
+    alert('❌ Erro ao excluir melhoria');
   }
 }
 </script>
