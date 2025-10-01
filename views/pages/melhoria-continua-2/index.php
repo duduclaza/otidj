@@ -169,6 +169,7 @@ $userId = $_SESSION['user_id'];
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
             <?php if ($isAdmin): ?>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
@@ -207,7 +208,10 @@ $userId = $_SESSION['user_id'];
               <?php endif; ?>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <?= e($melhoria['responsaveis_nomes'] ?? $melhoria['criador_nome']) ?>
+              <?= e($melhoria['criador_nome']) ?>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <?= e($melhoria['responsaveis_nomes'] ?? '-') ?>
             </td>
             <?php if ($isAdmin): ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
