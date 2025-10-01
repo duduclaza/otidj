@@ -722,17 +722,34 @@ function generatePrintHTML(m) {
           const isImage = a.nome.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i);
           const isPdf = a.nome.match(/\.pdf$/i);
           return `
-            <div class="anexo-item" style="margin-bottom: 20px; page-break-inside: avoid;">
-              <h3 style="color: #2563eb; margin-bottom: 10px;">Anexo ${i + 1}: ${a.nome}</h3>
+            <div class="anexo-item" style="margin-bottom: 30px; page-break-before: ${i > 0 ? 'always' : 'auto'}; page-break-inside: avoid;">
+              <h3 style="color: #2563eb; margin-bottom: 15px; padding: 10px; background: #eff6ff; border-left: 4px solid #2563eb;">
+                📎 Anexo ${i + 1}: ${a.nome}
+              </h3>
               ${isImage ? `
-                <div style="text-align: center; padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px;">
-                  <img src="${a.url}" alt="${a.nome}" style="max-width: 100%; max-height: 600px; object-fit: contain;">
+                <div style="text-align: center; padding: 20px; border: 2px solid #e5e7eb; border-radius: 8px; background: white;">
+                  <img src="${a.url}" alt="${a.nome}" style="max-width: 100%; max-height: 700px; object-fit: contain; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                 </div>
               ` : isPdf ? `
-                <div style="padding: 20px; background: #f3f4f6; border-radius: 8px; text-align: center;">
-                  <p style="font-size: 18px; margin-bottom: 10px;">📄 Documento PDF</p>
-                  <p style="color: #666;">Este documento contém um arquivo PDF anexo.</p>
-                  <p style="margin-top: 10px;"><strong>Arquivo:</strong> ${a.nome}</p>
+                <div style="padding: 30px; background: #f9fafb; border: 2px dashed #2563eb; border-radius: 8px; text-align: center;">
+                  <div style="font-size: 48px; margin-bottom: 15px;">📄</div>
+                  <p style="font-size: 20px; font-weight: bold; color: #1e40af; margin-bottom: 10px;">Documento PDF Anexado</p>
+                  <p style="color: #666; margin-bottom: 15px;">Este arquivo PDF está incluído nesta impressão.</p>
+                  <p style="background: white; padding: 10px; border-radius: 6px; display: inline-block;">
+                    <strong>Arquivo:</strong> ${a.nome}
+                  </p>
+                  <div style="margin-top: 20px; padding: 15px; background: #dbeafe; border-radius: 6px;">
+                    <p style="font-size: 14px; color: #1e40af; margin: 0;">
+                      💡 <strong>Dica:</strong> Para incluir o conteúdo deste PDF na impressão final, 
+                      abra o arquivo separadamente e imprima junto com este documento.
+                    </p>
+                  </div>
+                  <div style="margin-top: 15px;">
+                    <a href="${a.url}" target="_blank" style="display: inline-block; background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                      🔗 Abrir PDF em Nova Aba
+                    </a>
+                  </div>
+                  <iframe src="${a.url}" style="width: 100%; height: 800px; border: 2px solid #e5e7eb; border-radius: 8px; margin-top: 20px; display: block;"></iframe>
                 </div>
               ` : `
                 <div style="padding: 20px; background: #f3f4f6; border-radius: 8px;">
