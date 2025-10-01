@@ -20,11 +20,26 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.0';
-        $lastUpdate = '29/09/2025';
+        $systemVersion = '2.2.1';
+        $lastUpdate = '30/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.1',
+                'date' => '30/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção do Sistema de Orientações em Retornados',
+                'description' => 'Corrigido problema onde orientações e botões de destino não apareciam no módulo de retornados',
+                'items' => [
+                    'Corrigida função mostrarResultados() para sempre exibir botões de destino',
+                    'Implementado sistema de orientações padrão quando parâmetros não carregam',
+                    'Adicionada função forcarExibicaoDestinos() como fallback',
+                    'Melhorado carregamento de parâmetros com retry automático',
+                    'Adicionados logs detalhados para diagnóstico de problemas',
+                    'Sistema agora funciona mesmo com falha na API de parâmetros'
+                ]
+            ],
             [
                 'version' => '2.2.0',
                 'date' => '29/09/2025',

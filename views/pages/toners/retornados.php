@@ -781,6 +781,8 @@ function toggleMedicaoType() {
   } else if (tipo === 'chip') {
     document.getElementById('camposPercentual').classList.remove('hidden');
   }
+  
+  console.log('🔄 Tipo de medição alterado para:', tipo);
 }
 
 function validarModeloParaPeso() {
@@ -804,15 +806,33 @@ function calcularGramatura() {
   const modeloId = document.getElementById('modeloToner').value;
   const pesoRetornado = parseFloat(document.getElementById('pesoRetornado').value);
   
-  if (!modeloId || !pesoRetornado) return;
+  if (!modeloId || !pesoRetornado) {
+    // Se não há dados suficientes, ocultar seções
+    document.getElementById('resultadoCalculo').classList.add('hidden');
+    document.getElementById('selecaoDestino').classList.add('hidden');
+    return;
+  }
   
   const modelo = modelosData.find(m => m.id == modeloId);
-  if (!modelo || !modelo.peso_vazio || !modelo.gramatura) return;
+  if (!modelo || !modelo.peso_vazio || !modelo.gramatura) {
+    console.log('⚠️ Modelo não encontrado ou dados incompletos:', modelo);
+    // Ainda assim, tentar mostrar os botões de destino
+    forcarExibicaoDestinos();
+    return;
+  }
   
-  const gramaturaRestante = pesoRetornado - modelo.peso_vazio;
-  const percentualRestante = (gramaturaRestante / modelo.gramatura) * 100;
+  const gramaturaRestante = Math.max(0, pesoRetornado - modelo.peso_vazio);
+  const percentualRestante = Math.max(0, Math.min(100, (gramaturaRestante / modelo.gramatura) * 100));
   
   document.getElementById('gramaturaRestante').textContent = gramaturaRestante.toFixed(1) + 'g';
+  
+  console.log('📊 Cálculo por peso:', {
+    pesoRetornado,
+    pesoVazio: modelo.peso_vazio,
+    gramatura: modelo.gramatura,
+    gramaturaRestante,
+    percentualRestante
+  });
   
   mostrarResultados(percentualRestante, modelo);
 }
@@ -822,7 +842,7 @@ function calcularPercentual() {
   const modeloId = document.getElementById('modeloToner').value;
   const percentual = parseFloat(document.getElementById('percentualChip').value);
   
-  if (!modeloId || !percentual) return;
+  if (!modeloId || isNaN(percentual)) return;
   
   const modelo = modelosData.find(m => m.id == modeloId);
   if (!modelo) return;
@@ -831,6 +851,8 @@ function calcularPercentual() {
 }
 
 function mostrarResultados(percentualRestante, modelo) {
+  console.log('🎯 Mostrando resultados para:', percentualRestante + '%');
+  
   // Calcular folhas estimadas
   const folhasEstimadas = modelo.rendimento ? Math.round((percentualRestante / 100) * modelo.rendimento) : 0;
   
@@ -842,26 +864,31 @@ function mostrarResultados(percentualRestante, modelo) {
   document.getElementById('folhasEstimadas').textContent = folhasEstimadas + ' folhas';
   document.getElementById('valorEstimado').textContent = 'R$ ' + valorEstimado.toFixed(2);
   
+  // SEMPRE mostrar resultados e seleção de destino primeiro
+  document.getElementById('resultadoCalculo').classList.remove('hidden');
+  document.getElementById('selecaoDestino').classList.remove('hidden');
+  console.log('✅ Seções de resultado e destino exibidas');
+  
   // Verificar se parâmetros estão carregados, senão recarregar
   if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
     console.log('⚠️ Parâmetros não carregados, recarregando...');
-    document.getElementById('textoOrientacao').textContent = 'Carregando orientação...';
-    carregarParametrosGerais();
+    document.getElementById('textoOrientacao').textContent = 'Carregando orientação do sistema...';
     
-    // Tentar novamente após um delay
-    setTimeout(() => {
+    // Carregar parâmetros e depois gerar orientação
+    carregarParametrosGerais().then(() => {
+      console.log('✅ Parâmetros recarregados, gerando orientação...');
       const orientacao = gerarOrientacao(percentualRestante);
       atualizarOrientacaoVisual(orientacao, percentualRestante);
-    }, 2000);
+    }).catch(error => {
+      console.error('❌ Erro ao recarregar parâmetros:', error);
+      document.getElementById('textoOrientacao').textContent = 'Erro ao carregar orientação. Verifique os parâmetros do sistema.';
+    });
   } else {
     // Gerar orientação normalmente
+    console.log('✅ Parâmetros já carregados, gerando orientação...');
     const orientacao = gerarOrientacao(percentualRestante);
     atualizarOrientacaoVisual(orientacao, percentualRestante);
   }
-  
-  // Mostrar resultados e seleção de destino
-  document.getElementById('resultadoCalculo').classList.remove('hidden');
-  document.getElementById('selecaoDestino').classList.remove('hidden');
 }
 
 function atualizarOrientacaoVisual(orientacao, percentual) {
@@ -906,10 +933,20 @@ function gerarOrientacao(percentual) {
   console.log('🎯 Gerando orientação para percentual:', percentual);
   console.log('📋 Parâmetros disponíveis:', parametrosGerais);
   
-  // Se não há parâmetros carregados, usar orientação padrão
+  // Se não há parâmetros carregados, usar orientações padrão baseadas em lógica comum
   if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
-    console.log('⚠️ Nenhum parâmetro carregado, usando orientação padrão');
-    return 'Aguardando carregamento dos parâmetros de orientação...';
+    console.log('⚠️ Nenhum parâmetro carregado, usando orientação padrão baseada em lógica');
+    
+    // Orientações padrão baseadas em percentual
+    if (percentual <= 0) {
+      return 'Toner vazio (0%) - DESCARTE recomendado';
+    } else if (percentual <= 39) {
+      return 'Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado';
+    } else if (percentual <= 89) {
+      return 'Percentual médio (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo ou USO INTERNO recomendado';
+    } else {
+      return 'Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo recomendado';
+    }
   }
   
   // Ordenar parâmetros por faixa_min para garantir ordem correta
@@ -938,9 +975,18 @@ function gerarOrientacao(percentual) {
     }
   }
   
-  // Se não encontrou nenhum parâmetro correspondente
-  console.log('❌ Nenhum parâmetro encontrado para o percentual:', percentual);
-  return 'Percentual fora das faixas configuradas. Verifique os parâmetros de retornados.';
+  // Se não encontrou nenhum parâmetro correspondente, usar lógica padrão
+  console.log('❌ Nenhum parâmetro encontrado para o percentual:', percentual, '- usando lógica padrão');
+  
+  if (percentual <= 0) {
+    return 'Toner vazio (0%) - DESCARTE recomendado';
+  } else if (percentual <= 39) {
+    return 'Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado';
+  } else if (percentual <= 89) {
+    return 'Percentual médio (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo ou USO INTERNO recomendado';
+  } else {
+    return 'Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo recomendado';
+  }
 }
 
 function selecionarDestino(destino) {
@@ -976,6 +1022,27 @@ function updateDestinoButtons() {
       selectedBtn.classList.remove('border-gray-300');
       selectedBtn.classList.add(colors[selectedDestino]);
     }
+  }
+}
+
+// Função para forçar exibição dos destinos quando há problemas
+function forcarExibicaoDestinos() {
+  console.log('🔧 Forçando exibição dos botões de destino...');
+  
+  // Mostrar seção de destino
+  const selecaoDestino = document.getElementById('selecaoDestino');
+  if (selecaoDestino) {
+    selecaoDestino.classList.remove('hidden');
+    console.log('✅ Seção de destino exibida');
+  }
+  
+  // Mostrar orientação padrão
+  const orientacaoSistema = document.getElementById('orientacaoSistema');
+  const textoOrientacao = document.getElementById('textoOrientacao');
+  if (orientacaoSistema && textoOrientacao) {
+    textoOrientacao.textContent = 'Selecione o destino apropriado para este toner. Verifique os parâmetros do sistema se necessário.';
+    orientacaoSistema.parentElement.classList.remove('hidden');
+    console.log('✅ Orientação padrão exibida');
   }
 }
 
