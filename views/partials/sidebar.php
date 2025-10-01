@@ -85,6 +85,7 @@ $menu = [
       ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
       ['label' => 'Solicitações de Acesso', 'href' => '/admin/access-requests', 'icon' => '📧', 'module' => 'admin_convites'],
       ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
+      ['label' => 'Financeiro', 'href' => '/financeiro', 'icon' => '💰', 'module' => 'financeiro'],
     ]
   ],
 ];
@@ -663,6 +664,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         'melhoria': '/melhoria-continua/solicitacoes',
         'melhoria_continua_2': '/melhoria-continua-2',
         'amostragens_2': '/amostragens-2',
+        'financeiro': '/financeiro',
         'toner': '/toners/cadastro',
         'retornado': '/toners/retornados',
         'fmea': '/fmea',

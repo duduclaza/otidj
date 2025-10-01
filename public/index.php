@@ -147,6 +147,11 @@ $router->post('/cadastro-pecas/store', [App\Controllers\CadastroPecasController:
 $router->post('/cadastro-pecas/update', [App\Controllers\CadastroPecasController::class, 'update']);
 $router->post('/cadastro-pecas/delete', [App\Controllers\CadastroPecasController::class, 'delete']);
 
+// Financeiro routes
+$router->get('/financeiro', [App\Controllers\FinanceiroController::class, 'index']);
+$router->post('/financeiro/anexar-comprovante', [App\Controllers\FinanceiroController::class, 'anexarComprovante']);
+$router->get('/financeiro/{id}/download-comprovante', [App\Controllers\FinanceiroController::class, 'downloadComprovante']);
+
 // Other routes
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
