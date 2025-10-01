@@ -20,11 +20,25 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.7';
-        $lastUpdate = '30/09/2025';
+        $systemVersion = '2.2.8';
+        $lastUpdate = '01/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.8',
+                'date' => '01/10/2025',
+                'type' => 'Correção',
+                'title' => 'Correção do Erro 404 na Edição de Toners',
+                'description' => 'Corrigido erro 404 Not Found ao tentar salvar edição de toners no cadastro',
+                'items' => [
+                    'Corrigida rota de edição no JavaScript: /toners/cadastro/edit → /toners/update',
+                    'Rota backend /toners/update já existia e funcionava corretamente',
+                    'Problema era inconsistência entre frontend e backend',
+                    'Edição inline de toners agora funciona normalmente',
+                    'Validação de campos obrigatórios mantida'
+                ]
+            ],
             [
                 'version' => '2.2.7',
                 'date' => '30/09/2025',

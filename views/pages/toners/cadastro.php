@@ -599,7 +599,7 @@ function saveToner(id) {
   
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = '/toners/cadastro/edit';
+  form.action = '/toners/update';
   form.innerHTML = `
     <input type="hidden" name="id" value="${id}">
     <input type="hidden" name="modelo" value="${modelo}">
