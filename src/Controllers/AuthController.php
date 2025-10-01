@@ -34,66 +34,75 @@ class AuthController
         
         $title = 'Login - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/auth/login.php';
-        include __DIR__ . '/../../views/layouts/auth.php';
     }
     
     /**
      * Process login
      */
-    public function authenticate()
+    public function authenticate(): void
     {
         header('Content-Type: application/json');
-        
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        
-        if (empty($email) || empty($password)) {
-            echo json_encode(['success' => false, 'message' => 'Email e senha são obrigatórios']);
-            return;
-        }
-        
+
         try {
-            // Ensure DB connection (lazy)
+            // Lazy DB connection
             if ($this->db === null) {
                 $this->db = Database::getInstance();
             }
-            $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-            
-            if ($user && password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['name'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = $user['role'];
-                $_SESSION['user_setor'] = $user['setor'];
-                $_SESSION['user_filial'] = $user['filial'];
-                
-                // Load user profile information
-                $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
-                $_SESSION['user_profile'] = $profileInfo;
-                
-                // Verificar se é primeiro acesso (se a coluna existir)
-                if (isset($user['first_access']) && $user['first_access'] == 1) {
-                    echo json_encode([
-                        'success' => true, 
-                        'message' => 'Primeiro acesso detectado',
-                        'redirect' => '/auth/first-access'
-                    ]);
-                    return;
-                }
-                
-                // TODOS os usuários são direcionados para a página Início após login
-                $redirectUrl = '/inicio';
-                
-                echo json_encode([
-                    'success' => true, 
-                    'message' => 'Login realizado com sucesso!',
-                    'redirect' => $redirectUrl
-                ]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Email ou senha incorretos']);
+
+            $email = trim($_POST['email'] ?? '');
+            $password = $_POST['password'] ?? '';
+
+            if (empty($email) || empty($password)) {
+                echo json_encode(['success' => false, 'message' => 'Email e senha são obrigatórios']);
+                return;
             }
+
+            // Verificar se é o Master
+            if ($email === 'du.claza@gmail.com' && $password === 'Pipoca@1989') {
+                $_SESSION['user_id'] = 0; // ID especial para master
+                $_SESSION['user_name'] = 'Master Admin';
+                $_SESSION['user_email'] = 'du.claza@gmail.com';
+                $_SESSION['user_role'] = 'master';
+                $_SESSION['user_filial_id'] = null;
+                $_SESSION['is_master'] = true;
+
+                error_log("Login Master realizado - IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+
+                echo json_encode([
+                    'success' => true,
+                    'redirect' => '/master/dashboard'
+                ]);
+                return;
+            }
+
+            // Buscar usuário normal
+            $stmt = $this->db->prepare('SELECT * FROM users WHERE email = :email');
+            $stmt->execute([':email' => $email]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                echo json_encode(['success' => false, 'message' => 'Credenciais inválidas']);
+                return;
+            }
+
+            // Verificar senha
+            if (!password_verify($password, $user['password'])) {
+                echo json_encode(['success' => false, 'message' => 'Credenciais inválidas']);
+                return;
+            }
+
+            // Criar sessão
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_role'] = $user['role'];
+            $_SESSION['user_filial_id'] = $user['filial_id'];
+            $_SESSION['is_master'] = false;
+
+            echo json_encode([
+                'success' => true,
+                'redirect' => '/'
+            ]);
         } catch (\Exception $e) {
             error_log('Authenticate error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
