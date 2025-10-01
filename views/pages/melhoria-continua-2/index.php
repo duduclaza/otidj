@@ -57,7 +57,7 @@ $userId = $_SESSION['user_id'];
       </button>
     </div>
     
-    <form id="melhoriaForm" class="space-y-6" enctype="multipart/form-data">
+    <form id="melhoriaForm" action="/melhoria-continua-2/store" method="POST" class="space-y-6" enctype="multipart/form-data">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-sm font-medium text-gray-200 mb-1">Data de Registro</label>
@@ -378,9 +378,12 @@ document.getElementById('melhoriaForm').addEventListener('submit', async functio
   e.preventDefault();
   
   const formData = new FormData(this);
+  const actionUrl = this.action; // Usa o action do formulário (store ou update)
+  
+  console.log('Enviando para:', actionUrl);
   
   try {
-    const response = await fetch('/melhoria-continua-2/store', {
+    const response = await fetch(actionUrl, {
       method: 'POST',
       body: formData
     });
