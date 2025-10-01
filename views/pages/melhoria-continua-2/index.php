@@ -790,19 +790,43 @@ async function editMelhoria(id) {
       
       if (m.anexos && m.anexos.length > 0) {
         anexosContainer.classList.remove('hidden');
-        anexosList.innerHTML = m.anexos.map((anexo, index) => `
-          <div class="flex items-center justify-between bg-gray-700 p-3 rounded-lg" id="anexo-${index}">
-            <div class="flex items-center space-x-3">
-              ${anexo.tipo && anexo.tipo.includes('image') ? '🖼️' : '📄'}
-              <span class="text-gray-200">${anexo.nome}</span>
-              <span class="text-xs text-gray-400">(${(anexo.tamanho / 1024).toFixed(1)} KB)</span>
+        anexosList.innerHTML = m.anexos.map((anexo, index) => {
+          const isImage = anexo.tipo && anexo.tipo.includes('image');
+          const isPdf = anexo.nome && anexo.nome.toLowerCase().endsWith('.pdf');
+          
+          return `
+          <div class="bg-gray-700 p-4 rounded-lg border-2 border-gray-600" id="anexo-${index}">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center space-x-3">
+                <span class="text-2xl">${isImage ? '🖼️' : isPdf ? '📄' : '📎'}</span>
+                <div>
+                  <p class="text-gray-200 font-medium">${anexo.nome}</p>
+                  <p class="text-xs text-gray-400">${(anexo.tamanho / 1024).toFixed(1)} KB</p>
+                </div>
+              </div>
+              <button type="button" onclick="removerAnexo(${index}, '${anexo.arquivo}')" 
+                      class="text-red-400 hover:text-red-600 px-3 py-2 rounded-lg bg-red-900/20 hover:bg-red-900/40 transition-colors">
+                🗑️ Remover
+              </button>
             </div>
-            <button type="button" onclick="removerAnexo(${index}, '${anexo.arquivo}')" 
-                    class="text-red-400 hover:text-red-600 px-3 py-1 rounded">
-              🗑️ Remover
-            </button>
+            ${isImage ? `
+              <div class="mt-3 border-2 border-gray-600 rounded-lg overflow-hidden">
+                <img src="${anexo.url}" alt="${anexo.nome}" 
+                     class="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                     onclick="window.open('${anexo.url}', '_blank')">
+              </div>
+              <p class="text-xs text-gray-400 mt-2 text-center">Clique na imagem para ampliar</p>
+            ` : isPdf ? `
+              <div class="mt-3 bg-gray-800 p-4 rounded-lg text-center">
+                <a href="${anexo.url}" target="_blank" 
+                   class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                  📄 Abrir PDF
+                </a>
+              </div>
+            ` : ''}
           </div>
-        `).join('');
+        `;
+        }).join('');
         
         // Guardar anexos atuais em campo hidden
         let anexosField = document.querySelector('[name="anexos_atuais"]');

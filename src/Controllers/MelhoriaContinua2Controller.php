@@ -327,7 +327,7 @@ class MelhoriaContinua2Controller
             $userId = $_SESSION['user_id'];
 
             // Verificar se pode excluir
-            $stmt = $this->db->prepare('SELECT criado_por, status FROM melhoria_continua_2 WHERE id = :id');
+            $stmt = $this->db->prepare('SELECT criado_por, status, anexos FROM melhoria_continua_2 WHERE id = :id');
             $stmt->execute([':id' => $id]);
             $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -342,10 +342,27 @@ class MelhoriaContinua2Controller
                 return;
             }
 
+            // Excluir arquivos físicos dos anexos
+            if (!empty($melhoria['anexos'])) {
+                $anexos = json_decode($melhoria['anexos'], true);
+                $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/storage/uploads/melhorias/';
+                
+                foreach ($anexos as $anexo) {
+                    if (isset($anexo['arquivo'])) {
+                        $filePath = $uploadDir . $anexo['arquivo'];
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                            error_log("Arquivo excluído: $filePath");
+                        }
+                    }
+                }
+            }
+
+            // Excluir registro do banco
             $stmt = $this->db->prepare('DELETE FROM melhoria_continua_2 WHERE id = :id');
             $stmt->execute([':id' => $id]);
 
-            echo json_encode(['success' => true, 'message' => 'Melhoria excluída com sucesso!']);
+            echo json_encode(['success' => true, 'message' => 'Melhoria e anexos excluídos com sucesso!']);
 
         } catch (\Exception $e) {
             error_log('Erro ao excluir melhoria: ' . $e->getMessage());
