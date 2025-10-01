@@ -152,6 +152,13 @@ $router->get('/financeiro', [App\Controllers\FinanceiroController::class, 'index
 $router->post('/financeiro/anexar-comprovante', [App\Controllers\FinanceiroController::class, 'anexarComprovante']);
 $router->get('/financeiro/{id}/download-comprovante', [App\Controllers\FinanceiroController::class, 'downloadComprovante']);
 
+// Master routes
+$router->get('/master/login', [App\Controllers\MasterController::class, 'loginPage']);
+$router->post('/master/auth', [App\Controllers\MasterController::class, 'authenticate']);
+$router->get('/master/dashboard', [App\Controllers\MasterController::class, 'dashboard']);
+$router->post('/master/aprovar-pagamento', [App\Controllers\MasterController::class, 'aprovarPagamento']);
+$router->get('/master/logout', [App\Controllers\MasterController::class, 'logout']);
+
 // Other routes
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
