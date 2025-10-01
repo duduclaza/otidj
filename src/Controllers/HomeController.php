@@ -20,11 +20,25 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.5';
+        $systemVersion = '2.2.6';
         $lastUpdate = '30/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.6',
+                'date' => '30/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção do Erro 404 na Exclusão de Toners',
+                'description' => 'Corrigido erro 404 Not Found ao tentar excluir modelos de toner no cadastro',
+                'items' => [
+                    'Corrigida rota de exclusão no JavaScript: /toners/cadastro/delete → /toners/delete',
+                    'Rota backend /toners/delete já existia e funcionava corretamente',
+                    'Problema era inconsistência entre frontend e backend',
+                    'Exclusão de toners agora funciona normalmente',
+                    'Confirmação de exclusão mantida para segurança'
+                ]
+            ],
             [
                 'version' => '2.2.5',
                 'date' => '30/09/2025',

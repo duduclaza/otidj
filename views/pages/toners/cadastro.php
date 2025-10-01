@@ -619,7 +619,7 @@ function deleteToner(id) {
   
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = '/toners/cadastro/delete';
+  form.action = '/toners/delete';
   form.innerHTML = '<input type="hidden" name="id" value="' + id + '">';
   document.body.appendChild(form);
   form.submit();
