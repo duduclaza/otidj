@@ -250,42 +250,38 @@ $userId = $_SESSION['user_id'];
   opacity: 1 !important;
 }
 
-/* Container do formulário - SEM bordas brancas */
+/* Container do formulário - GRANDE e SEM bordas */
 .modal-content-wrapper {
   position: relative !important;
   z-index: 1000000 !important;
-  max-width: 1100px !important;
-  width: 95% !important;
-  max-height: 95vh !important;
+  max-width: 1400px !important;
+  width: 98% !important;
+  max-height: 98vh !important;
   overflow-y: auto !important;
   padding: 0 !important;
   margin: 0 !important;
   background: transparent !important;
-  border-radius: 12px !important;
+  border-radius: 0 !important;
 }
 
-/* Scrollbar estilizada (tema escuro) - INTEGRADA */
+/* ESCONDER scrollbar completamente */
 .modal-content-wrapper::-webkit-scrollbar {
-  width: 8px;
+  width: 0px;
+  display: none;
 }
 
 .modal-content-wrapper::-webkit-scrollbar-track {
-  background: transparent;
+  display: none;
 }
 
 .modal-content-wrapper::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.5);
-  border-radius: 10px;
+  display: none;
 }
 
-.modal-content-wrapper::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.7);
-}
-
-/* Firefox scrollbar */
+/* Firefox - esconder scrollbar */
 .modal-content-wrapper {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 /* Formulário interno - bordas arredondadas */
