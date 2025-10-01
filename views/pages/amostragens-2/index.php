@@ -315,11 +315,11 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
             <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
               <?php if ($amostra['total_evidencias'] > 0): ?>
                 <button onclick="verEvidencias(<?= $amostra['id'] ?>)" 
-                        class="text-blue-600 hover:text-blue-800">
-                  <?= $amostra['total_evidencias'] ?> 📷 Ver
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
+                  📷 Ver (<?= $amostra['total_evidencias'] ?>)
                 </button>
               <?php else: ?>
-                <span class="text-gray-400">0</span>
+                <span class="text-gray-400">Sem evidências</span>
               <?php endif; ?>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
@@ -390,6 +390,15 @@ function openAmostragemModal() {
 function closeAmostragemModal() {
   document.getElementById('amostragemFormContainer').classList.add('hidden');
   document.getElementById('amostragemForm').reset();
+  
+  // Voltar para modo criar
+  document.getElementById('amostragemForm').action = '/amostragens-2/store';
+  
+  // Remover campo hidden de ID se existir
+  const hiddenId = document.querySelector('input[name="amostragem_id"]');
+  if (hiddenId) {
+    hiddenId.remove();
+  }
 }
 
 function carregarProdutos() {
@@ -466,29 +475,38 @@ document.getElementById('amostragemForm').addEventListener('submit', async funct
 
 // Ver evidências
 async function verEvidencias(amostragemId) {
+  console.log('Buscando evidências para amostragem:', amostragemId);
+  
   try {
     const response = await fetch(`/amostragens-2/${amostragemId}/evidencias`);
     const data = await response.json();
     
+    console.log('Resposta do servidor:', data);
+    
     const content = document.getElementById('evidenciasContent');
     
-    if (data.success && data.evidencias.length > 0) {
+    if (data.success && data.evidencias && data.evidencias.length > 0) {
+      console.log('Evidências encontradas:', data.evidencias.length);
       content.innerHTML = data.evidencias.map(ev => `
-        <div class="border rounded-lg p-4">
-          <p class="text-sm font-medium mb-2">${ev.nome}</p>
+        <div class="border rounded-lg p-4 bg-gray-50">
+          <p class="text-sm font-medium mb-2">📄 ${ev.nome}</p>
+          <p class="text-xs text-gray-500 mb-2">Tipo: ${ev.tipo}</p>
           <a href="/amostragens-2/${amostragemId}/download-evidencia/${ev.id}" 
-             class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
-            📥 Baixar
+             class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+             download>
+            📥 Baixar Evidência
           </a>
         </div>
       `).join('');
     } else {
-      content.innerHTML = '<p class="text-gray-500">Nenhuma evidência encontrada</p>';
+      console.log('Nenhuma evidência encontrada');
+      content.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhuma evidência encontrada para esta amostragem</p>';
     }
     
     document.getElementById('evidenciasModal').classList.remove('hidden');
   } catch (error) {
-    alert('Erro ao carregar evidências');
+    console.error('Erro ao carregar evidências:', error);
+    alert('Erro ao carregar evidências: ' + error.message);
   }
 }
 
