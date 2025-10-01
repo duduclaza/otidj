@@ -100,10 +100,21 @@ class Amostragens2Controller
             $stmt->execute();
             $fornecedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Buscar produtos por tipo (toners)
+            // Buscar produtos por tipo
+            // Toners
             $stmt = $this->db->prepare('SELECT id, modelo as codigo, modelo as nome FROM toners ORDER BY modelo');
             $stmt->execute();
             $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Máquinas
+            $stmt = $this->db->prepare('SELECT id, cod_referencia as codigo, modelo as nome FROM cadastro_maquinas ORDER BY cod_referencia');
+            $stmt->execute();
+            $maquinas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Peças
+            $stmt = $this->db->prepare('SELECT id, codigo_referencia as codigo, descricao as nome FROM cadastro_pecas ORDER BY codigo_referencia');
+            $stmt->execute();
+            $pecas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $title = 'Amostragens 2.0 - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/amostragens-2/index.php';

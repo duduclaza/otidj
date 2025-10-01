@@ -330,9 +330,9 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
 
 <script>
 const produtosData = {
-  toners: <?= json_encode($toners) ?>,
-  pecas: [], // TODO: Buscar peças
-  maquinas: [] // TODO: Buscar máquinas
+  toners: <?= json_encode($toners ?? []) ?>,
+  pecas: <?= json_encode($pecas ?? []) ?>,
+  maquinas: <?= json_encode($maquinas ?? []) ?>
 };
 
 function openAmostragemModal() {
@@ -351,16 +351,24 @@ function carregarProdutos() {
   
   select.innerHTML = '<option value="">Selecione...</option>';
   
+  let produtos = [];
+  
   if (tipo === 'Toner') {
-    produtosData.toners.forEach(p => {
-      const option = document.createElement('option');
-      option.value = p.id;
-      option.textContent = `${p.codigo} - ${p.nome}`;
-      option.dataset.codigo = p.codigo;
-      option.dataset.nome = p.nome;
-      select.appendChild(option);
-    });
+    produtos = produtosData.toners;
+  } else if (tipo === 'Peça') {
+    produtos = produtosData.pecas;
+  } else if (tipo === 'Máquina') {
+    produtos = produtosData.maquinas;
   }
+  
+  produtos.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p.id;
+    option.textContent = `${p.codigo} - ${p.nome}`;
+    option.dataset.codigo = p.codigo;
+    option.dataset.nome = p.nome;
+    select.appendChild(option);
+  });
   
   select.classList.remove('hidden');
   
