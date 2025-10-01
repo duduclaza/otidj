@@ -360,6 +360,20 @@ class MelhoriaContinua2Controller
             
             $stmt->execute($params);
 
+            // Buscar dados da melhoria para notificações
+            $stmt = $this->db->prepare('
+                SELECT titulo, criado_por, responsaveis 
+                FROM melhoria_continua_2 
+                WHERE id = :id
+            ');
+            $stmt->execute([':id' => $id]);
+            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($melhoria) {
+                // Enviar notificações sobre mudança de status
+                $this->notificarMudancaStatus($id, $melhoria['titulo'], $status, $melhoria['criado_por'], $melhoria['responsaveis']);
+            }
+
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
 
         } catch (\Exception $e) {
@@ -476,6 +490,68 @@ class MelhoriaContinua2Controller
         }
 
         return $anexos;
+    }
+
+    private function notificarMudancaStatus($melhoriaId, $titulo, $novoStatus, $criadorId, $responsaveisStr): void
+    {
+        try {
+            $adminNome = $_SESSION['user_name'] ?? 'Administrador';
+            
+            // Mapear ícones por status
+            $statusIcons = [
+                'Pendente análise' => '⏳',
+                'Em andamento' => '🔄',
+                'Concluída' => '✅',
+                'Recusada' => '❌',
+                'Pendente Adaptação' => '📝'
+            ];
+            $icon = $statusIcons[$novoStatus] ?? '📊';
+            
+            // Mapear tipos de notificação por status
+            $notifType = match($novoStatus) {
+                'Concluída' => 'success',
+                'Recusada' => 'error',
+                'Em andamento' => 'info',
+                default => 'warning'
+            };
+            
+            // 1. Notificar o CRIADOR
+            $stmt = $this->db->prepare('
+                INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
+            ');
+            $stmt->execute([
+                $criadorId,
+                "$icon Status atualizado",
+                "$adminNome alterou o status da sua melhoria \"$titulo\" para: $novoStatus",
+                $notifType,
+                'melhoria_continua_2',
+                $melhoriaId
+            ]);
+            
+            // 2. Notificar os RESPONSÁVEIS
+            if (!empty($responsaveisStr)) {
+                $responsaveisIds = explode(',', $responsaveisStr);
+                foreach ($responsaveisIds as $responsavelId) {
+                    // Não notificar o criador duas vezes
+                    if ($responsavelId == $criadorId) continue;
+                    
+                    $stmt->execute([
+                        $responsavelId,
+                        "$icon Status atualizado",
+                        "$adminNome alterou o status da melhoria \"$titulo\" para: $novoStatus",
+                        $notifType,
+                        'melhoria_continua_2',
+                        $melhoriaId
+                    ]);
+                }
+            }
+            
+            error_log("Notificações de mudança de status enviadas - Melhoria ID: $melhoriaId - Status: $novoStatus");
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao notificar mudança de status: " . $e->getMessage());
+        }
     }
 
     private function enviarNotificacoes($melhoriaId, $titulo, $responsaveis): void
