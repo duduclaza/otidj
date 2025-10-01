@@ -118,7 +118,7 @@ $userId = $_SESSION['user_id'];
 </section>
 
 <!-- Modal Nova Melhoria -->
-<div id="melhoriaModal" class="fixed inset-0 bg-black bg-opacity-50" style="display: none; z-index: 9999; align-items: center; justify-content: center;">
+<div id="melhoriaModal">
     <div class="w-full max-w-4xl p-4">
       <div class="bg-gray-800 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center p-6 border-b border-gray-700">
@@ -226,6 +226,24 @@ $userId = $_SESSION['user_id'];
 </div>
 
 <style>
+/* Modal */
+#melhoriaModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: none;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+#melhoriaModal.show {
+  display: flex !important;
+}
+
 /* Badge BETA */
 .beta-badge {
   background: linear-gradient(45deg, #ff6b6b, #feca57);
@@ -281,14 +299,18 @@ $userId = $_SESSION['user_id'];
 <script>
 // Funções do Modal
 function openMelhoriaModal() {
+  alert('Função chamada!'); // TESTE
   console.log('Abrindo modal...');
   const modal = document.getElementById('melhoriaModal');
+  console.log('Modal element:', modal);
   if (modal) {
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Prevenir scroll
-    console.log('Modal aberto!');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    console.log('Modal aberto! Classes:', modal.className);
+    console.log('Display:', window.getComputedStyle(modal).display);
   } else {
     console.error('Modal não encontrado!');
+    alert('ERRO: Modal não encontrado!');
   }
 }
 
@@ -296,8 +318,8 @@ function closeMelhoriaModal() {
   console.log('Fechando modal...');
   const modal = document.getElementById('melhoriaModal');
   if (modal) {
-    modal.style.display = 'none';
-    document.body.style.overflow = ''; // Restaurar scroll
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
     document.getElementById('melhoriaForm').reset();
   }
 }
@@ -333,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Pressionar ESC
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && modal.style.display === 'flex') {
+      if (e.key === 'Escape' && modal.classList.contains('show')) {
         closeMelhoriaModal();
       }
     });
