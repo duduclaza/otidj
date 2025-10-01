@@ -67,7 +67,7 @@ class AuthController
             // Buscar usuário
             $stmt = $this->db->prepare('SELECT * FROM users WHERE email = ?');
             $stmt->execute([$email]);
-            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$user) {
                 echo json_encode(['success' => false, 'message' => 'Credenciais inválidas']);
