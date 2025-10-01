@@ -17,8 +17,8 @@ class MelhoriaContinua2Controller
 
     public function index(): void
     {
-        // Verificar permissão
-        if (!PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
+        // Verificar permissão (admin sempre tem acesso)
+        if ($_SESSION['user_role'] !== 'admin' && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
             http_response_code(403);
             echo "Acesso negado";
             return;

@@ -5,6 +5,11 @@ function hasPermission($module, $action = 'view') {
         return false;
     }
     
+    // Admin sempre tem acesso
+    if ($_SESSION['user_role'] === 'admin') {
+        return true;
+    }
+    
     $userId = $_SESSION['user_id'];
     return \App\Services\PermissionService::hasPermission($userId, $module, $action);
 }
