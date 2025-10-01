@@ -525,6 +525,11 @@ async function editarAmostragem(id) {
     const text = await response.text();
     console.log('Response text:', text);
     
+    if (!text || text.trim() === '') {
+      alert('Funcionalidade de edição em desenvolvimento. Servidor retornou resposta vazia.');
+      return;
+    }
+    
     const data = JSON.parse(text);
     console.log('Dados recebidos:', data);
     
