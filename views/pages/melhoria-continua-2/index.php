@@ -254,9 +254,9 @@ $userId = $_SESSION['user_id'];
 .modal-content-wrapper {
   position: relative !important;
   z-index: 1000000 !important;
-  max-width: 900px !important;
-  width: 90% !important;
-  max-height: 90vh !important;
+  max-width: 1100px !important;
+  width: 95% !important;
+  max-height: 95vh !important;
   overflow-y: auto !important;
   padding: 0 !important;
   margin: 0 !important;
@@ -264,29 +264,28 @@ $userId = $_SESSION['user_id'];
   border-radius: 12px !important;
 }
 
-/* Scrollbar estilizada (tema escuro) */
+/* Scrollbar estilizada (tema escuro) - INTEGRADA */
 .modal-content-wrapper::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 
 .modal-content-wrapper::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 10px;
+  background: transparent;
 }
 
 .modal-content-wrapper::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.7);
+  background: rgba(75, 85, 99, 0.5);
   border-radius: 10px;
 }
 
 .modal-content-wrapper::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.9);
+  background: rgba(107, 114, 128, 0.7);
 }
 
 /* Firefox scrollbar */
 .modal-content-wrapper {
   scrollbar-width: thin;
-  scrollbar-color: rgba(75, 85, 99, 0.7) rgba(0, 0, 0, 0.4);
+  scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
 }
 
 /* Formulário interno - bordas arredondadas */
