@@ -101,7 +101,7 @@ class Amostragens2Controller
             $fornecedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Buscar produtos por tipo
-            $stmt = $this->db->prepare('SELECT id, codigo, nome FROM toners WHERE status = "active" ORDER BY codigo');
+            $stmt = $this->db->prepare('SELECT id, codigo_produto as codigo, modelo as nome FROM toners ORDER BY codigo_produto');
             $stmt->execute();
             $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
