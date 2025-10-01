@@ -226,7 +226,7 @@ $userId = $_SESSION['user_id'];
 </div>
 
 <style>
-/* Modal */
+/* Modal - Overlay que cobre TUDO */
 #melhoriaModal {
   position: fixed !important;
   top: 0 !important;
@@ -235,11 +235,13 @@ $userId = $_SESSION['user_id'];
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background-color: rgba(0, 0, 0, 0.5) !important;
+  background-color: rgba(0, 0, 0, 0.7) !important;
   display: none;
   z-index: 999999 !important;
   align-items: center !important;
   justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 #melhoriaModal.show {
@@ -248,9 +250,32 @@ $userId = $_SESSION['user_id'];
   opacity: 1 !important;
 }
 
+/* Container do formulário */
 #melhoriaModal > div {
   position: relative !important;
   z-index: 1000000 !important;
+  max-width: 900px !important;
+  width: 90% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+/* Formulário interno */
+#melhoriaModal .bg-gray-800 {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Garantir que modal fique acima de sidebar e outros elementos */
+body.modal-open {
+  overflow: hidden !important;
+}
+
+.sidebar,
+nav,
+header,
+.navbar {
+  position: relative !important;
+  z-index: 100 !important;
 }
 
 /* Badge BETA */
@@ -310,18 +335,16 @@ $userId = $_SESSION['user_id'];
 function openMelhoriaModal() {
   const modal = document.getElementById('melhoriaModal');
   if (modal) {
-    console.log('Antes:', modal.className, 'Display:', window.getComputedStyle(modal).display);
     modal.classList.add('show');
-    console.log('Depois:', modal.className, 'Display:', window.getComputedStyle(modal).display);
+    document.body.classList.add('modal-open');
     document.body.style.overflow = 'hidden';
     
     // Forçar display como fallback
     setTimeout(() => {
       if (window.getComputedStyle(modal).display === 'none') {
-        console.warn('Display ainda é none! Forçando...');
         modal.style.display = 'flex';
       }
-    }, 100);
+    }, 50);
   }
 }
 
@@ -329,7 +352,8 @@ function closeMelhoriaModal() {
   const modal = document.getElementById('melhoriaModal');
   if (modal) {
     modal.classList.remove('show');
-    modal.style.display = ''; // Remover style inline
+    modal.style.display = '';
+    document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
     document.getElementById('melhoriaForm').reset();
   }
