@@ -249,6 +249,7 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Anexo NF</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evidências</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -320,6 +321,16 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
               <?php else: ?>
                 <span class="text-gray-400">0</span>
               <?php endif; ?>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+              <button onclick="editarAmostragem(<?= $amostra['id'] ?>)" 
+                      class="text-blue-600 hover:text-blue-800">
+                ✏️ Editar
+              </button>
+              <button onclick="excluirAmostragem(<?= $amostra['id'] ?>)" 
+                      class="text-red-600 hover:text-red-800">
+                🗑️ Excluir
+              </button>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -483,5 +494,33 @@ async function verEvidencias(amostragemId) {
 
 function closeEvidenciasModal() {
   document.getElementById('evidenciasModal').classList.add('hidden');
+}
+
+// Editar amostragem
+function editarAmostragem(id) {
+  alert('Funcionalidade de edição em desenvolvimento');
+  // TODO: Implementar edição
+}
+
+// Excluir amostragem
+async function excluirAmostragem(id) {
+  if (!confirm('Tem certeza que deseja excluir esta amostragem?')) return;
+  
+  try {
+    const response = await fetch('/amostragens-2/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `id=${id}`
+    });
+    
+    const result = await response.json();
+    alert(result.message);
+    
+    if (result.success) {
+      window.location.reload();
+    }
+  } catch (error) {
+    alert('Erro ao excluir amostragem');
+  }
 }
 </script>

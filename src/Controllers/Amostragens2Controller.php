@@ -393,6 +393,34 @@ class Amostragens2Controller
         }
     }
 
+    public function delete(): void
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                return;
+            }
+
+            // Excluir evidências primeiro (CASCADE deve fazer isso automaticamente)
+            $stmt = $this->db->prepare('DELETE FROM amostragens_2_evidencias WHERE amostragem_id = :id');
+            $stmt->execute([':id' => $id]);
+
+            // Excluir amostragem
+            $stmt = $this->db->prepare('DELETE FROM amostragens_2 WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+
+            echo json_encode(['success' => true, 'message' => 'Amostragem excluída com sucesso!']);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao excluir amostragem: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir: ' . $e->getMessage()]);
+        }
+    }
+
     public function exportExcel(): void
     {
         // TODO: Implementar exportação para Excel
