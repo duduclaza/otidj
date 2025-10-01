@@ -490,21 +490,44 @@ class MelhoriaContinua2Controller
             // 2. Notificar RESPONSÁVEIS selecionados
             if (!empty($responsaveis)) {
                 foreach ($responsaveis as $responsavelId) {
-                    // Não notificar o próprio criador
-                    if ($responsavelId == $criadorId) continue;
+                    // Verificar se o responsável já não foi notificado como admin
+                    $jaNotificado = false;
+                    foreach ($admins as $admin) {
+                        if ($admin['id'] == $responsavelId) {
+                            $jaNotificado = true;
+                            break;
+                        }
+                    }
                     
+                    // Se já foi notificado como admin, pular
+                    if ($jaNotificado) continue;
+                    
+                    // Notificar responsável (mesmo que seja o criador)
                     $stmt = $this->db->prepare('
                         INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
                         VALUES (?, ?, ?, ?, ?, ?, NOW())
                     ');
-                    $stmt->execute([
-                        $responsavelId,
-                        '👤 Você foi designado como responsável',
-                        "$criadorNome designou você como responsável pela melhoria: \"$titulo\"",
-                        'warning',
-                        'melhoria_continua_2',
-                        $melhoriaId
-                    ]);
+                    
+                    // Se for o próprio criador, mensagem diferente
+                    if ($responsavelId == $criadorId) {
+                        $stmt->execute([
+                            $responsavelId,
+                            '✅ Melhoria criada com sucesso',
+                            "Você criou a melhoria: \"$titulo\" e foi designado como responsável",
+                            'success',
+                            'melhoria_continua_2',
+                            $melhoriaId
+                        ]);
+                    } else {
+                        $stmt->execute([
+                            $responsavelId,
+                            '👤 Você foi designado como responsável',
+                            "$criadorNome designou você como responsável pela melhoria: \"$titulo\"",
+                            'warning',
+                            'melhoria_continua_2',
+                            $melhoriaId
+                        ]);
+                    }
                 }
             }
             
