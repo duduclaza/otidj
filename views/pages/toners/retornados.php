@@ -125,7 +125,7 @@
       <div id="camposPeso" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label for="pesoRetornado" class="block text-sm font-medium text-gray-700 mb-2">Peso do Retornado (g) *</label>
-          <input type="number" id="pesoRetornado" name="peso_retornado" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="calcularGramatura()">
+          <input type="number" id="pesoRetornado" name="peso_retornado" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" oninput="calcularGramatura()" onchange="calcularGramatura()">
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Gramatura Restante</label>
@@ -818,38 +818,107 @@ function validarModeloParaPeso() {
 
 // Calcular gramatura a partir do peso
 function calcularGramatura() {
-  const modeloId = document.getElementById('modeloToner').value;
-  const pesoRetornado = parseFloat(document.getElementById('pesoRetornado').value);
+  console.log('⚖️ Calculando por peso físico...');
   
-  if (!modeloId || !pesoRetornado) {
-    // Se não há dados suficientes, ocultar seções
+  const modeloId = document.getElementById('modeloToner').value;
+  const pesoInput = document.getElementById('pesoRetornado').value;
+  const pesoRetornado = parseFloat(pesoInput);
+  
+  console.log('📊 Dados do cálculo por peso:', {
+    modeloId,
+    pesoInput,
+    pesoRetornado,
+    isNaN: isNaN(pesoRetornado)
+  });
+  
+  if (!modeloId) {
+    console.log('⚠️ Modelo não selecionado');
+    // Ocultar seções se não há modelo
     document.getElementById('resultadoCalculo').classList.add('hidden');
     document.getElementById('selecaoDestino').classList.add('hidden');
+    document.getElementById('gramaturaRestante').textContent = '-';
     return;
   }
   
-  const modelo = modelosData.find(m => m.id == modeloId);
-  if (!modelo || !modelo.peso_vazio || !modelo.gramatura) {
-    console.log('⚠️ Modelo não encontrado ou dados incompletos:', modelo);
+  if (isNaN(pesoRetornado) || pesoRetornado < 0) {
+    console.log('⚠️ Peso inválido:', pesoRetornado);
+    // Ocultar seções se peso inválido
+    document.getElementById('resultadoCalculo').classList.add('hidden');
+    document.getElementById('selecaoDestino').classList.add('hidden');
+    document.getElementById('gramaturaRestante').textContent = '-';
+    return;
+  }
+  
+  // Buscar modelo por ID ou por nome
+  let modelo = modelosData.find(m => m.id == modeloId);
+  if (!modelo) {
+    modelo = modelosData.find(m => m.modelo === modeloId);
+  }
+  
+  if (!modelo) {
+    console.log('⚠️ Modelo não encontrado nos dados:', modeloId);
+    console.log('📋 Modelos disponíveis:', modelosData.map(m => ({id: m.id, modelo: m.modelo})));
     // Ainda assim, tentar mostrar os botões de destino
     forcarExibicaoDestinos();
+    document.getElementById('gramaturaRestante').textContent = 'Modelo não encontrado';
     return;
   }
   
-  const gramaturaRestante = Math.max(0, pesoRetornado - modelo.peso_vazio);
-  const percentualRestante = Math.max(0, Math.min(100, (gramaturaRestante / modelo.gramatura) * 100));
+  // Garantir que o modelo tenha valores padrão se necessário
+  const modeloSeguro = {
+    peso_vazio: modelo?.peso_vazio || 0,
+    peso_cheio: modelo?.peso_cheio || 0,
+    gramatura: modelo?.gramatura || 0,
+    ...modelo
+  };
   
-  document.getElementById('gramaturaRestante').textContent = gramaturaRestante.toFixed(1) + 'g';
+  console.log('📋 Modelo encontrado:', modeloSeguro);
   
-  console.log('📊 Cálculo por peso:', {
+  // Verificar se temos dados suficientes para cálculo
+  if (!modeloSeguro.peso_vazio && !modeloSeguro.gramatura) {
+    console.log('⚠️ Modelo sem dados de peso/gramatura - usando fallback');
+    // Mostrar botões mesmo sem dados completos
+    forcarExibicaoDestinos();
+    document.getElementById('gramaturaRestante').textContent = 'Dados incompletos';
+    return;
+  }
+  
+  // Calcular gramatura restante
+  const gramaturaRestante = Math.max(0, pesoRetornado - modeloSeguro.peso_vazio);
+  
+  // Calcular percentual restante
+  let percentualRestante = 0;
+  if (modeloSeguro.gramatura > 0) {
+    percentualRestante = Math.max(0, Math.min(100, (gramaturaRestante / modeloSeguro.gramatura) * 100));
+  } else if (modeloSeguro.peso_cheio > 0 && modeloSeguro.peso_vazio > 0) {
+    // Fallback: usar diferença entre peso cheio e vazio
+    const gramaturaTotal = modeloSeguro.peso_cheio - modeloSeguro.peso_vazio;
+    percentualRestante = Math.max(0, Math.min(100, (gramaturaRestante / gramaturaTotal) * 100));
+  }
+  
+  // Atualizar display da gramatura restante
+  document.getElementById('gramaturaRestante').textContent = gramaturaRestante.toFixed(1) + 'g (' + percentualRestante.toFixed(1) + '%)';
+  
+  console.log('📊 Cálculo por peso completo:', {
     pesoRetornado,
-    pesoVazio: modelo.peso_vazio,
-    gramatura: modelo.gramatura,
+    pesoVazio: modeloSeguro.peso_vazio,
+    pesoCheio: modeloSeguro.peso_cheio,
+    gramatura: modeloSeguro.gramatura,
     gramaturaRestante,
     percentualRestante
   });
   
-  mostrarResultados(percentualRestante, modelo);
+  // Detectar casos especiais
+  if (pesoRetornado <= modeloSeguro.peso_vazio) {
+    console.log('🚨 PESO IGUAL OU MENOR QUE PESO VAZIO - TONER VAZIO!');
+    percentualRestante = 0;
+  } else if (modeloSeguro.peso_cheio > 0 && pesoRetornado >= modeloSeguro.peso_cheio) {
+    console.log('✅ PESO IGUAL OU MAIOR QUE PESO CHEIO - TONER CHEIO!');
+    percentualRestante = 100;
+  }
+  
+  console.log('✅ Chamando mostrarResultados com percentual:', percentualRestante);
+  mostrarResultados(percentualRestante, modeloSeguro);
 }
 
 // Calcular a partir do percentual
@@ -929,6 +998,41 @@ window.testarModoPercentual = function(percentualTeste = 50) {
     console.log('✅ Função calcularPercentual() chamada');
   } else {
     console.error('❌ Campo percentualChip não encontrado');
+  }
+}
+
+// Função de teste para modo peso
+window.testarModoPeso = function(pesoTeste = 1122) {
+  console.log('🧪 TESTE DO MODO PESO');
+  console.log('Simulando entrada de', pesoTeste + 'g');
+  
+  // Simular seleção de modelo
+  const modeloInput = document.getElementById('modeloToner');
+  if (modeloInput && modelosData.length > 0) {
+    modeloInput.value = modelosData[0].id || modelosData[0].modelo;
+    console.log('✅ Modelo selecionado:', modeloInput.value);
+    
+    // Simular dados do modelo se necessário
+    if (modelosData[0]) {
+      console.log('📋 Dados do modelo:', {
+        peso_vazio: modelosData[0].peso_vazio,
+        peso_cheio: modelosData[0].peso_cheio,
+        gramatura: modelosData[0].gramatura
+      });
+    }
+  }
+  
+  // Simular entrada de peso
+  const pesoInput = document.getElementById('pesoRetornado');
+  if (pesoInput) {
+    pesoInput.value = pesoTeste;
+    console.log('✅ Peso definido:', pesoInput.value);
+    
+    // Chamar função de cálculo
+    calcularGramatura();
+    console.log('✅ Função calcularGramatura() chamada');
+  } else {
+    console.error('❌ Campo pesoRetornado não encontrado');
   }
 }
 
@@ -1027,15 +1131,21 @@ function gerarOrientacao(percentual) {
   if (!Array.isArray(parametrosGerais) || parametrosGerais.length === 0) {
     console.log('⚠️ Nenhum parâmetro carregado, usando orientação padrão baseada em lógica');
     
-    // Orientações padrão baseadas em percentual
+    // Orientações padrão baseadas em percentual com mais detalhes
     if (percentual <= 0) {
-      return 'Toner vazio (0%) - DESCARTE recomendado';
+      return '🚨 Toner VAZIO (0%) - DESCARTE obrigatório. Não possui tinta restante.';
+    } else if (percentual <= 10) {
+      return '🔴 Percentual muito baixo (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Pouca tinta restante.';
     } else if (percentual <= 39) {
-      return 'Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado';
+      return '🟡 Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Não compensa reuso.';
+    } else if (percentual <= 69) {
+      return '🟠 Percentual médio (' + percentual.toFixed(1) + '%) - USO INTERNO recomendado. Teste a qualidade antes.';
     } else if (percentual <= 89) {
-      return 'Percentual médio (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo ou USO INTERNO recomendado';
+      return '🟢 Bom percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo. Teste qualidade e marque %.';
+    } else if (percentual < 100) {
+      return '✅ Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo. Teste qualidade e marque %.';
     } else {
-      return 'Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo recomendado';
+      return '🎯 Toner CHEIO (100%) - ESTOQUE como novo. Verifique se não há defeito.';
     }
   }
   
@@ -1069,13 +1179,19 @@ function gerarOrientacao(percentual) {
   console.log('❌ Nenhum parâmetro encontrado para o percentual:', percentual, '- usando lógica padrão');
   
   if (percentual <= 0) {
-    return 'Toner vazio (0%) - DESCARTE recomendado';
+    return '🚨 Toner VAZIO (0%) - DESCARTE obrigatório. Não possui tinta restante.';
+  } else if (percentual <= 10) {
+    return '🔴 Percentual muito baixo (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Pouca tinta restante.';
   } else if (percentual <= 39) {
-    return 'Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado';
+    return '🟡 Baixo percentual (' + percentual.toFixed(1) + '%) - DESCARTE recomendado. Não compensa reuso.';
+  } else if (percentual <= 69) {
+    return '🟠 Percentual médio (' + percentual.toFixed(1) + '%) - USO INTERNO recomendado. Teste a qualidade antes.';
   } else if (percentual <= 89) {
-    return 'Percentual médio (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo ou USO INTERNO recomendado';
+    return '🟢 Bom percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como seminovo. Teste qualidade e marque %.';
+  } else if (percentual < 100) {
+    return '✅ Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo. Teste qualidade e marque %.';
   } else {
-    return 'Alto percentual (' + percentual.toFixed(1) + '%) - ESTOQUE como novo recomendado';
+    return '🎯 Toner CHEIO (100%) - ESTOQUE como novo. Verifique se não há defeito.';
   }
 }
 

@@ -20,11 +20,27 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.2';
+        $systemVersion = '2.2.3';
         $lastUpdate = '30/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.3',
+                'date' => '30/09/2025',
+                'type' => 'Melhoria',
+                'title' => 'Aprimoramento Completo do Modo Peso em Retornados',
+                'description' => 'Melhorado modo peso físico com cálculo automático, orientações inteligentes e detecção de casos especiais',
+                'items' => [
+                    'Adicionado evento oninput para cálculo automático conforme digita',
+                    'Melhorada exibição da gramatura restante com percentual',
+                    'Implementada detecção automática de toner vazio/cheio',
+                    'Orientações detalhadas com emojis e instruções específicas',
+                    'Cálculo robusto com fallbacks para modelos sem dados completos',
+                    'Criada função de teste testarModoPeso() para diagnóstico',
+                    'Logs detalhados para facilitar troubleshooting'
+                ]
+            ],
             [
                 'version' => '2.2.2',
                 'date' => '30/09/2025',
