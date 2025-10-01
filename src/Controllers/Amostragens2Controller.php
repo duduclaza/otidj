@@ -406,14 +406,19 @@ class Amostragens2Controller
         try {
             $id = (int)$id;
             
+            error_log("Buscando detalhes da amostragem ID: $id");
+            
             $stmt = $this->db->prepare('SELECT * FROM amostragens_2 WHERE id = :id');
             $stmt->execute([':id' => $id]);
             $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$amostragem) {
+                error_log("Amostragem ID $id não encontrada");
                 echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
                 return;
             }
+            
+            error_log("Amostragem encontrada: " . json_encode($amostragem));
             
             echo json_encode([
                 'success' => true,
@@ -421,7 +426,8 @@ class Amostragens2Controller
             ]);
             
         } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes']);
+            error_log("Erro ao buscar detalhes: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes: ' . $e->getMessage()]);
         }
     }
 

@@ -522,7 +522,10 @@ async function editarAmostragem(id) {
     const response = await fetch(`/amostragens-2/${id}/details`);
     console.log('Response status:', response.status);
     
-    const data = await response.json();
+    const text = await response.text();
+    console.log('Response text:', text);
+    
+    const data = JSON.parse(text);
     console.log('Dados recebidos:', data);
     
     if (data.success) {
