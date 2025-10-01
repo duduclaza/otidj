@@ -107,7 +107,11 @@ class MelhoriaContinua2Controller
             // Processar anexos
             $anexos = [];
             if (!empty($_FILES['anexos']['name'][0])) {
+                error_log("Processando anexos: " . print_r($_FILES['anexos'], true));
                 $anexos = $this->processarAnexos($_FILES['anexos']);
+                error_log("Anexos processados: " . print_r($anexos, true));
+            } else {
+                error_log("Nenhum anexo enviado");
             }
 
             $stmt = $this->db->prepare('
@@ -341,11 +345,18 @@ class MelhoriaContinua2Controller
     private function processarAnexos($files): array
     {
         $anexos = [];
-        $uploadDir = __DIR__ . '/../../uploads/melhoria-continua-2/';
+        // Caminho absoluto do servidor
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/storage/uploads/melhorias/';
+        $webPath = '/storage/uploads/melhorias/';
         
+        // Criar diretório se não existir
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
+            error_log("Diretório criado: $uploadDir");
         }
+        
+        error_log("Upload dir: $uploadDir");
+        error_log("DOCUMENT_ROOT: " . $_SERVER['DOCUMENT_ROOT']);
 
         $maxFiles = 5;
         $maxSize = 10 * 1024 * 1024; // 10MB
@@ -358,25 +369,33 @@ class MelhoriaContinua2Controller
                 $fileName = $files['name'][$i];
 
                 if ($fileSize > $maxSize) {
+                    error_log("Arquivo muito grande: $fileName ($fileSize bytes)");
                     continue; // Pular arquivo muito grande
                 }
 
                 if (!in_array($fileType, $allowedTypes)) {
+                    error_log("Tipo não permitido: $fileName ($fileType)");
                     continue; // Pular tipo não permitido
                 }
 
                 $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                $newFileName = uniqid() . '.' . $extension;
+                $newFileName = 'melhoria_' . date('Ymd_His') . '_' . uniqid() . '.' . $extension;
                 $filePath = $uploadDir . $newFileName;
 
                 if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
                     $anexos[] = [
-                        'nome_original' => $fileName,
-                        'nome_arquivo' => $newFileName,
+                        'nome' => $fileName,
+                        'arquivo' => $newFileName,
+                        'url' => $webPath . $newFileName,
                         'tamanho' => $fileSize,
                         'tipo' => $fileType
                     ];
+                    error_log("Arquivo salvo com sucesso: $filePath");
+                } else {
+                    error_log("Erro ao mover arquivo: $fileName para $filePath");
                 }
+            } else {
+                error_log("Erro no upload do arquivo: " . $files['error'][$i]);
             }
         }
 
