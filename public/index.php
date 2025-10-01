@@ -123,6 +123,12 @@ $router->get('/melhoria-continua-2/{id}/details', [App\Controllers\MelhoriaConti
 $router->get('/melhoria-continua-2/{id}/view', [App\Controllers\MelhoriaContinua2Controller::class, 'view']);
 $router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2Controller::class, 'delete']);
 
+// Amostragens 2.0 routes
+$router->get('/amostragens-2', [App\Controllers\Amostragens2Controller::class, 'index']);
+$router->post('/amostragens-2/store', [App\Controllers\Amostragens2Controller::class, 'store']);
+$router->get('/amostragens-2/export', [App\Controllers\Amostragens2Controller::class, 'exportExcel']);
+$router->get('/amostragens-2/graficos', [App\Controllers\Amostragens2Controller::class, 'graficos']);
+
 // Other routes
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
 $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);

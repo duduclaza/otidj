@@ -116,6 +116,7 @@ const modules = [
   { key: 'toners_retornados', name: 'Registro de Retornados' },
   { key: 'homologacoes', name: 'Homologações' },
   { key: 'amostragens', name: 'Amostragens' },
+  { key: 'amostragens_2', name: 'Amostragens 2.0 🔬' },
   { key: 'garantias', name: 'Garantias' },
   { key: 'controle_descartes', name: 'Controle de Descartes' },
   { key: 'fmea', name: 'FMEA' },
