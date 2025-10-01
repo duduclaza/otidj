@@ -47,7 +47,13 @@ class AuthController
         try {
             // Lazy DB connection
             if ($this->db === null) {
-                $this->db = Database::getInstance()->getConnection();
+                try {
+                    $this->db = Database::getInstance()->getConnection();
+                } catch (\Exception $dbError) {
+                    error_log('DB Connection error: ' . $dbError->getMessage());
+                    echo json_encode(['success' => false, 'message' => 'Erro de conexão com banco de dados']);
+                    return;
+                }
             }
 
             $email = trim($_POST['email'] ?? '');
@@ -59,9 +65,9 @@ class AuthController
             }
 
             // Buscar usuário
-            $stmt = $this->db->prepare('SELECT * FROM users WHERE email = :email');
-            $stmt->execute([':email' => $email]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt = $this->db->prepare('SELECT * FROM users WHERE email = ?');
+            $stmt->execute([$email]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$user) {
                 echo json_encode(['success' => false, 'message' => 'Credenciais inválidas']);
@@ -87,7 +93,8 @@ class AuthController
             ]);
         } catch (\Exception $e) {
             error_log('Authenticate error: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
         }
     }
     
