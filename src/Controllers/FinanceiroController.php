@@ -11,12 +11,21 @@ class FinanceiroController
 
     public function __construct()
     {
-        $this->db = \App\Config\Database::getInstance()->getConnection();
+        try {
+            $this->db = \App\Config\Database::getInstance()->getConnection();
+        } catch (\Exception $e) {
+            error_log("Erro ao conectar DB no FinanceiroController: " . $e->getMessage());
+            $this->db = null;
+        }
     }
 
     public function index(): void
     {
         try {
+            if ($this->db === null) {
+                throw new \Exception("Erro de conexão com banco de dados");
+            }
+
             $isAdmin = $_SESSION['user_role'] === 'admin';
             
             // Verificar se sistema está bloqueado
