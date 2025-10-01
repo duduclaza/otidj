@@ -83,6 +83,9 @@ if (!function_exists('flash')) {
     </div>
   </div>
 
+  <!-- Container para modais globais -->
+  <div id="global-modals-container"></div>
+
   <!-- Loading overlay removido - causava problemas em todos os módulos -->
 
   <script>

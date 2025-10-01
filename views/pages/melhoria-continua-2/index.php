@@ -377,10 +377,16 @@ function clearFilters() {
   window.location.reload();
 }
 
-// Fechar modal ao clicar fora ou pressionar ESC
+// Mover modal para container global e configurar eventos
 document.addEventListener('DOMContentLoaded', function() {
   const modal = document.getElementById('melhoriaModal');
-  if (modal) {
+  const globalContainer = document.getElementById('global-modals-container');
+  
+  if (modal && globalContainer) {
+    // Mover modal para fora do container principal
+    globalContainer.appendChild(modal);
+    console.log('✅ Modal movido para container global');
+    
     // Clicar fora do modal
     modal.addEventListener('click', function(e) {
       if (e.target === modal) {
