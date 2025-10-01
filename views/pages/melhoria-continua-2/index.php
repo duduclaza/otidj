@@ -7,82 +7,162 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
 $userId = $_SESSION['user_id'];
 ?>
 
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     
-    <!-- Header com badge BETA -->
-    <div class="header-gradient mb-8">
-      <div class="flex items-center gap-4 mb-3">
-        <h1 class="text-4xl font-bold">🚀 Melhoria Contínua 2.0</h1>
-        <span class="beta-badge-large">BETA</span>
+    <!-- Header Profissional -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl shadow-2xl mb-8">
+      <div class="absolute inset-0 bg-black/20"></div>
+      <div class="relative px-8 py-12">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-4 mb-4">
+              <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                <span class="text-4xl">🚀</span>
+              </div>
+              <div>
+                <h1 class="text-5xl font-black text-white tracking-tight">Melhoria Contínua 2.0</h1>
+                <div class="flex items-center gap-3 mt-2">
+                  <span class="beta-badge-large">BETA</span>
+                  <span class="px-3 py-1 bg-white/20 rounded-full text-white text-sm font-medium backdrop-blur-sm">
+                    Nova Versão
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p class="text-white/90 text-xl font-medium max-w-2xl">
+              Sistema avançado de gestão de melhorias com controle inteligente de visibilidade e notificações automáticas
+            </p>
+          </div>
+          <div class="hidden lg:block">
+            <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <span class="text-6xl">📊</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="text-white/90 text-lg">Sistema avançado de gestão de melhorias com controle de visibilidade e notificações</p>
     </div>
 
-    <!-- Formulário Inline -->
-    <div class="card-modern mb-8">
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-2xl font-bold text-gray-900">📝 Nova Melhoria</h2>
-        <p class="text-gray-600 mt-2">Preencha os campos abaixo para registrar uma nova melhoria</p>
+    <!-- Formulário Inline Profissional -->
+    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 mb-8 overflow-hidden">
+      <!-- Header do Formulário -->
+      <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-200">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-blue-100 rounded-2xl">
+            <span class="text-2xl">📝</span>
+          </div>
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900">Nova Melhoria</h2>
+            <p class="text-gray-600 text-lg mt-1">Registre sua ideia de melhoria seguindo a metodologia 5W2H</p>
+          </div>
+        </div>
       </div>
       
-      <form id="melhoriaForm" class="p-6 space-y-6" enctype="multipart/form-data">
-        <!-- Linha 1: Título e Departamento -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Título do Plano *</label>
-            <input type="text" name="titulo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Digite o título da melhoria...">
+      <form id="melhoriaForm" class="p-8 space-y-8" enctype="multipart/form-data">
+        
+        <!-- Seção: Informações Básicas -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 bg-blue-500 rounded-lg">
+              <span class="text-white text-lg">ℹ️</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">Informações Básicas</h3>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Departamento *</label>
-            <select name="departamento_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <option value="">Selecione um departamento</option>
-              <?php foreach ($departamentos as $dept): ?>
-                <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-        </div>
-
-        <!-- 5W2H -->
-        <div class="form-section">
-          <h3 class="text-xl font-bold mb-6">📋 Metodologia 5W2H</h3>
+          
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">O que será feito? *</label>
-              <textarea name="o_que" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Descreva o que será feito..."></textarea>
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700">Título do Plano *</label>
+              <input type="text" name="titulo" required class="form-input-premium" placeholder="Ex: Otimização do processo de impressão">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Como será feito? *</label>
-              <textarea name="como" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Descreva como será feito..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Onde? *</label>
-              <textarea name="onde" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Descreva onde será feito..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Por que será feito? *</label>
-              <textarea name="porque" required rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Justifique por que será feito..."></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Quando será feito? *</label>
-              <input type="date" name="quando" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Quanto custa?</label>
-              <input type="number" step="0.01" name="quanto_custa" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="R$ 0,00">
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700">Departamento *</label>
+              <select name="departamento_id" required class="form-input-premium">
+                <option value="">Selecione um departamento</option>
+                <?php foreach ($departamentos as $dept): ?>
+                  <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
           </div>
         </div>
 
-        <!-- Responsáveis -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Quem será o responsável?</label>
-          <div class="responsaveis-grid max-h-48 overflow-y-auto">
+        <!-- Seção: Metodologia 5W2H -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 bg-purple-500 rounded-lg">
+              <span class="text-white text-lg">📋</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">Metodologia 5W2H</h3>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-bold text-purple-600">O</span>
+                O que será feito? *
+              </label>
+              <textarea name="o_que" required rows="3" class="form-input-premium resize-none" placeholder="Descreva detalhadamente o que será implementado..."></textarea>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-bold text-purple-600">C</span>
+                Como será feito? *
+              </label>
+              <textarea name="como" required rows="3" class="form-input-premium resize-none" placeholder="Explique a metodologia e os passos..."></textarea>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-bold text-purple-600">O</span>
+                Onde será feito? *
+              </label>
+              <textarea name="onde" required rows="3" class="form-input-premium resize-none" placeholder="Especifique o local ou área de aplicação..."></textarea>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-bold text-purple-600">P</span>
+                Por que será feito? *
+              </label>
+              <textarea name="porque" required rows="3" class="form-input-premium resize-none" placeholder="Justifique a necessidade e benefícios..."></textarea>
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-bold text-purple-600">Q</span>
+                Quando será feito? *
+              </label>
+              <input type="date" name="quando" required class="form-input-premium">
+            </div>
+            
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <span class="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-bold text-purple-600">Q</span>
+                Quanto custa?
+              </label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">R$</span>
+                <input type="number" step="0.01" name="quanto_custa" class="form-input-premium pl-10" placeholder="0,00">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seção: Responsáveis -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 bg-green-500 rounded-lg">
+              <span class="text-white text-lg">👥</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">Responsáveis</h3>
+          </div>
+          
+          <div class="bg-white rounded-xl p-4 max-h-48 overflow-y-auto border border-green-200">
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               <?php foreach ($usuarios as $usuario): ?>
-                <label class="responsavel-item flex items-center space-x-2 cursor-pointer">
-                  <input type="checkbox" name="responsaveis[]" value="<?= $usuario['id'] ?>" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <label class="flex items-center space-x-3 p-3 rounded-lg hover:bg-green-50 transition-colors cursor-pointer border border-gray-200 hover:border-green-300">
+                  <input type="checkbox" name="responsaveis[]" value="<?= $usuario['id'] ?>" class="rounded border-gray-300 text-green-600 focus:ring-green-500">
                   <span class="text-sm text-gray-700 truncate font-medium"><?= e($usuario['name']) ?></span>
                 </label>
               <?php endforeach; ?>
@@ -90,44 +170,76 @@ $userId = $_SESSION['user_id'];
           </div>
         </div>
 
-        <!-- Resultado Esperado e Idealizador -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Resultado Esperado *</label>
-            <textarea name="resultado_esperado" required rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Descreva o resultado esperado..."></textarea>
+        <!-- Seção: Detalhes Complementares -->
+        <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl p-6 border border-orange-100">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 bg-orange-500 rounded-lg">
+              <span class="text-white text-lg">📝</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">Detalhes Complementares</h3>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Idealizador da Ideia *</label>
-            <input type="text" name="idealizador" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nome do idealizador...">
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700">Resultado Esperado *</label>
+              <textarea name="resultado_esperado" required rows="4" class="form-input-premium resize-none" placeholder="Descreva os resultados e benefícios esperados com esta melhoria..."></textarea>
+            </div>
+            <div class="space-y-2">
+              <label class="block text-sm font-semibold text-gray-700">Idealizador da Ideia *</label>
+              <input type="text" name="idealizador" required class="form-input-premium" placeholder="Nome completo do idealizador">
+              
+              <div class="mt-4 space-y-2">
+                <label class="block text-sm font-semibold text-gray-700">Observações</label>
+                <textarea name="observacao" rows="3" class="form-input-premium resize-none" placeholder="Informações adicionais, considerações especiais..."></textarea>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Observação -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Observação</label>
-          <textarea name="observacao" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Observações adicionais..."></textarea>
-        </div>
-
-        <!-- Anexos -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Anexos</label>
-          <input type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.ppt,.pptx" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <p class="text-xs text-gray-500 mt-1">Máximo 5 arquivos de 10MB cada. Formatos: JPG, PNG, GIF, PDF, PPT</p>
+        <!-- Seção: Anexos -->
+        <div class="bg-gradient-to-r from-gray-50 to-slate-50 rounded-2xl p-6 border border-gray-200">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="p-2 bg-gray-600 rounded-lg">
+              <span class="text-white text-lg">📎</span>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">Anexos</h3>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-gray-400 transition-colors">
+              <input type="file" name="anexos[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.ppt,.pptx" class="hidden" id="fileInput">
+              <label for="fileInput" class="cursor-pointer">
+                <div class="text-4xl mb-2">📁</div>
+                <p class="text-lg font-medium text-gray-700 mb-2">Clique para selecionar arquivos</p>
+                <p class="text-sm text-gray-500">Máximo 5 arquivos de 10MB cada</p>
+                <p class="text-xs text-gray-400 mt-1">Formatos: JPG, PNG, GIF, PDF, PPT, PPTX</p>
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- Botão Submit -->
-        <div class="flex justify-end">
-          <button type="submit" class="btn-primary">
-            ✨ Registrar Melhoria
+        <div class="flex justify-center pt-4">
+          <button type="submit" class="btn-premium">
+            <span class="text-xl">🚀</span>
+            <span>Registrar Melhoria</span>
           </button>
         </div>
       </form>
     </div>
 
     <!-- Grid de Melhorias -->
-    <div class="card-modern">
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-2xl font-bold text-gray-900">📊 Minhas Melhorias</h2>
+    <div class="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+      <div class="bg-gradient-to-r from-gray-50 to-blue-50 px-8 py-6 border-b border-gray-200">
+        <div class="flex items-center gap-4">
+          <div class="p-3 bg-blue-100 rounded-2xl">
+            <span class="text-2xl">📊</span>
+          </div>
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900">Minhas Melhorias</h2>
+            <p class="text-gray-600 text-lg mt-1">Acompanhe o status das suas sugestões</p>
+          </div>
+        </div>
       </div>
       
       <div class="overflow-x-auto">
@@ -203,11 +315,61 @@ $userId = $_SESSION['user_id'];
   color: white;
   font-size: 0.75rem;
   font-weight: bold;
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 8px 16px;
+  border-radius: 25px;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   animation: gradientShift 3s ease infinite, pulse 2s infinite;
-  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Inputs Premium */
+.form-input-premium {
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px 18px;
+  transition: all 0.3s ease;
+  background: #ffffff;
+  width: 100%;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-input-premium:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.form-input-premium:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botão Premium */
+.btn-premium {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  display: flex;
+  items-center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.btn-premium:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
 }
 
 @keyframes gradientShift {
