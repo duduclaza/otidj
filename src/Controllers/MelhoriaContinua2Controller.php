@@ -463,23 +463,56 @@ class MelhoriaContinua2Controller
 
     private function enviarNotificacoes($melhoriaId, $titulo, $responsaveis): void
     {
-        // Buscar admins
-        $stmt = $this->db->prepare('SELECT id, name, email FROM users WHERE role = "admin" AND status = "active"');
-        $stmt->execute();
-        $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Buscar responsáveis
-        $responsaveisData = [];
-        if (!empty($responsaveis)) {
-            $placeholders = str_repeat('?,', count($responsaveis) - 1) . '?';
-            $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE id IN ($placeholders) AND status = 'active'");
-            $stmt->execute($responsaveis);
-            $responsaveisData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $criadorId = $_SESSION['user_id'];
+            $criadorNome = $_SESSION['user_name'] ?? 'Usuário';
+            
+            // 1. Notificar ADMINS sobre nova melhoria
+            $stmt = $this->db->prepare('SELECT id FROM users WHERE role = "admin" AND status = "active" AND id != ?');
+            $stmt->execute([$criadorId]);
+            $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            foreach ($admins as $admin) {
+                $stmt = $this->db->prepare('
+                    INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, NOW())
+                ');
+                $stmt->execute([
+                    $admin['id'],
+                    '🚀 Nova Melhoria Contínua',
+                    "$criadorNome criou uma nova melhoria: \"$titulo\"",
+                    'info',
+                    'melhoria_continua_2',
+                    $melhoriaId
+                ]);
+            }
+            
+            // 2. Notificar RESPONSÁVEIS selecionados
+            if (!empty($responsaveis)) {
+                foreach ($responsaveis as $responsavelId) {
+                    // Não notificar o próprio criador
+                    if ($responsavelId == $criadorId) continue;
+                    
+                    $stmt = $this->db->prepare('
+                        INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, NOW())
+                    ');
+                    $stmt->execute([
+                        $responsavelId,
+                        '👤 Você foi designado como responsável',
+                        "$criadorNome designou você como responsável pela melhoria: \"$titulo\"",
+                        'warning',
+                        'melhoria_continua_2',
+                        $melhoriaId
+                    ]);
+                }
+            }
+            
+            error_log("Notificações criadas para melhoria ID: $melhoriaId - Admins: " . count($admins) . " - Responsáveis: " . count($responsaveis));
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao enviar notificações: " . $e->getMessage());
         }
-
-        // Aqui você pode implementar o envio de email usando o EmailService
-        // Por enquanto, apenas log
-        error_log("Notificação enviada para melhoria ID: $melhoriaId - Título: $titulo");
     }
 
 
