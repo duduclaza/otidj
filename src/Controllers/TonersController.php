@@ -282,19 +282,48 @@ class TonersController
 
             // Calculate based on mode
             if ($modo === 'peso' && $peso_retornado > 0 && $tonerData) {
-                $gramatura_existente = $peso_retornado - $tonerData['peso_vazio'];
-                $percentual_restante = ($gramatura_existente / $tonerData['gramatura']) * 100;
-            } elseif ($modo === 'chip' && $percentual_chip > 0) {
-                $percentual_restante = $percentual_chip;
-                if ($tonerData) {
-                    $gramatura_existente = ($percentual_chip / 100) * $tonerData['gramatura'];
+                $gramatura_existente = max(0, $peso_retornado - $tonerData['peso_vazio']);
+                $percentual_restante = $tonerData['gramatura'] > 0 ? 
+                    min(100, max(0, ($gramatura_existente / $tonerData['gramatura']) * 100)) : 0;
+                    
+                error_log('Cálculo por peso: Peso=' . $peso_retornado . 'g, Vazio=' . $tonerData['peso_vazio'] . 'g, Gramatura=' . $gramatura_existente . 'g, Percentual=' . $percentual_restante . '%');
+            } elseif ($modo === 'chip' && $percentual_chip >= 0) {
+                $percentual_restante = max(0, min(100, $percentual_chip));
+                if ($tonerData && $tonerData['gramatura'] > 0) {
+                    $gramatura_existente = ($percentual_restante / 100) * $tonerData['gramatura'];
                 }
+                
+                error_log('Cálculo por chip: Percentual=' . $percentual_restante . '%, Gramatura=' . ($gramatura_existente ?? 'N/A') . 'g');
             }
 
             // Calculate value if destino is estoque
             if ($destino === 'estoque' && $percentual_restante > 0 && $tonerData) {
-                $folhas_restantes = ($percentual_restante / 100) * $tonerData['capacidade_folhas'];
-                $valor_calculado = $folhas_restantes * $tonerData['custo_por_folha'];
+                $capacidade_folhas = $tonerData['capacidade_folhas'] ?? 0;
+                $custo_por_folha = $tonerData['custo_por_folha'] ?? 0;
+                
+                if ($capacidade_folhas > 0 && $custo_por_folha > 0) {
+                    $folhas_restantes = ($percentual_restante / 100) * $capacidade_folhas;
+                    $valor_calculado = $folhas_restantes * $custo_por_folha;
+                    
+                    error_log('Cálculo de valor para estoque: ' . 
+                        'Percentual: ' . $percentual_restante . '% | ' .
+                        'Capacidade: ' . $capacidade_folhas . ' folhas | ' .
+                        'Custo por folha: R$ ' . $custo_por_folha . ' | ' .
+                        'Folhas restantes: ' . $folhas_restantes . ' | ' .
+                        'Valor calculado: R$ ' . $valor_calculado
+                    );
+                } else {
+                    error_log('Não foi possível calcular valor - dados faltando: ' .
+                        'Capacidade: ' . $capacidade_folhas . ' | ' .
+                        'Custo: ' . $custo_por_folha
+                    );
+                }
+            } else {
+                error_log('Cálculo de valor não executado - Condições: ' .
+                    'Destino: ' . $destino . ' | ' .
+                    'Percentual: ' . $percentual_restante . ' | ' .
+                    'TonerData: ' . ($tonerData ? 'OK' : 'NULL')
+                );
             }
 
             // Insert into database
@@ -323,6 +352,8 @@ class TonersController
                 ':observacao' => $observacao,
                 ':data_registro' => $data_registro
             ]);
+
+            error_log('Retornado inserido - Destino: ' . $destino . ' | Valor Calculado: R$ ' . number_format($valor_calculado, 2, ',', '.'));
 
             echo json_encode([
                 'success' => true,

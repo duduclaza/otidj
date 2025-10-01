@@ -20,11 +20,26 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.6';
+        $systemVersion = '2.2.7';
         $lastUpdate = '30/09/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.2.7',
+                'date' => '30/09/2025',
+                'type' => 'Correção',
+                'title' => 'Correção do Cálculo de Valor para Destino Estoque',
+                'description' => 'Melhorado cálculo de valor em R$ quando destino é "estoque" nos retornados',
+                'items' => [
+                    'Aprimorada validação de campos capacidade_folhas e custo_por_folha',
+                    'Melhorado cálculo de percentual_restante com limites (0-100%)',
+                    'Adicionados logs detalhados para diagnóstico do cálculo',
+                    'Corrigida condição para percentual_chip >= 0 (aceita 0%)',
+                    'Sistema agora calcula valor corretamente: folhas_restantes × custo_por_folha',
+                    'Logs mostram cada etapa do cálculo para facilitar troubleshooting'
+                ]
+            ],
             [
                 'version' => '2.2.6',
                 'date' => '30/09/2025',
