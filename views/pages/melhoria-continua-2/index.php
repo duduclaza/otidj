@@ -201,10 +201,10 @@ $userId = $_SESSION['user_id'];
               <div class="font-medium"><?= e($melhoria['titulo']) ?></div>
             </td>
             <td class="px-4 py-4 text-sm text-gray-500 max-w-xs truncate">
-              <?= e($melhoria['descricao'] ?? 'N/A') ?>
+              <?= !empty($melhoria['descricao']) ? e($melhoria['descricao']) : '-' ?>
             </td>
             <td class="px-4 py-4 text-sm text-gray-500 max-w-xs truncate">
-              <?= e($melhoria['resultado_esperado'] ?? 'N/A') ?>
+              <?= !empty($melhoria['resultado_esperado']) ? e($melhoria['resultado_esperado']) : '-' ?>
             </td>
             <td class="px-4 py-4 whitespace-nowrap">
               <?php if ($isAdmin): ?>
