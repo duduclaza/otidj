@@ -250,6 +250,10 @@ $userId = $_SESSION['user_id'];
                 🖨️ Imprimir
               </button>
               
+              <button onclick="enviarEmailDetalhes(<?= $melhoria['id'] ?>)" class="text-purple-600 hover:text-purple-900" title="Enviar detalhes por email">
+                📧 Email
+              </button>
+              
               <?php if ($isAdmin || ($melhoria['criado_por'] == $userId && $melhoria['status'] === 'Pendente Adaptação')): ?>
               <button onclick="editMelhoria(<?= $melhoria['id'] ?>)" class="text-green-600 hover:text-green-900" title="Editar">
                 ✏️ Editar
@@ -988,5 +992,31 @@ function exportarExcel() {
   const params = new URLSearchParams(window.location.search);
   const url = `/melhoria-continua-2/export?${params.toString()}`;
   window.location.href = url;
+}
+
+// Enviar detalhes por email
+async function enviarEmailDetalhes(id) {
+  if (!confirm('📧 Enviar detalhes desta melhoria por email para os responsáveis?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch('/melhoria-continua-2/enviar-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `id=${id}`
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ ' + data.message);
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('❌ Erro ao enviar email');
+  }
 }
 </script>

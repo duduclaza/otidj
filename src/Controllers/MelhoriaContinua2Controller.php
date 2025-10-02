@@ -372,16 +372,6 @@ class MelhoriaContinua2Controller
             
             $stmt->execute($params);
 
-            // Se status mudou para Concluída, enviar email para responsáveis
-            if ($status === 'Concluída') {
-                try {
-                    $this->enviarEmailConclusao($id);
-                } catch (\Exception $e) {
-                    // Log do erro mas não falha a operação
-                    error_log("Erro ao enviar email (não crítico): " . $e->getMessage());
-                }
-            }
-
             // Buscar dados da melhoria para notificações
             $stmt = $this->db->prepare('
                 SELECT titulo, criado_por, responsaveis 
@@ -877,6 +867,28 @@ class MelhoriaContinua2Controller
         } catch (\Exception $e) {
             error_log('Erro ao exportar: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao exportar: ' . $e->getMessage()]);
+        }
+    }
+
+    public function enviarEmailDetalhes(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                return;
+            }
+            
+            $this->enviarEmailConclusao($id);
+            
+            echo json_encode(['success' => true, 'message' => '📧 Email enviado com sucesso aos responsáveis!']);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao enviar email: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao enviar email: ' . $e->getMessage()]);
         }
     }
 
