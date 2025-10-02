@@ -212,14 +212,14 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
         <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2">
       </div>
 
-      <div class="flex items-end gap-2 col-span-1">
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap font-medium shadow-md text-sm">
+      <div class="flex items-end gap-1.5 col-span-1">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors whitespace-nowrap font-medium shadow-md text-sm">
           Filtrar
         </button>
-        <a href="/amostragens-2" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-center transition-colors whitespace-nowrap font-medium shadow-md text-sm">
+        <a href="/amostragens-2" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-center transition-colors whitespace-nowrap font-medium shadow-md text-sm">
           Limpar
         </a>
-        <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors whitespace-nowrap font-medium shadow-md text-sm">
+        <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors whitespace-nowrap font-medium shadow-md text-sm">
           📊 Exportar
         </button>
       </div>
