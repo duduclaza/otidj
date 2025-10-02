@@ -132,7 +132,22 @@ class Amostragens2Controller
         header('Content-Type: application/json');
 
         try {
+            // Verificar se usuário está logado
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não está logado']);
+                return;
+            }
+            
             $userId = $_SESSION['user_id'];
+            
+            // Verificar se o usuário existe no banco
+            $stmt = $this->db->prepare('SELECT id FROM users WHERE id = :user_id');
+            $stmt->execute([':user_id' => $userId]);
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não encontrado no sistema']);
+                return;
+            }
+            
             // Buscar filial do usuário ou usar primeira filial disponível
             $filialId = $_SESSION['user_filial_id'] ?? null;
             
@@ -161,6 +176,14 @@ class Amostragens2Controller
 
             if (empty($numeroNf) || empty($tipoProduto) || $produtoId <= 0 || $quantidadeRecebida <= 0 || $quantidadeTestada <= 0 || $fornecedorId <= 0) {
                 echo json_encode(['success' => false, 'message' => 'Preencha todos os campos obrigatórios']);
+                return;
+            }
+            
+            // Verificar se o fornecedor existe
+            $stmt = $this->db->prepare('SELECT id FROM fornecedores WHERE id = :fornecedor_id');
+            $stmt->execute([':fornecedor_id' => $fornecedorId]);
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Fornecedor selecionado não existe']);
                 return;
             }
 
