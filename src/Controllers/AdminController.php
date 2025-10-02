@@ -1104,7 +1104,7 @@ class AdminController
             SELECT 
                 MONTH({$dateColumn}) as mes,
                 YEAR({$dateColumn}) as ano,
-                COUNT(*) as quantidade
+                SUM(quantidade) as quantidade
             FROM retornados 
             WHERE 1=1
         ";
@@ -1168,7 +1168,7 @@ class AdminController
         $sql = "
             SELECT 
                 COALESCE({$destinoColumn}, 'Não Informado') as destino,
-                COUNT(*) as quantidade
+                SUM(quantidade) as quantidade
             FROM retornados 
             WHERE 1=1
         ";
