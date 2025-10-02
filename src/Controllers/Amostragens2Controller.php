@@ -227,8 +227,18 @@ class Amostragens2Controller
                 $this->processarEvidencias($amostragemId, $_FILES['evidencias']);
             }
 
-            // Enviar notificações aos responsáveis
-            $this->enviarNotificacoes($amostragemId, $numeroNf, $responsaveis);
+            // Enviar email automático para responsáveis ao criar nova amostragem
+            try {
+                $emailEnviado = $this->enviarEmailNovaAmostragem($amostragemId);
+                if ($emailEnviado) {
+                    error_log("✅ Email de nova amostragem enviado automaticamente para amostragem #{$amostragemId}");
+                } else {
+                    error_log("⚠️ Falha ao enviar email automático para amostragem #{$amostragemId} (não crítico)");
+                }
+            } catch (\Exception $e) {
+                // Log do erro mas não falha a operação
+                error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
+            }
 
             echo json_encode([
                 'success' => true,
@@ -281,29 +291,184 @@ class Amostragens2Controller
         }
     }
 
-    private function enviarNotificacoes($amostragemId, $numeroNf, $responsaveis): void
+    private function enviarEmailNovaAmostragem(int $amostragemId): bool
     {
         try {
-            $criadorNome = $_SESSION['user_name'] ?? 'Usuário';
+            error_log("=== ENVIANDO EMAIL DE NOVA AMOSTRAGEM ===");
+            error_log("Amostragem ID: {$amostragemId}");
+            
+            // Buscar dados completos da amostragem
+            $stmt = $this->db->prepare('
+                SELECT 
+                    a.*,
+                    f.nome as fornecedor_nome,
+                    u.name as criador_nome
+                FROM amostragens_2 a
+                LEFT JOIN fornecedores f ON a.fornecedor_id = f.id
+                LEFT JOIN users u ON a.user_id = u.id
+                WHERE a.id = :id
+            ');
+            $stmt->execute([':id' => $amostragemId]);
+            $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!empty($responsaveis)) {
-                foreach ($responsaveis as $responsavelId) {
-                    $stmt = $this->db->prepare('
-                        INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
-                        VALUES (?, ?, ?, ?, ?, ?, NOW())
-                    ');
-                    $stmt->execute([
-                        $responsavelId,
-                        '🔬 Nova Amostragem',
-                        "$criadorNome designou você como responsável pela amostragem da NF: $numeroNf",
-                        'info',
-                        'amostragens_2',
-                        $amostragemId
-                    ]);
-                }
+            if (!$amostragem) {
+                error_log("❌ Amostragem #{$amostragemId}: Não encontrada");
+                return false;
             }
+
+            error_log("✅ Amostragem encontrada: NF {$amostragem['numero_nf']}");
+            error_log("Responsáveis (IDs): " . ($amostragem['responsaveis'] ?? 'VAZIO'));
+
+            // Buscar emails dos responsáveis se houver
+            if (!empty($amostragem['responsaveis'])) {
+                $responsaveisIds = array_map('trim', explode(',', $amostragem['responsaveis']));
+                error_log("IDs dos responsáveis: " . implode(', ', $responsaveisIds));
+                
+                $placeholders = str_repeat('?,', count($responsaveisIds) - 1) . '?';
+                $stmt = $this->db->prepare("SELECT name, email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");
+                $stmt->execute($responsaveisIds);
+                $responsaveis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                error_log("Responsáveis encontrados: " . count($responsaveis));
+                foreach ($responsaveis as $resp) {
+                    error_log("  - {$resp['name']} ({$resp['email']})");
+                }
+                
+                $emails = array_column($responsaveis, 'email');
+
+                if (empty($emails)) {
+                    error_log("❌ Amostragem #{$amostragemId}: Nenhum email válido encontrado para os responsáveis");
+                    return false;
+                }
+
+                error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
+
+                // Enviar email
+                $emailService = new \App\Services\EmailService();
+                error_log("EmailService criado");
+                
+                $enviado = $emailService->sendAmostragemNotification($amostragem, $emails, 'nova');
+
+                if ($enviado) {
+                    error_log("✅ Email de nova amostragem enviado para amostragem #{$amostragemId} para: " . implode(', ', $emails));
+                    return true;
+                } else {
+                    error_log("❌ Falha ao enviar email de nova amostragem para amostragem #{$amostragemId}");
+                    return false;
+                }
+            } else {
+                error_log("⚠️ Amostragem #{$amostragemId}: Sem responsáveis cadastrados");
+                return false;
+            }
+
         } catch (\Exception $e) {
-            error_log("Erro ao enviar notificações: " . $e->getMessage());
+            error_log("Erro ao enviar email de nova amostragem: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    private function enviarEmailMudancaStatusAmostragem(int $amostragemId, string $novoStatus): bool
+    {
+        try {
+            error_log("=== ENVIANDO EMAIL DE MUDANÇA DE STATUS AMOSTRAGEM ===");
+            error_log("Amostragem ID: {$amostragemId}, Novo Status: {$novoStatus}");
+            
+            // Buscar dados completos da amostragem
+            $stmt = $this->db->prepare('
+                SELECT 
+                    a.*,
+                    f.nome as fornecedor_nome,
+                    u.name as criador_nome
+                FROM amostragens_2 a
+                LEFT JOIN fornecedores f ON a.fornecedor_id = f.id
+                LEFT JOIN users u ON a.user_id = u.id
+                WHERE a.id = :id
+            ');
+            $stmt->execute([':id' => $amostragemId]);
+            $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$amostragem) {
+                error_log("❌ Amostragem #{$amostragemId}: Não encontrada");
+                return false;
+            }
+
+            error_log("✅ Amostragem encontrada: NF {$amostragem['numero_nf']}");
+            error_log("Responsáveis (IDs): " . ($amostragem['responsaveis'] ?? 'VAZIO'));
+
+            // Buscar emails dos responsáveis se houver
+            if (!empty($amostragem['responsaveis'])) {
+                $responsaveisIds = array_map('trim', explode(',', $amostragem['responsaveis']));
+                error_log("IDs dos responsáveis: " . implode(', ', $responsaveisIds));
+                
+                $placeholders = str_repeat('?,', count($responsaveisIds) - 1) . '?';
+                $stmt = $this->db->prepare("SELECT name, email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");
+                $stmt->execute($responsaveisIds);
+                $responsaveis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                error_log("Responsáveis encontrados: " . count($responsaveis));
+                foreach ($responsaveis as $resp) {
+                    error_log("  - {$resp['name']} ({$resp['email']})");
+                }
+                
+                $emails = array_column($responsaveis, 'email');
+
+                if (empty($emails)) {
+                    error_log("❌ Amostragem #{$amostragemId}: Nenhum email válido encontrado para os responsáveis");
+                    return false;
+                }
+
+                error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
+
+                // Enviar email com template específico do status
+                $emailService = new \App\Services\EmailService();
+                error_log("EmailService criado");
+                
+                $enviado = $emailService->sendAmostragemNotification($amostragem, $emails, 'status', $novoStatus);
+
+                if ($enviado) {
+                    error_log("✅ Email de mudança de status enviado para amostragem #{$amostragemId} para: " . implode(', ', $emails));
+                    return true;
+                } else {
+                    error_log("❌ Falha ao enviar email de mudança de status para amostragem #{$amostragemId}");
+                    return false;
+                }
+            } else {
+                error_log("⚠️ Amostragem #{$amostragemId}: Sem responsáveis cadastrados");
+                return false;
+            }
+
+        } catch (\Exception $e) {
+            error_log("Erro ao enviar email de mudança de status: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    public function enviarEmailDetalhes(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                exit;
+            }
+            
+            $ok = $this->enviarEmailNovaAmostragem($id);
+            if ($ok) {
+                echo json_encode(['success' => true, 'message' => '📧 Email enviado com sucesso aos responsáveis!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Erro ao enviar email']);
+            }
+            exit;
+            
+        } catch (\Throwable $e) {
+            error_log('Erro ao enviar email: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao enviar email']);
+            exit;
         }
     }
 
@@ -491,6 +656,19 @@ class Amostragens2Controller
                 ':responsaveis' => $responsaveisStr,
                 ':status_final' => $statusFinal
             ]);
+
+            // Enviar email automático para responsáveis sempre que atualizar
+            try {
+                $emailEnviado = $this->enviarEmailMudancaStatusAmostragem($id, $statusFinal);
+                if ($emailEnviado) {
+                    error_log("✅ Email de mudança de status enviado automaticamente para amostragem #{$id} - Status: {$statusFinal}");
+                } else {
+                    error_log("⚠️ Falha ao enviar email automático para amostragem #{$id} (não crítico)");
+                }
+            } catch (\Exception $e) {
+                // Log do erro mas não falha a operação
+                error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
+            }
 
             echo json_encode([
                 'success' => true,

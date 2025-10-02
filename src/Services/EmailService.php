@@ -733,6 +733,264 @@ class EmailService
     }
 
     /**
+     * Send amostragem notification
+     */
+    public function sendAmostragemNotification(array $amostragem, array $responsaveisEmails, string $tipo, string $status = null): bool
+    {
+        if (empty($responsaveisEmails)) {
+            return false;
+        }
+
+        if ($tipo === 'nova') {
+            $subject = "SGQ - Nova Amostragem Criada 🔬";
+            $body = $this->buildAmostragemNovaEmailTemplate($amostragem);
+            $altBody = $this->getAmostragemNovaAltBody($amostragem);
+        } else {
+            $subject = $this->getAmostragemStatusSubject($status);
+            $body = $this->buildAmostragemStatusEmailTemplate($amostragem, $status);
+            $altBody = $this->getAmostragemStatusAltBody($amostragem, $status);
+        }
+        
+        return $this->send($responsaveisEmails, $subject, $body, $altBody);
+    }
+
+    private function getAmostragemStatusSubject(string $status): string
+    {
+        $subjects = [
+            'Pendente' => 'SGQ - Amostragem Aguardando Análise 🔬',
+            'Em Análise' => 'SGQ - Amostragem em Análise 🔍',
+            'Aprovado' => 'SGQ - Amostragem Aprovada! ✅',
+            'Reprovado' => 'SGQ - Amostragem Reprovada ❌',
+            'Concluído' => 'SGQ - Amostragem Concluída 🎉'
+        ];
+
+        return $subjects[$status] ?? 'SGQ - Atualização de Status da Amostragem';
+    }
+
+    private function getAmostragemNovaAltBody(array $amostragem): string
+    {
+        $altBody = "AMOSTRAGENS 2.0 - Nova Amostragem Criada\n\n";
+        $altBody .= "NF: {$amostragem['numero_nf']}\n";
+        $altBody .= "Produto: {$amostragem['nome_produto']} ({$amostragem['codigo_produto']})\n";
+        $altBody .= "Fornecedor: {$amostragem['fornecedor_nome']}\n";
+        $altBody .= "Criado por: {$amostragem['criador_nome']}\n";
+        $altBody .= "Quantidade Recebida: {$amostragem['quantidade_recebida']}\n";
+        $altBody .= "Quantidade Testada: {$amostragem['quantidade_testada']}\n";
+        $altBody .= "Data: " . date('d/m/Y H:i') . "\n\n";
+        $altBody .= "Você foi designado como responsável por esta amostragem.\n\n";
+        $altBody .= "Acesse o SGQ para ver os detalhes completos.";
+        
+        return $altBody;
+    }
+
+    private function getAmostragemStatusAltBody(array $amostragem, string $status): string
+    {
+        $altBody = "AMOSTRAGENS 2.0 - Atualização de Status\n\n";
+        $altBody .= "Status: {$status}\n";
+        $altBody .= "NF: {$amostragem['numero_nf']}\n";
+        $altBody .= "Produto: {$amostragem['nome_produto']} ({$amostragem['codigo_produto']})\n";
+        $altBody .= "Fornecedor: {$amostragem['fornecedor_nome']}\n";
+        $altBody .= "Quantidade Aprovada: {$amostragem['quantidade_aprovada']}\n";
+        $altBody .= "Quantidade Reprovada: {$amostragem['quantidade_reprovada']}\n";
+        $altBody .= "Data: " . date('d/m/Y H:i') . "\n\n";
+        $altBody .= $this->getAmostragemStatusMessage($status) . "\n\n";
+        $altBody .= "Acesse o SGQ para ver os detalhes completos.";
+        
+        return $altBody;
+    }
+
+    private function getAmostragemStatusMessage(string $status): string
+    {
+        $messages = [
+            'Pendente' => 'A amostragem foi registrada e está aguardando análise.',
+            'Em Análise' => 'A amostragem está sendo analisada pela equipe técnica.',
+            'Aprovado' => 'Excelente! A amostragem foi aprovada nos testes de qualidade.',
+            'Reprovado' => 'A amostragem foi reprovada nos testes. Verifique os detalhes.',
+            'Concluído' => 'A amostragem foi concluída com sucesso. Processo finalizado!'
+        ];
+
+        return $messages[$status] ?? 'Status da amostragem foi atualizado.';
+    }
+
+    private function buildAmostragemNovaEmailTemplate(array $amostragem): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Nova Amostragem - SGQ</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>🔬 Nova Amostragem!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Amostragens 2.0</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #EBF8FF; border-left: 4px solid #3B82F6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #1E40AF;'>
+                        <strong>Você foi designado como responsável por esta amostragem.</strong><br>
+                        Acesse o sistema para acompanhar o processo de análise.
+                    </p>
+                </div>
+                
+                <h2 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>Detalhes da Amostragem</h2>
+                
+                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold; width: 30%;'>NF:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['numero_nf']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Produto:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['nome_produto']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Código:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['codigo_produto']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Fornecedor:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['fornecedor_nome']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Criado por:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['criador_nome']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Qtd. Recebida:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['quantidade_recebida']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Qtd. Testada:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['quantidade_testada']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Data de Criação:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>" . date('d/m/Y H:i') . "</td>
+                    </tr>
+                </table>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/amostragens-2/{$amostragem['id']}/details' style='background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Ver Detalhes da Amostragem
+                    </a>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #666; font-size: 14px;'>
+                        <strong>Próximos passos:</strong> Acesse o sistema para acompanhar o processo de análise e registrar os resultados dos testes de qualidade.
+                    </p>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    private function buildAmostragemStatusEmailTemplate(array $amostragem, string $status): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        $statusColors = [
+            'Pendente' => '#6B7280',
+            'Em Análise' => '#3B82F6',
+            'Aprovado' => '#10B981',
+            'Reprovado' => '#EF4444',
+            'Concluído' => '#059669'
+        ];
+        
+        $statusColor = $statusColors[$status] ?? '#6B7280';
+        $statusMessage = $this->getAmostragemStatusMessage($status);
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Atualização de Status - Amostragem</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, {$statusColor} 0%, " . $this->darkenColor($statusColor) . " 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>🔬 Status Atualizado!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Amostragens 2.0</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='text-align: center; margin-bottom: 30px;'>
+                    <div style='background: {$statusColor}; color: white; padding: 15px 25px; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 18px;'>
+                        {$status}
+                    </div>
+                </div>
+                
+                <div style='background: #f8f9fa; border-left: 4px solid {$statusColor}; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #374151;'>{$statusMessage}</p>
+                </div>
+                
+                <h2 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>Detalhes da Amostragem</h2>
+                
+                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold; width: 30%;'>NF:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['numero_nf']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Produto:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['nome_produto']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Fornecedor:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['fornecedor_nome']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Qtd. Aprovada:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'><span style='color: #10B981; font-weight: bold;'>{$amostragem['quantidade_aprovada']}</span></td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Qtd. Reprovada:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'><span style='color: #EF4444; font-weight: bold;'>{$amostragem['quantidade_reprovada']}</span></td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Data da Atualização:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>" . date('d/m/Y H:i') . "</td>
+                    </tr>
+                </table>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/amostragens-2/{$amostragem['id']}/details' style='background: linear-gradient(135deg, {$statusColor} 0%, " . $this->darkenColor($statusColor) . " 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Ver Detalhes Completos
+                    </a>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #666; font-size: 14px;'>
+                        <strong>Nota:</strong> Esta é uma notificação automática do sistema SGQ OTI DJ. 
+                        Para mais detalhes, acesse o sistema através do link acima.
+                    </p>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
      * Test email configuration
      */
     public function testConnection(): array

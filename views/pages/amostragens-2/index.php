@@ -311,9 +311,9 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
               <?php if ($amostra['total_evidencias'] > 0): ?>
-                <button onclick="verEvidencias(<?= $amostra['id'] ?>)" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
-                  📷 Ver (<?= $amostra['total_evidencias'] ?>)
+                <button onclick="baixarEvidencias(<?= $amostra['id'] ?>)" 
+                        class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">
+                  📥 Baixar (<?= $amostra['total_evidencias'] ?>)
                 </button>
               <?php else: ?>
                 <span class="text-gray-400">Sem evidências</span>
@@ -323,6 +323,11 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
               <button onclick="editarAmostragem(<?= $amostra['id'] ?>)" 
                       class="text-blue-600 hover:text-blue-800">
                 ✏️ Editar
+              </button>
+              <button onclick="enviarEmailAmostragem(<?= $amostra['id'] ?>)" 
+                      class="text-green-600 hover:text-green-800" 
+                      title="Enviar email aos responsáveis">
+                📧 Email
               </button>
               <button onclick="excluirAmostragem(<?= $amostra['id'] ?>)" 
                       class="text-red-600 hover:text-red-800">
@@ -337,19 +342,13 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
   </div>
 </section>
 
-<!-- Modal de Evidências -->
-<div id="evidenciasModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-  <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold">📷 Evidências da Amostragem</h3>
-      <button onclick="closeEvidenciasModal()" class="text-gray-500 hover:text-gray-700">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-    <div id="evidenciasContent" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- Evidências serão carregadas aqui -->
+<!-- Modal de Loading para Downloads -->
+<div id="loadingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+  <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <h3 class="text-lg font-semibold mb-2">Preparando Download...</h3>
+      <p class="text-gray-600">Aguarde enquanto preparamos as evidências para download.</p>
     </div>
   </div>
 </div>
@@ -470,9 +469,12 @@ document.getElementById('amostragemForm').addEventListener('submit', async funct
   }
 });
 
-// Ver evidências
-async function verEvidencias(amostragemId) {
-  console.log('Buscando evidências para amostragem:', amostragemId);
+// Baixar evidências
+async function baixarEvidencias(amostragemId) {
+  console.log('Baixando evidências para amostragem:', amostragemId);
+  
+  // Mostrar modal de loading
+  document.getElementById('loadingModal').classList.remove('hidden');
   
   try {
     const response = await fetch(`/amostragens-2/${amostragemId}/evidencias`);
@@ -480,35 +482,71 @@ async function verEvidencias(amostragemId) {
     
     console.log('Resposta do servidor:', data);
     
-    const content = document.getElementById('evidenciasContent');
-    
     if (data.success && data.evidencias && data.evidencias.length > 0) {
       console.log('Evidências encontradas:', data.evidencias.length);
-      content.innerHTML = data.evidencias.map(ev => `
-        <div class="border rounded-lg p-4 bg-gray-50">
-          <p class="text-sm font-medium mb-2">📄 ${ev.nome}</p>
-          <p class="text-xs text-gray-500 mb-2">Tipo: ${ev.tipo}</p>
-          <a href="/amostragens-2/${amostragemId}/download-evidencia/${ev.id}" 
-             class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
-             download>
-            📥 Baixar Evidência
-          </a>
-        </div>
-      `).join('');
+      
+      // Baixar cada evidência individualmente
+      for (let i = 0; i < data.evidencias.length; i++) {
+        const ev = data.evidencias[i];
+        console.log(`Baixando evidência ${i + 1}/${data.evidencias.length}: ${ev.nome}`);
+        
+        // Criar link temporário para download
+        const link = document.createElement('a');
+        link.href = `/amostragens-2/${amostragemId}/download-evidencia/${ev.id}`;
+        link.download = ev.nome;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Pequeno delay entre downloads para não sobrecarregar
+        if (i < data.evidencias.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+      
+      // Fechar modal e mostrar sucesso
+      document.getElementById('loadingModal').classList.add('hidden');
+      alert(`✅ ${data.evidencias.length} evidência(s) baixada(s) com sucesso!`);
+      
     } else {
-      console.log('Nenhuma evidência encontrada');
-      content.innerHTML = '<p class="text-gray-500 text-center py-4">Nenhuma evidência encontrada para esta amostragem</p>';
+      document.getElementById('loadingModal').classList.add('hidden');
+      alert('⚠️ Nenhuma evidência encontrada para esta amostragem');
     }
     
-    document.getElementById('evidenciasModal').classList.remove('hidden');
   } catch (error) {
-    console.error('Erro ao carregar evidências:', error);
-    alert('Erro ao carregar evidências: ' + error.message);
+    console.error('Erro ao baixar evidências:', error);
+    document.getElementById('loadingModal').classList.add('hidden');
+    alert('❌ Erro ao baixar evidências: ' + error.message);
   }
 }
 
-function closeEvidenciasModal() {
-  document.getElementById('evidenciasModal').classList.add('hidden');
+// Enviar email da amostragem
+async function enviarEmailAmostragem(amostragemId) {
+  if (!confirm('📧 Deseja enviar email de notificação aos responsáveis desta amostragem?')) {
+    return;
+  }
+  
+  try {
+    const response = await fetch('/amostragens-2/enviar-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `id=${amostragemId}`
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ ' + data.message);
+    } else {
+      alert('❌ ' + data.message);
+    }
+  } catch (error) {
+    console.error('Erro ao enviar email:', error);
+    alert('❌ Erro ao enviar email: ' + error.message);
+  }
 }
 
 // Editar amostragem
