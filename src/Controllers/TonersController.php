@@ -329,6 +329,12 @@ class TonersController
             // Get quantidade from POST
             $quantidade = max(1, (int)($_POST['quantidade'] ?? 1));
 
+            // Multiplicar valor calculado pela quantidade
+            $valor_total = $valor_calculado * $quantidade;
+
+            error_log('Valor final: Unitário R$ ' . number_format($valor_calculado, 2, ',', '.') . 
+                      ' x ' . $quantidade . ' = R$ ' . number_format($valor_total, 2, ',', '.'));
+
             // Insert into database
             $stmt = $this->db->prepare('
                 INSERT INTO retornados (modelo, modelo_cadastrado, usuario, filial, codigo_cliente, modo, 
@@ -352,12 +358,12 @@ class TonersController
                 ':percentual_restante' => $percentual_restante ?: null,
                 ':quantidade' => $quantidade,
                 ':destino' => $destino,
-                ':valor_calculado' => $valor_calculado,
+                ':valor_calculado' => $valor_total,
                 ':observacao' => $observacao,
                 ':data_registro' => $data_registro
             ]);
 
-            error_log('Retornado inserido - Destino: ' . $destino . ' | Valor Calculado: R$ ' . number_format($valor_calculado, 2, ',', '.'));
+            error_log('Retornado inserido - Destino: ' . $destino . ' | Quantidade: ' . $quantidade . ' | Valor Total: R$ ' . number_format($valor_total, 2, ',', '.'));
 
             echo json_encode([
                 'success' => true,
