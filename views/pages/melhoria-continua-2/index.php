@@ -167,17 +167,20 @@ $userId = $_SESSION['user_id'];
       <table class="min-w-full text-sm">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridade</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Idealizador</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsáveis</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Prevista</th>
             <?php if ($isAdmin): ?>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
             <?php endif; ?>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -192,10 +195,23 @@ $userId = $_SESSION['user_id'];
             <td class="px-6 py-4 text-sm text-gray-900">
               <div class="font-medium"><?= e($melhoria['titulo']) ?></div>
             </td>
-            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+            <td class="px-4 py-4 text-sm text-gray-500 max-w-xs truncate">
               <?= e($melhoria['resultado_esperado'] ?? 'N/A') ?>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
+            <td class="px-4 py-4 whitespace-nowrap">
+              <?php
+                $prioridadeCores = [
+                  'Baixa' => 'bg-green-100 text-green-800',
+                  'Média' => 'bg-yellow-100 text-yellow-800',
+                  'Alta' => 'bg-red-100 text-red-800'
+                ];
+                $corPrioridade = $prioridadeCores[$melhoria['prioridade'] ?? 'Média'] ?? 'bg-gray-100 text-gray-800';
+              ?>
+              <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $corPrioridade ?>">
+                <?= e($melhoria['prioridade'] ?? 'Média') ?>
+              </span>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap">
               <?php if ($isAdmin): ?>
                 <select onchange="updateStatusInline(<?= $melhoria['id'] ?>, this.value)" class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?> border-0 cursor-pointer">
                   <option value="Pendente análise" <?= $melhoria['status'] === 'Pendente análise' ? 'selected' : '' ?>>Pendente análise</option>
@@ -210,11 +226,17 @@ $userId = $_SESSION['user_id'];
                 </span>
               <?php endif; ?>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+              <?= e($melhoria['idealizador'] ?? '-') ?>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
               <?= e($melhoria['criador_nome']) ?>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
               <?= e($melhoria['responsaveis_nomes'] ?? '-') ?>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+              <?= $melhoria['quando'] ? date('d/m/Y', strtotime($melhoria['quando'])) : '-' ?>
             </td>
             <?php if ($isAdmin): ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
