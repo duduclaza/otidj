@@ -125,6 +125,9 @@ $router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2C
 $router->post('/melhoria-continua-2/enviar-email', [App\Controllers\MelhoriaContinua2Controller::class, 'enviarEmailDetalhes']);
 $router->get('/melhoria-continua-2/export', [App\Controllers\MelhoriaContinua2Controller::class, 'exportExcel']);
 
+// Diagnostic route for SMTP test
+$router->get('/test-email', [App\Controllers\EmailTestController::class, 'test']);
+
 // Amostragens 2.0 routes
 $router->get('/amostragens-2', [App\Controllers\Amostragens2Controller::class, 'index']);
 $router->post('/amostragens-2/store', [App\Controllers\Amostragens2Controller::class, 'store']);
