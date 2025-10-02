@@ -315,6 +315,10 @@ class MelhoriaContinua2Controller
 
     public function updateStatus($id = null): void
     {
+        // Desabilitar exibição de erros para não quebrar o JSON
+        ini_set('display_errors', 0);
+        error_reporting(0);
+        
         header('Content-Type: application/json');
         
         // Apenas admins podem alterar status
@@ -386,9 +390,13 @@ class MelhoriaContinua2Controller
 
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
 
+        } catch (\PDOException $e) {
+            error_log('Erro PDO ao atualizar status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao acessar banco de dados']);
         } catch (\Exception $e) {
             error_log('Erro ao atualizar status: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro interno do servidor']);
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
         }
     }
 
