@@ -921,7 +921,7 @@ class MelhoriaContinua2Controller
 
             if (!$melhoria) {
                 error_log("❌ Melhoria #{$melhoriaId}: Não encontrada");
-                return;
+                return false;
             }
 
             error_log("✅ Melhoria encontrada: " . $melhoria['titulo']);
