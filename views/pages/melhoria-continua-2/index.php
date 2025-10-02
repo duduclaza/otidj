@@ -84,7 +84,12 @@ $userId = $_SESSION['user_id'];
       
       <div>
         <label class="block text-sm font-medium text-gray-200 mb-1">Descrição da Melhoria *</label>
-        <textarea name="resultado_esperado" required rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
+        <textarea name="descricao" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Descreva detalhadamente a melhoria proposta..."></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-200 mb-1">Resultado Esperado *</label>
+        <textarea name="resultado_esperado" required rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Qual resultado você espera alcançar com esta melhoria?"></textarea>
       </div>
       
       <!-- 5W2H Compacto -->
@@ -171,6 +176,7 @@ $userId = $_SESSION['user_id'];
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resultado Esperado</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Idealizador</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
@@ -193,6 +199,9 @@ $userId = $_SESSION['user_id'];
             </td>
             <td class="px-6 py-4 text-sm text-gray-900">
               <div class="font-medium"><?= e($melhoria['titulo']) ?></div>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-500 max-w-xs truncate">
+              <?= e($melhoria['descricao'] ?? 'N/A') ?>
             </td>
             <td class="px-4 py-4 text-sm text-gray-500 max-w-xs truncate">
               <?= e($melhoria['resultado_esperado'] ?? 'N/A') ?>
@@ -794,6 +803,7 @@ async function editMelhoria(id) {
       
       form.querySelector('[name="departamento_id"]').value = m.departamento_id || '';
       form.querySelector('[name="titulo"]').value = m.titulo || '';
+      form.querySelector('[name="descricao"]').value = m.descricao || '';
       form.querySelector('[name="resultado_esperado"]').value = m.resultado_esperado || '';
       form.querySelector('[name="o_que"]').value = m.o_que || '';
       form.querySelector('[name="como"]').value = m.como || '';
