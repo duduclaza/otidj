@@ -122,6 +122,7 @@ $router->post('/melhoria-continua-2/{id}/update-pontuacao', [App\Controllers\Mel
 $router->get('/melhoria-continua-2/{id}/details', [App\Controllers\MelhoriaContinua2Controller::class, 'details']);
 $router->get('/melhoria-continua-2/{id}/view', [App\Controllers\MelhoriaContinua2Controller::class, 'view']);
 $router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2Controller::class, 'delete']);
+$router->get('/melhoria-continua-2/export', [App\Controllers\MelhoriaContinua2Controller::class, 'exportExcel']);
 
 // Amostragens 2.0 routes
 $router->get('/amostragens-2', [App\Controllers\Amostragens2Controller::class, 'index']);

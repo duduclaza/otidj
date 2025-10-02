@@ -35,12 +35,15 @@ $userId = $_SESSION['user_id'];
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
         <input type="date" id="dateTo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
-      <div class="flex items-end space-x-2">
-        <button onclick="filterData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+      <div class="flex items-end gap-1.5">
+        <button onclick="filterData()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
           Filtrar
         </button>
-        <button onclick="clearFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+        <button onclick="clearFilters()" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
           Limpar
+        </button>
+        <button onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
+          📊 Exportar
         </button>
       </div>
     </div>
@@ -950,5 +953,12 @@ async function deleteMelhoria(id) {
   } catch (error) {
     alert('❌ Erro ao excluir melhoria');
   }
+}
+
+// Exportar para Excel
+function exportarExcel() {
+  const params = new URLSearchParams(window.location.search);
+  const url = `/melhoria-continua-2/export?${params.toString()}`;
+  window.location.href = url;
 }
 </script>

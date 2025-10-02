@@ -721,4 +721,125 @@ class MelhoriaContinua2Controller
             echo "Erro ao carregar detalhes: " . $e->getMessage();
         }
     }
+
+    public function exportExcel(): void
+    {
+        try {
+            $userId = $_SESSION['user_id'];
+            $isAdmin = $_SESSION['user_role'] === 'admin';
+
+            // Buscar filtros
+            $filters = [];
+            $params = [];
+            
+            if (!empty($_GET['status'])) {
+                $filters[] = "m.status = :status";
+                $params[':status'] = $_GET['status'];
+            }
+            
+            if (!empty($_GET['prioridade'])) {
+                $filters[] = "m.prioridade = :prioridade";
+                $params[':prioridade'] = $_GET['prioridade'];
+            }
+            
+            if (!empty($_GET['departamento_id'])) {
+                $filters[] = "m.departamento_id = :departamento_id";
+                $params[':departamento_id'] = $_GET['departamento_id'];
+            }
+            
+            if (!empty($_GET['data_inicio'])) {
+                $filters[] = "DATE(m.created_at) >= :data_inicio";
+                $params[':data_inicio'] = $_GET['data_inicio'];
+            }
+            
+            if (!empty($_GET['data_fim'])) {
+                $filters[] = "DATE(m.created_at) <= :data_fim";
+                $params[':data_fim'] = $_GET['data_fim'];
+            }
+
+            // Regras de visibilidade
+            if (!$isAdmin) {
+                $filters[] = "(m.criado_por = :user_id OR FIND_IN_SET(:user_id, m.responsaveis))";
+                $params[':user_id'] = $userId;
+            }
+            
+            $whereClause = !empty($filters) ? 'WHERE ' . implode(' AND ', $filters) : '';
+            
+            // Buscar dados
+            $stmt = $this->db->prepare("
+                SELECT 
+                    m.*,
+                    u.name as criador_nome,
+                    d.nome as departamento_nome,
+                    GROUP_CONCAT(ur.name SEPARATOR ', ') as responsaveis_nomes
+                FROM melhoria_continua_2 m
+                LEFT JOIN users u ON m.criado_por = u.id
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
+                $whereClause
+                GROUP BY m.id
+                ORDER BY m.created_at DESC
+            ");
+            $stmt->execute($params);
+            $melhorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if (empty($melhorias)) {
+                echo json_encode(['success' => false, 'message' => 'Nenhum registro encontrado']);
+                return;
+            }
+            
+            // Gerar arquivo Excel (CSV)
+            $filename = 'melhoria_continua_2_' . date('Y-m-d_H-i-s') . '.csv';
+            
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            
+            $output = fopen('php://output', 'w');
+            
+            // BOM para UTF-8
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Cabeçalhos
+            fputcsv($output, [
+                'Data',
+                'Título',
+                'Descrição',
+                'Departamento',
+                'Prioridade',
+                'Status',
+                'Criado Por',
+                'Responsáveis',
+                'Data Prevista',
+                'Data Conclusão',
+                'Resultado',
+                'Observações'
+            ], ';');
+            
+            // Dados
+            foreach ($melhorias as $melhoria) {
+                fputcsv($output, [
+                    date('d/m/Y H:i', strtotime($melhoria['created_at'])),
+                    $melhoria['titulo'],
+                    $melhoria['descricao'],
+                    $melhoria['departamento_nome'],
+                    $melhoria['prioridade'],
+                    $melhoria['status'],
+                    $melhoria['criador_nome'],
+                    $melhoria['responsaveis_nomes'],
+                    $melhoria['data_prevista'] ? date('d/m/Y', strtotime($melhoria['data_prevista'])) : '',
+                    $melhoria['data_conclusao'] ? date('d/m/Y', strtotime($melhoria['data_conclusao'])) : '',
+                    $melhoria['resultado'] ?? '',
+                    $melhoria['observacoes'] ?? ''
+                ], ';');
+            }
+            
+            fclose($output);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao exportar: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao exportar: ' . $e->getMessage()]);
+        }
+    }
 }
