@@ -171,7 +171,6 @@ $userId = $_SESSION['user_id'];
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridade</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Idealizador</th>
             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
@@ -197,19 +196,6 @@ $userId = $_SESSION['user_id'];
             </td>
             <td class="px-4 py-4 text-sm text-gray-500 max-w-xs truncate">
               <?= e($melhoria['resultado_esperado'] ?? 'N/A') ?>
-            </td>
-            <td class="px-4 py-4 whitespace-nowrap">
-              <?php
-                $prioridadeCores = [
-                  'Baixa' => 'bg-green-100 text-green-800',
-                  'Média' => 'bg-yellow-100 text-yellow-800',
-                  'Alta' => 'bg-red-100 text-red-800'
-                ];
-                $corPrioridade = $prioridadeCores[$melhoria['prioridade'] ?? 'Média'] ?? 'bg-gray-100 text-gray-800';
-              ?>
-              <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $corPrioridade ?>">
-                <?= e($melhoria['prioridade'] ?? 'Média') ?>
-              </span>
             </td>
             <td class="px-4 py-4 whitespace-nowrap">
               <?php if ($isAdmin): ?>
