@@ -229,6 +229,7 @@ class Amostragens2Controller
 
             // Enviar email automático para responsáveis ao criar nova amostragem
             try {
+                error_log("🔧 DEBUG: Tentando enviar email para amostragem #{$amostragemId}");
                 $emailEnviado = $this->enviarEmailNovaAmostragem($amostragemId);
                 if ($emailEnviado) {
                     error_log("✅ Email de nova amostragem enviado automaticamente para amostragem #{$amostragemId}");
@@ -238,6 +239,11 @@ class Amostragens2Controller
             } catch (\Exception $e) {
                 // Log do erro mas não falha a operação
                 error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
+                error_log("⚠️ Stack trace: " . $e->getTraceAsString());
+            } catch (\Error $e) {
+                // Log do erro fatal mas não falha a operação
+                error_log("⚠️ Erro fatal ao enviar email automático (não crítico): " . $e->getMessage());
+                error_log("⚠️ Stack trace: " . $e->getTraceAsString());
             }
 
             echo json_encode([
