@@ -1225,12 +1225,14 @@ class AdminController
         $dateColumn = $this->getDateColumn();
         $filialColumn = $this->getFilialColumn();
         $valorColumn = $this->getValorColumn();
+        $destinoColumn = $this->getDestinoColumn();
         
         $sql = "
             SELECT 
                 MONTH({$dateColumn}) as mes,
                 YEAR({$dateColumn}) as ano,
-                SUM(COALESCE({$valorColumn}, 0)) as valor_total
+                SUM(COALESCE({$valorColumn}, 0)) as valor_total,
+                SUM(CASE WHEN {$destinoColumn} = 'estoque' THEN quantidade ELSE 0 END) as quantidade_estoque
             FROM retornados 
             WHERE 1=1
         ";
@@ -1261,23 +1263,44 @@ class AdminController
             
             // Preparar dados para o gráfico
             $meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            $dados = array_fill(0, 12, 0);
+            $valores = array_fill(0, 12, 0);
+            $quantidades = array_fill(0, 12, 0);
+            $percentuais = array_fill(0, 12, 0);
+            $cores = array_fill(0, 12, 'gray');
             
             foreach ($results as $row) {
                 $mesIndex = $row['mes'] - 1;
                 if ($mesIndex >= 0 && $mesIndex < 12) {
-                    $dados[$mesIndex] = (float)$row['valor_total'];
+                    $valores[$mesIndex] = (float)$row['valor_total'];
+                    $quantidades[$mesIndex] = (int)$row['quantidade_estoque'];
+                }
+            }
+            
+            // Calcular percentuais e cores
+            for ($i = 0; $i < 12; $i++) {
+                if ($i > 0 && $valores[$i - 1] > 0) {
+                    $percentuais[$i] = (($valores[$i] - $valores[$i - 1]) / $valores[$i - 1]) * 100;
+                    $cores[$i] = $percentuais[$i] >= 0 ? 'green' : 'red';
+                } else if ($i > 0 && $valores[$i] > 0) {
+                    $percentuais[$i] = 100;
+                    $cores[$i] = 'green';
                 }
             }
             
             return [
                 'labels' => $meses,
-                'data' => $dados
+                'data' => $valores,
+                'quantidades' => $quantidades,
+                'percentuais' => $percentuais,
+                'cores' => $cores
             ];
         } catch (\Exception $e) {
             return [
                 'labels' => ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-                'data' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                'data' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'quantidades' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'percentuais' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'cores' => ['gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray', 'gray']
             ];
         }
     }

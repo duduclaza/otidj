@@ -265,6 +265,17 @@ function updateChartsWithData() {
   // Atualizar dados do gráfico de toners recuperados
   dadosTonersRecuperados.datasets[0].data = dashboardData.toners_recuperados.data;
   
+  // Atualizar cores das barras baseado no percentual
+  if (dashboardData.toners_recuperados.cores) {
+    const coresMap = {
+      'green': 'rgba(34, 197, 94, 0.8)',
+      'red': 'rgba(239, 68, 68, 0.8)',
+      'gray': 'rgba(168, 85, 247, 0.8)'
+    };
+    dadosTonersRecuperados.datasets[0].backgroundColor = dashboardData.toners_recuperados.cores.map(cor => coresMap[cor] || coresMap['gray']);
+    dadosTonersRecuperados.datasets[0].borderColor = dashboardData.toners_recuperados.cores.map(cor => coresMap[cor]?.replace('0.8', '1') || coresMap['gray'].replace('0.8', '1'));
+  }
+  
   // Atualizar os gráficos se já estiverem criados
   if (retornadosMesChart) {
     retornadosMesChart.update();
@@ -408,18 +419,24 @@ function initCharts() {
           cornerRadius: 8,
           callbacks: {
             label: function(context) {
-              return `Valor: R$ ${context.parsed.y.toLocaleString('pt-BR')}`;
+              return `Valor: R$ ${context.parsed.y.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             },
             afterBody: function(context) {
-              const currentValue = context[0].parsed.y;
-              const previousIndex = context[0].dataIndex - 1;
-              if (previousIndex >= 0) {
-                const previousValue = dadosTonersRecuperados.datasets[0].data[previousIndex];
-                const percentage = ((currentValue - previousValue) / previousValue * 100).toFixed(1);
-                const quantidadeEstimada = Math.round(currentValue / 89.90); // Preço médio do toner
-                return `Quantidade estimada: ${quantidadeEstimada} toners\nVariação: ${percentage > 0 ? '+' : ''}${percentage}% vs mês anterior`;
+              const index = context[0].dataIndex;
+              const quantidade = dashboardData?.toners_recuperados?.quantidades?.[index] || 0;
+              const percentual = dashboardData?.toners_recuperados?.percentuais?.[index] || 0;
+              const cor = dashboardData?.toners_recuperados?.cores?.[index] || 'gray';
+              
+              let lines = [];
+              lines.push(`Qtd em Estoque: ${quantidade} toners`);
+              
+              if (index > 0 && percentual !== 0) {
+                const sinal = percentual > 0 ? '+' : '';
+                const emoji = percentual > 0 ? '📈' : '📉';
+                lines.push(`${emoji} Variação: ${sinal}${percentual.toFixed(1)}% vs mês anterior`);
               }
-              return '';
+              
+              return lines;
             }
           }
         }
