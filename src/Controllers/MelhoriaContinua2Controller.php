@@ -822,16 +822,16 @@ class MelhoriaContinua2Controller
                 fputcsv($output, [
                     date('d/m/Y H:i', strtotime($melhoria['created_at'])),
                     $melhoria['titulo'],
-                    $melhoria['descricao'],
+                    $melhoria['resultado_esperado'] ?? '',
                     $melhoria['departamento_nome'],
-                    $melhoria['prioridade'],
+                    $melhoria['prioridade'] ?? '',
                     $melhoria['status'],
                     $melhoria['criador_nome'],
                     $melhoria['responsaveis_nomes'],
-                    $melhoria['data_prevista'] ? date('d/m/Y', strtotime($melhoria['data_prevista'])) : '',
+                    $melhoria['quando'] ? date('d/m/Y', strtotime($melhoria['quando'])) : '',
                     $melhoria['data_conclusao'] ? date('d/m/Y', strtotime($melhoria['data_conclusao'])) : '',
                     $melhoria['resultado'] ?? '',
-                    $melhoria['observacoes'] ?? ''
+                    $melhoria['observacao'] ?? ''
                 ], ';');
             }
             
