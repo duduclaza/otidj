@@ -372,6 +372,21 @@ class MelhoriaContinua2Controller
             
             $stmt->execute($params);
 
+            // Se status mudou para Concluída, enviar email para responsáveis
+            if ($status === 'Concluída') {
+                try {
+                    $emailEnviado = $this->enviarEmailConclusao($id);
+                    if ($emailEnviado) {
+                        error_log("✅ Email de conclusão enviado automaticamente para melhoria #{$id}");
+                    } else {
+                        error_log("⚠️ Falha ao enviar email automático para melhoria #{$id} (não crítico)");
+                    }
+                } catch (\Exception $e) {
+                    // Log do erro mas não falha a operação
+                    error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
+                }
+            }
+
             // Buscar dados da melhoria para notificações
             $stmt = $this->db->prepare('
                 SELECT titulo, criado_por, responsaveis 
