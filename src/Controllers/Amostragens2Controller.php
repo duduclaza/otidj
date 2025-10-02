@@ -373,6 +373,11 @@ class Amostragens2Controller
                 error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
 
                 // Enviar email
+                if (!class_exists('\App\Services\EmailService')) {
+                    error_log("❌ Classe EmailService não encontrada");
+                    return false;
+                }
+                
                 $emailService = new \App\Services\EmailService();
                 error_log("EmailService criado");
                 
@@ -476,6 +481,9 @@ class Amostragens2Controller
 
     public function enviarEmailDetalhes(): void
     {
+        // Limpar qualquer output anterior
+        while (ob_get_level()) { ob_end_clean(); }
+        
         header('Content-Type: application/json');
         
         try {
@@ -483,21 +491,28 @@ class Amostragens2Controller
             
             if ($id <= 0) {
                 echo json_encode(['success' => false, 'message' => 'ID inválido']);
-                exit;
+                return;
+            }
+            
+            // Verificar se a amostragem existe
+            $stmt = $this->db->prepare('SELECT id FROM amostragens_2 WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
+                return;
             }
             
             $ok = $this->enviarEmailNovaAmostragem($id);
             if ($ok) {
                 echo json_encode(['success' => true, 'message' => '📧 Email enviado com sucesso aos responsáveis!']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Erro ao enviar email']);
+                echo json_encode(['success' => false, 'message' => 'Erro ao enviar email - verifique se há responsáveis com email cadastrado']);
             }
-            exit;
             
         } catch (\Throwable $e) {
-            error_log('Erro ao enviar email: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao enviar email']);
-            exit;
+            error_log('Erro ao enviar email manual: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode(['success' => false, 'message' => 'Erro interno ao enviar email: ' . $e->getMessage()]);
         }
     }
 
