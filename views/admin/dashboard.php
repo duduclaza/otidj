@@ -428,7 +428,7 @@ function initCharts() {
               const cor = dashboardData?.toners_recuperados?.cores?.[index] || 'gray';
               
               let lines = [];
-              lines.push(`Qtd em Estoque: ${quantidade} toners`);
+              lines.push(`Qtd enviadas para o estoque: ${quantidade} toners`);
               
               if (index > 0 && percentual !== 0) {
                 const sinal = percentual > 0 ? '+' : '';
