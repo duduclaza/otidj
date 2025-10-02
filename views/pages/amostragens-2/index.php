@@ -202,24 +202,24 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
         </select>
       </div>
 
-      <div class="max-w-[180px]">
+      <div class="w-[160px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
-        <input type="date" name="data_inicio" value="<?= $_GET['data_inicio'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+        <input type="date" name="data_inicio" value="<?= $_GET['data_inicio'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
       </div>
 
-      <div class="max-w-[180px]">
+      <div class="w-[160px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
-        <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+        <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
       </div>
 
-      <div class="flex items-end space-x-2 min-w-[400px]">
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors whitespace-nowrap">
+      <div class="flex items-end space-x-3">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-8 py-2.5 rounded-lg transition-colors whitespace-nowrap font-semibold shadow-md">
           Filtrar
         </button>
-        <a href="/amostragens-2" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg text-center transition-colors whitespace-nowrap">
+        <a href="/amostragens-2" class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-2.5 rounded-lg text-center transition-colors whitespace-nowrap font-semibold shadow-md">
           Limpar
         </a>
-        <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors whitespace-nowrap">
+        <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg transition-colors whitespace-nowrap font-semibold shadow-md">
           📊 Exportar Excel
         </button>
       </div>
