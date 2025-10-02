@@ -430,21 +430,31 @@ document.getElementById('melhoriaForm').addEventListener('submit', async functio
 // Atualizar Status Inline (Admin)
 async function updateStatusInline(id, status) {
   try {
+    console.log('=== ATUALIZANDO STATUS ===');
+    console.log('ID:', id);
+    console.log('Novo Status:', status);
+    
     const response = await fetch(`/melhoria-continua-2/${id}/update-status`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
     
+    console.log('Response Status:', response.status);
+    console.log('Response OK:', response.ok);
+    
     const data = await response.json();
+    console.log('Response Data:', data);
+    
     if (data.success) {
-      alert('✅ Status atualizado com sucesso!');
+      alert('✅ Status atualizado com sucesso!' + (status === 'Concluída' ? '\n📧 Email será enviado aos responsáveis.' : ''));
       location.reload();
     } else {
       alert('❌ Erro: ' + data.message);
     }
   } catch (error) {
-    alert('❌ Erro ao atualizar status');
+    console.error('Erro completo:', error);
+    alert('❌ Erro ao atualizar status: ' + error.message);
   }
 }
 
