@@ -807,31 +807,39 @@ class MelhoriaContinua2Controller
                 'Título',
                 'Descrição',
                 'Departamento',
-                'Prioridade',
                 'Status',
+                'Idealizador',
                 'Criado Por',
                 'Responsáveis',
-                'Data Prevista',
-                'Data Conclusão',
-                'Resultado',
-                'Observações'
+                'O Que',
+                'Como',
+                'Onde',
+                'Por Que',
+                'Quando',
+                'Quanto Custa',
+                'Observações',
+                'Pontuação'
             ], ';');
             
             // Dados
             foreach ($melhorias as $melhoria) {
                 fputcsv($output, [
                     date('d/m/Y H:i', strtotime($melhoria['created_at'])),
-                    $melhoria['titulo'],
+                    $melhoria['titulo'] ?? '',
                     $melhoria['resultado_esperado'] ?? '',
-                    $melhoria['departamento_nome'],
-                    $melhoria['prioridade'] ?? '',
-                    $melhoria['status'],
-                    $melhoria['criador_nome'],
-                    $melhoria['responsaveis_nomes'],
+                    $melhoria['departamento_nome'] ?? '',
+                    $melhoria['status'] ?? '',
+                    $melhoria['idealizador'] ?? '',
+                    $melhoria['criador_nome'] ?? '',
+                    $melhoria['responsaveis_nomes'] ?? '',
+                    $melhoria['o_que'] ?? '',
+                    $melhoria['como'] ?? '',
+                    $melhoria['onde'] ?? '',
+                    $melhoria['porque'] ?? '',
                     $melhoria['quando'] ? date('d/m/Y', strtotime($melhoria['quando'])) : '',
-                    $melhoria['data_conclusao'] ? date('d/m/Y', strtotime($melhoria['data_conclusao'])) : '',
-                    $melhoria['resultado'] ?? '',
-                    $melhoria['observacao'] ?? ''
+                    $melhoria['quanto_custa'] ? 'R$ ' . number_format($melhoria['quanto_custa'], 2, ',', '.') : '',
+                    $melhoria['observacao'] ?? '',
+                    $melhoria['pontuacao'] ?? ''
                 ], ';');
             }
             
