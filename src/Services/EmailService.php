@@ -392,6 +392,124 @@ class EmailService
     }
 
     /**
+     * Send melhoria continua conclusion notification
+     */
+    public function sendMelhoriaConclusaoNotification(array $melhoria, array $responsaveisEmails): bool
+    {
+        if (empty($responsaveisEmails)) {
+            return false;
+        }
+
+        $subject = "Melhoria Concluída - {$melhoria['titulo']}";
+        $body = $this->buildMelhoriaConclusaoEmailTemplate($melhoria);
+        
+        $altBody = "Melhoria Concluída\n\n";
+        $altBody .= "Título: {$melhoria['titulo']}\n";
+        $altBody .= "Departamento: {$melhoria['departamento_nome']}\n";
+        $altBody .= "Idealizador: {$melhoria['idealizador']}\n";
+        $altBody .= "Data de Conclusão: " . date('d/m/Y') . "\n\n";
+        $altBody .= "Parabéns! A melhoria foi concluída com sucesso!";
+        
+        return $this->send($responsaveisEmails, $subject, $body, $altBody);
+    }
+
+    private function buildMelhoriaConclusaoEmailTemplate(array $melhoria): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Melhoria Concluída</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>🎉 Melhoria Concluída!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Melhoria Contínua 2.0</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='text-align: center; margin-bottom: 30px;'>
+                    <div style='background: #10B981; color: white; padding: 10px 20px; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 16px;'>
+                        ✅ STATUS: CONCLUÍDA
+                    </div>
+                </div>
+                
+                <h2 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>Detalhes da Melhoria</h2>
+                
+                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold; width: 30%;'>Título:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$melhoria['titulo']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Departamento:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$melhoria['departamento_nome']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Idealizador:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$melhoria['idealizador']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Data de Conclusão:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>" . date('d/m/Y H:i') . "</td>
+                    </tr>";
+        
+        if (!empty($melhoria['resultado_esperado'])) {
+            $body .= "
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Resultado Esperado:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$melhoria['resultado_esperado']}</td>
+                    </tr>";
+        }
+
+        if (!empty($melhoria['pontuacao'])) {
+            $body .= "
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Pontuação:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'><strong>{$melhoria['pontuacao']}/10</strong></td>
+                    </tr>";
+        }
+        
+        $body .= "
+                </table>
+                
+                <div style='background: #d1fae5; border: 2px solid #10B981; border-radius: 10px; padding: 25px; margin: 25px 0; text-align: center;'>
+                    <h3 style='color: #065f46; margin: 0 0 10px 0; font-size: 20px;'>🏆 Parabéns!</h3>
+                    <p style='color: #065f46; margin: 0; font-size: 16px;'>
+                        A melhoria foi concluída com sucesso!<br>
+                        Obrigado pela sua contribuição para a melhoria contínua da empresa.
+                    </p>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/melhoria-continua-2/{$melhoria['id']}/view' style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Ver Detalhes Completos
+                    </a>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #666; font-size: 14px;'>
+                        <strong>Nota:</strong> Esta é uma notificação automática do sistema SGQ OTI DJ. 
+                        Para mais detalhes, acesse o sistema através do link acima.
+                    </p>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
      * Test email configuration
      */
     public function testConnection(): array

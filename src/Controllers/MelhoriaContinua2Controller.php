@@ -360,6 +360,11 @@ class MelhoriaContinua2Controller
             
             $stmt->execute($params);
 
+            // Se status mudou para Concluída, enviar email para responsáveis
+            if ($status === 'Concluída') {
+                $this->enviarEmailConclusao($id);
+            }
+
             // Buscar dados da melhoria para notificações
             $stmt = $this->db->prepare('
                 SELECT titulo, criado_por, responsaveis 
@@ -848,6 +853,52 @@ class MelhoriaContinua2Controller
         } catch (\Exception $e) {
             error_log('Erro ao exportar: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao exportar: ' . $e->getMessage()]);
+        }
+    }
+
+    private function enviarEmailConclusao(int $melhoriaId): void
+    {
+        try {
+            // Buscar dados completos da melhoria
+            $stmt = $this->db->prepare('
+                SELECT 
+                    m.*,
+                    d.nome as departamento_nome,
+                    GROUP_CONCAT(u.email SEPARATOR ",") as responsaveis_emails
+                FROM melhoria_continua_2 m
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                LEFT JOIN users u ON FIND_IN_SET(u.id, m.responsaveis)
+                WHERE m.id = :id
+                GROUP BY m.id
+            ');
+            $stmt->execute([':id' => $melhoriaId]);
+            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$melhoria || empty($melhoria['responsaveis_emails'])) {
+                error_log("Melhoria #{$melhoriaId}: Sem responsáveis com email");
+                return;
+            }
+
+            // Separar emails
+            $emails = array_filter(array_map('trim', explode(',', $melhoria['responsaveis_emails'])));
+
+            if (empty($emails)) {
+                error_log("Melhoria #{$melhoriaId}: Nenhum email válido encontrado");
+                return;
+            }
+
+            // Enviar email
+            $emailService = new \App\Services\EmailService();
+            $enviado = $emailService->sendMelhoriaConclusaoNotification($melhoria, $emails);
+
+            if ($enviado) {
+                error_log("Email de conclusão enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
+            } else {
+                error_log("Falha ao enviar email de conclusão para melhoria #{$melhoriaId}");
+            }
+
+        } catch (\Exception $e) {
+            error_log("Erro ao enviar email de conclusão: " . $e->getMessage());
         }
     }
 }
