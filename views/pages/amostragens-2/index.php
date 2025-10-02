@@ -5,18 +5,16 @@ $usuarios = $usuarios ?? [];
 $filiais = $filiais ?? [];
 $fornecedores = $fornecedores ?? [];
 $toners = $toners ?? [];
-$isAdmin = $_SESSION['user_role'] === 'admin';
 ?>
 
 <section class="mb-8">
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">🔬 Amostragens 2.0 <span class="beta-badge">BETA</span></h1>
-      <p class="text-gray-600 mt-1">Controle de testes de amostragens de produtos</p>
-    </div>
-    <button onclick="openAmostragemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
-      + Nova Amostragem
+    <h1 class="text-2xl font-bold text-gray-900">🔬 Amostragens 2.0</h1>
+    <button onclick="novaAmostragem()" 
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+      <span>➕</span>
+      <span>Nova Amostragem</span>
     </button>
   </div>
 
@@ -136,10 +134,10 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
       </div>
 
       <div class="flex justify-end space-x-3 pt-4">
-        <button type="button" onclick="closeAmostragemModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+        <button type="button" onclick="cancelarEdicao()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
           Cancelar
         </button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button type="submit" id="submitButton" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
           💾 Salvar Amostragem
         </button>
       </div>
@@ -557,15 +555,11 @@ async function editarAmostragem(id) {
     const response = await fetch(`/amostragens-2/${id}/details`);
     console.log('Response status:', response.status);
     
-    const text = await response.text();
-    console.log('Response text:', text);
-    
-    if (!text || text.trim() === '') {
-      alert('Funcionalidade de edição em desenvolvimento. Em breve fica prontinha :)');
-      return;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    const data = JSON.parse(text);
+    const data = await response.json();
     console.log('Dados recebidos:', data);
     
     if (data.success) {
@@ -612,21 +606,67 @@ async function editarAmostragem(id) {
       }
       hiddenId.value = id;
       
-      // Mudar action do form
+      // Mudar action do form e texto do botão
       document.getElementById('amostragemForm').action = '/amostragens-2/update';
+      document.getElementById('submitButton').innerHTML = '✏️ Atualizar Amostragem';
       
       // Scroll para o formulário
       document.getElementById('amostragemFormContainer').scrollIntoView({ behavior: 'smooth' });
       
-      console.log('Formulário preenchido com sucesso!');
+      console.log('Formulário preenchido com sucesso para edição!');
     } else {
       console.error('Erro na resposta:', data.message);
       alert('Erro: ' + (data.message || 'Não foi possível carregar os dados'));
     }
   } catch (error) {
     console.error('Erro ao carregar dados:', error);
-    alert('Funcionalidade de edição em desenvolvimento. Em breve fica prontinha :)');
+    alert('❌ Erro ao carregar dados para edição: ' + error.message);
   }
+}
+
+// Nova amostragem
+function novaAmostragem() {
+  // Limpar formulário
+  document.getElementById('amostragemForm').reset();
+  
+  // Remover campo hidden de ID se existir
+  const hiddenId = document.querySelector('input[name="amostragem_id"]');
+  if (hiddenId) {
+    hiddenId.remove();
+  }
+  
+  // Restaurar action original e texto do botão
+  document.getElementById('amostragemForm').action = '/amostragens-2/store';
+  document.getElementById('submitButton').innerHTML = '💾 Salvar Amostragem';
+  
+  // Mostrar formulário
+  document.getElementById('amostragemFormContainer').classList.remove('hidden');
+  
+  // Scroll para o formulário
+  document.getElementById('amostragemFormContainer').scrollIntoView({ behavior: 'smooth' });
+  
+  console.log('Formulário preparado para nova amostragem');
+}
+
+// Cancelar edição
+function cancelarEdicao() {
+  // Limpar formulário
+  document.getElementById('amostragemForm').reset();
+  
+  // Remover campo hidden de ID se existir
+  const hiddenId = document.querySelector('input[name="amostragem_id"]');
+  if (hiddenId) {
+    hiddenId.remove();
+  }
+  
+  // Restaurar action original e texto do botão
+  document.getElementById('amostragemForm').action = '/amostragens-2/store';
+  document.getElementById('submitButton').innerHTML = '💾 Salvar Amostragem';
+  
+  // Esconder formulário
+  document.getElementById('amostragemFormContainer').classList.add('hidden');
+  
+  console.log('Edição cancelada, formulário limpo');
 }
 
 // Excluir amostragem
