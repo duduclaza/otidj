@@ -11,6 +11,11 @@
   RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+public/([^\s]*) [NC]
   RewriteRule ^ /%1? [R=301,L]
 
+  # If the request is for an existing file in public/, serve it directly
+  RewriteCond %{REQUEST_URI} !^/public/
+  RewriteCond public%{REQUEST_URI} -f
+  RewriteRule ^(.*)$ public/$1 [L]
+
   # If the request is for an existing file or directory, serve it
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
