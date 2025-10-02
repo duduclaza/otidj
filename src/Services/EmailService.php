@@ -24,7 +24,7 @@ class EmailService
             $this->mailer->isSMTP();
             $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'smtp.hostinger.com';
             $this->mailer->SMTPAuth = true;
-            $this->mailer->Username = $_ENV['MAIL_USERNAME'] ?? 'djsgqoti@sgqoti.com.br';
+            $this->mailer->Username = $_ENV['MAIL_USERNAME'] ?? 'suporte@djbr.sgqoti.com.br';
             $this->mailer->Password = $_ENV['MAIL_PASSWORD'] ?? 'Pandora@1989';
             $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $this->mailer->Port = (int)($_ENV['MAIL_PORT'] ?? 465);
@@ -41,7 +41,7 @@ class EmailService
             
             // Default sender
             $this->mailer->setFrom(
-                $_ENV['MAIL_FROM_ADDRESS'] ?? 'djsgqoti@sgqoti.com.br',
+                $_ENV['MAIL_FROM_ADDRESS'] ?? 'suporte@djbr.sgqoti.com.br',
                 $_ENV['MAIL_FROM_NAME'] ?? 'SGQ OTI DJ'
             );
             
