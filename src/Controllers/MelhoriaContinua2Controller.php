@@ -872,6 +872,10 @@ class MelhoriaContinua2Controller
 
     public function enviarEmailDetalhes(): void
     {
+        // Assegurar que a resposta seja JSON puro
+        while (ob_get_level()) { ob_end_clean(); }
+        ini_set('display_errors', '0');
+        error_reporting(0);
         header('Content-Type: application/json');
         
         try {
@@ -879,26 +883,23 @@ class MelhoriaContinua2Controller
             
             if ($id <= 0) {
                 echo json_encode(['success' => false, 'message' => 'ID inválido']);
-                return;
+                exit;
             }
             
             $this->enviarEmailConclusao($id);
             
             echo json_encode(['success' => true, 'message' => '📧 Email enviado com sucesso aos responsáveis!']);
+            exit;
             
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             error_log('Erro ao enviar email: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao enviar email: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao enviar email']);
+            exit;
         }
     }
 
     private function enviarEmailConclusao(int $melhoriaId): void
     {
-        // Ativar exibição de erros para debug
-        ini_set('display_errors', 1);
-        ini_set('display_startup_errors', 1);
-        error_reporting(E_ALL);
-        
         try {
             error_log("=== INICIANDO ENVIO DE EMAIL DE CONCLUSÃO ===");
             error_log("Melhoria ID: " . $melhoriaId);
