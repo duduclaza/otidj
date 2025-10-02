@@ -15,14 +15,9 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
       <h1 class="text-3xl font-bold text-gray-900">🔬 Amostragens 2.0 <span class="beta-badge">BETA</span></h1>
       <p class="text-gray-600 mt-1">Controle de testes de amostragens de produtos</p>
     </div>
-    <div class="flex gap-3">
-      <button onclick="exportarExcel()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
-        📊 Exportar Excel
-      </button>
-      <button onclick="openAmostragemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
-        + Nova Amostragem
-      </button>
-    </div>
+    <button onclick="openAmostragemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
+      + Nova Amostragem
+    </button>
   </div>
 
   <!-- Formulário Inline (Hidden por padrão) -->
@@ -224,14 +219,11 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
         <a href="/amostragens-2" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-center transition-colors">
           Limpar
         </a>
+        <button type="button" onclick="exportarExcel()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+          📊 Exportar Excel
+        </button>
       </div>
     </form>
-
-    <div class="mt-4 flex justify-end">
-      <a href="/amostragens-2/export" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-        📊 Exportar Excel
-      </a>
-    </div>
   </div>
 
   <!-- Grid de Amostragens -->
