@@ -94,7 +94,7 @@ class TonersController
             // Get paginated retornados for grid
             $stmt = $this->db->prepare('
                 SELECT id, modelo, codigo_cliente, usuario, filial, destino, 
-                       data_registro, modelo_cadastrado, valor_calculado, observacao
+                       data_registro, modelo_cadastrado, valor_calculado, observacao, quantidade
                 FROM retornados 
                 ORDER BY created_at DESC
                 LIMIT :limit OFFSET :offset
@@ -326,14 +326,17 @@ class TonersController
                 );
             }
 
+            // Get quantidade from POST
+            $quantidade = max(1, (int)($_POST['quantidade'] ?? 1));
+
             // Insert into database
             $stmt = $this->db->prepare('
                 INSERT INTO retornados (modelo, modelo_cadastrado, usuario, filial, codigo_cliente, modo, 
                                       peso_retornado, percentual_chip, gramatura_existente, percentual_restante, 
-                                      destino, valor_calculado, observacao, data_registro) 
+                                      destino, valor_calculado, observacao, data_registro, quantidade) 
                 VALUES (:modelo, :modelo_cadastrado, :usuario, :filial, :codigo_cliente, :modo, 
                         :peso_retornado, :percentual_chip, :gramatura_existente, :percentual_restante, 
-                        :destino, :valor_calculado, :observacao, :data_registro)
+                        :destino, :valor_calculado, :observacao, :data_registro, :quantidade)
             ');
             
             $stmt->execute([
@@ -347,6 +350,7 @@ class TonersController
                 ':percentual_chip' => $percentual_chip ?: null,
                 ':gramatura_existente' => $gramatura_existente ?: null,
                 ':percentual_restante' => $percentual_restante ?: null,
+                ':quantidade' => $quantidade,
                 ':destino' => $destino,
                 ':valor_calculado' => $valor_calculado,
                 ':observacao' => $observacao,
