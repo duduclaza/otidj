@@ -315,6 +315,11 @@ class MelhoriaContinua2Controller
 
     public function updateStatus($id = null): void
     {
+        // Limpar qualquer output anterior
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
         // Desabilitar exibição de erros para não quebrar o JSON
         ini_set('display_errors', 0);
         error_reporting(0);
@@ -325,7 +330,7 @@ class MelhoriaContinua2Controller
         if ($_SESSION['user_role'] !== 'admin') {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Acesso negado']);
-            return;
+            exit;
         }
 
         try {
@@ -389,14 +394,17 @@ class MelhoriaContinua2Controller
             }
 
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
+            exit;
 
         } catch (\PDOException $e) {
             error_log('Erro PDO ao atualizar status: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao acessar banco de dados']);
+            exit;
         } catch (\Exception $e) {
             error_log('Erro ao atualizar status: ' . $e->getMessage());
             error_log('Stack trace: ' . $e->getTraceAsString());
             echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
+            exit;
         }
     }
 
