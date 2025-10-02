@@ -48,10 +48,11 @@ class EmailService
             $this->mailer->isHTML(true);
             $this->mailer->CharSet = 'UTF-8';
             
-            // Debug em desenvolvimento
-            if (($_ENV['APP_DEBUG'] ?? 'false') === 'true') {
-                $this->mailer->SMTPDebug = 1;
-            }
+            // Debug ativado para troubleshooting
+            $this->mailer->SMTPDebug = 2; // 0 = off, 1 = client, 2 = client and server
+            $this->mailer->Debugoutput = function($str, $level) {
+                error_log("PHPMailer Debug [$level]: $str");
+            };
             
         } catch (Exception $e) {
             error_log("Email configuration error: " . $e->getMessage());

@@ -863,7 +863,15 @@ class MelhoriaContinua2Controller
 
     private function enviarEmailConclusao(int $melhoriaId): void
     {
+        // Ativar exibição de erros para debug
+        ini_set('display_errors', 1);
+        ini_set('display_startup_errors', 1);
+        error_reporting(E_ALL);
+        
         try {
+            error_log("=== INICIANDO ENVIO DE EMAIL DE CONCLUSÃO ===");
+            error_log("Melhoria ID: " . $melhoriaId);
+            
             // Buscar dados completos da melhoria
             $stmt = $this->db->prepare('
                 SELECT 
@@ -877,39 +885,55 @@ class MelhoriaContinua2Controller
             $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$melhoria) {
-                error_log("Melhoria #{$melhoriaId}: Não encontrada");
+                error_log("❌ Melhoria #{$melhoriaId}: Não encontrada");
                 return;
             }
 
+            error_log("✅ Melhoria encontrada: " . $melhoria['titulo']);
+            error_log("Responsáveis (IDs): " . ($melhoria['responsaveis'] ?? 'VAZIO'));
+
             // Buscar emails dos responsáveis se houver
             if (!empty($melhoria['responsaveis'])) {
-                $responsaveisIds = explode(',', $melhoria['responsaveis']);
+                $responsaveisIds = array_map('trim', explode(',', $melhoria['responsaveis']));
+                error_log("IDs dos responsáveis: " . implode(', ', $responsaveisIds));
+                
                 $placeholders = implode(',', array_fill(0, count($responsaveisIds), '?'));
                 
                 $stmt = $this->db->prepare("
-                    SELECT email 
+                    SELECT id, name, email 
                     FROM users 
                     WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''
                 ");
                 $stmt->execute($responsaveisIds);
-                $emails = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                $responsaveis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                error_log("Responsáveis encontrados: " . count($responsaveis));
+                foreach ($responsaveis as $resp) {
+                    error_log("  - {$resp['name']} ({$resp['email']})");
+                }
+                
+                $emails = array_column($responsaveis, 'email');
 
                 if (empty($emails)) {
-                    error_log("Melhoria #{$melhoriaId}: Nenhum email válido encontrado para os responsáveis");
+                    error_log("❌ Melhoria #{$melhoriaId}: Nenhum email válido encontrado para os responsáveis");
                     return;
                 }
 
+                error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
+
                 // Enviar email
                 $emailService = new \App\Services\EmailService();
+                error_log("EmailService criado");
+                
                 $enviado = $emailService->sendMelhoriaConclusaoNotification($melhoria, $emails);
 
                 if ($enviado) {
-                    error_log("Email de conclusão enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
+                    error_log("✅ Email de conclusão enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
                 } else {
-                    error_log("Falha ao enviar email de conclusão para melhoria #{$melhoriaId}");
+                    error_log("❌ Falha ao enviar email de conclusão para melhoria #{$melhoriaId}");
                 }
             } else {
-                error_log("Melhoria #{$melhoriaId}: Sem responsáveis cadastrados");
+                error_log("⚠️ Melhoria #{$melhoriaId}: Sem responsáveis cadastrados");
             }
 
         } catch (\Exception $e) {
