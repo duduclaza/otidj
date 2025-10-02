@@ -103,6 +103,7 @@ class MelhoriaContinua2Controller
         try {
             $titulo = trim($_POST['titulo'] ?? '');
             $departamento_id = (int)($_POST['departamento_id'] ?? 0);
+            $descricao = trim($_POST['descricao'] ?? '');
             $o_que = trim($_POST['o_que'] ?? '');
             $como = trim($_POST['como'] ?? '');
             $onde = trim($_POST['onde'] ?? '');
@@ -135,11 +136,11 @@ class MelhoriaContinua2Controller
 
             $stmt = $this->db->prepare('
                 INSERT INTO melhoria_continua_2 (
-                    titulo, departamento_id, o_que, como, onde, porque, quando, 
+                    titulo, departamento_id, descricao, o_que, como, onde, porque, quando, 
                     quanto_custa, responsaveis, resultado_esperado, idealizador, 
                     status, observacao, anexos, criado_por, created_at
                 ) VALUES (
-                    :titulo, :departamento_id, :o_que, :como, :onde, :porque, :quando,
+                    :titulo, :departamento_id, :descricao, :o_que, :como, :onde, :porque, :quando,
                     :quanto_custa, :responsaveis, :resultado_esperado, :idealizador,
                     "Pendente análise", :observacao, :anexos, :criado_por, NOW()
                 )
@@ -148,6 +149,7 @@ class MelhoriaContinua2Controller
             $stmt->execute([
                 ':titulo' => $titulo,
                 ':departamento_id' => $departamento_id,
+                ':descricao' => $descricao,
                 ':o_que' => $o_que,
                 ':como' => $como,
                 ':onde' => $onde,
@@ -213,6 +215,7 @@ class MelhoriaContinua2Controller
             // Atualizar dados
             $titulo = trim($_POST['titulo'] ?? '');
             $departamento_id = (int)($_POST['departamento_id'] ?? 0);
+            $descricao = trim($_POST['descricao'] ?? '');
             $o_que = trim($_POST['o_que'] ?? '');
             $como = trim($_POST['como'] ?? '');
             $onde = trim($_POST['onde'] ?? '');
@@ -272,8 +275,8 @@ class MelhoriaContinua2Controller
 
             $stmt = $this->db->prepare('
                 UPDATE melhoria_continua_2 SET
-                    titulo = :titulo, departamento_id = :departamento_id, o_que = :o_que,
-                    como = :como, onde = :onde, porque = :porque, quando = :quando,
+                    titulo = :titulo, departamento_id = :departamento_id, descricao = :descricao,
+                    o_que = :o_que, como = :como, onde = :onde, porque = :porque, quando = :quando,
                     quanto_custa = :quanto_custa, responsaveis = :responsaveis,
                     resultado_esperado = :resultado_esperado, idealizador = :idealizador,
                     observacao = :observacao, anexos = :anexos, status = "Pendente análise",
@@ -285,6 +288,7 @@ class MelhoriaContinua2Controller
                 ':id' => $id,
                 ':titulo' => $titulo,
                 ':departamento_id' => $departamento_id,
+                ':descricao' => $descricao,
                 ':o_que' => $o_que,
                 ':como' => $como,
                 ':onde' => $onde,
