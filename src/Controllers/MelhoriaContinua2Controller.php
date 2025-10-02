@@ -315,14 +315,17 @@ class MelhoriaContinua2Controller
 
     public function updateStatus($id = null): void
     {
-        // Limpar qualquer output anterior
-        if (ob_get_level()) {
-            ob_clean();
-        }
-        
         // Desabilitar exibição de erros para não quebrar o JSON
         ini_set('display_errors', 0);
         error_reporting(0);
+        
+        // Limpar TODO o buffer de saída
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Iniciar novo buffer limpo
+        ob_start();
         
         header('Content-Type: application/json');
         
