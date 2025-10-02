@@ -202,24 +202,24 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
         </select>
       </div>
 
-      <div>
+      <div class="max-w-[180px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
         <input type="date" name="data_inicio" value="<?= $_GET['data_inicio'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2">
       </div>
 
-      <div>
+      <div class="max-w-[180px]">
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
         <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2">
       </div>
 
-      <div class="flex items-end space-x-2">
-        <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors">
+      <div class="flex items-end space-x-2 min-w-[400px]">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors whitespace-nowrap">
           Filtrar
         </button>
-        <a href="/amostragens-2" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-center transition-colors">
+        <a href="/amostragens-2" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg text-center transition-colors whitespace-nowrap">
           Limpar
         </a>
-        <button type="button" onclick="exportarExcel()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+        <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors whitespace-nowrap">
           📊 Exportar Excel
         </button>
       </div>
