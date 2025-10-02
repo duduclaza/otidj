@@ -362,7 +362,12 @@ class MelhoriaContinua2Controller
 
             // Se status mudou para Concluída, enviar email para responsáveis
             if ($status === 'Concluída') {
-                $this->enviarEmailConclusao($id);
+                try {
+                    $this->enviarEmailConclusao($id);
+                } catch (\Exception $e) {
+                    // Log do erro mas não falha a operação
+                    error_log("Erro ao enviar email (não crítico): " . $e->getMessage());
+                }
             }
 
             // Buscar dados da melhoria para notificações
