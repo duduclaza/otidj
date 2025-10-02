@@ -863,42 +863,53 @@ class MelhoriaContinua2Controller
             $stmt = $this->db->prepare('
                 SELECT 
                     m.*,
-                    d.nome as departamento_nome,
-                    GROUP_CONCAT(u.email SEPARATOR ",") as responsaveis_emails
+                    d.nome as departamento_nome
                 FROM melhoria_continua_2 m
                 LEFT JOIN departamentos d ON m.departamento_id = d.id
-                LEFT JOIN users u ON FIND_IN_SET(u.id, m.responsaveis)
                 WHERE m.id = :id
-                GROUP BY m.id
             ');
             $stmt->execute([':id' => $melhoriaId]);
             $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$melhoria || empty($melhoria['responsaveis_emails'])) {
-                error_log("Melhoria #{$melhoriaId}: Sem responsáveis com email");
+            if (!$melhoria) {
+                error_log("Melhoria #{$melhoriaId}: Não encontrada");
                 return;
             }
 
-            // Separar emails
-            $emails = array_filter(array_map('trim', explode(',', $melhoria['responsaveis_emails'])));
+            // Buscar emails dos responsáveis se houver
+            if (!empty($melhoria['responsaveis'])) {
+                $responsaveisIds = explode(',', $melhoria['responsaveis']);
+                $placeholders = implode(',', array_fill(0, count($responsaveisIds), '?'));
+                
+                $stmt = $this->db->prepare("
+                    SELECT email 
+                    FROM users 
+                    WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''
+                ");
+                $stmt->execute($responsaveisIds);
+                $emails = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-            if (empty($emails)) {
-                error_log("Melhoria #{$melhoriaId}: Nenhum email válido encontrado");
-                return;
-            }
+                if (empty($emails)) {
+                    error_log("Melhoria #{$melhoriaId}: Nenhum email válido encontrado para os responsáveis");
+                    return;
+                }
 
-            // Enviar email
-            $emailService = new \App\Services\EmailService();
-            $enviado = $emailService->sendMelhoriaConclusaoNotification($melhoria, $emails);
+                // Enviar email
+                $emailService = new \App\Services\EmailService();
+                $enviado = $emailService->sendMelhoriaConclusaoNotification($melhoria, $emails);
 
-            if ($enviado) {
-                error_log("Email de conclusão enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
+                if ($enviado) {
+                    error_log("Email de conclusão enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
+                } else {
+                    error_log("Falha ao enviar email de conclusão para melhoria #{$melhoriaId}");
+                }
             } else {
-                error_log("Falha ao enviar email de conclusão para melhoria #{$melhoriaId}");
+                error_log("Melhoria #{$melhoriaId}: Sem responsáveis cadastrados");
             }
 
         } catch (\Exception $e) {
             error_log("Erro ao enviar email de conclusão: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
         }
     }
 }
