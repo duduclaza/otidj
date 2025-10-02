@@ -613,10 +613,18 @@ class Amostragens2Controller
 
     public function details($id = null): void
     {
+        // Limpar qualquer output anterior
+        while (ob_get_level()) { ob_end_clean(); }
+        
         header('Content-Type: application/json');
         
         try {
             $id = (int)$id;
+            
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                return;
+            }
             
             error_log("Buscando detalhes da amostragem ID: $id");
             
@@ -630,7 +638,7 @@ class Amostragens2Controller
                 return;
             }
             
-            error_log("Amostragem encontrada: " . json_encode($amostragem));
+            error_log("Amostragem encontrada com sucesso");
             
             echo json_encode([
                 'success' => true,
@@ -639,6 +647,7 @@ class Amostragens2Controller
             
         } catch (\Exception $e) {
             error_log("Erro ao buscar detalhes: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes: ' . $e->getMessage()]);
         }
     }
