@@ -376,19 +376,17 @@ class MelhoriaContinua2Controller
             
             $stmt->execute($params);
 
-            // Se status mudou para Concluída, enviar email para responsáveis
-            if ($status === 'Concluída') {
-                try {
-                    $emailEnviado = $this->enviarEmailConclusao($id);
-                    if ($emailEnviado) {
-                        error_log("✅ Email de conclusão enviado automaticamente para melhoria #{$id}");
-                    } else {
-                        error_log("⚠️ Falha ao enviar email automático para melhoria #{$id} (não crítico)");
-                    }
-                } catch (\Exception $e) {
-                    // Log do erro mas não falha a operação
-                    error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
+            // Enviar email automático para responsáveis sempre que o status mudar
+            try {
+                $emailEnviado = $this->enviarEmailMudancaStatus($id, $status);
+                if ($emailEnviado) {
+                    error_log("✅ Email de mudança de status enviado automaticamente para melhoria #{$id} - Status: {$status}");
+                } else {
+                    error_log("⚠️ Falha ao enviar email automático para melhoria #{$id} (não crítico)");
                 }
+            } catch (\Exception $e) {
+                // Log do erro mas não falha a operação
+                error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
             }
 
             // Buscar dados da melhoria para notificações
@@ -917,6 +915,81 @@ class MelhoriaContinua2Controller
             error_log('Erro ao enviar email: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao enviar email']);
             exit;
+        }
+    }
+
+    private function enviarEmailMudancaStatus(int $melhoriaId, string $novoStatus): bool
+    {
+        try {
+            error_log("=== ENVIANDO EMAIL DE MUDANÇA DE STATUS ===");
+            error_log("Melhoria ID: {$melhoriaId}, Novo Status: {$novoStatus}");
+            
+            // Buscar dados completos da melhoria
+            $stmt = $this->db->prepare('
+                SELECT 
+                    m.*,
+                    d.nome as departamento_nome
+                FROM melhoria_continua_2 m
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                WHERE m.id = :id
+            ');
+            $stmt->execute([':id' => $melhoriaId]);
+            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$melhoria) {
+                error_log("❌ Melhoria #{$melhoriaId}: Não encontrada");
+                return false;
+            }
+
+            error_log("✅ Melhoria encontrada: " . $melhoria['titulo']);
+            error_log("Responsáveis (IDs): " . ($melhoria['responsaveis'] ?? 'VAZIO'));
+
+            // Buscar emails dos responsáveis se houver
+            if (!empty($melhoria['responsaveis'])) {
+                $responsaveisIds = array_map('trim', explode(',', $melhoria['responsaveis']));
+                error_log("IDs dos responsáveis: " . implode(', ', $responsaveisIds));
+                
+                $placeholders = str_repeat('?,', count($responsaveisIds) - 1) . '?';
+                $stmt = $this->db->prepare("SELECT name, email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");
+                $stmt->execute($responsaveisIds);
+                $responsaveis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                error_log("Responsáveis encontrados: " . count($responsaveis));
+                foreach ($responsaveis as $resp) {
+                    error_log("  - {$resp['name']} ({$resp['email']})");
+                }
+                
+                $emails = array_column($responsaveis, 'email');
+
+                if (empty($emails)) {
+                    error_log("❌ Melhoria #{$melhoriaId}: Nenhum email válido encontrado para os responsáveis");
+                    return false;
+                }
+
+                error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
+
+                // Enviar email com template específico do status
+                $emailService = new \App\Services\EmailService();
+                error_log("EmailService criado");
+                
+                $enviado = $emailService->sendMelhoriaStatusNotification($melhoria, $emails, $novoStatus);
+
+                if ($enviado) {
+                    error_log("✅ Email de mudança de status enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
+                    return true;
+                } else {
+                    error_log("❌ Falha ao enviar email de mudança de status para melhoria #{$melhoriaId}");
+                    return false;
+                }
+            } else {
+                error_log("⚠️ Melhoria #{$melhoriaId}: Sem responsáveis cadastrados");
+                return false;
+            }
+
+        } catch (\Exception $e) {
+            error_log("Erro ao enviar email de mudança de status: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return false;
         }
     }
 
