@@ -7,6 +7,13 @@
   RewriteEngine On
   RewriteBase /
 
+  # Redirect /public/ URLs to root (remove /public/ from URL)
+  RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+public/([^\s]*) [NC]
+  RewriteRule ^ /%1? [R=301,L]
+
+  # Prevent direct access to /public/ directory
+  RewriteRule ^public/ - [F,L]
+
   # If the request is for an existing file or directory, serve it
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
