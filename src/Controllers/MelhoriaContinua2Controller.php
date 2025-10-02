@@ -886,9 +886,12 @@ class MelhoriaContinua2Controller
                 exit;
             }
             
-            $this->enviarEmailConclusao($id);
-            
-            echo json_encode(['success' => true, 'message' => '📧 Email enviado com sucesso aos responsáveis!']);
+            $ok = $this->enviarEmailConclusao($id);
+            if ($ok) {
+                echo json_encode(['success' => true, 'message' => '📧 Email enviado com sucesso aos responsáveis!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Erro ao enviar email']);
+            }
             exit;
             
         } catch (\Throwable $e) {
@@ -898,7 +901,7 @@ class MelhoriaContinua2Controller
         }
     }
 
-    private function enviarEmailConclusao(int $melhoriaId): void
+    private function enviarEmailConclusao(int $melhoriaId): bool
     {
         try {
             error_log("=== INICIANDO ENVIO DE EMAIL DE CONCLUSÃO ===");
@@ -948,7 +951,7 @@ class MelhoriaContinua2Controller
 
                 if (empty($emails)) {
                     error_log("❌ Melhoria #{$melhoriaId}: Nenhum email válido encontrado para os responsáveis");
-                    return;
+                    return false;
                 }
 
                 error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
@@ -961,16 +964,20 @@ class MelhoriaContinua2Controller
 
                 if ($enviado) {
                     error_log("✅ Email de conclusão enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
+                    return true;
                 } else {
                     error_log("❌ Falha ao enviar email de conclusão para melhoria #{$melhoriaId}");
+                    return false;
                 }
             } else {
                 error_log("⚠️ Melhoria #{$melhoriaId}: Sem responsáveis cadastrados");
+                return false;
             }
 
         } catch (\Exception $e) {
             error_log("Erro ao enviar email de conclusão: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
+            return false;
         }
     }
 }

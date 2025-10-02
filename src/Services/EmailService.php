@@ -9,6 +9,7 @@ use PHPMailer\PHPMailer\Exception;
 class EmailService
 {
     private PHPMailer $mailer;
+    private ?string $lastError = null;
     
     public function __construct()
     {
@@ -72,6 +73,7 @@ class EmailService
     public function send($to, string $subject, string $body, ?string $altBody = null, array $attachments = []): bool
     {
         try {
+            $this->lastError = null;
             error_log("=== TENTANDO ENVIAR EMAIL ===");
             error_log("Para: " . (is_array($to) ? implode(', ', $to) : $to));
             error_log("Assunto: " . $subject);
@@ -118,16 +120,23 @@ class EmailService
             if ($result) {
                 error_log("✅ Email enviado com sucesso!");
             } else {
-                error_log("❌ Falha ao enviar email");
+                $this->lastError = $this->mailer->ErrorInfo ?: 'Falha desconhecida ao enviar email';
+                error_log("❌ Falha ao enviar email: " . $this->lastError);
             }
             
             return $result;
             
         } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
             error_log("❌ ERRO ao enviar email: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
             return false;
         }
+    }
+
+    public function getLastError(): ?string
+    {
+        return $this->lastError;
     }
     
     /**
@@ -423,15 +432,18 @@ class EmailService
             return false;
         }
 
-        $subject = "Melhoria Concluída - {$melhoria['titulo']}";
+        $subject = "NOVA NOTIFICAÇÃO DO SGQ - MELHORIA CONTINUA 2.0";
         $body = $this->buildMelhoriaConclusaoEmailTemplate($melhoria);
         
-        $altBody = "Melhoria Concluída\n\n";
+        $altBody = "MELHORIA CONTÍNUA 2.0 - Detalhes do Registro\n\n";
         $altBody .= "Título: {$melhoria['titulo']}\n";
         $altBody .= "Departamento: {$melhoria['departamento_nome']}\n";
         $altBody .= "Idealizador: {$melhoria['idealizador']}\n";
-        $altBody .= "Data de Conclusão: " . date('d/m/Y') . "\n\n";
-        $altBody .= "Parabéns! A melhoria foi concluída com sucesso!";
+        if (!empty($melhoria['descricao'])) { $altBody .= "Descrição: " . strip_tags($melhoria['descricao']) . "\n"; }
+        if (!empty($melhoria['resultado_esperado'])) { $altBody .= "Resultado Esperado: " . strip_tags($melhoria['resultado_esperado']) . "\n"; }
+        if (!empty($melhoria['pontuacao'])) { $altBody .= "Pontuação: {$melhoria['pontuacao']}/10\n"; }
+        $altBody .= "Data: " . date('d/m/Y H:i') . "\n\n";
+        $altBody .= "Acesse o SGQ para ver os detalhes completos.";
         
         return $this->send($responsaveisEmails, $subject, $body, $altBody);
     }
@@ -446,7 +458,7 @@ class EmailService
         <head>
             <meta charset='UTF-8'>
             <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Melhoria Concluída</title>
+            <title>NOVA NOTIFICAÇÃO DO SGQ - MELHORIA CONTINUA 2.0</title>
         </head>
         <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
             <div style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
@@ -455,10 +467,8 @@ class EmailService
             </div>
             
             <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
-                <div style='text-align: center; margin-bottom: 30px;'>
-                    <div style='background: #10B981; color: white; padding: 10px 20px; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 16px;'>
-                        ✅ STATUS: CONCLUÍDA
-                    </div>
+                <div style='text-align: center; margin-bottom: 30px; font-weight: bold; font-size: 18px; color: #047857;'>
+                    NOVA NOTIFICAÇÃO DO SGQ - MELHORIA CONTINUA 2.0
                 </div>
                 
                 <h2 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>Detalhes da Melhoria</h2>
@@ -467,6 +477,10 @@ class EmailService
                     <tr>
                         <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold; width: 30%;'>Título:</td>
                         <td style='padding: 12px; border: 1px solid #e9ecef;'>{$melhoria['titulo']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Descrição:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>" . (!empty($melhoria['descricao']) ? nl2br(htmlspecialchars($melhoria['descricao'])) : '<em>Não informado</em>') . "</td>
                     </tr>
                     <tr>
                         <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Departamento:</td>
