@@ -139,29 +139,7 @@ class EmailService
         return $this->lastError;
     }
     
-    /**
-     * Send notification email for amostragem status
-     */
-    public function sendAmostragemNotification(array $amostragem, string $recipientEmail): bool
-    {
-        $status = $amostragem['status'] === 'aprovado' ? 'APROVADA' : 'REPROVADA';
-        $statusColor = $amostragem['status'] === 'aprovado' ? '#10B981' : '#EF4444';
-        
-        $subject = "Amostragem {$status} - NF {$amostragem['numero_nf']}";
-        
-        $body = $this->buildAmostragemEmailTemplate($amostragem, $status, $statusColor);
-        
-        $altBody = "Amostragem {$status}\n\n";
-        $altBody .= "Número da NF: {$amostragem['numero_nf']}\n";
-        $altBody .= "Status: {$status}\n";
-        $altBody .= "Data: " . date('d/m/Y H:i', strtotime($amostragem['data_registro'])) . "\n";
-        
-        if (!empty($amostragem['observacao'])) {
-            $altBody .= "Observação: {$amostragem['observacao']}\n";
-        }
-        
-        return $this->send($recipientEmail, $subject, $body, $altBody);
-    }
+    // Método sendAmostragemNotification antigo removido - usando nova versão mais abaixo
     
     /**
      * Send retornado notification email
@@ -181,74 +159,7 @@ class EmailService
         return $this->send($recipientEmail, $subject, $body, $altBody);
     }
     
-    private function buildAmostragemEmailTemplate(array $amostragem, string $status, string $statusColor): string
-    {
-        return "
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Notificação de Amostragem</title>
-        </head>
-        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
-            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
-                <h1 style='color: white; margin: 0; font-size: 28px;'>SGQ OTI DJ</h1>
-                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>Sistema de Gestão da Qualidade</p>
-            </div>
-            
-            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
-                <div style='text-align: center; margin-bottom: 30px;'>
-                    <div style='background: {$statusColor}; color: white; padding: 10px 20px; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 16px;'>
-                        AMOSTRAGEM {$status}
-                    </div>
-                </div>
-                
-                <h2 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>Detalhes da Amostragem</h2>
-                
-                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
-                    <tr>
-                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold; width: 30%;'>Número da NF:</td>
-                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['numero_nf']}</td>
-                    </tr>
-                    <tr>
-                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Status:</td>
-                        <td style='padding: 12px; border: 1px solid #e9ecef; color: {$statusColor}; font-weight: bold;'>{$status}</td>
-                    </tr>
-                    <tr>
-                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Data de Registro:</td>
-                        <td style='padding: 12px; border: 1px solid #e9ecef;'>" . date('d/m/Y H:i', strtotime($amostragem['data_registro'])) . "</td>
-                    </tr>";
-        
-        if (!empty($amostragem['observacao'])) {
-            $body .= "
-                    <tr>
-                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Observação:</td>
-                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$amostragem['observacao']}</td>
-                    </tr>";
-        }
-        
-        $body .= "
-                </table>
-                
-                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
-                    <p style='margin: 0; color: #666; font-size: 14px;'>
-                        <strong>Nota:</strong> Esta é uma notificação automática do sistema SGQ OTI DJ. 
-                        Para mais detalhes, acesse o sistema através do link: 
-                        <a href='" . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/toners/amostragens' style='color: #667eea;'>Sistema SGQ</a>
-                    </p>
-                </div>
-            </div>
-            
-            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
-                <p style='margin: 0; color: #666; font-size: 12px;'>
-                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
-                    Este email foi enviado automaticamente, não responda.
-                </p>
-            </div>
-        </body>
-        </html>";
-    }
+    // Template antigo buildAmostragemEmailTemplate removido - usando novos templates mais abaixo
     
     private function buildRetornadoEmailTemplate(array $retornado): string
     {
