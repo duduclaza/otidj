@@ -250,6 +250,8 @@ class Amostragens2Controller
                 $this->processarEvidencias($amostragemId, $_FILES['evidencias']);
             }
 
+            // Email automático desabilitado - mantendo apenas notificações visuais
+            /*
             // Enviar email automático para responsáveis ao criar nova amostragem
             try {
                 error_log("🔧 DEBUG: Tentando enviar email para amostragem #{$amostragemId}");
@@ -268,6 +270,7 @@ class Amostragens2Controller
                 error_log("⚠️ Erro fatal ao enviar email automático (não crítico): " . $e->getMessage());
                 error_log("⚠️ Stack trace: " . $e->getTraceAsString());
             }
+            */
 
             echo json_encode([
                 'success' => true,
@@ -701,6 +704,8 @@ class Amostragens2Controller
                 ':status_final' => $statusFinal
             ]);
 
+            // Email automático desabilitado - mantendo apenas notificações visuais
+            /*
             // Enviar email automático para responsáveis sempre que atualizar
             try {
                 $emailEnviado = $this->enviarEmailMudancaStatusAmostragem($id, $statusFinal);
@@ -713,6 +718,7 @@ class Amostragens2Controller
                 // Log do erro mas não falha a operação
                 error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
             }
+            */
 
             echo json_encode([
                 'success' => true,

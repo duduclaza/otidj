@@ -322,11 +322,6 @@ $toners = $toners ?? [];
                       class="text-blue-600 hover:text-blue-800">
                 ✏️ Editar
               </button>
-              <button onclick="enviarEmailAmostragem(<?= $amostra['id'] ?>)" 
-                      class="text-green-600 hover:text-green-800" 
-                      title="Enviar email aos responsáveis">
-                📧 Email
-              </button>
               <button onclick="excluirAmostragem(<?= $amostra['id'] ?>)" 
                       class="text-red-600 hover:text-red-800">
                 🗑️ Excluir
@@ -519,33 +514,7 @@ async function baixarEvidencias(amostragemId) {
   }
 }
 
-// Enviar email da amostragem
-async function enviarEmailAmostragem(amostragemId) {
-  if (!confirm('📧 Deseja enviar email de notificação aos responsáveis desta amostragem?')) {
-    return;
-  }
-  
-  try {
-    const response = await fetch('/amostragens-2/enviar-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `id=${amostragemId}`
-    });
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      alert('✅ ' + data.message);
-    } else {
-      alert('❌ ' + data.message);
-    }
-  } catch (error) {
-    console.error('Erro ao enviar email:', error);
-    alert('❌ Erro ao enviar email: ' + error.message);
-  }
-}
+// Função de email removida - mantendo apenas notificações visuais
 
 // Editar amostragem
 async function editarAmostragem(id) {
