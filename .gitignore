@@ -1,7 +1,5 @@
-/vendor/
 /.idea/
 /.vscode/
 /node_modules/
 /public/storage/
 .DS_Store
-composer.lock
