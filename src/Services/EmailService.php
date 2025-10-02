@@ -71,6 +71,13 @@ class EmailService
     public function send($to, string $subject, string $body, ?string $altBody = null, array $attachments = []): bool
     {
         try {
+            error_log("=== TENTANDO ENVIAR EMAIL ===");
+            error_log("Para: " . (is_array($to) ? implode(', ', $to) : $to));
+            error_log("Assunto: " . $subject);
+            error_log("SMTP Host: " . $this->mailer->Host);
+            error_log("SMTP Port: " . $this->mailer->Port);
+            error_log("SMTP User: " . $this->mailer->Username);
+            
             // Clear previous recipients
             $this->mailer->clearAddresses();
             $this->mailer->clearAttachments();
@@ -78,10 +85,16 @@ class EmailService
             // Add recipients
             if (is_array($to)) {
                 foreach ($to as $email) {
-                    $this->mailer->addAddress($email);
+                    if (!empty($email)) {
+                        $this->mailer->addAddress($email);
+                        error_log("Adicionado destinatário: " . $email);
+                    }
                 }
             } else {
-                $this->mailer->addAddress($to);
+                if (!empty($to)) {
+                    $this->mailer->addAddress($to);
+                    error_log("Adicionado destinatário: " . $to);
+                }
             }
             
             // Set content
@@ -99,10 +112,19 @@ class EmailService
                 }
             }
             
-            return $this->mailer->send();
+            $result = $this->mailer->send();
+            
+            if ($result) {
+                error_log("✅ Email enviado com sucesso!");
+            } else {
+                error_log("❌ Falha ao enviar email");
+            }
+            
+            return $result;
             
         } catch (Exception $e) {
-            error_log("Email sending error: " . $e->getMessage());
+            error_log("❌ ERRO ao enviar email: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return false;
         }
     }
