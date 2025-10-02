@@ -1000,8 +1000,8 @@ class AdminController
         }
         
         try {
-            // Total retornados
-            $stmt = $this->db->query("SELECT COUNT(*) FROM retornados");
+            // Total retornados (soma das quantidades)
+            $stmt = $this->db->query("SELECT COALESCE(SUM(quantidade), 0) FROM retornados");
             $stats['total_retornados'] = $stmt->fetchColumn();
         } catch (\Exception $e) {
             $stats['total_retornados'] = 0;

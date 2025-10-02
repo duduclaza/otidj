@@ -1126,7 +1126,7 @@ class TonersController
                 LEFT JOIN (
                     SELECT 
                         modelo,
-                        COUNT(*) as total_retornados,
+                        SUM(quantidade) as total_retornados,
                         SUM(valor_calculado) as valor_total_recuperado
                     FROM retornados 
                     WHERE modelo_cadastrado = 1
