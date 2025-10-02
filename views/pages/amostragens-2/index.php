@@ -15,9 +15,14 @@ $isAdmin = $_SESSION['user_role'] === 'admin';
       <h1 class="text-3xl font-bold text-gray-900">🔬 Amostragens 2.0 <span class="beta-badge">BETA</span></h1>
       <p class="text-gray-600 mt-1">Controle de testes de amostragens de produtos</p>
     </div>
-    <button onclick="openAmostragemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
-      + Nova Amostragem
-    </button>
+    <div class="flex gap-3">
+      <button onclick="exportarExcel()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
+        📊 Exportar Excel
+      </button>
+      <button onclick="openAmostragemModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg">
+        + Nova Amostragem
+      </button>
+    </div>
   </div>
 
   <!-- Formulário Inline (Hidden por padrão) -->
@@ -614,5 +619,36 @@ async function excluirAmostragem(id) {
   } catch (error) {
     alert('Erro ao excluir amostragem');
   }
+}
+
+// Exportar para Excel
+function exportarExcel() {
+  // Coletar filtros ativos
+  const params = new URLSearchParams();
+  
+  const codigoProduto = document.getElementById('filtroCodigo')?.value;
+  if (codigoProduto) params.append('codigo_produto', codigoProduto);
+  
+  const userId = document.getElementById('filtroUsuario')?.value;
+  if (userId) params.append('user_id', userId);
+  
+  const filialId = document.getElementById('filtroFilial')?.value;
+  if (filialId) params.append('filial_id', filialId);
+  
+  const fornecedorId = document.getElementById('filtroFornecedor')?.value;
+  if (fornecedorId) params.append('fornecedor_id', fornecedorId);
+  
+  const statusFinal = document.getElementById('filtroStatus')?.value;
+  if (statusFinal) params.append('status_final', statusFinal);
+  
+  const dataInicio = document.getElementById('filtroDataInicio')?.value;
+  if (dataInicio) params.append('data_inicio', dataInicio);
+  
+  const dataFim = document.getElementById('filtroDataFim')?.value;
+  if (dataFim) params.append('data_fim', dataFim);
+  
+  // Redirecionar para exportação
+  const url = `/amostragens-2/export?${params.toString()}`;
+  window.location.href = url;
 }
 </script>

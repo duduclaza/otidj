@@ -534,8 +534,129 @@ class Amostragens2Controller
 
     public function exportExcel(): void
     {
-        // TODO: Implementar exportação para Excel
-        echo "Exportação em desenvolvimento";
+        try {
+            // Buscar filtros
+            $filters = [];
+            $params = [];
+            
+            if (!empty($_GET['codigo_produto'])) {
+                $filters[] = "codigo_produto LIKE :codigo_produto";
+                $params[':codigo_produto'] = '%' . $_GET['codigo_produto'] . '%';
+            }
+            
+            if (!empty($_GET['user_id'])) {
+                $filters[] = "user_id = :user_id";
+                $params[':user_id'] = $_GET['user_id'];
+            }
+            
+            if (!empty($_GET['filial_id'])) {
+                $filters[] = "filial_id = :filial_id";
+                $params[':filial_id'] = $_GET['filial_id'];
+            }
+            
+            if (!empty($_GET['fornecedor_id'])) {
+                $filters[] = "fornecedor_id = :fornecedor_id";
+                $params[':fornecedor_id'] = $_GET['fornecedor_id'];
+            }
+            
+            if (!empty($_GET['status_final'])) {
+                $filters[] = "status_final = :status_final";
+                $params[':status_final'] = $_GET['status_final'];
+            }
+            
+            if (!empty($_GET['data_inicio'])) {
+                $filters[] = "DATE(created_at) >= :data_inicio";
+                $params[':data_inicio'] = $_GET['data_inicio'];
+            }
+            
+            if (!empty($_GET['data_fim'])) {
+                $filters[] = "DATE(created_at) <= :data_fim";
+                $params[':data_fim'] = $_GET['data_fim'];
+            }
+            
+            $whereClause = !empty($filters) ? 'WHERE ' . implode(' AND ', $filters) : '';
+            
+            // Buscar dados
+            $stmt = $this->db->prepare("
+                SELECT 
+                    a.*,
+                    u.name as usuario_nome,
+                    f.nome as filial_nome,
+                    forn.nome as fornecedor_nome
+                FROM amostragens_2 a
+                LEFT JOIN users u ON a.user_id = u.id
+                LEFT JOIN filiais f ON a.filial_id = f.id
+                LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
+                $whereClause
+                ORDER BY a.created_at DESC
+            ");
+            $stmt->execute($params);
+            $amostragens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if (empty($amostragens)) {
+                echo json_encode(['success' => false, 'message' => 'Nenhum registro encontrado']);
+                return;
+            }
+            
+            // Gerar arquivo Excel (CSV com formatação)
+            $filename = 'amostragens_2_' . date('Y-m-d_H-i-s') . '.csv';
+            
+            header('Content-Type: text/csv; charset=UTF-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            
+            $output = fopen('php://output', 'w');
+            
+            // BOM para UTF-8
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Cabeçalhos
+            fputcsv($output, [
+                'Data',
+                'Número NF',
+                'Usuário',
+                'Filial',
+                'Tipo Produto',
+                'Código Produto',
+                'Nome Produto',
+                'Qtd Recebida',
+                'Qtd Testada',
+                'Qtd Aprovada',
+                'Qtd Reprovada',
+                'Fornecedor',
+                'Responsáveis',
+                'Status Final',
+                'Observações'
+            ], ';');
+            
+            // Dados
+            foreach ($amostragens as $amostra) {
+                fputcsv($output, [
+                    date('d/m/Y H:i', strtotime($amostra['created_at'])),
+                    $amostra['numero_nf'],
+                    $amostra['usuario_nome'],
+                    $amostra['filial_nome'],
+                    $amostra['tipo_produto'],
+                    $amostra['codigo_produto'],
+                    $amostra['nome_produto'],
+                    $amostra['quantidade_recebida'],
+                    $amostra['quantidade_testada'],
+                    $amostra['quantidade_aprovada'],
+                    $amostra['quantidade_reprovada'],
+                    $amostra['fornecedor_nome'],
+                    $amostra['responsaveis'],
+                    $amostra['status_final'],
+                    $amostra['observacoes'] ?? ''
+                ], ';');
+            }
+            
+            fclose($output);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao exportar: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao exportar: ' . $e->getMessage()]);
+        }
     }
 
     public function graficos(): void
