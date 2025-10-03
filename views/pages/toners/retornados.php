@@ -33,11 +33,11 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label for="nomeUsuario" class="block text-sm font-medium text-gray-700 mb-2">Nome do Usuário</label>
-          <input type="text" id="nomeUsuario" name="usuario" value="Administrador" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed">
+          <input type="text" id="nomeUsuario" name="usuario" value="<?= $_SESSION['user_name'] ?? 'Usuário' ?>" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed">
         </div>
         <div>
           <label for="filialUsuario" class="block text-sm font-medium text-gray-700 mb-2">Filial</label>
-          <input type="text" id="filialUsuario" name="filial" value="Jundiaí" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed">
+          <input type="text" id="filialUsuario" name="filial" value="<?= $_SESSION['user_filial'] ?? 'Jundiaí' ?>" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-600 cursor-not-allowed">
         </div>
       </div>
 
@@ -505,8 +505,8 @@ function resetForm() {
   document.getElementById('retornadoForm').reset();
   
   // Restaurar valores padrão dos campos de usuário e filial
-  document.getElementById('nomeUsuario').value = 'Administrador';
-  document.getElementById('filialUsuario').value = 'Jundiaí';
+  document.getElementById('nomeUsuario').value = '<?= $_SESSION['user_name'] ?? 'Usuário' ?>';
+  document.getElementById('filialUsuario').value = '<?= $_SESSION['user_filial'] ?? 'Jundiaí' ?>';
   
   document.getElementById('dadosModelo').classList.add('hidden');
   document.getElementById('camposPeso').classList.add('hidden');

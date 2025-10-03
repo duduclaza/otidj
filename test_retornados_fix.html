@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Correção Módulo Retornados</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">🔧 Teste - Correção Módulo Retornados</h1>
+        
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <h2 class="text-lg font-semibold text-green-800 mb-2">✅ Problema Identificado e Corrigido</h2>
+            <p class="text-green-700">
+                <strong>Problema:</strong> Sistema registrava "ADMINISTRADOR" ao invés do nome real do usuário (especialmente Vinicius e Caique)
+            </p>
+        </div>
+
+        <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900">🔍 Causa Raiz Identificada:</h3>
+            
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 class="font-medium text-red-800 mb-2">1. Campo Hardcoded no HTML (Linha 36)</h4>
+                <div class="bg-red-100 p-3 rounded font-mono text-sm">
+                    <span class="text-red-600">ANTES:</span><br>
+                    &lt;input value="Administrador" readonly&gt;
+                </div>
+                <div class="bg-green-100 p-3 rounded font-mono text-sm mt-2">
+                    <span class="text-green-600">DEPOIS:</span><br>
+                    &lt;input value="&lt;?= $_SESSION['user_name'] ?? 'Usuário' ?&gt;" readonly&gt;
+                </div>
+            </div>
+
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 class="font-medium text-red-800 mb-2">2. JavaScript resetForm() (Linha 508)</h4>
+                <div class="bg-red-100 p-3 rounded font-mono text-sm">
+                    <span class="text-red-600">ANTES:</span><br>
+                    document.getElementById('nomeUsuario').value = 'Administrador';
+                </div>
+                <div class="bg-green-100 p-3 rounded font-mono text-sm mt-2">
+                    <span class="text-green-600">DEPOIS:</span><br>
+                    document.getElementById('nomeUsuario').value = '&lt;?= $_SESSION['user_name'] ?? 'Usuário' ?&gt;';
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 class="font-medium text-blue-800 mb-2">3. Campo Filial Também Corrigido</h4>
+                <div class="bg-blue-100 p-3 rounded font-mono text-sm">
+                    <span class="text-blue-600">CORREÇÃO:</span><br>
+                    Campo filial agora usa $_SESSION['user_filial'] ao invés de "Jundiaí" hardcoded
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-2">📋 Checklist de Teste</h3>
+            <ul class="space-y-2 text-yellow-700">
+                <li>☐ 1. Login com usuário Vinicius</li>
+                <li>☐ 2. Acessar módulo "Registro de Retornados"</li>
+                <li>☐ 3. Clicar em "Registrar Novo Retornado"</li>
+                <li>☐ 4. Verificar se campo "Nome do Usuário" mostra "Vinicius" (não "Administrador")</li>
+                <li>☐ 5. Verificar se campo "Filial" mostra a filial correta do usuário</li>
+                <li>☐ 6. Preencher formulário e registrar retornado</li>
+                <li>☐ 7. Verificar no banco se o campo 'usuario' foi salvo com "Vinicius"</li>
+                <li>☐ 8. Repetir teste com usuário Caique</li>
+                <li>☐ 9. Testar função "Cancelar" para verificar se valores são restaurados corretamente</li>
+            </ul>
+        </div>
+
+        <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-green-800 mb-2">🎯 Resultado Esperado</h3>
+            <ul class="space-y-1 text-green-700">
+                <li>✅ Campo "Nome do Usuário" deve mostrar o nome real do usuário logado</li>
+                <li>✅ Campo "Filial" deve mostrar a filial do usuário (não hardcoded "Jundiaí")</li>
+                <li>✅ Registros salvos no banco devem ter o nome correto do usuário</li>
+                <li>✅ Função cancelar deve restaurar os valores corretos</li>
+            </ul>
+        </div>
+
+        <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">📊 Arquivos Modificados</h3>
+            <ul class="space-y-1 text-gray-700 font-mono text-sm">
+                <li>📄 views/pages/toners/retornados.php (linhas 36, 40, 508, 509)</li>
+            </ul>
+        </div>
+
+        <div class="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-purple-800 mb-2">🔍 Comando SQL para Verificar</h3>
+            <div class="bg-purple-100 p-3 rounded font-mono text-sm">
+                SELECT usuario, filial, modelo, destino, data_registro<br>
+                FROM retornados<br>
+                ORDER BY data_registro DESC<br>
+                LIMIT 10;
+            </div>
+            <p class="text-purple-700 text-sm mt-2">
+                Verificar se os registros mais recentes mostram nomes reais dos usuários ao invés de "ADMINISTRADOR"
+            </p>
+        </div>
+    </div>
+</body>
+</html>
