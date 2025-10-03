@@ -61,6 +61,11 @@
           </svg>
           📊 Retornados por Mês
         </h3>
+        <button onclick="expandirGraficoRetornados()" class="p-2 rounded-lg hover:bg-green-50 transition-all duration-200 group" title="Expandir gráfico">
+          <svg class="w-5 h-5 text-green-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+          </svg>
+        </button>
       </div>
       <div class="p-6">
         <canvas id="retornadosMesChart" width="400" height="200"></canvas>
@@ -100,6 +105,44 @@
   </div>
 
 </section>
+
+<!-- Modal de Expansão do Gráfico - Retornados por Mês -->
+<div id="modalExpandidoRetornados" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
+  <div class="relative w-full max-w-7xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRetornados">
+    <!-- Botão Fechar -->
+    <button onclick="fecharGraficoExpandido()" class="absolute top-6 right-6 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group z-10">
+      <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <!-- Título -->
+    <div class="mb-6 text-center">
+      <h2 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center gap-3">
+        <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+        📊 Retornados por Mês - Visão Expandida
+      </h2>
+      <p class="text-gray-400 mt-2">Análise detalhada dos retornados ao longo do ano</p>
+    </div>
+    
+    <!-- Canvas Expandido -->
+    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700/50 shadow-inner">
+      <canvas id="retornadosMesChartExpandido" class="w-full" style="max-height: 70vh;"></canvas>
+    </div>
+    
+    <!-- Dica -->
+    <div class="mt-6 text-center">
+      <p class="text-gray-500 text-sm flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Pressione <kbd class="px-2 py-1 bg-gray-700 rounded text-xs mx-1">ESC</kbd> ou clique no botão ✕ para fechar
+      </p>
+    </div>
+  </div>
+</div>
 
 <!-- Create User Modal -->
 <div id="createUserModal" class="modal-overlay">
@@ -169,7 +212,7 @@
 
 <script>
 // Variáveis globais para os gráficos
-let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart;
+let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart, retornadosMesChartExpandido;
 let dashboardData = null;
 
 // Dados iniciais vazios (serão carregados da API)
@@ -517,6 +560,142 @@ function submitCreateUser() {
     alert('Erro de conexão: ' + error.message);
   });
 }
+
+// Função para expandir o gráfico de Retornados por Mês
+function expandirGraficoRetornados() {
+  const modal = document.getElementById('modalExpandidoRetornados');
+  const modalContent = document.getElementById('modalContentRetornados');
+  
+  // Mostrar modal
+  modal.classList.remove('hidden');
+  
+  // Animação de entrada suave
+  setTimeout(() => {
+    modalContent.style.transform = 'scale(1)';
+    modalContent.style.opacity = '1';
+  }, 50);
+  
+  // Criar gráfico expandido se não existir
+  if (!retornadosMesChartExpandido) {
+    const ctx = document.getElementById('retornadosMesChartExpandido').getContext('2d');
+    retornadosMesChartExpandido = new Chart(ctx, {
+      type: 'bar',
+      data: JSON.parse(JSON.stringify(dadosRetornadosMes)), // Clone dos dados
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2.5,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              color: '#d1d5db',
+              font: {
+                size: 14,
+                weight: 'bold'
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            titleColor: '#fff',
+            bodyColor: '#d1d5db',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            borderWidth: 2,
+            cornerRadius: 12,
+            padding: 16,
+            titleFont: {
+              size: 16,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 14
+            },
+            callbacks: {
+              afterBody: function(context) {
+                const currentValue = context[0].parsed.y;
+                const previousIndex = context[0].dataIndex - 1;
+                if (previousIndex >= 0) {
+                  const previousValue = dadosRetornadosMes.datasets[0].data[previousIndex];
+                  const percentage = ((currentValue - previousValue) / previousValue * 100).toFixed(1);
+                  return `Variação: ${percentage > 0 ? '+' : ''}${percentage}% vs mês anterior`;
+                }
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(255, 255, 255, 0.1)',
+            },
+            ticks: {
+              color: '#9ca3af',
+              font: {
+                size: 13
+              }
+            }
+          },
+          x: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+            },
+            ticks: {
+              color: '#9ca3af',
+              font: {
+                size: 13
+              }
+            }
+          }
+        }
+      }
+    });
+  } else {
+    // Atualizar dados do gráfico expandido
+    retornadosMesChartExpandido.data = JSON.parse(JSON.stringify(dadosRetornadosMes));
+    retornadosMesChartExpandido.update();
+  }
+  
+  // Desabilitar scroll do body
+  document.body.style.overflow = 'hidden';
+}
+
+// Função para fechar o gráfico expandido
+function fecharGraficoExpandido() {
+  const modal = document.getElementById('modalExpandidoRetornados');
+  const modalContent = document.getElementById('modalContentRetornados');
+  
+  // Animação de saída suave
+  modalContent.style.transform = 'scale(0.95)';
+  modalContent.style.opacity = '0';
+  
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 300);
+  
+  // Reabilitar scroll do body
+  document.body.style.overflow = 'auto';
+}
+
+// Atalho de teclado ESC para fechar
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('modalExpandidoRetornados');
+    if (!modal.classList.contains('hidden')) {
+      fecharGraficoExpandido();
+    }
+  }
+});
+
+// Fechar ao clicar no fundo escuro
+document.getElementById('modalExpandidoRetornados').addEventListener('click', function(e) {
+  if (e.target === this) {
+    fecharGraficoExpandido();
+  }
+});
 
 // Inicializar dashboard quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
