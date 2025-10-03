@@ -107,8 +107,8 @@
 </section>
 
 <!-- Modal de Expansão do Gráfico - Retornados por Mês -->
-<div id="modalExpandidoRetornados" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.97); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 0; margin: 0;">
-  <div class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 transition-all duration-500 ease-out transform scale-95 opacity-0 flex flex-col" id="modalContentRetornados" style="width: 96vw; height: 94vh; max-width: 96vw; max-height: 94vh; padding: 1.5rem; position: relative;">
+<div id="modalExpandidoRetornados" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
+  <div class="relative w-full max-w-7xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRetornados">
     <!-- Botão Fechar -->
     <button onclick="fecharGraficoExpandido()" class="absolute top-6 right-6 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group z-10">
       <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,8 +147,8 @@
     </div>
     
     <!-- Canvas Expandido -->
-    <div class="flex-1 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/50 shadow-inner flex items-center justify-center overflow-hidden">
-      <canvas id="retornadosMesChartExpandido" class="w-full h-full" style="max-height: 100%;"></canvas>
+    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700/50 shadow-inner">
+      <canvas id="retornadosMesChartExpandido" class="w-full" style="max-height: 70vh;"></canvas>
     </div>
     
     <!-- Dica -->
@@ -584,17 +584,8 @@ function submitCreateUser() {
 function expandirGraficoRetornados() {
   const modal = document.getElementById('modalExpandidoRetornados');
   const modalContent = document.getElementById('modalContentRetornados');
-  const sidebar = document.getElementById('sidebar');
   
-  // Ocultar sidebar com animação suave
-  if (sidebar) {
-    sidebar.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
-    sidebar.style.transform = 'translateX(-100%)';
-    sidebar.style.opacity = '0';
-  }
-  
-  // Mostrar modal com estilos inline fortes
-  modal.style.display = 'flex';
+  // Mostrar modal
   modal.classList.remove('hidden');
   
   // Animação de entrada suave
@@ -614,7 +605,8 @@ function expandirGraficoRetornados() {
       data: JSON.parse(JSON.stringify(dadosRetornadosMes)), // Clone dos dados
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 2.5,
         plugins: {
           legend: {
             display: true,
@@ -697,21 +689,12 @@ function expandirGraficoRetornados() {
 function fecharGraficoExpandido() {
   const modal = document.getElementById('modalExpandidoRetornados');
   const modalContent = document.getElementById('modalContentRetornados');
-  const sidebar = document.getElementById('sidebar');
   
   // Animação de saída suave
   modalContent.style.transform = 'scale(0.95)';
   modalContent.style.opacity = '0';
   
-  // Mostrar sidebar novamente com animação suave
-  if (sidebar) {
-    sidebar.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
-    sidebar.style.transform = 'translateX(0)';
-    sidebar.style.opacity = '1';
-  }
-  
   setTimeout(() => {
-    modal.style.display = 'none';
     modal.classList.add('hidden');
   }, 300);
   
