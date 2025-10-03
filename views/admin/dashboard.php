@@ -565,6 +565,14 @@ function submitCreateUser() {
 function expandirGraficoRetornados() {
   const modal = document.getElementById('modalExpandidoRetornados');
   const modalContent = document.getElementById('modalContentRetornados');
+  const sidebar = document.getElementById('sidebar');
+  
+  // Ocultar sidebar com animação suave
+  if (sidebar) {
+    sidebar.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
+    sidebar.style.transform = 'translateX(-100%)';
+    sidebar.style.opacity = '0';
+  }
   
   // Mostrar modal
   modal.classList.remove('hidden');
@@ -667,10 +675,18 @@ function expandirGraficoRetornados() {
 function fecharGraficoExpandido() {
   const modal = document.getElementById('modalExpandidoRetornados');
   const modalContent = document.getElementById('modalContentRetornados');
+  const sidebar = document.getElementById('sidebar');
   
   // Animação de saída suave
   modalContent.style.transform = 'scale(0.95)';
   modalContent.style.opacity = '0';
+  
+  // Mostrar sidebar novamente com animação suave
+  if (sidebar) {
+    sidebar.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
+    sidebar.style.transform = 'translateX(0)';
+    sidebar.style.opacity = '1';
+  }
   
   setTimeout(() => {
     modal.classList.add('hidden');
