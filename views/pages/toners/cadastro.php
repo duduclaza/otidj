@@ -100,40 +100,18 @@
     
     <!-- Campo de Busca -->
     <div class="px-4 py-3 border-b bg-gray-50">
-      <div class="flex flex-col sm:flex-row gap-3">
-        <div class="flex-1">
-          <div class="relative">
-            <input 
-              type="text" 
-              id="searchToners" 
-              placeholder="Buscar por modelo, cor, tipo..." 
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              onkeyup="searchToners()"
-            >
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div class="flex gap-2">
-          <select id="filterCor" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="searchToners()">
-            <option value="">Todas as cores</option>
-            <option value="Yellow">Yellow</option>
-            <option value="Magenta">Magenta</option>
-            <option value="Cyan">Cyan</option>
-            <option value="Black">Black</option>
-          </select>
-          <select id="filterTipo" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" onchange="searchToners()">
-            <option value="">Todos os tipos</option>
-            <option value="Original">Original</option>
-            <option value="Compativel">Compatível</option>
-            <option value="Remanufaturado">Remanufaturado</option>
-          </select>
-          <button onclick="clearFilters()" class="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-            Limpar
-          </button>
+      <div class="relative max-w-md">
+        <input 
+          type="text" 
+          id="searchToners" 
+          placeholder="Buscar toners..." 
+          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          onkeyup="searchToners()"
+        >
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
         </div>
       </div>
     </div>
@@ -1448,11 +1426,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('   End = Última página');
   }
   
-  // Função de busca em tempo real
+  // Função de busca simples em tempo real
   function searchToners() {
     const searchText = document.getElementById('searchToners').value.toLowerCase();
-    const filterCor = document.getElementById('filterCor').value.toLowerCase();
-    const filterTipo = document.getElementById('filterTipo').value.toLowerCase();
     const rows = document.querySelectorAll('tbody tr');
     let visibleCount = 0;
     
@@ -1461,11 +1437,10 @@ document.addEventListener('DOMContentLoaded', function() {
       const cor = row.cells[5]?.textContent.toLowerCase() || '';
       const tipo = row.cells[6]?.textContent.toLowerCase() || '';
       
-      const matchesSearch = modelo.includes(searchText) || cor.includes(searchText) || tipo.includes(searchText);
-      const matchesCor = !filterCor || cor.includes(filterCor);
-      const matchesTipo = !filterTipo || tipo.includes(filterTipo);
+      // Busca em modelo, cor e tipo
+      const matches = modelo.includes(searchText) || cor.includes(searchText) || tipo.includes(searchText);
       
-      if (matchesSearch && matchesCor && matchesTipo) {
+      if (matches) {
         row.style.display = '';
         visibleCount++;
       } else {
@@ -1475,14 +1450,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Atualizar contador de resultados
     updateResultsCount(visibleCount);
-  }
-  
-  // Função para limpar filtros
-  function clearFilters() {
-    document.getElementById('searchToners').value = '';
-    document.getElementById('filterCor').value = '';
-    document.getElementById('filterTipo').value = '';
-    searchToners();
   }
   
   // Função para atualizar contador de resultados
@@ -1500,41 +1467,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // Adicionar indicador visual quando não há resultados
-  function showNoResults(show) {
-    let noResultsRow = document.getElementById('noResultsRow');
-    
-    if (show && !noResultsRow) {
-      const tbody = document.querySelector('tbody');
-      const colCount = document.querySelector('thead tr').children.length;
-      
-      noResultsRow = document.createElement('tr');
-      noResultsRow.id = 'noResultsRow';
-      noResultsRow.innerHTML = `
-        <td colspan="${colCount}" class="px-3 py-8 text-center text-gray-500">
-          <div class="flex flex-col items-center">
-            <svg class="w-12 h-12 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            <p class="text-lg font-medium">Nenhum toner encontrado</p>
-            <p class="text-sm">Tente ajustar os filtros de busca</p>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(noResultsRow);
-    } else if (!show && noResultsRow) {
-      noResultsRow.remove();
-    }
-  }
-  
-  // Melhorar a função de busca para mostrar "sem resultados"
-  const originalSearchToners = searchToners;
-  searchToners = function() {
-    originalSearchToners();
-    const visibleRows = document.querySelectorAll('tbody tr:not(#noResultsRow)').length;
-    const actuallyVisible = Array.from(document.querySelectorAll('tbody tr:not(#noResultsRow)')).filter(row => row.style.display !== 'none').length;
-    showNoResults(actuallyVisible === 0 && visibleRows > 0);
-  };
 });
 
 // Função para ir diretamente para uma página específica
