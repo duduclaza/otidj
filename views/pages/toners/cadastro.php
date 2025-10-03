@@ -106,7 +106,8 @@
           id="searchToners" 
           placeholder="Buscar toners..." 
           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          onkeyup="searchToners()"
+          onkeyup="searchToners()" 
+          oninput="searchToners()"
         >
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1426,16 +1427,26 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('   End = Última página');
   }
   
-  // Função de busca simples em tempo real
-  function searchToners() {
+  // Declarar funções globalmente para que funcionem com onclick
+  window.searchToners = function() {
     const searchText = document.getElementById('searchToners').value.toLowerCase();
     const rows = document.querySelectorAll('tbody tr');
     let visibleCount = 0;
     
+    console.log('Buscando por:', searchText); // Debug
+    console.log('Linhas encontradas:', rows.length); // Debug
+    
     rows.forEach(row => {
+      // Pular a linha "Nenhum toner cadastrado" se existir
+      if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
+        return;
+      }
+      
       const modelo = row.cells[0]?.textContent.toLowerCase() || '';
-      const cor = row.cells[5]?.textContent.toLowerCase() || '';
-      const tipo = row.cells[6]?.textContent.toLowerCase() || '';
+      const cor = row.cells[8]?.textContent.toLowerCase() || ''; // Cor está na coluna 8
+      const tipo = row.cells[9]?.textContent.toLowerCase() || ''; // Tipo está na coluna 9
+      
+      console.log('Verificando linha:', {modelo, cor, tipo}); // Debug
       
       // Busca em modelo, cor e tipo
       const matches = modelo.includes(searchText) || cor.includes(searchText) || tipo.includes(searchText);
@@ -1448,12 +1459,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
+    console.log('Linhas visíveis:', visibleCount); // Debug
+    
     // Atualizar contador de resultados
     updateResultsCount(visibleCount);
-  }
+  };
   
-  // Função para atualizar contador de resultados
-  function updateResultsCount(count) {
+  window.updateResultsCount = function(count) {
     const totalRows = document.querySelectorAll('tbody tr').length;
     const resultText = count === totalRows 
       ? `${totalRows} toner(s) encontrado(s)` 
@@ -1465,7 +1477,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const pageInfo = paginationText.textContent.split('•')[1] || '';
       paginationText.textContent = `${resultText}${pageInfo ? ' • ' + pageInfo.trim() : ''}`;
     }
-  }
+  };
   
 });
 
