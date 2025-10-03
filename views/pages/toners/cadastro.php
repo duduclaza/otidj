@@ -100,19 +100,33 @@
     
     <!-- Campo de Busca -->
     <div class="px-4 py-3 border-b bg-gray-50">
-      <div class="relative max-w-md">
-        <input 
-          type="text" 
-          id="searchToners" 
-          placeholder="Buscar toners..." 
-          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          onkeyup="searchToners()" 
-          oninput="searchToners()"
+      <div class="flex gap-3 items-center">
+        <!-- Dropdown de Coluna -->
+        <select 
+          id="searchColumn" 
+          class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
         >
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
+          <option value="all">Todas as colunas</option>
+          <option value="0">Modelo</option>
+          <option value="8">Cor</option>
+          <option value="9">Tipo</option>
+        </select>
+        
+        <!-- Campo de Busca -->
+        <div class="relative flex-1 max-w-md">
+          <input 
+            type="text" 
+            id="searchToners" 
+            placeholder="Digite para buscar..." 
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            onkeyup="searchToners()" 
+            oninput="searchToners()"
+          >
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -1427,9 +1441,10 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('   End = Última página');
   }
   
-  // Função de busca simples e direta
+  // Função de busca por coluna específica
   window.searchToners = function() {
     const searchText = document.getElementById('searchToners').value.toLowerCase().trim();
+    const searchColumn = document.getElementById('searchColumn').value;
     const tbody = document.querySelector('tbody');
     const rows = tbody.querySelectorAll('tr');
     let visibleCount = 0;
@@ -1447,11 +1462,20 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      // Pegar todo o texto da linha
-      const rowText = row.textContent.toLowerCase();
+      let textToSearch = '';
+      
+      // Buscar na coluna específica ou em todas
+      if (searchColumn === 'all') {
+        // Buscar em todas as colunas
+        textToSearch = row.textContent.toLowerCase();
+      } else {
+        // Buscar apenas na coluna selecionada
+        const columnIndex = parseInt(searchColumn);
+        textToSearch = row.cells[columnIndex]?.textContent?.toLowerCase().trim() || '';
+      }
       
       // Verificar se o texto da busca está presente
-      if (rowText.includes(searchText)) {
+      if (textToSearch.includes(searchText)) {
         row.style.removeProperty('display');
         visibleCount++;
       } else {
