@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Sistema de Busca Cadastro de Toners</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">🔍 Sistema de Busca - Cadastro de Toners</h1>
+        
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <h2 class="text-lg font-semibold text-green-800 mb-2">✅ Funcionalidade Implementada</h2>
+            <p class="text-green-700">
+                <strong>Sistema de busca completo</strong> adicionado ao módulo "Cadastro de Toners" com filtros avançados e busca em tempo real.
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <h3 class="text-lg font-semibold text-gray-900">🎯 Funcionalidades Implementadas:</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="font-medium text-blue-800 mb-3">🔍 Campo de Busca Principal</h4>
+                    <ul class="space-y-2 text-blue-700 text-sm">
+                        <li>• <strong>Busca em tempo real</strong> (onkeyup)</li>
+                        <li>• <strong>Placeholder:</strong> "Buscar por modelo, cor, tipo..."</li>
+                        <li>• <strong>Ícone de lupa</strong> integrado</li>
+                        <li>• <strong>Busca em múltiplos campos:</strong> modelo, cor, tipo</li>
+                        <li>• <strong>Case insensitive</strong> (não diferencia maiúsculas)</li>
+                    </ul>
+                </div>
+
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 class="font-medium text-purple-800 mb-3">🎛️ Filtros Avançados</h4>
+                    <ul class="space-y-2 text-purple-700 text-sm">
+                        <li>• <strong>Filtro por Cor:</strong> Yellow, Magenta, Cyan, Black</li>
+                        <li>• <strong>Filtro por Tipo:</strong> Original, Compatível, Remanufaturado</li>
+                        <li>• <strong>Combinação de filtros</strong> (busca + cor + tipo)</li>
+                        <li>• <strong>Botão "Limpar"</strong> para resetar todos os filtros</li>
+                        <li>• <strong>Filtros responsivos</strong> (mobile-friendly)</li>
+                    </ul>
+                </div>
+
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 class="font-medium text-green-800 mb-3">📊 Contador de Resultados</h4>
+                    <ul class="space-y-2 text-green-700 text-sm">
+                        <li>• <strong>Atualização automática</strong> do contador</li>
+                        <li>• <strong>Formato:</strong> "X de Y toner(s) encontrado(s)"</li>
+                        <li>• <strong>Integração com paginação</strong> existente</li>
+                        <li>• <strong>Feedback visual</strong> em tempo real</li>
+                    </ul>
+                </div>
+
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 class="font-medium text-orange-800 mb-3">🚫 Estado "Sem Resultados"</h4>
+                    <ul class="space-y-2 text-orange-700 text-sm">
+                        <li>• <strong>Mensagem visual</strong> quando não há resultados</li>
+                        <li>• <strong>Ícone de lupa</strong> estilizado</li>
+                        <li>• <strong>Texto explicativo:</strong> "Tente ajustar os filtros"</li>
+                        <li>• <strong>Inserção/remoção dinâmica</strong> da mensagem</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h4 class="font-medium text-gray-800 mb-3">🎨 Interface Visual</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <p class="font-medium text-gray-700 mb-2">Campo de Busca:</p>
+                        <ul class="space-y-1 text-gray-600">
+                            <li>• Ícone de lupa à esquerda</li>
+                            <li>• Focus ring azul</li>
+                            <li>• Placeholder descritivo</li>
+                            <li>• Largura responsiva</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-700 mb-2">Filtros:</p>
+                        <ul class="space-y-1 text-gray-600">
+                            <li>• Dropdowns estilizados</li>
+                            <li>• Opções "Todas/Todos"</li>
+                            <li>• Botão "Limpar" destacado</li>
+                            <li>• Layout flexível</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-700 mb-2">Resultados:</p>
+                        <ul class="space-y-1 text-gray-600">
+                            <li>• Linhas ocultas/mostradas</li>
+                            <li>• Contador atualizado</li>
+                            <li>• Mensagem "sem resultados"</li>
+                            <li>• Transições suaves</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-yellow-800 mb-2">📋 Como Testar</h3>
+                <ol class="space-y-2 text-yellow-700">
+                    <li><strong>1.</strong> Acesse o módulo "Cadastro de Toners" (ícone 💧🩸)</li>
+                    <li><strong>2.</strong> Localize a seção "Toners Cadastrados"</li>
+                    <li><strong>3.</strong> Veja o novo campo de busca com fundo cinza claro</li>
+                    <li><strong>4.</strong> Digite no campo de busca (ex: "HP", "Black", "Original")</li>
+                    <li><strong>5.</strong> Use os filtros de cor e tipo</li>
+                    <li><strong>6.</strong> Observe o contador de resultados sendo atualizado</li>
+                    <li><strong>7.</strong> Teste o botão "Limpar" para resetar</li>
+                    <li><strong>8.</strong> Faça uma busca que não retorne resultados</li>
+                </ol>
+            </div>
+
+            <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-indigo-800 mb-2">⚡ Funcionalidades Técnicas</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <p class="font-medium text-indigo-700 mb-2">JavaScript:</p>
+                        <ul class="space-y-1 text-indigo-600">
+                            <li>• <code>searchToners()</code> - Função principal</li>
+                            <li>• <code>clearFilters()</code> - Limpar filtros</li>
+                            <li>• <code>updateResultsCount()</code> - Contador</li>
+                            <li>• <code>showNoResults()</code> - Estado vazio</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="font-medium text-indigo-700 mb-2">Eventos:</p>
+                        <ul class="space-y-1 text-indigo-600">
+                            <li>• <code>onkeyup</code> - Busca em tempo real</li>
+                            <li>• <code>onchange</code> - Filtros dropdown</li>
+                            <li>• <code>onclick</code> - Botão limpar</li>
+                            <li>• DOM manipulation - Show/hide rows</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-green-800 mb-2">✅ Benefícios Alcançados</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <ul class="space-y-1 text-green-700">
+                            <li>✅ <strong>Busca instantânea</strong> sem reload da página</li>
+                            <li>✅ <strong>Múltiplos critérios</strong> de filtro</li>
+                            <li>✅ <strong>Interface intuitiva</strong> e responsiva</li>
+                            <li>✅ <strong>Feedback visual</strong> em tempo real</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="space-y-1 text-green-700">
+                            <li>✅ <strong>Performance otimizada</strong> (client-side)</li>
+                            <li>✅ <strong>UX melhorada</strong> para grandes listas</li>
+                            <li>✅ <strong>Compatibilidade</strong> com paginação</li>
+                            <li>✅ <strong>Acessibilidade</strong> e usabilidade</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-red-800 mb-2">⚠️ Observações Importantes</h3>
+                <ul class="space-y-2 text-red-700 text-sm">
+                    <li>• <strong>Busca client-side:</strong> Funciona apenas com dados já carregados na página</li>
+                    <li>• <strong>Paginação:</strong> Busca limitada à página atual (não busca em todas as páginas)</li>
+                    <li>• <strong>Performance:</strong> Ideal para listas de até 100-200 itens por página</li>
+                    <li>• <strong>Campos de busca:</strong> Atualmente busca em modelo, cor e tipo (colunas 0, 5, 6)</li>
+                </ul>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-blue-800 mb-2">🚀 Possíveis Melhorias Futuras</h3>
+                <ul class="space-y-2 text-blue-700 text-sm">
+                    <li>• <strong>Busca server-side:</strong> Para buscar em todas as páginas</li>
+                    <li>• <strong>Highlight de termos:</strong> Destacar texto encontrado</li>
+                    <li>• <strong>Histórico de buscas:</strong> Salvar buscas recentes</li>
+                    <li>• <strong>Busca avançada:</strong> Filtros por faixa de preço, peso, etc.</li>
+                    <li>• <strong>Exportar resultados:</strong> Exportar apenas itens filtrados</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">🎉 Sistema de Busca Implementado com Sucesso!</h3>
+            <p class="text-blue-100">
+                O módulo "Cadastro de Toners" agora possui um sistema de busca completo e intuitivo, 
+                permitindo aos usuários encontrar rapidamente os toners desejados através de múltiplos critérios de filtro.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
