@@ -1433,6 +1433,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const rows = document.querySelectorAll('tbody tr');
     let visibleCount = 0;
     
+    // Debug temporário - remover depois
+    if (searchText.length > 0) {
+      alert('Buscando por: ' + searchText + ' - Encontrou ' + rows.length + ' linhas');
+    }
+    
     console.log('Buscando por:', searchText); // Debug
     console.log('Linhas encontradas:', rows.length); // Debug
     
