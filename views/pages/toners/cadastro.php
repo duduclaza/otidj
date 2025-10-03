@@ -1427,69 +1427,49 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('   End = Última página');
   }
   
-  // Declarar funções globalmente para que funcionem com onclick
+  // Função de busca simples e direta
   window.searchToners = function() {
-    const searchText = document.getElementById('searchToners').value.toLowerCase();
-    const rows = document.querySelectorAll('tbody tr');
+    const searchText = document.getElementById('searchToners').value.toLowerCase().trim();
+    const tbody = document.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
     let visibleCount = 0;
     
-    console.log('🔍 Buscando por:', searchText);
-    console.log('📊 Total de linhas:', rows.length);
-    
-    rows.forEach((row, index) => {
-      // Pular a linha "Nenhum toner cadastrado" se existir
-      if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
-        console.log('⏭️ Pulando linha de "nenhum toner"');
+    rows.forEach(row => {
+      // Pular linhas vazias ou de mensagem
+      if (row.cells.length < 2) {
         return;
       }
       
-      // Se não há texto de busca, mostrar todas as linhas
-      if (searchText === '') {
-        row.style.display = 'table-row';
+      // Se campo vazio, mostrar tudo
+      if (!searchText) {
+        row.style.removeProperty('display');
         visibleCount++;
         return;
       }
       
-      // Extrair texto das células principais
-      const modelo = row.cells[0]?.textContent?.trim().toLowerCase() || '';
-      const cor = row.cells[8]?.textContent?.trim().toLowerCase() || '';
-      const tipo = row.cells[9]?.textContent?.trim().toLowerCase() || '';
+      // Pegar todo o texto da linha
+      const rowText = row.textContent.toLowerCase();
       
-      console.log(`📋 Linha ${index}:`, {modelo, cor, tipo});
-      
-      // Busca em modelo, cor e tipo
-      const matches = modelo.includes(searchText) || 
-                     cor.includes(searchText) || 
-                     tipo.includes(searchText);
-      
-      if (matches) {
-        row.style.display = 'table-row';
-        row.style.visibility = 'visible';
+      // Verificar se o texto da busca está presente
+      if (rowText.includes(searchText)) {
+        row.style.removeProperty('display');
         visibleCount++;
-        console.log('✅ Mostrando linha:', modelo);
       } else {
         row.style.display = 'none';
-        row.style.visibility = 'hidden';
-        console.log('❌ Escondendo linha:', modelo);
       }
     });
     
-    console.log('👁️ Linhas visíveis:', visibleCount);
-    
-    // Atualizar contador de resultados
-    updateResultsCount(visibleCount);
+    // Atualizar contador
+    updateResultsCount(visibleCount, rows.length);
   };
   
-  window.updateResultsCount = function(count) {
-    const totalRows = document.querySelectorAll('tbody tr').length;
-    const resultText = count === totalRows 
-      ? `${totalRows} toner(s) encontrado(s)` 
-      : `${count} de ${totalRows} toner(s) encontrado(s)`;
-    
-    // Atualizar o texto de paginação se existir
+  window.updateResultsCount = function(visibleCount, totalCount) {
     const paginationText = document.querySelector('.text-sm.text-gray-600');
     if (paginationText) {
       const pageInfo = paginationText.textContent.split('•')[1] || '';
+      const resultText = visibleCount === totalCount 
+        ? `${totalCount} toner(s) encontrado(s)` 
+        : `${visibleCount} de ${totalCount} toner(s) encontrado(s)`;
       paginationText.textContent = `${resultText}${pageInfo ? ' • ' + pageInfo.trim() : ''}`;
     }
   };
