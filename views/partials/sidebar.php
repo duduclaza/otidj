@@ -32,7 +32,7 @@ $menu = [
     'category' => true,
     'modules' => ['toners_cadastro', 'toners_retornados', 'amostragens', 'garantias', 'controle_descartes'],
     'submenu' => [
-      ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '🖤', 'module' => 'toners_cadastro'],
+      ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '<img src="/assets/toner.png" class="w-4 h-4 inline-block">', 'module' => 'toners_cadastro'],
       ['label' => 'Cadastro de Máquinas', 'href' => '/cadastro-maquinas', 'icon' => '🖨️', 'module' => 'cadastro_maquinas'],
       ['label' => 'Cadastro de Peças', 'href' => '/cadastro-pecas', 'icon' => '🔧', 'module' => 'cadastro_pecas'],
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
@@ -167,7 +167,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                 ?>
                   <li>
                     <a href="<?= e($sub['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $subActive?'bg-blue-500 text-white shadow-md':'text-slate-400 hover:text-white'; ?> <?php echo isset($sub['beta']) && $sub['beta'] ? 'beta-menu' : ''; ?>">
-                      <span class="text-base"><?= e($sub['icon']) ?></span>
+                      <span class="text-base"><?= $sub['icon'] ?></span>
                       <span class="flex items-center gap-2">
                         <?= e($sub['label']) ?>
                         <?php if (isset($sub['beta']) && $sub['beta']): ?>
@@ -307,7 +307,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           <?php foreach ($item['submenu'] as $sub): ?>
             <?php if (hasPermission($sub['module'])): ?>
               <a href="<?= e($sub['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200 ml-2">
-                <span class="text-sm"><?= e($sub['icon']) ?></span> <?= e($sub['label']) ?>
+                <span class="text-sm"><?= $sub['icon'] ?></span> <?= e($sub['label']) ?>
               </a>
             <?php endif; ?>
           <?php endforeach; ?>
