@@ -32,7 +32,7 @@ $menu = [
     'category' => true,
     'modules' => ['toners_cadastro', 'toners_retornados', 'amostragens', 'garantias', 'controle_descartes'],
     'submenu' => [
-      ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '🖨️', 'module' => 'toners_cadastro'],
+      ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '🖤', 'module' => 'toners_cadastro'],
       ['label' => 'Cadastro de Máquinas', 'href' => '/cadastro-maquinas', 'icon' => '🖨️', 'module' => 'cadastro_maquinas'],
       ['label' => 'Cadastro de Peças', 'href' => '/cadastro-pecas', 'icon' => '🔧', 'module' => 'cadastro_pecas'],
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
