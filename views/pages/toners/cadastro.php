@@ -1433,38 +1433,48 @@ document.addEventListener('DOMContentLoaded', function() {
     const rows = document.querySelectorAll('tbody tr');
     let visibleCount = 0;
     
-    // Debug temporário - remover depois
-    if (searchText.length > 0) {
-      alert('Buscando por: ' + searchText + ' - Encontrou ' + rows.length + ' linhas');
-    }
+    console.log('🔍 Buscando por:', searchText);
+    console.log('📊 Total de linhas:', rows.length);
     
-    console.log('Buscando por:', searchText); // Debug
-    console.log('Linhas encontradas:', rows.length); // Debug
-    
-    rows.forEach(row => {
+    rows.forEach((row, index) => {
       // Pular a linha "Nenhum toner cadastrado" se existir
       if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
+        console.log('⏭️ Pulando linha de "nenhum toner"');
         return;
       }
       
-      const modelo = row.cells[0]?.textContent.toLowerCase() || '';
-      const cor = row.cells[8]?.textContent.toLowerCase() || ''; // Cor está na coluna 8
-      const tipo = row.cells[9]?.textContent.toLowerCase() || ''; // Tipo está na coluna 9
+      // Se não há texto de busca, mostrar todas as linhas
+      if (searchText === '') {
+        row.style.display = 'table-row';
+        visibleCount++;
+        return;
+      }
       
-      console.log('Verificando linha:', {modelo, cor, tipo}); // Debug
+      // Extrair texto das células principais
+      const modelo = row.cells[0]?.textContent?.trim().toLowerCase() || '';
+      const cor = row.cells[8]?.textContent?.trim().toLowerCase() || '';
+      const tipo = row.cells[9]?.textContent?.trim().toLowerCase() || '';
+      
+      console.log(`📋 Linha ${index}:`, {modelo, cor, tipo});
       
       // Busca em modelo, cor e tipo
-      const matches = modelo.includes(searchText) || cor.includes(searchText) || tipo.includes(searchText);
+      const matches = modelo.includes(searchText) || 
+                     cor.includes(searchText) || 
+                     tipo.includes(searchText);
       
       if (matches) {
-        row.style.display = '';
+        row.style.display = 'table-row';
+        row.style.visibility = 'visible';
         visibleCount++;
+        console.log('✅ Mostrando linha:', modelo);
       } else {
         row.style.display = 'none';
+        row.style.visibility = 'hidden';
+        console.log('❌ Escondendo linha:', modelo);
       }
     });
     
-    console.log('Linhas visíveis:', visibleCount); // Debug
+    console.log('👁️ Linhas visíveis:', visibleCount);
     
     // Atualizar contador de resultados
     updateResultsCount(visibleCount);
