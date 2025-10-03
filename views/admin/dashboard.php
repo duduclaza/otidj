@@ -82,6 +82,11 @@
           </svg>
           🥧 Destino dos Retornados
         </h3>
+        <button onclick="expandirGraficoDestino()" class="p-2 rounded-lg hover:bg-orange-50 transition-all duration-200 group" title="Expandir gráfico">
+          <svg class="w-5 h-5 text-orange-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+          </svg>
+        </button>
       </div>
       <div class="p-6">
         <canvas id="retornadosDestinoChart" width="400" height="200"></canvas>
@@ -149,6 +154,64 @@
     <!-- Canvas Expandido -->
     <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700/50 shadow-inner">
       <canvas id="retornadosMesChartExpandido" class="w-full" style="max-height: 70vh;"></canvas>
+    </div>
+    
+    <!-- Dica -->
+    <div class="mt-6 text-center">
+      <p class="text-gray-500 text-sm flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Pressione <kbd class="px-2 py-1 bg-gray-700 rounded text-xs mx-1">ESC</kbd> ou clique no botão ✕ para fechar
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Expansão do Gráfico - Destino dos Retornados -->
+<div id="modalExpandidoDestino" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
+  <div class="relative w-full max-w-7xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentDestino">
+    <!-- Botão Fechar -->
+    <button onclick="fecharGraficoDestinoExpandido()" class="absolute top-6 right-6 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group z-10">
+      <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <!-- Título e Filtros -->
+    <div class="mb-6">
+      <div class="text-center mb-4">
+        <h2 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center gap-3">
+          <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+          </svg>
+          🥧 Destino dos Retornados - Visão Expandida
+        </h2>
+        <p class="text-gray-400 mt-2">Distribuição detalhada dos destinos dos toners retornados</p>
+      </div>
+      
+      <!-- Filtro de Filial -->
+      <div class="flex justify-center">
+        <div class="inline-flex items-center gap-3 bg-gradient-to-r from-gray-800/80 to-gray-900/80 px-6 py-3 rounded-xl border border-gray-700/50 backdrop-blur-sm">
+          <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+          <label class="text-gray-300 font-medium">Filtrar por Filial:</label>
+          <select 
+            id="filtroFilialDestinoExpandido" 
+            onchange="atualizarGraficoDestinoExpandido()" 
+            class="bg-gray-700/50 border border-gray-600 text-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all cursor-pointer hover:bg-gray-700"
+          >
+            <option value="">Todas as Filiais</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Canvas Expandido -->
+    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700/50 shadow-inner">
+      <canvas id="retornadosDestinoChartExpandido" class="w-full" style="max-height: 70vh;"></canvas>
     </div>
     
     <!-- Dica -->
@@ -231,7 +294,7 @@
 
 <script>
 // Variáveis globais para os gráficos
-let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart, retornadosMesChartExpandido;
+let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart, retornadosMesChartExpandido, retornadosDestinoChartExpandido;
 let dashboardData = null;
 
 // Dados iniciais vazios (serão carregados da API)
@@ -702,20 +765,32 @@ function fecharGraficoExpandido() {
   document.body.style.overflow = 'auto';
 }
 
-// Atalho de teclado ESC para fechar
+// Atalho de teclado ESC para fechar ambos os modais
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
-    const modal = document.getElementById('modalExpandidoRetornados');
-    if (!modal.classList.contains('hidden')) {
+    const modalRetornados = document.getElementById('modalExpandidoRetornados');
+    const modalDestino = document.getElementById('modalExpandidoDestino');
+    
+    if (!modalRetornados.classList.contains('hidden')) {
       fecharGraficoExpandido();
+    }
+    if (!modalDestino.classList.contains('hidden')) {
+      fecharGraficoDestinoExpandido();
     }
   }
 });
 
-// Fechar ao clicar no fundo escuro
+// Fechar ao clicar no fundo escuro - Modal Retornados
 document.getElementById('modalExpandidoRetornados').addEventListener('click', function(e) {
   if (e.target === this) {
     fecharGraficoExpandido();
+  }
+});
+
+// Fechar ao clicar no fundo escuro - Modal Destino
+document.getElementById('modalExpandidoDestino').addEventListener('click', function(e) {
+  if (e.target === this) {
+    fecharGraficoDestinoExpandido();
   }
 });
 
@@ -770,6 +845,155 @@ function atualizarGraficoExpandido() {
     label.classList.add('text-green-400');
     setTimeout(() => {
       label.classList.remove('text-green-400');
+      label.classList.add('text-gray-300');
+    }, 500);
+  }
+}
+
+// ========== FUNÇÕES PARA GRÁFICO DE DESTINO EXPANDIDO ==========
+
+// Função para expandir o gráfico de Destino dos Retornados
+function expandirGraficoDestino() {
+  const modal = document.getElementById('modalExpandidoDestino');
+  const modalContent = document.getElementById('modalContentDestino');
+  
+  // Mostrar modal
+  modal.classList.remove('hidden');
+  
+  // Animação de entrada suave
+  setTimeout(() => {
+    modalContent.style.transform = 'scale(1)';
+    modalContent.style.opacity = '1';
+  }, 50);
+  
+  // Sincronizar opções de filiais com o filtro principal
+  sincronizarFiliaisDestinoExpandido();
+  
+  // Criar gráfico expandido se não existir
+  if (!retornadosDestinoChartExpandido) {
+    const ctx = document.getElementById('retornadosDestinoChartExpandido').getContext('2d');
+    retornadosDestinoChartExpandido = new Chart(ctx, {
+      type: 'doughnut',
+      data: JSON.parse(JSON.stringify(dadosRetornadosDestino)), // Clone dos dados
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        aspectRatio: 2,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              color: '#d1d5db',
+              font: {
+                size: 14,
+                weight: 'bold'
+              },
+              padding: 20
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            titleColor: '#fff',
+            bodyColor: '#d1d5db',
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            borderWidth: 2,
+            cornerRadius: 12,
+            padding: 16,
+            titleFont: {
+              size: 16,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 14
+            },
+            callbacks: {
+              label: function(context) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                return `${context.label}: ${context.parsed} (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  } else {
+    // Atualizar dados do gráfico expandido
+    retornadosDestinoChartExpandido.data = JSON.parse(JSON.stringify(dadosRetornadosDestino));
+    retornadosDestinoChartExpandido.update();
+  }
+  
+  // Desabilitar scroll do body
+  document.body.style.overflow = 'hidden';
+}
+
+// Função para fechar o gráfico de destino expandido
+function fecharGraficoDestinoExpandido() {
+  const modal = document.getElementById('modalExpandidoDestino');
+  const modalContent = document.getElementById('modalContentDestino');
+  
+  // Animação de saída suave
+  modalContent.style.transform = 'scale(0.95)';
+  modalContent.style.opacity = '0';
+  
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 300);
+  
+  // Reabilitar scroll do body
+  document.body.style.overflow = 'auto';
+}
+
+// Sincronizar opções de filiais do filtro principal com o modal de destino expandido
+function sincronizarFiliaisDestinoExpandido() {
+  const filtroOriginal = document.getElementById('filtroFilial');
+  const filtroExpandido = document.getElementById('filtroFilialDestinoExpandido');
+  
+  if (filtroOriginal && filtroExpandido) {
+    // Limpar opções existentes (exceto "Todas as Filiais")
+    while (filtroExpandido.children.length > 1) {
+      filtroExpandido.removeChild(filtroExpandido.lastChild);
+    }
+    
+    // Copiar opções do filtro original (exceto a primeira que é "Todas")
+    for (let i = 1; i < filtroOriginal.children.length; i++) {
+      const option = filtroOriginal.children[i].cloneNode(true);
+      filtroExpandido.appendChild(option);
+    }
+  }
+}
+
+// Atualizar gráfico de destino expandido com filtro de filial
+function atualizarGraficoDestinoExpandido() {
+  if (!retornadosDestinoChartExpandido || !dashboardData) return;
+  
+  const filialSelecionada = document.getElementById('filtroFilialDestinoExpandido').value;
+  
+  // Se não houver filial selecionada, usar dados originais
+  if (!filialSelecionada) {
+    retornadosDestinoChartExpandido.data = JSON.parse(JSON.stringify(dadosRetornadosDestino));
+    retornadosDestinoChartExpandido.update('active');
+    return;
+  }
+  
+  // Aqui você pode fazer uma requisição ao backend para obter dados filtrados
+  console.log('🔍 Filtrando destinos por filial:', filialSelecionada);
+  
+  // Simulação: variar valores para demonstrar filtro funcionando
+  const dadosFiltrados = JSON.parse(JSON.stringify(dadosRetornadosDestino));
+  dadosFiltrados.datasets[0].data = dadosFiltrados.datasets[0].data.map(valor => 
+    Math.round(valor * (0.6 + Math.random() * 0.4))
+  );
+  
+  retornadosDestinoChartExpandido.data = dadosFiltrados;
+  retornadosDestinoChartExpandido.update('active');
+  
+  // Feedback visual
+  const label = document.querySelector('#modalExpandidoDestino label');
+  if (label) {
+    label.classList.add('text-orange-400');
+    setTimeout(() => {
+      label.classList.remove('text-orange-400');
       label.classList.add('text-gray-300');
     }, 500);
   }
