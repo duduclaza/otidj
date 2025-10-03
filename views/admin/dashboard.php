@@ -107,8 +107,8 @@
 </section>
 
 <!-- Modal de Expansão do Gráfico - Retornados por Mês -->
-<div id="modalExpandidoRetornados" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
-  <div class="relative w-full max-w-7xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRetornados">
+<div id="modalExpandidoRetornados" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-500 ease-out" style="z-index: 99999;">
+  <div class="relative w-full h-full max-w-[98vw] max-h-[96vh] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-6 transition-all duration-500 ease-out transform scale-95 opacity-0 flex flex-col" id="modalContentRetornados">
     <!-- Botão Fechar -->
     <button onclick="fecharGraficoExpandido()" class="absolute top-6 right-6 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group z-10">
       <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,8 +147,8 @@
     </div>
     
     <!-- Canvas Expandido -->
-    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-8 border border-gray-700/50 shadow-inner">
-      <canvas id="retornadosMesChartExpandido" class="w-full" style="max-height: 70vh;"></canvas>
+    <div class="flex-1 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/50 shadow-inner flex items-center justify-center overflow-hidden">
+      <canvas id="retornadosMesChartExpandido" class="w-full h-full" style="max-height: 100%;"></canvas>
     </div>
     
     <!-- Dica -->
@@ -613,8 +613,7 @@ function expandirGraficoRetornados() {
       data: JSON.parse(JSON.stringify(dadosRetornadosMes)), // Clone dos dados
       options: {
         responsive: true,
-        maintainAspectRatio: true,
-        aspectRatio: 2.5,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             display: true,
