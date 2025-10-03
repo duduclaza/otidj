@@ -90,7 +90,7 @@ $menu = [
 ];
 $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/') ?: '/';
 ?>
-<aside class="hidden lg:flex lg:w-72 flex-col bg-slate-800 border-r border-slate-700">
+<aside id="sidebar" class="hidden lg:flex lg:w-72 flex-col bg-slate-800 border-r border-slate-700">
   <div class="h-16 flex items-center px-6 border-b border-slate-700">
     <div>
       <div class="text-lg font-semibold text-white">Sistema SGQ</div>
