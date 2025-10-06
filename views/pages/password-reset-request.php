@@ -112,22 +112,16 @@ document.getElementById('formRequestReset').addEventListener('submit', async fun
         const result = await response.json();
         
         if (result.success) {
-            // DEBUG - Mostrar token no console (REMOVER EM PRODUÇÃO)
-            if (result.debug_token) {
-                console.log('🔐 CÓDIGO DE TESTE:', result.debug_token);
-            }
-            
             messageDiv.className = 'bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg';
             messageDiv.innerHTML = `
                 <p class="font-medium">✅ ${result.message}</p>
-                ${result.debug_token ? '<p class="text-sm mt-2 font-bold">🔐 Código de teste: ' + result.debug_token + '</p>' : ''}
                 <p class="text-sm mt-1">Redirecionando para validação do código...</p>
             `;
             
-            // Redirecionar após 3 segundos (mais tempo para ver o código)
+            // Redirecionar após 2 segundos
             setTimeout(() => {
                 window.location.href = '/password-reset/verify?email=' + encodeURIComponent(email);
-            }, 3000);
+            }, 2000);
             
         } else {
             messageDiv.className = 'bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg';

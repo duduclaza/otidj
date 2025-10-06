@@ -134,18 +134,48 @@ class PasswordResetController
             </div>
             ";
 
+            error_log("=== PASSWORD RESET EMAIL DEBUG ===");
             error_log("Enviando email para: " . $email);
-            error_log("Token que deve aparecer no email: " . $token);
-            error_log("Primeiros 200 caracteres do body: " . substr($body, 0, 200));
+            error_log("Token gerado: " . $token);
+            error_log("Verificando se token está no body HTML...");
             
-            $sent = $emailService->send($email, $user['name'], $subject, $body);
+            if (strpos($body, $token) !== false) {
+                error_log("✓ Token ENCONTRADO no body HTML na posição: " . strpos($body, $token));
+            } else {
+                error_log("✗ Token NÃO ENCONTRADO no body HTML! ERRO CRÍTICO!");
+            }
+            
+            error_log("Body HTML completo tem " . strlen($body) . " caracteres");
+            error_log("Primeiros 300 caracteres: " . substr($body, 0, 300));
+            error_log("Caracteres ao redor do token: " . substr($body, strpos($body, $token) - 50, 100));
+            
+            // Corpo alternativo em texto plano
+            $altBody = "
+            Olá {$user['name']},
+            
+            Você solicitou a recuperação de senha da sua conta no SGQ OTI DJ.
+            
+            Seu código de verificação é: {$token}
+            
+            Use este código rapidamente.
+            
+            Próximos passos:
+            1. Insira o código acima na página de recuperação
+            2. Defina sua nova senha
+            3. Faça login com a nova senha
+            
+            Se você não solicitou esta recuperação, ignore este email.
+            
+            SGQ OTI DJ - Sistema de Gestão da Qualidade
+            ";
+            
+            $sent = $emailService->send($email, $subject, $body, $altBody);
 
             if ($sent) {
-                error_log("Email enviado com sucesso!");
+                error_log("Email enviado com sucesso! Token: " . $token);
                 echo json_encode([
                     'success' => true, 
-                    'message' => 'Código enviado para o seu email! Verifique sua caixa de entrada.',
-                    'debug_token' => $token // REMOVER EM PRODUÇÃO - apenas para teste
+                    'message' => 'Código enviado para o seu email! Verifique sua caixa de entrada.'
                 ]);
             } else {
                 error_log("ERRO ao enviar email!");
