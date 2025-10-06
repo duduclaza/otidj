@@ -70,6 +70,8 @@ class PasswordResetController
 
             // Gerar código de 6 dígitos
             $token = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            
+            error_log("Token gerado: " . $token . " para email: " . $email);
 
             // Código expira em 30 minutos
             $expiresAt = date('Y-m-d H:i:s', strtotime('+30 minutes'));
@@ -80,6 +82,8 @@ class PasswordResetController
                 VALUES (?, ?, ?, ?)
             ");
             $stmt->execute([$user['id'], $email, $token, $expiresAt]);
+            
+            error_log("Token inserido no banco para user_id: " . $user['id']);
 
             // Enviar email
             $emailService = new EmailService();
@@ -130,14 +134,21 @@ class PasswordResetController
             </div>
             ";
 
+            error_log("Enviando email para: " . $email);
+            error_log("Token que deve aparecer no email: " . $token);
+            error_log("Primeiros 200 caracteres do body: " . substr($body, 0, 200));
+            
             $sent = $emailService->send($email, $user['name'], $subject, $body);
 
             if ($sent) {
+                error_log("Email enviado com sucesso!");
                 echo json_encode([
                     'success' => true, 
-                    'message' => 'Código enviado para o seu email! Verifique sua caixa de entrada.'
+                    'message' => 'Código enviado para o seu email! Verifique sua caixa de entrada.',
+                    'debug_token' => $token // REMOVER EM PRODUÇÃO - apenas para teste
                 ]);
             } else {
+                error_log("ERRO ao enviar email!");
                 echo json_encode([
                     'success' => false, 
                     'message' => 'Erro ao enviar email. Tente novamente.'
