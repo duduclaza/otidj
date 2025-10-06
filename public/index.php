@@ -44,6 +44,14 @@ $router->get('/logout', [App\Controllers\AuthController::class, 'logout']);
 $router->get('/register', [App\Controllers\AuthController::class, 'register']);
 $router->post('/auth/register', [App\Controllers\AuthController::class, 'processRegister']);
 
+// Password Reset routes
+$router->get('/password-reset/request', [App\Controllers\PasswordResetController::class, 'requestResetPage']);
+$router->post('/password-reset/request', [App\Controllers\PasswordResetController::class, 'requestReset']);
+$router->get('/password-reset/verify', [App\Controllers\PasswordResetController::class, 'verifyCodePage']);
+$router->post('/password-reset/verify-code', [App\Controllers\PasswordResetController::class, 'verifyCode']);
+$router->get('/password-reset/new', [App\Controllers\PasswordResetController::class, 'resetPasswordPage']);
+$router->post('/password-reset/reset', [App\Controllers\PasswordResetController::class, 'resetPassword']);
+
 // Access Request routes
 $router->get('/request-access', [App\Controllers\AccessRequestController::class, 'requestAccess']);
 $router->post('/access-request/process', [App\Controllers\AccessRequestController::class, 'processRequest']);

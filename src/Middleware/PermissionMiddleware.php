@@ -113,6 +113,7 @@ class PermissionMiddleware
         $publicRoutes = [
             '/login', '/auth/login', '/register', '/auth/register', '/logout',
             '/request-access', '/access-request/process', '/access-request/filiais', '/access-request/departamentos',
+            '/password-reset/request', '/password-reset/verify', '/password-reset/verify-code', '/password-reset/new', '/password-reset/reset',
             '/email/test-connection', '/email/send-test',
             '/profile'  // Perfil próprio deve ser acessível a todos os usuários logados
         ];

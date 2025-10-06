@@ -30,8 +30,15 @@
     </button>
   </form>
 
+  <!-- Forgot Password Link -->
+  <div class="mt-4 text-center">
+    <a href="/password-reset/request" class="text-blue-200 text-sm hover:text-white transition-colors">
+      🔐 Esqueci minha senha
+    </a>
+  </div>
+
   <!-- Register Link -->
-  <div class="mt-6 text-center">
+  <div class="mt-4 text-center">
     <p class="text-blue-100 text-sm">
       Não tem uma conta? 
       <a href="/request-access" class="text-blue-300 font-semibold hover:text-blue-200 transition-colors">
