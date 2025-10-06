@@ -85,7 +85,7 @@ if (!isset($_SESSION['user_id'])) {
 
                         <!-- Título -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Título do POP/IT *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Título do Fluxograma *</label>
                             <div class="relative">
                                 <input 
                                     type="text" 
