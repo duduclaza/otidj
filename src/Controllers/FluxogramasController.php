@@ -30,11 +30,13 @@ class FluxogramasController
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
             // Verificar permissões específicas para cada aba
-            // Administradores têm acesso total, outros usuários verificam permissões específicas
-            $canViewCadastroTitulos = $isAdmin || \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_cadastro_titulos', 'view');
-            $canViewMeusRegistros = $isAdmin || \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_meus_registros', 'view');
+            // Usando módulo genérico 'fluxogramas' para simplificar
+            $hasFluxogramasPermission = $isAdmin || \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas', 'view');
+            
+            $canViewCadastroTitulos = $hasFluxogramasPermission;
+            $canViewMeusRegistros = $hasFluxogramasPermission;
             $canViewPendenteAprovacao = $isAdmin; // Apenas admin pode ver pendente aprovação
-            $canViewVisualizacao = $isAdmin || \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_visualizacao', 'view');
+            $canViewVisualizacao = $hasFluxogramasPermission;
             $canViewLogsVisualizacao = $isAdmin; // Apenas admin pode ver logs
             
             // Carregar departamentos para o formulário
@@ -96,7 +98,7 @@ class FluxogramasController
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
-            if (!$isAdmin && !\App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_cadastro_titulos', 'edit')) {
+            if (!$isAdmin && !\App\Services\PermissionService::hasPermission($user_id, 'fluxogramas', 'edit')) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para criar títulos']);
                 return;
             }
