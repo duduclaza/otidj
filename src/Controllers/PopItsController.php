@@ -1757,57 +1757,56 @@ class PopItsController
         }
     }
 
-    // Notificar todos os administradores - VERSÃO SIMPLIFICADA
+    // Notificar administradores COM PERMISSÃO de aprovar POPs e ITs + ENVIAR EMAIL
     private function notificarAdministradores($titulo, $mensagem, $tipo, $related_type = null, $related_id = null)
     {
         try {
-            error_log("=== INICIANDO NOTIFICAÇÃO PARA ADMINS ===");
+            error_log("=== INICIANDO NOTIFICAÇÃO PARA ADMINS COM PERMISSÃO ===");
             error_log("TÍTULO: $titulo");
             error_log("MENSAGEM: $mensagem");
             error_log("TIPO: $tipo");
             
-            // Buscar administradores de forma simples e direta
+            // Buscar administradores com permissão específica para aprovar POPs e ITs
             $admins = [];
             
-            // Primeira tentativa: Por campo is_admin (mais simples)
+            // Verificar se coluna pode_aprovar_pops_its existe
+            $hasColumn = false;
             try {
-                $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE is_admin = 1");
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_pops_its'");
+                $hasColumn = $checkColumn->rowCount() > 0;
+            } catch (\Exception $e) {
+                error_log("Coluna pode_aprovar_pops_its não existe ainda");
+            }
+            
+            if ($hasColumn) {
+                // Buscar apenas admins com permissão específica
+                $stmt = $this->db->prepare("
+                    SELECT id, name, email 
+                    FROM users 
+                    WHERE role = 'admin' 
+                    AND pode_aprovar_pops_its = 1
+                    AND status = 'active'
+                ");
                 $stmt->execute();
                 $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                error_log("ADMINS ENCONTRADOS POR is_admin: " . count($admins));
-                
-                foreach ($admins as $admin) {
-                    error_log("ADMIN ENCONTRADO: {$admin['name']} (ID: {$admin['id']})");
-                }
-            } catch (\Exception $e) {
-                error_log("ERRO ao buscar por is_admin: " . $e->getMessage());
-            }
-            
-            // Se não encontrou por is_admin, tentar por perfil
-            if (empty($admins)) {
-                try {
-                    $stmt = $this->db->prepare("
-                        SELECT DISTINCT u.id, u.name, u.email
-                        FROM users u
-                        INNER JOIN user_profiles up ON u.id = up.user_id
-                        INNER JOIN profiles p ON up.profile_id = p.id
-                        WHERE p.name = 'Administrador'
-                    ");
-                    $stmt->execute();
-                    $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                    error_log("ADMINS ENCONTRADOS POR PERFIL: " . count($admins));
-                } catch (\Exception $e) {
-                    error_log("ERRO ao buscar por perfil: " . $e->getMessage());
-                }
+                error_log("✅ ADMINS COM PERMISSÃO ENCONTRADOS: " . count($admins));
+            } else {
+                // Fallback: buscar todos os admins se coluna não existir
+                $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE role = 'admin' AND status = 'active'");
+                $stmt->execute();
+                $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                error_log("⚠️ Coluna não existe - usando todos admins: " . count($admins));
             }
             
             if (empty($admins)) {
-                error_log("❌ NENHUM ADMINISTRADOR ENCONTRADO NO SISTEMA!");
+                error_log("❌ NENHUM ADMINISTRADOR COM PERMISSÃO ENCONTRADO!");
                 return false;
             }
             
-            // Criar notificações para cada admin
+            // Criar notificações no sistema para cada admin
             $notificacoes_criadas = 0;
+            $emails = [];
+            
             foreach ($admins as $admin) {
                 error_log("--- CRIANDO NOTIFICAÇÃO PARA {$admin['name']} (ID: {$admin['id']}) ---");
                 
@@ -1820,17 +1819,42 @@ class PopItsController
                     
                     if ($resultado) {
                         $notificacoes_criadas++;
+                        if (!empty($admin['email'])) {
+                            $emails[] = $admin['email'];
+                        }
                         error_log("✅ NOTIFICAÇÃO CRIADA COM SUCESSO para {$admin['name']}");
-                    } else {
-                        error_log("❌ FALHA ao criar notificação para {$admin['name']}");
                     }
                 } catch (\Exception $e) {
                     error_log("❌ ERRO ao criar notificação para {$admin['name']}: " . $e->getMessage());
                 }
             }
             
+            // Enviar EMAIL para todos os admins com permissão
+            if (!empty($emails)) {
+                try {
+                    error_log("📧 ENVIANDO EMAIL PARA " . count($emails) . " ADMINISTRADORES");
+                    
+                    $emailService = new \App\Services\EmailService();
+                    $emailEnviado = $emailService->sendPopItsPendenteNotification(
+                        $emails,
+                        $titulo,
+                        $mensagem,
+                        $related_id
+                    );
+                    
+                    if ($emailEnviado) {
+                        error_log("✅ EMAIL ENVIADO COM SUCESSO PARA ADMINS");
+                    } else {
+                        error_log("⚠️ FALHA AO ENVIAR EMAIL (não crítico)");
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ ERRO AO ENVIAR EMAIL: " . $e->getMessage());
+                }
+            }
+            
             error_log("=== RESULTADO FINAL ===");
             error_log("NOTIFICAÇÕES CRIADAS: $notificacoes_criadas de " . count($admins));
+            error_log("EMAILS ENVIADOS: " . count($emails));
             error_log("=== FIM NOTIFICAÇÃO ADMINS ===");
             
             return $notificacoes_criadas > 0;

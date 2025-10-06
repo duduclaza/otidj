@@ -160,6 +160,7 @@ class AdminController
             $filial = $_POST['filial'] ?? '';
             $role = $_POST['role'] ?? 'user';
             $profileId = $_POST['profile_id'] ?? null;
+            $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? 1 : 0;
             
             // Validar dados obrigatórios
             if (empty($name) || empty($email)) {
@@ -198,9 +199,25 @@ class AdminController
             $tempPassword = $this->generateTempPassword();
             $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
             
-            // Criar usuário (sem tentar adicionar colunas que podem não existir)
-            $stmt = $this->db->prepare("INSERT INTO users (name, email, password, setor, filial, role, profile_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'active')");
-            $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId]);
+            // Verificar se coluna existe antes de inserir
+            $columns = "name, email, password, setor, filial, role, profile_id, status";
+            $placeholders = "?, ?, ?, ?, ?, ?, ?, 'active'";
+            $params = [$name, $email, $hashedPassword, $setor, $filial, $role, $profileId];
+            
+            // Adicionar coluna pode_aprovar_pops_its se existir
+            try {
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_pops_its'");
+                if ($checkColumn->rowCount() > 0) {
+                    $columns .= ", pode_aprovar_pops_its";
+                    $placeholders .= ", ?";
+                    $params[] = $podeAprovarPopsIts;
+                }
+            } catch (\Exception $e) {
+                error_log("Coluna pode_aprovar_pops_its não existe ainda: " . $e->getMessage());
+            }
+            
+            $stmt = $this->db->prepare("INSERT INTO users ($columns) VALUES ($placeholders)");
+            $stmt->execute($params);
             
             $userId = $this->db->lastInsertId();
             
@@ -636,6 +653,7 @@ class AdminController
             $role = $_POST['role'] ?? 'user';
             $status = $_POST['status'] ?? 'active';
             $profileId = $_POST['profile_id'] ?? null;
+            $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? 1 : 0;
             
             // Debug log
             error_log("UpdateUser - UserID: $userId, Name: $name, Email: $email");
@@ -694,11 +712,26 @@ class AdminController
             // Update user with or without password
             error_log("Starting user update...");
             
+            // Verificar se coluna pode_aprovar_pops_its existe
+            $hasColumn = false;
+            try {
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_pops_its'");
+                $hasColumn = $checkColumn->rowCount() > 0;
+            } catch (\Exception $e) {
+                error_log("Erro ao verificar coluna: " . $e->getMessage());
+            }
+            
             if (!empty($password)) {
                 error_log("Updating user with new password");
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
-                $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId, $status, $userId]);
+                
+                if ($hasColumn) {
+                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ?, pode_aprovar_pops_its = ? WHERE id = ?");
+                    $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId, $status, $podeAprovarPopsIts, $userId]);
+                } else {
+                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
+                    $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId, $status, $userId]);
+                }
                 
                 error_log("Update result with password: " . ($result ? 'success' : 'failed'));
                 
@@ -712,8 +745,14 @@ class AdminController
                 echo json_encode(['success' => true, 'message' => 'Usuário atualizado com sucesso! (Nova senha definida)']);
             } else {
                 error_log("Updating user without password change");
-                $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
-                $result = $stmt->execute([$name, $email, $setor, $filial, $role, $profileId, $status, $userId]);
+                
+                if ($hasColumn) {
+                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ?, pode_aprovar_pops_its = ? WHERE id = ?");
+                    $result = $stmt->execute([$name, $email, $setor, $filial, $role, $profileId, $status, $podeAprovarPopsIts, $userId]);
+                } else {
+                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
+                    $result = $stmt->execute([$name, $email, $setor, $filial, $role, $profileId, $status, $userId]);
+                }
                 
                 error_log("Update result without password: " . ($result ? 'success' : 'failed'));
                 

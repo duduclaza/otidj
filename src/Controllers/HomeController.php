@@ -20,11 +20,30 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.3.3';
+        $systemVersion = '2.4.0';
         $lastUpdate = '06/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.4.0',
+                'date' => '06/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Sistema de Emails para Aprovadores de POPs e ITs',
+                'description' => 'Implementado sistema completo de notificação por email para administradores aprovadores',
+                'items' => [
+                    'Nova permissão "Pode Aprovar POPs e ITs" no cadastro de usuários',
+                    'Checkbox específico para admins que devem receber notificações',
+                    'Email automático enviado quando há POPs/ITs pendentes',
+                    'Template HTML profissional com gradiente roxo',
+                    'Notificação apenas para admins com permissão ativada',
+                    'Link direto para aba "Pendente Aprovação"',
+                    'Lista de próximos passos no email',
+                    'Campo no banco: pode_aprovar_pops_its',
+                    'Compatibilidade retroativa (funciona sem a coluna)',
+                    'Script de migração SQL incluído'
+                ]
+            ],
             [
                 'version' => '2.3.3',
                 'date' => '06/10/2025',

@@ -88,6 +88,21 @@
         </select>
       </div>
 
+      <!-- Permissão específica para aprovar POPs e ITs -->
+      <div id="popsItsPermissionContainer" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="flex items-start space-x-3">
+          <input type="checkbox" id="podeAprovarPopsIts" name="pode_aprovar_pops_its" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+          <div>
+            <label for="podeAprovarPopsIts" class="block text-sm font-medium text-gray-900 cursor-pointer">
+              🔐 Pode Aprovar POPs e ITs
+            </label>
+            <p class="text-xs text-gray-600 mt-1">
+              Quando marcado, este administrador receberá emails automáticos sempre que houver POPs ou ITs pendentes de aprovação.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
         <button type="button" onclick="cancelUserForm()" class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
           Cancelar
@@ -303,6 +318,27 @@ function displayUsers(users) {
   });
 }
 
+// Função para mostrar/esconder permissão de POPs e ITs
+function togglePopsItsPermission() {
+  const role = document.getElementById('userRole').value;
+  const container = document.getElementById('popsItsPermissionContainer');
+  
+  if (role === 'admin') {
+    container.classList.remove('hidden');
+  } else {
+    container.classList.add('hidden');
+    document.getElementById('podeAprovarPopsIts').checked = false;
+  }
+}
+
+// Event listener para mudança de role
+document.addEventListener('DOMContentLoaded', function() {
+  const userRoleSelect = document.getElementById('userRole');
+  if (userRoleSelect) {
+    userRoleSelect.addEventListener('change', togglePopsItsPermission);
+  }
+});
+
 function toggleUserForm() {
   const container = document.getElementById('userFormContainer');
   const btn = document.getElementById('toggleFormBtn');
@@ -372,6 +408,13 @@ function editUser(userId) {
           document.getElementById('userRole').value = user.role;
           document.getElementById('userStatus').value = user.status;
           document.getElementById('userProfile').value = user.profile_id || '';
+          
+          // Preencher campo de aprovar POPs e ITs
+          const podeAprovar = user.pode_aprovar_pops_its == 1 || user.pode_aprovar_pops_its === true;
+          document.getElementById('podeAprovarPopsIts').checked = podeAprovar;
+          
+          // Mostrar/esconder permissão de POPs e ITs baseado no role
+          togglePopsItsPermission();
           
           // Show password field but make it optional for editing
           document.getElementById('passwordField').style.display = 'block';
