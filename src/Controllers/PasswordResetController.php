@@ -20,8 +20,7 @@ class PasswordResetController
      */
     public function requestResetPage()
     {
-        $viewFile = __DIR__ . '/../../views/pages/password-reset-request.php';
-        include __DIR__ . '/../../views/layouts/auth.php';
+        include __DIR__ . '/../../views/pages/password-reset-request.php';
     }
 
     /**
@@ -29,8 +28,7 @@ class PasswordResetController
      */
     public function verifyCodePage()
     {
-        $viewFile = __DIR__ . '/../../views/pages/password-reset-verify.php';
-        include __DIR__ . '/../../views/layouts/auth.php';
+        include __DIR__ . '/../../views/pages/password-reset-verify.php';
     }
 
     /**
@@ -38,8 +36,7 @@ class PasswordResetController
      */
     public function resetPasswordPage()
     {
-        $viewFile = __DIR__ . '/../../views/pages/password-reset-new.php';
-        include __DIR__ . '/../../views/layouts/auth.php';
+        include __DIR__ . '/../../views/pages/password-reset-new.php';
     }
 
     /**
