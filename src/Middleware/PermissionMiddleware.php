@@ -26,33 +26,46 @@ class PermissionMiddleware
         '/homologacoes' => 'homologacoes',
         '/toners/amostragens' => 'amostragens',
         '/amostragens-2' => 'amostragens_2',
-        '/garantias' => 'garantias',
         '/controle-de-descartes' => 'controle_descartes',
         '/controle-descartes' => 'controle_descartes',
         '/auditorias' => 'auditorias',
         '/femea' => 'femea',
         '/pops-e-its' => 'pops_its_visualizacao', // Rota principal vai para visualização (todos podem ver)
-        '/fluxogramas' => 'fluxogramas_visualizacao', // Rota principal vai para visualização
+        '/fluxogramas' => 'fluxogramas', // Usando módulo genérico
         
         // POPs e ITs - Rotas específicas por aba
         '/pops-its/titulo/create' => 'pops_its_cadastro_titulos',
         '/pops-its/titulos/list' => 'pops_its_cadastro_titulos',
+        '/pops-its/titulos/search' => 'pops_its_cadastro_titulos',
+        '/pops-its/titulo/delete' => 'pops_its_cadastro_titulos',
+        '/pops-its/registro/create' => 'pops_its_meus_registros',
         '/pops-its/registros/meus' => 'pops_its_meus_registros',
-        '/pops-its/registro/update' => 'pops_its_meus_registros',
-        '/pops-its/registro/delete' => 'pops_its_meus_registros',
-        '/pops-its/pendentes/list' => 'pops_its_pendente_aprovacao',
-        '/pops-its/registro/aprovar' => 'pops_its_pendente_aprovacao',
+        '/pops-its/registro/editar' => 'pops_its_meus_registros',
+        '/pops-its/arquivo' => 'pops_its_visualizacao', // Download de arquivos
         '/pops-its/visualizacao/list' => 'pops_its_visualizacao',
-        '/pops-its/visualizar' => 'pops_its_visualizacao',
+        '/pops-its/solicitacao/create' => 'pops_its_meus_registros', // Solicitação de exclusão
         // '/pops-its/logs/visualizacao' => 'pops_its_logs_visualizacao', // Removido - verificação feita no controller
         
-        // Fluxogramas - Rotas específicas por aba
-        '/fluxogramas/titulo/create' => 'fluxogramas_cadastro_titulos',
-        '/fluxogramas/titulos/list' => 'fluxogramas_cadastro_titulos',
-        '/fluxogramas/registro/create' => 'fluxogramas_meus_registros',
-        '/fluxogramas/registros/meus' => 'fluxogramas_meus_registros',
-        '/fluxogramas/registro/editar' => 'fluxogramas_meus_registros',
-        '/fluxogramas/arquivo' => 'fluxogramas_visualizacao', // Download de arquivos
+        // Fluxogramas - Usando módulo genérico 'fluxogramas' para todas as rotas
+        '/fluxogramas/titulo/create' => 'fluxogramas',
+        '/fluxogramas/titulos/list' => 'fluxogramas',
+        '/fluxogramas/titulos/search' => 'fluxogramas',
+        '/fluxogramas/titulo/delete' => 'fluxogramas',
+        '/fluxogramas/registro/create' => 'fluxogramas',
+        '/fluxogramas/registros/meus' => 'fluxogramas',
+        '/fluxogramas/registro/editar' => 'fluxogramas',
+        '/fluxogramas/arquivo' => 'fluxogramas',
+        '/fluxogramas/visualizacao/list' => 'fluxogramas',
+        '/fluxogramas/solicitacao/create' => 'fluxogramas',
+        '/fluxogramas/pendentes/list' => 'fluxogramas',
+        '/fluxogramas/solicitacoes/list' => 'fluxogramas',
+        '/fluxogramas/solicitacao/aprovar' => 'fluxogramas',
+        '/fluxogramas/solicitacao/reprovar' => 'fluxogramas',
+        '/fluxogramas/registro/aprovar' => 'fluxogramas',
+        '/fluxogramas/registro/reprovar' => 'fluxogramas',
+        '/fluxogramas/logs/visualizacao' => 'fluxogramas',
+        '/fluxogramas/visualizar' => 'fluxogramas',
+        
         // Melhoria Contínua
         '/melhoria-continua' => 'melhoria_continua',
         '/melhoria-continua/list' => 'melhoria_continua',
@@ -105,7 +118,6 @@ class PermissionMiddleware
         
         // Rotas "Em Breve" - acessíveis a todos os usuários logados (via PageController)
         $comingSoonRoutes = [
-            '/fluxogramas',
             '/controle-de-rc', 
             '/homologacoes'
         ];
