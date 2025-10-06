@@ -1101,15 +1101,8 @@ class FluxogramasController
             $count = $stmt->fetch(PDO::FETCH_ASSOC);
             error_log("Total de registros APROVADOS no banco: " . $count['total']);
             
-            // Buscar departamento do usuário
-            $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
-            $stmt->execute([$user_id]);
-            $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-            $user_departamento_id = $user_data['departamento_id'] ?? null;
-            error_log("Departamento do usuário: " . ($user_departamento_id ?? 'NULL'));
-            
             if ($isAdmin) {
-                // ADMIN VÊ TUDO
+                // ADMIN VÊ TUDO - não precisa verificar departamento
                 error_log("Executando query para ADMIN");
                 
                 $query = "
@@ -1140,6 +1133,20 @@ class FluxogramasController
                 
             } else {
                 // USUÁRIO COMUM VÊ: PÚBLICO + DO SEU DEPARTAMENTO
+                error_log("Executando query para USUÁRIO COMUM");
+                
+                // Buscar departamento do usuário
+                $user_departamento_id = null;
+                try {
+                    $stmt = $this->db->prepare("SELECT department_id FROM users WHERE id = ?");
+                    $stmt->execute([$user_id]);
+                    $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $user_departamento_id = $user_data['department_id'] ?? null;
+                    error_log("Departamento do usuário: " . ($user_departamento_id ?? 'NULL'));
+                } catch (\Exception $e) {
+                    error_log("Aviso: Coluna de departamento não encontrada");
+                }
+                
                 $query = "
                     SELECT DISTINCT
                         r.id,
