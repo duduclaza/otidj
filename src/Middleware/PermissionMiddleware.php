@@ -25,8 +25,11 @@ class PermissionMiddleware
         // Módulos principais
         '/homologacoes' => 'homologacoes',
         '/toners/amostragens' => 'amostragens',
+        '/amostragens-2' => 'amostragens_2',
         '/garantias' => 'garantias',
         '/controle-de-descartes' => 'controle_descartes',
+        '/controle-descartes' => 'controle_descartes',
+        '/auditorias' => 'auditorias',
         '/femea' => 'femea',
         '/pops-e-its' => 'pops_its_visualizacao', // Rota principal vai para visualização (todos podem ver)
         '/fluxogramas' => 'fluxogramas_visualizacao', // Rota principal vai para visualização

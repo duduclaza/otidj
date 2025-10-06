@@ -532,7 +532,21 @@ async function editarAmostragem(id) {
     
     // Buscar dados da amostragem
     const response = await fetch(`/amostragens-2/${id}/details`);
-    const result = await response.json();
+    
+    // Verificar se a resposta é válida
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    // Verificar se tem conteúdo antes de fazer parse
+    const text = await response.text();
+    console.log('Resposta do servidor:', text);
+    
+    if (!text) {
+      throw new Error('Resposta vazia do servidor');
+    }
+    
+    const result = JSON.parse(text);
     
     if (!result.success) {
       alert('Erro ao carregar amostragem: ' + result.message);

@@ -613,42 +613,72 @@ class Amostragens2Controller
 
     public function details($id = null): void
     {
-        // Limpar qualquer output anterior
-        while (ob_get_level()) { ob_end_clean(); }
-        
-        header('Content-Type: application/json');
-        
         try {
-            $id = (int)$id;
-            
-            if ($id <= 0) {
-                echo json_encode(['success' => false, 'message' => 'ID inválido']);
-                return;
+            // Limpar qualquer output anterior
+            if (ob_get_level()) {
+                ob_end_clean();
             }
             
-            error_log("Buscando detalhes da amostragem ID: $id");
+            // Configurar headers antes de qualquer output
+            header('Content-Type: application/json; charset=UTF-8');
+            header('Cache-Control: no-cache, must-revalidate');
             
-            $stmt = $this->db->prepare('SELECT * FROM amostragens_2 WHERE id = :id');
+            $id = (int)$id;
+            
+            error_log("🔍 Details() chamado - ID recebido: " . var_export($id, true));
+            
+            if ($id <= 0) {
+                error_log("❌ ID inválido: $id");
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                exit;
+            }
+            
+            error_log("🔍 Buscando detalhes da amostragem ID: $id");
+            
+            // Excluir campos BLOB para evitar problemas de memória/encoding
+            $stmt = $this->db->prepare('
+                SELECT 
+                    id, user_id, filial_id, numero_nf, 
+                    anexo_nf_nome, anexo_nf_tipo, anexo_nf_tamanho,
+                    tipo_produto, produto_id, codigo_produto, nome_produto,
+                    quantidade_recebida, quantidade_testada, quantidade_aprovada, quantidade_reprovada,
+                    fornecedor_id, responsaveis, status_final, created_at, updated_at
+                FROM amostragens_2 
+                WHERE id = :id
+            ');
+            
             $stmt->execute([':id' => $id]);
             $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$amostragem) {
-                error_log("Amostragem ID $id não encontrada");
+                error_log("❌ Amostragem ID $id não encontrada no banco");
+                http_response_code(404);
                 echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
-                return;
+                exit;
             }
             
-            error_log("Amostragem encontrada com sucesso");
+            error_log("✅ Amostragem encontrada: NF " . $amostragem['numero_nf']);
             
-            echo json_encode([
+            $response = [
                 'success' => true,
                 'amostragem' => $amostragem
-            ]);
+            ];
             
+            echo json_encode($response);
+            exit;
+            
+        } catch (\PDOException $e) {
+            error_log("❌ Erro de banco de dados: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Erro de banco de dados']);
+            exit;
         } catch (\Exception $e) {
-            error_log("Erro ao buscar detalhes: " . $e->getMessage());
+            error_log("❌ Erro ao buscar detalhes: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
+            http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes: ' . $e->getMessage()]);
+            exit;
         }
     }
 
