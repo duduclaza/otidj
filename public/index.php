@@ -332,8 +332,14 @@ $router->post('/fluxogramas/registro/create', [App\Controllers\FluxogramasContro
 $router->post('/fluxogramas/registro/editar', [App\Controllers\FluxogramasController::class, 'editarRegistro']);
 $router->get('/fluxogramas/registros/meus', [App\Controllers\FluxogramasController::class, 'listMeusRegistros']);
 $router->get('/fluxogramas/arquivo/{id}', [App\Controllers\FluxogramasController::class, 'downloadArquivo']);
+$router->get('/fluxogramas/visualizar/{id}', [App\Controllers\FluxogramasController::class, 'visualizarArquivo']);
 $router->get('/fluxogramas/pendentes/list', [App\Controllers\FluxogramasController::class, 'listPendentes']);
+$router->post('/fluxogramas/registro/aprovar', [App\Controllers\FluxogramasController::class, 'aprovarRegistro']);
+$router->post('/fluxogramas/registro/reprovar', [App\Controllers\FluxogramasController::class, 'reprovarRegistro']);
+$router->post('/fluxogramas/solicitacao/create', [App\Controllers\FluxogramasController::class, 'createSolicitacaoExclusao']);
 $router->get('/fluxogramas/solicitacoes/list', [App\Controllers\FluxogramasController::class, 'listSolicitacoes']);
+$router->post('/fluxogramas/solicitacao/aprovar', [App\Controllers\FluxogramasController::class, 'aprovarSolicitacao']);
+$router->post('/fluxogramas/solicitacao/reprovar', [App\Controllers\FluxogramasController::class, 'reprovarSolicitacao']);
 $router->get('/fluxogramas/visualizacao/list', [App\Controllers\FluxogramasController::class, 'listVisualizacao']);
 $router->get('/fluxogramas/logs/visualizacao', [App\Controllers\FluxogramasController::class, 'listLogs']);
 

@@ -426,7 +426,232 @@ class FluxogramasController
     public function editarRegistro()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Funcionalidade em desenvolvimento']);
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = $_POST['registro_id'] ?? '';
+            
+            if (empty($registro_id)) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro não informado']);
+                return;
+            }
+            
+            // Verificar se o registro pertence ao usuário e está reprovado
+            $stmt = $this->db->prepare("
+                SELECT id, status, criado_por 
+                FROM fluxogramas_registros 
+                WHERE id = ?
+            ");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
+                return;
+            }
+            
+            if ($registro['criado_por'] != $user_id) {
+                echo json_encode(['success' => false, 'message' => 'Você não tem permissão para editar este registro']);
+                return;
+            }
+            
+            if ($registro['status'] != 'REPROVADO') {
+                echo json_encode(['success' => false, 'message' => 'Apenas registros reprovados podem ser editados']);
+                return;
+            }
+            
+            // Validar arquivo
+            if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo não foi enviado corretamente']);
+                return;
+            }
+            
+            $arquivo = $_FILES['arquivo'];
+            $nome_arquivo = $arquivo['name'];
+            $tamanho = $arquivo['size'];
+            $tmp_name = $arquivo['tmp_name'];
+            
+            // Validar tamanho
+            if ($tamanho > 10 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo muito grande. Máximo: 10MB']);
+                return;
+            }
+            
+            // Validar extensão
+            $extensao = strtolower(pathinfo($nome_arquivo, PATHINFO_EXTENSION));
+            $extensoes_permitidas = ['pdf', 'png', 'jpg', 'jpeg', 'ppt', 'pptx'];
+            
+            if (!in_array($extensao, $extensoes_permitidas)) {
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido']);
+                return;
+            }
+            
+            // Ler arquivo
+            $conteudo_arquivo = file_get_contents($tmp_name);
+            
+            if ($conteudo_arquivo === false) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao ler arquivo']);
+                return;
+            }
+            
+            // Atualizar registro
+            $stmt = $this->db->prepare("
+                UPDATE fluxogramas_registros 
+                SET arquivo = ?, 
+                    nome_arquivo = ?, 
+                    extensao = ?, 
+                    tamanho_arquivo = ?,
+                    status = 'PENDENTE',
+                    observacao_reprovacao = NULL,
+                    aprovado_por = NULL,
+                    aprovado_em = NULL
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([
+                $conteudo_arquivo,
+                $nome_arquivo,
+                $extensao,
+                $tamanho,
+                $registro_id
+            ]);
+            
+            echo json_encode(['success' => true, 'message' => 'Registro atualizado com sucesso! Aguardando nova aprovação.']);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::editarRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao editar registro: ' . $e->getMessage()]);
+        }
+    }
+    
+    public function aprovarRegistro()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Apenas administradores podem aprovar registros']);
+                return;
+            }
+            
+            $registro_id = $_POST['registro_id'] ?? '';
+            
+            if (empty($registro_id)) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro não informado']);
+                return;
+            }
+            
+            // Verificar se registro existe e está pendente
+            $stmt = $this->db->prepare("SELECT id, status FROM fluxogramas_registros WHERE id = ?");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
+                return;
+            }
+            
+            if ($registro['status'] != 'PENDENTE') {
+                echo json_encode(['success' => false, 'message' => 'Este registro não está pendente de aprovação']);
+                return;
+            }
+            
+            // Aprovar registro
+            $stmt = $this->db->prepare("
+                UPDATE fluxogramas_registros 
+                SET status = 'APROVADO',
+                    aprovado_por = ?,
+                    aprovado_em = NOW()
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([$user_id, $registro_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::aprovarRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao aprovar registro: ' . $e->getMessage()]);
+        }
+    }
+    
+    public function reprovarRegistro()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Apenas administradores podem reprovar registros']);
+                return;
+            }
+            
+            $registro_id = $_POST['registro_id'] ?? '';
+            $observacao = trim($_POST['observacao'] ?? '');
+            
+            if (empty($registro_id)) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro não informado']);
+                return;
+            }
+            
+            if (empty($observacao)) {
+                echo json_encode(['success' => false, 'message' => 'Observação é obrigatória para reprovação']);
+                return;
+            }
+            
+            // Verificar se registro existe e está pendente
+            $stmt = $this->db->prepare("SELECT id, status FROM fluxogramas_registros WHERE id = ?");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
+                return;
+            }
+            
+            if ($registro['status'] != 'PENDENTE') {
+                echo json_encode(['success' => false, 'message' => 'Este registro não está pendente de aprovação']);
+                return;
+            }
+            
+            // Reprovar registro
+            $stmt = $this->db->prepare("
+                UPDATE fluxogramas_registros 
+                SET status = 'REPROVADO',
+                    aprovado_por = ?,
+                    aprovado_em = NOW(),
+                    observacao_reprovacao = ?
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([$user_id, $observacao, $registro_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Registro reprovado. O autor será notificado.']);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::reprovarRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao reprovar registro: ' . $e->getMessage()]);
+        }
     }
 
     public function listMeusRegistros()
@@ -563,21 +788,569 @@ class FluxogramasController
         }
     }
     
+    public function createSolicitacaoExclusao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = $_POST['registro_id'] ?? '';
+            $motivo = trim($_POST['motivo'] ?? '');
+            
+            if (empty($registro_id) || empty($motivo)) {
+                echo json_encode(['success' => false, 'message' => 'Registro e motivo são obrigatórios']);
+                return;
+            }
+            
+            // Verificar se o registro existe e pertence ao usuário
+            $stmt = $this->db->prepare("
+                SELECT id, criado_por, status 
+                FROM fluxogramas_registros 
+                WHERE id = ?
+            ");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
+                return;
+            }
+            
+            if ($registro['criado_por'] != $user_id) {
+                echo json_encode(['success' => false, 'message' => 'Você não tem permissão para solicitar exclusão deste registro']);
+                return;
+            }
+            
+            // Verificar se já existe solicitação pendente
+            $stmt = $this->db->prepare("
+                SELECT id 
+                FROM fluxogramas_solicitacoes_exclusao 
+                WHERE registro_id = ? AND status = 'PENDENTE'
+            ");
+            $stmt->execute([$registro_id]);
+            
+            if ($stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Já existe uma solicitação de exclusão pendente para este registro']);
+                return;
+            }
+            
+            // Criar solicitação
+            $stmt = $this->db->prepare("
+                INSERT INTO fluxogramas_solicitacoes_exclusao 
+                (registro_id, solicitante_id, motivo, status) 
+                VALUES (?, ?, ?, 'PENDENTE')
+            ");
+            
+            $stmt->execute([$registro_id, $user_id, $motivo]);
+            $solicitacao_id = $this->db->lastInsertId();
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Solicitação enviada com sucesso!',
+                'solicitacao_id' => $solicitacao_id
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::createSolicitacaoExclusao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao criar solicitação: ' . $e->getMessage()]);
+        }
+    }
+    
     public function listSolicitacoes()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => []]);
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
+            // Verificar se tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_solicitacoes_exclusao'");
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => true, 'data' => []]);
+                return;
+            }
+            
+            // Buscar todas as solicitações
+            $stmt = $this->db->query("
+                SELECT 
+                    s.id,
+                    s.motivo,
+                    s.status,
+                    s.solicitado_em,
+                    s.avaliado_em,
+                    s.observacoes_avaliacao,
+                    r.versao,
+                    r.nome_arquivo,
+                    t.titulo,
+                    u_solicitante.name as solicitante_nome,
+                    u_solicitante.email as solicitante_email,
+                    u_avaliador.name as avaliado_por_nome
+                FROM fluxogramas_solicitacoes_exclusao s
+                INNER JOIN fluxogramas_registros r ON s.registro_id = r.id
+                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                INNER JOIN users u_solicitante ON s.solicitante_id = u_solicitante.id
+                LEFT JOIN users u_avaliador ON s.avaliado_por = u_avaliador.id
+                ORDER BY 
+                    CASE s.status 
+                        WHEN 'PENDENTE' THEN 1 
+                        WHEN 'APROVADA' THEN 2 
+                        WHEN 'REPROVADA' THEN 3 
+                    END,
+                    s.solicitado_em DESC
+            ");
+            
+            $solicitacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $solicitacoes]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::listSolicitacoes - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao listar solicitações: ' . $e->getMessage()]);
+        }
+    }
+    
+    public function aprovarSolicitacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Apenas administradores podem aprovar solicitações']);
+                return;
+            }
+            
+            $solicitacao_id = $_POST['solicitacao_id'] ?? '';
+            $observacoes = trim($_POST['observacoes'] ?? '');
+            
+            if (empty($solicitacao_id)) {
+                echo json_encode(['success' => false, 'message' => 'ID da solicitação não informado']);
+                return;
+            }
+            
+            // Buscar solicitação
+            $stmt = $this->db->prepare("
+                SELECT s.id, s.registro_id, s.status 
+                FROM fluxogramas_solicitacoes_exclusao s 
+                WHERE s.id = ?
+            ");
+            $stmt->execute([$solicitacao_id]);
+            $solicitacao = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$solicitacao) {
+                echo json_encode(['success' => false, 'message' => 'Solicitação não encontrada']);
+                return;
+            }
+            
+            if ($solicitacao['status'] != 'PENDENTE') {
+                echo json_encode(['success' => false, 'message' => 'Esta solicitação já foi processada']);
+                return;
+            }
+            
+            // Iniciar transação
+            $this->db->beginTransaction();
+            
+            try {
+                // Atualizar solicitação
+                $stmt = $this->db->prepare("
+                    UPDATE fluxogramas_solicitacoes_exclusao 
+                    SET status = 'APROVADA',
+                        avaliado_por = ?,
+                        avaliado_em = NOW(),
+                        observacoes_avaliacao = ?
+                    WHERE id = ?
+                ");
+                $stmt->execute([$user_id, $observacoes, $solicitacao_id]);
+                
+                // Excluir registro
+                $stmt = $this->db->prepare("DELETE FROM fluxogramas_registros WHERE id = ?");
+                $stmt->execute([$solicitacao['registro_id']]);
+                
+                $this->db->commit();
+                
+                echo json_encode(['success' => true, 'message' => 'Solicitação aprovada e registro excluído com sucesso!']);
+                
+            } catch (\Exception $e) {
+                $this->db->rollBack();
+                throw $e;
+            }
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::aprovarSolicitacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao aprovar solicitação: ' . $e->getMessage()]);
+        }
+    }
+    
+    public function reprovarSolicitacao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Apenas administradores podem reprovar solicitações']);
+                return;
+            }
+            
+            $solicitacao_id = $_POST['solicitacao_id'] ?? '';
+            $observacoes = trim($_POST['observacoes'] ?? '');
+            
+            if (empty($solicitacao_id) || empty($observacoes)) {
+                echo json_encode(['success' => false, 'message' => 'ID da solicitação e observações são obrigatórios']);
+                return;
+            }
+            
+            // Buscar solicitação
+            $stmt = $this->db->prepare("
+                SELECT id, status 
+                FROM fluxogramas_solicitacoes_exclusao 
+                WHERE id = ?
+            ");
+            $stmt->execute([$solicitacao_id]);
+            $solicitacao = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$solicitacao) {
+                echo json_encode(['success' => false, 'message' => 'Solicitação não encontrada']);
+                return;
+            }
+            
+            if ($solicitacao['status'] != 'PENDENTE') {
+                echo json_encode(['success' => false, 'message' => 'Esta solicitação já foi processada']);
+                return;
+            }
+            
+            // Reprovar solicitação
+            $stmt = $this->db->prepare("
+                UPDATE fluxogramas_solicitacoes_exclusao 
+                SET status = 'REPROVADA',
+                    avaliado_por = ?,
+                    avaliado_em = NOW(),
+                    observacoes_avaliacao = ?
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([$user_id, $observacoes, $solicitacao_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Solicitação reprovada. O solicitante será notificado.']);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::reprovarSolicitacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao reprovar solicitação: ' . $e->getMessage()]);
+        }
     }
     
     public function listVisualizacao()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => []]);
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            // Verificar se tabelas existem
+            $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_registros'");
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => true, 'data' => []]);
+                return;
+            }
+            
+            // Buscar departamento do usuário
+            $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user_departamento_id = $user_data['departamento_id'] ?? null;
+            
+            if ($isAdmin) {
+                // ADMIN VÊ TUDO
+                $query = "
+                    SELECT 
+                        r.id,
+                        r.versao,
+                        r.nome_arquivo,
+                        r.extensao,
+                        r.publico,
+                        r.aprovado_em,
+                        t.titulo,
+                        u.name as autor_nome,
+                        u.email as autor_email,
+                        GROUP_CONCAT(DISTINCT d.nome SEPARATOR ', ') as departamentos_permitidos
+                    FROM fluxogramas_registros r
+                    INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                    INNER JOIN users u ON r.criado_por = u.id
+                    LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                    LEFT JOIN departamentos d ON rd.departamento_id = d.id
+                    WHERE r.status = 'APROVADO'
+                    GROUP BY r.id
+                    ORDER BY r.aprovado_em DESC
+                ";
+                
+                $stmt = $this->db->query($query);
+                
+            } else {
+                // USUÁRIO COMUM VÊ: PÚBLICO + DO SEU DEPARTAMENTO
+                $query = "
+                    SELECT DISTINCT
+                        r.id,
+                        r.versao,
+                        r.nome_arquivo,
+                        r.extensao,
+                        r.publico,
+                        r.aprovado_em,
+                        t.titulo,
+                        u.name as autor_nome,
+                        u.email as autor_email,
+                        GROUP_CONCAT(DISTINCT d.nome SEPARATOR ', ') as departamentos_permitidos
+                    FROM fluxogramas_registros r
+                    INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                    INNER JOIN users u ON r.criado_por = u.id
+                    LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                    LEFT JOIN departamentos d ON rd.departamento_id = d.id
+                    WHERE r.status = 'APROVADO'
+                    AND (
+                        r.publico = 1
+                        OR (
+                            r.publico = 0 
+                            AND EXISTS (
+                                SELECT 1 
+                                FROM fluxogramas_registros_departamentos rd2 
+                                WHERE rd2.registro_id = r.id 
+                                AND rd2.departamento_id = ?
+                            )
+                        )
+                    )
+                    GROUP BY r.id
+                    ORDER BY r.aprovado_em DESC
+                ";
+                
+                $stmt = $this->db->prepare($query);
+                $stmt->execute([$user_departamento_id]);
+            }
+            
+            $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $registros]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::listVisualizacao - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao listar registros: ' . $e->getMessage()]);
+        }
+    }
+    
+    public function visualizarArquivo($id)
+    {
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(403);
+                echo "Acesso negado";
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            // Buscar departamento do usuário
+            $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user_departamento_id = $user_data['departamento_id'] ?? null;
+            
+            // Buscar registro
+            $stmt = $this->db->prepare("
+                SELECT 
+                    r.id,
+                    r.arquivo,
+                    r.nome_arquivo,
+                    r.extensao,
+                    r.publico,
+                    r.status
+                FROM fluxogramas_registros r
+                WHERE r.id = ?
+            ");
+            $stmt->execute([$id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                http_response_code(404);
+                echo "Arquivo não encontrado";
+                return;
+            }
+            
+            // Verificar se está aprovado
+            if ($registro['status'] != 'APROVADO') {
+                http_response_code(403);
+                echo "Arquivo não aprovado para visualização";
+                return;
+            }
+            
+            // Verificar permissões de visualização
+            $tem_acesso = false;
+            
+            if ($isAdmin) {
+                $tem_acesso = true; // Admin vê tudo
+            } elseif ($registro['publico'] == 1) {
+                $tem_acesso = true; // Público todos veem
+            } else {
+                // Verificar se o departamento do usuário tem acesso
+                $stmt = $this->db->prepare("
+                    SELECT COUNT(*) as tem_acesso
+                    FROM fluxogramas_registros_departamentos
+                    WHERE registro_id = ? AND departamento_id = ?
+                ");
+                $stmt->execute([$id, $user_departamento_id]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $tem_acesso = ($result['tem_acesso'] > 0);
+            }
+            
+            if (!$tem_acesso) {
+                http_response_code(403);
+                echo "Você não tem permissão para visualizar este arquivo";
+                return;
+            }
+            
+            // Registrar log de visualização
+            try {
+                $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+                $stmt = $this->db->prepare("
+                    INSERT INTO fluxogramas_logs_visualizacao 
+                    (registro_id, usuario_id, user_agent) 
+                    VALUES (?, ?, ?)
+                ");
+                $stmt->execute([$id, $user_id, $user_agent]);
+            } catch (\Exception $e) {
+                error_log("Erro ao registrar log: " . $e->getMessage());
+            }
+            
+            // Exibir arquivo
+            $mime_types = [
+                'pdf' => 'application/pdf',
+                'png' => 'image/png',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'ppt' => 'application/vnd.ms-powerpoint',
+                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            ];
+            
+            $content_type = $mime_types[$registro['extensao']] ?? 'application/octet-stream';
+            
+            header('Content-Type: ' . $content_type);
+            header('Content-Disposition: inline; filename="' . $registro['nome_arquivo'] . '"');
+            header('Content-Length: ' . strlen($registro['arquivo']));
+            header('X-Frame-Options: SAMEORIGIN');
+            
+            echo $registro['arquivo'];
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::visualizarArquivo - Erro: " . $e->getMessage());
+            http_response_code(500);
+            echo "Erro ao visualizar arquivo";
+        }
     }
     
     public function listLogs()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => []]);
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
+            // Parâmetros de filtro
+            $search = $_GET['search'] ?? '';
+            $data_inicio = $_GET['data_inicio'] ?? '';
+            $data_fim = $_GET['data_fim'] ?? '';
+            
+            $query = "
+                SELECT 
+                    l.id,
+                    l.visualizado_em,
+                    u.name as usuario_nome,
+                    u.email as usuario_email,
+                    t.titulo,
+                    r.versao,
+                    r.nome_arquivo
+                FROM fluxogramas_logs_visualizacao l
+                INNER JOIN users u ON l.usuario_id = u.id
+                INNER JOIN fluxogramas_registros r ON l.registro_id = r.id
+                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                WHERE 1=1
+            ";
+            
+            $params = [];
+            
+            if (!empty($search)) {
+                $query .= " AND (u.name LIKE ? OR t.titulo LIKE ? OR r.nome_arquivo LIKE ?)";
+                $search_term = '%' . $search . '%';
+                $params[] = $search_term;
+                $params[] = $search_term;
+                $params[] = $search_term;
+            }
+            
+            if (!empty($data_inicio)) {
+                $query .= " AND DATE(l.visualizado_em) >= ?";
+                $params[] = $data_inicio;
+            }
+            
+            if (!empty($data_fim)) {
+                $query .= " AND DATE(l.visualizado_em) <= ?";
+                $params[] = $data_fim;
+            }
+            
+            $query .= " ORDER BY l.visualizado_em DESC LIMIT 500";
+            
+            $stmt = $this->db->prepare($query);
+            $stmt->execute($params);
+            $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $logs]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::listLogs - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao listar logs']);
+        }
     }
 }
