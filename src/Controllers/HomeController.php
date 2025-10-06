@@ -20,11 +20,30 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.2.9';
-        $lastUpdate = '01/10/2025';
+        $systemVersion = '2.3.0';
+        $lastUpdate = '06/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.3.0',
+                'date' => '06/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Sistema Completo de Edição em Amostragens 2.0',
+                'description' => 'Implementada funcionalidade completa de edição de amostragens com suporte a anexos',
+                'items' => [
+                    'Botão "Editar" carrega todos os dados da amostragem no formulário',
+                    'Formulário inline pré-preenchido com dados existentes',
+                    'Exibição de anexo NF atual com opção de substituir',
+                    'Exibição de evidências existentes (fotos) com detalhes',
+                    'Suporte para adicionar novas evidências às existentes',
+                    'Atualização de anexo NF opcional (mantém existente se não enviar novo)',
+                    'Seleção múltipla de responsáveis pré-selecionados',
+                    'Validação completa de campos e arquivos',
+                    'Feedback visual claro indicando modo de edição',
+                    'Logs detalhados para troubleshooting'
+                ]
+            ],
             [
                 'version' => '2.2.9',
                 'date' => '01/10/2025',

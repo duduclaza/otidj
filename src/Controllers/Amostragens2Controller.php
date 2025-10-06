@@ -679,7 +679,31 @@ class Amostragens2Controller
             
             $responsaveisStr = !empty($responsaveis) ? implode(',', $responsaveis) : '';
 
-            $stmt = $this->db->prepare('
+            // Processar novo anexo da NF se enviado
+            $updateAnexoNf = '';
+            $anexoNfParams = [];
+            
+            if (!empty($_FILES['anexo_nf']['tmp_name'])) {
+                $anexoNf = file_get_contents($_FILES['anexo_nf']['tmp_name']);
+                $anexoNfNome = $_FILES['anexo_nf']['name'];
+                $anexoNfTipo = $_FILES['anexo_nf']['type'];
+                $anexoNfTamanho = $_FILES['anexo_nf']['size'];
+
+                if ($anexoNfTamanho > 10 * 1024 * 1024) {
+                    echo json_encode(['success' => false, 'message' => 'Anexo da NF deve ter no máximo 10MB']);
+                    return;
+                }
+                
+                $updateAnexoNf = ', anexo_nf = :anexo_nf, anexo_nf_nome = :anexo_nf_nome, anexo_nf_tipo = :anexo_nf_tipo, anexo_nf_tamanho = :anexo_nf_tamanho';
+                $anexoNfParams = [
+                    ':anexo_nf' => $anexoNf,
+                    ':anexo_nf_nome' => $anexoNfNome,
+                    ':anexo_nf_tipo' => $anexoNfTipo,
+                    ':anexo_nf_tamanho' => $anexoNfTamanho
+                ];
+            }
+
+            $stmt = $this->db->prepare("
                 UPDATE amostragens_2 SET
                     numero_nf = :numero_nf,
                     tipo_produto = :tipo_produto,
@@ -694,10 +718,11 @@ class Amostragens2Controller
                     responsaveis = :responsaveis,
                     status_final = :status_final,
                     updated_at = NOW()
+                    {$updateAnexoNf}
                 WHERE id = :id
-            ');
+            ");
 
-            $stmt->execute([
+            $params = [
                 ':id' => $id,
                 ':numero_nf' => $numeroNf,
                 ':tipo_produto' => $tipoProduto,
@@ -711,7 +736,17 @@ class Amostragens2Controller
                 ':fornecedor_id' => $fornecedorId,
                 ':responsaveis' => $responsaveisStr,
                 ':status_final' => $statusFinal
-            ]);
+            ];
+            
+            // Merge anexo NF params se existir
+            $params = array_merge($params, $anexoNfParams);
+            
+            $stmt->execute($params);
+
+            // Processar novas evidências se enviadas
+            if (!empty($_FILES['evidencias']['tmp_name'][0])) {
+                $this->processarEvidencias($id, $_FILES['evidencias']);
+            }
 
             // Email automático desabilitado - mantendo apenas notificações visuais
             /*

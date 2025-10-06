@@ -21,7 +21,7 @@ $toners = $toners ?? [];
   <!-- Formulário Inline (Hidden por padrão) -->
   <div id="amostragemFormContainer" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-6 mb-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-lg font-semibold text-gray-100">🔬 Nova Amostragem</h2>
+      <h2 id="formTitle" class="text-lg font-semibold text-gray-100">🔬 Nova Amostragem</h2>
       <button onclick="closeAmostragemModal()" class="text-gray-400 hover:text-gray-200">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -42,6 +42,10 @@ $toners = $toners ?? [];
         <div>
           <label class="block text-sm font-medium text-gray-200 mb-1">Anexo da NF (PDF ou Foto - Máx 10MB)</label>
           <input type="file" name="anexo_nf" accept=".pdf,image/*" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200">
+          <div id="anexoNfExistente" class="hidden mt-2">
+            <p class="text-xs text-gray-400">Anexo atual: <span id="anexoNfNome" class="text-blue-400"></span></p>
+            <p class="text-xs text-gray-500">Envie um novo arquivo para substituir</p>
+          </div>
         </div>
 
         <!-- Tipo de Produto -->
@@ -130,6 +134,11 @@ $toners = $toners ?? [];
           <label class="block text-sm font-medium text-gray-200 mb-1">Evidências (Fotos - Máx 5 arquivos de 10MB cada)</label>
           <input type="file" name="evidencias[]" multiple accept="image/*" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200">
           <p class="text-xs text-gray-400 mt-1">Opcional - Máximo 5 fotos</p>
+          <div id="evidenciasExistentes" class="hidden mt-3">
+            <p class="text-sm font-medium text-gray-200 mb-2">Evidências atuais:</p>
+            <div id="listaEvidencias" class="grid grid-cols-2 md:grid-cols-3 gap-2"></div>
+            <p class="text-xs text-gray-500 mt-2">Novas evidências serão adicionadas às existentes</p>
+          </div>
         </div>
       </div>
 
@@ -518,7 +527,122 @@ async function baixarEvidencias(amostragemId) {
 
 // Editar amostragem
 async function editarAmostragem(id) {
-  alert('Funcionalidade de edição em desenvolvimento :)');
+  try {
+    console.log('Carregando amostragem para edição:', id);
+    
+    // Buscar dados da amostragem
+    const response = await fetch(`/amostragens-2/${id}/details`);
+    const result = await response.json();
+    
+    if (!result.success) {
+      alert('Erro ao carregar amostragem: ' + result.message);
+      return;
+    }
+    
+    const amostra = result.amostragem;
+    console.log('Dados carregados:', amostra);
+    
+    // Alterar título do formulário
+    document.getElementById('formTitle').textContent = '✏️ Editar Amostragem';
+    
+    // Alterar action do formulário para update
+    document.getElementById('amostragemForm').action = '/amostragens-2/update';
+    
+    // Adicionar campo hidden com ID da amostragem
+    let hiddenId = document.querySelector('input[name="amostragem_id"]');
+    if (!hiddenId) {
+      hiddenId = document.createElement('input');
+      hiddenId.type = 'hidden';
+      hiddenId.name = 'amostragem_id';
+      document.getElementById('amostragemForm').appendChild(hiddenId);
+    }
+    hiddenId.value = id;
+    
+    // Preencher campos do formulário
+    document.querySelector('input[name="numero_nf"]').value = amostra.numero_nf || '';
+    
+    // Tipo de produto
+    document.getElementById('tipoProduto').value = amostra.tipo_produto || '';
+    carregarProdutos(); // Carregar lista de produtos
+    
+    // Aguardar produtos carregarem e selecionar o correto
+    setTimeout(() => {
+      const produtoSelect = document.getElementById('produtoSelect');
+      produtoSelect.value = amostra.produto_id || '';
+      
+      // Disparar evento change para preencher campos hidden
+      const event = new Event('change');
+      produtoSelect.dispatchEvent(event);
+    }, 100);
+    
+    // Quantidades
+    document.querySelector('input[name="quantidade_recebida"]').value = amostra.quantidade_recebida || '';
+    document.querySelector('input[name="quantidade_testada"]').value = amostra.quantidade_testada || '';
+    document.querySelector('input[name="quantidade_aprovada"]').value = amostra.quantidade_aprovada || '';
+    document.querySelector('input[name="quantidade_reprovada"]').value = amostra.quantidade_reprovada || '';
+    
+    // Fornecedor
+    document.querySelector('select[name="fornecedor_id"]').value = amostra.fornecedor_id || '';
+    
+    // Responsáveis (múltipla seleção)
+    if (amostra.responsaveis) {
+      const responsaveisIds = amostra.responsaveis.split(',').map(id => id.trim());
+      const responsaveisSelect = document.querySelector('select[name="responsaveis[]"]');
+      
+      for (let option of responsaveisSelect.options) {
+        option.selected = responsaveisIds.includes(option.value);
+      }
+    }
+    
+    // Status
+    document.querySelector('select[name="status_final"]').value = amostra.status_final || 'Pendente';
+    
+    // Mostrar anexo NF existente se houver
+    if (amostra.anexo_nf_nome) {
+      document.getElementById('anexoNfExistente').classList.remove('hidden');
+      document.getElementById('anexoNfNome').textContent = amostra.anexo_nf_nome;
+    } else {
+      document.getElementById('anexoNfExistente').classList.add('hidden');
+    }
+    
+    // Buscar e mostrar evidências existentes
+    const evidResponse = await fetch(`/amostragens-2/${id}/evidencias`);
+    const evidResult = await evidResponse.json();
+    
+    if (evidResult.success && evidResult.evidencias && evidResult.evidencias.length > 0) {
+      const listaEvidencias = document.getElementById('listaEvidencias');
+      listaEvidencias.innerHTML = '';
+      
+      evidResult.evidencias.forEach(ev => {
+        const div = document.createElement('div');
+        div.className = 'bg-gray-700 p-2 rounded text-xs';
+        div.innerHTML = `
+          <p class="text-gray-300 truncate" title="${ev.nome}">${ev.nome}</p>
+          <p class="text-gray-500">${(ev.tamanho / 1024).toFixed(1)} KB</p>
+        `;
+        listaEvidencias.appendChild(div);
+      });
+      
+      document.getElementById('evidenciasExistentes').classList.remove('hidden');
+    } else {
+      document.getElementById('evidenciasExistentes').classList.add('hidden');
+    }
+    
+    // Alterar texto do botão
+    document.getElementById('submitButton').innerHTML = '💾 Atualizar Amostragem';
+    
+    // Mostrar formulário
+    document.getElementById('amostragemFormContainer').classList.remove('hidden');
+    
+    // Scroll para o formulário
+    document.getElementById('amostragemFormContainer').scrollIntoView({ behavior: 'smooth' });
+    
+    console.log('Formulário preenchido e pronto para edição');
+    
+  } catch (error) {
+    console.error('Erro ao carregar amostragem:', error);
+    alert('Erro ao carregar dados da amostragem: ' + error.message);
+  }
 }
 
 // Nova amostragem
@@ -532,9 +656,16 @@ function novaAmostragem() {
     hiddenId.remove();
   }
   
+  // Restaurar título do formulário
+  document.getElementById('formTitle').textContent = '🔬 Nova Amostragem';
+  
   // Restaurar action original e texto do botão
   document.getElementById('amostragemForm').action = '/amostragens-2/store';
   document.getElementById('submitButton').innerHTML = '💾 Salvar Amostragem';
+  
+  // Esconder seções de anexos existentes
+  document.getElementById('anexoNfExistente').classList.add('hidden');
+  document.getElementById('evidenciasExistentes').classList.add('hidden');
   
   // Mostrar formulário
   document.getElementById('amostragemFormContainer').classList.remove('hidden');
@@ -556,9 +687,16 @@ function cancelarEdicao() {
     hiddenId.remove();
   }
   
+  // Restaurar título do formulário
+  document.getElementById('formTitle').textContent = '🔬 Nova Amostragem';
+  
   // Restaurar action original e texto do botão
   document.getElementById('amostragemForm').action = '/amostragens-2/store';
   document.getElementById('submitButton').innerHTML = '💾 Salvar Amostragem';
+  
+  // Esconder seções de anexos existentes
+  document.getElementById('anexoNfExistente').classList.add('hidden');
+  document.getElementById('evidenciasExistentes').classList.add('hidden');
   
   // Esconder formulário
   document.getElementById('amostragemFormContainer').classList.add('hidden');
