@@ -238,36 +238,244 @@ class FluxogramasController
     public function searchTitulos()
     {
         header('Content-Type: application/json');
-        echo json_encode([]);
+        
+        try {
+            $query = $_GET['q'] ?? '';
+            
+            if (strlen($query) < 2) {
+                echo json_encode(['success' => true, 'data' => []]);
+                return;
+            }
+            
+            $searchTerm = '%' . $query . '%';
+            
+            $stmt = $this->db->prepare("
+                SELECT id, titulo
+                FROM fluxogramas_titulos
+                WHERE titulo LIKE ? OR titulo_normalizado LIKE ?
+                ORDER BY titulo ASC
+                LIMIT 10
+            ");
+            
+            $stmt->execute([$searchTerm, $searchTerm]);
+            $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $resultados]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::searchTitulos - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao buscar títulos']);
+        }
     }
 
     public function deleteTitulo()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Em desenvolvimento']);
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Apenas administradores podem excluir títulos']);
+                return;
+            }
+            
+            $titulo_id = $_POST['titulo_id'] ?? '';
+            
+            if (empty($titulo_id)) {
+                echo json_encode(['success' => false, 'message' => 'ID do título não informado']);
+                return;
+            }
+            
+            // Verificar se existem registros vinculados
+            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM fluxogramas_registros WHERE titulo_id = ?");
+            $stmt->execute([$titulo_id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result['total'] > 0) {
+                echo json_encode(['success' => false, 'message' => 'Não é possível excluir. Existem ' . $result['total'] . ' registro(s) vinculado(s) a este título.']);
+                return;
+            }
+            
+            // Excluir título
+            $stmt = $this->db->prepare("DELETE FROM fluxogramas_titulos WHERE id = ?");
+            $stmt->execute([$titulo_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Título excluído com sucesso!']);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::deleteTitulo - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir título: ' . $e->getMessage()]);
+        }
     }
 
     public function createRegistro()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Em desenvolvimento']);
+        echo json_encode(['success' => false, 'message' => 'Funcionalidade em desenvolvimento - Upload de arquivos em breve!']);
     }
 
     public function editarRegistro()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Em desenvolvimento']);
+        echo json_encode(['success' => false, 'message' => 'Funcionalidade em desenvolvimento']);
     }
 
     public function listMeusRegistros()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => []]);
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se a tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_registros'");
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => true, 'data' => [], 'message' => 'Nenhum registro encontrado']);
+                return;
+            }
+            
+            // Buscar registros do usuário
+            $stmt = $this->db->prepare("
+                SELECT 
+                    r.id,
+                    r.versao,
+                    r.status,
+                    r.nome_arquivo,
+                    r.extensao,
+                    r.tamanho_arquivo,
+                    r.publico,
+                    r.criado_em,
+                    r.observacao_reprovacao,
+                    t.titulo,
+                    GROUP_CONCAT(d.nome SEPARATOR ', ') as departamentos_permitidos
+                FROM fluxogramas_registros r
+                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                LEFT JOIN departamentos d ON rd.departamento_id = d.id
+                WHERE r.criado_por = ?
+                GROUP BY r.id
+                ORDER BY r.criado_em DESC
+            ");
+            
+            $stmt->execute([$user_id]);
+            $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $registros]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::listMeusRegistros - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao listar registros: ' . $e->getMessage()]);
+        }
     }
 
     public function downloadArquivo($id)
     {
-        http_response_code(404);
-        echo "Arquivo não encontrado";
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(403);
+                echo "Acesso negado";
+                return;
+            }
+            
+            $stmt = $this->db->prepare("
+                SELECT arquivo, nome_arquivo, extensao 
+                FROM fluxogramas_registros 
+                WHERE id = ?
+            ");
+            $stmt->execute([$id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                http_response_code(404);
+                echo "Arquivo não encontrado";
+                return;
+            }
+            
+            // Definir headers para download
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="' . $registro['nome_arquivo'] . '"');
+            header('Content-Length: ' . strlen($registro['arquivo']));
+            
+            echo $registro['arquivo'];
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::downloadArquivo - Erro: " . $e->getMessage());
+            http_response_code(500);
+            echo "Erro ao baixar arquivo";
+        }
+    }
+    
+    public function listPendentes()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            
+            if (!$isAdmin) {
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
+            $stmt = $this->db->query("
+                SELECT 
+                    r.id,
+                    r.versao,
+                    r.nome_arquivo,
+                    r.criado_em,
+                    t.titulo,
+                    u.name as autor_nome,
+                    u.email as autor_email
+                FROM fluxogramas_registros r
+                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                INNER JOIN users u ON r.criado_por = u.id
+                WHERE r.status = 'PENDENTE'
+                ORDER BY r.criado_em ASC
+            ");
+            
+            $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $registros]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::listPendentes - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao listar pendentes']);
+        }
+    }
+    
+    public function listSolicitacoes()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => []]);
+    }
+    
+    public function listVisualizacao()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => []]);
+    }
+    
+    public function listLogs()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'data' => []]);
     }
 }

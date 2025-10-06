@@ -65,6 +65,7 @@ class PermissionMiddleware
         '/fluxogramas/registro/reprovar' => 'fluxogramas',
         '/fluxogramas/logs/visualizacao' => 'fluxogramas',
         '/fluxogramas/visualizar' => 'fluxogramas',
+        '/fluxogramas/titulo/delete' => 'fluxogramas',
         
         // Melhoria Contínua
         '/melhoria-continua' => 'melhoria_continua',

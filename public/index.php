@@ -327,11 +327,15 @@ $router->get('/fluxogramas', [App\Controllers\FluxogramasController::class, 'ind
 $router->post('/fluxogramas/titulo/create', [App\Controllers\FluxogramasController::class, 'createTitulo']);
 $router->get('/fluxogramas/titulos/list', [App\Controllers\FluxogramasController::class, 'listTitulos']);
 $router->get('/fluxogramas/titulos/search', [App\Controllers\FluxogramasController::class, 'searchTitulos']);
-$router->delete('/fluxogramas/titulo/{id}', [App\Controllers\FluxogramasController::class, 'deleteTitulo']);
+$router->post('/fluxogramas/titulo/delete', [App\Controllers\FluxogramasController::class, 'deleteTitulo']);
 $router->post('/fluxogramas/registro/create', [App\Controllers\FluxogramasController::class, 'createRegistro']);
 $router->post('/fluxogramas/registro/editar', [App\Controllers\FluxogramasController::class, 'editarRegistro']);
 $router->get('/fluxogramas/registros/meus', [App\Controllers\FluxogramasController::class, 'listMeusRegistros']);
 $router->get('/fluxogramas/arquivo/{id}', [App\Controllers\FluxogramasController::class, 'downloadArquivo']);
+$router->get('/fluxogramas/pendentes/list', [App\Controllers\FluxogramasController::class, 'listPendentes']);
+$router->get('/fluxogramas/solicitacoes/list', [App\Controllers\FluxogramasController::class, 'listSolicitacoes']);
+$router->get('/fluxogramas/visualizacao/list', [App\Controllers\FluxogramasController::class, 'listVisualizacao']);
+$router->get('/fluxogramas/logs/visualizacao', [App\Controllers\FluxogramasController::class, 'listLogs']);
 
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
