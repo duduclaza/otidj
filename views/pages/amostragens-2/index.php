@@ -293,17 +293,21 @@ $toners = $toners ?? [];
               <?= $amostra['quantidade_reprovada'] ?>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 text-xs font-semibold rounded-full
-                <?php
-                  switch($amostra['status_final']) {
-                    case 'Aprovado': echo 'bg-green-100 text-green-800'; break;
-                    case 'Aprovado Parcialmente': echo 'bg-yellow-100 text-yellow-800'; break;
-                    case 'Reprovado': echo 'bg-red-100 text-red-800'; break;
-                    default: echo 'bg-gray-100 text-gray-800';
-                  }
-                ?>">
-                <?= e($amostra['status_final']) ?>
-              </span>
+              <select onchange="alterarStatus(<?= $amostra['id'] ?>, this.value)" 
+                      class="px-2 py-1 text-xs font-semibold rounded-md border-0 cursor-pointer
+                        <?php
+                          switch($amostra['status_final']) {
+                            case 'Aprovado': echo 'bg-green-100 text-green-800'; break;
+                            case 'Aprovado Parcialmente': echo 'bg-yellow-100 text-yellow-800'; break;
+                            case 'Reprovado': echo 'bg-red-100 text-red-800'; break;
+                            default: echo 'bg-gray-100 text-gray-800';
+                          }
+                        ?>">
+                <option value="Pendente" <?= $amostra['status_final'] == 'Pendente' ? 'selected' : '' ?>>Pendente</option>
+                <option value="Aprovado" <?= $amostra['status_final'] == 'Aprovado' ? 'selected' : '' ?>>Aprovado</option>
+                <option value="Aprovado Parcialmente" <?= $amostra['status_final'] == 'Aprovado Parcialmente' ? 'selected' : '' ?>>Aprovado Parcialmente</option>
+                <option value="Reprovado" <?= $amostra['status_final'] == 'Reprovado' ? 'selected' : '' ?>>Reprovado</option>
+              </select>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
               <?php if (!empty($amostra['anexo_nf_nome'])): ?>
@@ -769,5 +773,38 @@ function exportarExcel() {
   // Redirecionar para exportação
   const url = `/amostragens-2/export?${params.toString()}`;
   window.location.href = url;
+}
+
+// Alterar status da amostragem
+async function alterarStatus(id, novoStatus) {
+  if (!confirm(`Tem certeza que deseja alterar o status para "${novoStatus}"?\n\nUm email será enviado aos responsáveis.`)) {
+    // Recarregar página para resetar o select
+    window.location.reload();
+    return;
+  }
+  
+  try {
+    console.log(`Alterando status da amostragem ${id} para: ${novoStatus}`);
+    
+    const response = await fetch('/amostragens-2/update-status', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: `id=${id}&status=${encodeURIComponent(novoStatus)}`
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('✅ ' + result.message + '\n\n📧 Email enviado aos responsáveis!');
+      window.location.reload();
+    } else {
+      alert('❌ Erro: ' + result.message);
+      window.location.reload();
+    }
+  } catch (error) {
+    console.error('Erro ao alterar status:', error);
+    alert('❌ Erro ao alterar status: ' + error.message);
+    window.location.reload();
+  }
 }
 </script>

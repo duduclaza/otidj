@@ -799,6 +799,72 @@ class Amostragens2Controller
         }
     }
 
+    public function updateStatus(): void
+    {
+        // Limpar buffer de saída
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        header('Content-Type: application/json');
+        
+        try {
+            $id = (int)($_POST['id'] ?? 0);
+            $status = $_POST['status'] ?? '';
+            
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                exit;
+            }
+            
+            // Status válidos
+            $statusValidos = ['Pendente', 'Aprovado', 'Aprovado Parcialmente', 'Reprovado'];
+            if (!in_array($status, $statusValidos)) {
+                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+                exit;
+            }
+            
+            // Atualizar status
+            $stmt = $this->db->prepare('
+                UPDATE amostragens_2 SET 
+                    status_final = :status,
+                    updated_at = NOW()
+                WHERE id = :id
+            ');
+            
+            $stmt->execute([
+                ':id' => $id,
+                ':status' => $status
+            ]);
+            
+            error_log("✅ Status da amostragem #{$id} atualizado para: {$status}");
+            
+            // Enviar email automático para responsáveis
+            try {
+                error_log("📧 Tentando enviar email de mudança de status para amostragem #{$id}");
+                $emailEnviado = $this->enviarEmailMudancaStatusAmostragem($id, $status);
+                if ($emailEnviado) {
+                    error_log("✅ Email de mudança de status enviado - Status: {$status}");
+                } else {
+                    error_log("⚠️ Falha ao enviar email (não crítico)");
+                }
+            } catch (\Exception $e) {
+                error_log("⚠️ Erro ao enviar email: " . $e->getMessage());
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Status atualizado com sucesso!'
+            ]);
+            exit;
+            
+        } catch (\Exception $e) {
+            error_log('❌ Erro ao atualizar status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar status: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
     public function delete(): void
     {
         header('Content-Type: application/json');

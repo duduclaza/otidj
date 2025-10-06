@@ -136,6 +136,7 @@ $router->get('/amostragens-2/{id}/details', [App\Controllers\Amostragens2Control
 $router->get('/amostragens-2/{id}/evidencias', [App\Controllers\Amostragens2Controller::class, 'getEvidencias']);
 $router->get('/amostragens-2/{id}/download-evidencia/{evidenciaId}', [App\Controllers\Amostragens2Controller::class, 'downloadEvidencia']);
 $router->post('/amostragens-2/update', [App\Controllers\Amostragens2Controller::class, 'update']);
+$router->post('/amostragens-2/update-status', [App\Controllers\Amostragens2Controller::class, 'updateStatus']);
 $router->post('/amostragens-2/delete', [App\Controllers\Amostragens2Controller::class, 'delete']);
 $router->post('/amostragens-2/enviar-email', [App\Controllers\Amostragens2Controller::class, 'enviarEmailDetalhes']);
 $router->get('/amostragens-2/export', [App\Controllers\Amostragens2Controller::class, 'exportExcel']);

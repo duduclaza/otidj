@@ -20,11 +20,30 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.3.1';
+        $systemVersion = '2.3.2';
         $lastUpdate = '06/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.3.2',
+                'date' => '06/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Alteração de Status Rápida com Email em Amostragens 2.0',
+                'description' => 'Adicionado dropdown de status no grid para alteração rápida com email automático',
+                'items' => [
+                    'Dropdown de status diretamente na tabela (grid)',
+                    'Alteração de status com apenas 1 clique',
+                    'Confirmação antes de alterar status',
+                    'Email automático enviado aos responsáveis a cada mudança',
+                    'Cores dinâmicas no dropdown por status',
+                    'Feedback visual de sucesso/erro',
+                    'Recarga automática da página após alteração',
+                    'Validação de status permitidos (Pendente, Aprovado, Aprovado Parcialmente, Reprovado)',
+                    'Logs detalhados de cada alteração',
+                    'Padrão seguindo Melhoria Contínua 2.0'
+                ]
+            ],
             [
                 'version' => '2.3.1',
                 'date' => '06/10/2025',
