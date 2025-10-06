@@ -20,11 +20,32 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.4.1';
+        $systemVersion = '2.5.0';
         $lastUpdate = '06/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.5.0',
+                'date' => '06/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Módulo Completo de Fluxogramas (BETA)',
+                'description' => 'Implementado módulo completo de Fluxogramas com workflow de aprovação e controle por departamento',
+                'items' => [
+                    'Sistema de cadastro de títulos de fluxogramas',
+                    'Upload de arquivos (PDF, PNG, JPG, PPT) até 10MB',
+                    'Versionamento automático de documentos (v1, v2, v3...)',
+                    'Workflow de aprovação/reprovação por administradores',
+                    'Controle de acesso por departamento (público ou restrito)',
+                    'Sistema de solicitação de exclusão com aprovação',
+                    'Edição de documentos reprovados',
+                    'Visualização protegida de fluxogramas aprovados',
+                    'Log de auditoria de visualizações',
+                    'Armazenamento MEDIUMBLOB no banco de dados',
+                    '5 abas funcionais: Cadastro, Registros, Aprovação, Visualização, Logs',
+                    'Segurança com múltiplas camadas de validação'
+                ]
+            ],
             [
                 'version' => '2.4.1',
                 'date' => '06/10/2025',
