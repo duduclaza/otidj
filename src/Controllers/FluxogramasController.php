@@ -27,29 +27,44 @@ class FluxogramasController
             }
 
             $user_id = $_SESSION['user_id'];
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
-            // Permissões básicas
-            $canViewCadastroTitulos = true;
-            $canViewMeusRegistros = true;
-            $canViewPendenteAprovacao = false;
-            $canViewVisualizacao = true;
-            $canViewLogsVisualizacao = false;
+            // Verificar permissões específicas para cada aba
+            $canViewCadastroTitulos = \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_cadastro_titulos', 'view');
+            $canViewMeusRegistros = \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_meus_registros', 'view');
+            $canViewPendenteAprovacao = $isAdmin; // Apenas admin pode ver pendente aprovação
+            $canViewVisualizacao = \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_visualizacao', 'view');
+            $canViewLogsVisualizacao = $isAdmin; // Apenas admin pode ver logs
             
-            // Departamentos
+            // Carregar departamentos para o formulário
             $departamentos = $this->getDepartamentos();
             
+            // Usar o layout padrão com TailwindCSS
             $title = 'Fluxogramas - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/fluxogramas/index.php';
-            
-            if (file_exists(__DIR__ . '/../../views/layouts/main.php')) {
-                include __DIR__ . '/../../views/layouts/main.php';
-            } else {
-                include $viewFile;
-            }
+            include __DIR__ . '/../../views/layouts/main.php';
             
         } catch (\Throwable $e) {
-            error_log("FluxogramasController::index - ERRO: " . $e->getMessage());
-            echo "<h1>🚧 Módulo em Desenvolvimento</h1><p><a href='/inicio'>← Voltar</a></p>";
+            // Logar erro para diagnóstico
+            try {
+                $logDir = __DIR__ . '/../../logs';
+                if (!is_dir($logDir)) { @mkdir($logDir, 0777, true); }
+                $msg = date('Y-m-d H:i:s') . ' Fluxogramas index ERRO: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine() . "\n";
+                file_put_contents($logDir . '/fluxogramas_debug.log', $msg, FILE_APPEND);
+            } catch (\Throwable $ignored) {}
+
+            // Exibir detalhes somente se APP_DEBUG=true ou ?debug=1
+            $appDebug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+            $reqDebug = isset($_GET['debug']) && $_GET['debug'] == '1';
+            if ($appDebug || $reqDebug) {
+                echo 'Erro: ' . htmlspecialchars($e->getMessage());
+                echo '<br>Arquivo: ' . htmlspecialchars($e->getFile());
+                echo '<br>Linha: ' . (int)$e->getLine();
+                echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+                exit;
+            }
+            // Caso contrário, lançar novamente para página 500 padrão
+            throw $e;
         }
     }
 
@@ -69,13 +84,111 @@ class FluxogramasController
     public function createTitulo()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Em desenvolvimento']);
+        
+        try {
+            // Verificar permissão
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            if (!\App\Services\PermissionService::hasPermission($user_id, 'fluxogramas_cadastro_titulos', 'edit')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para criar títulos']);
+                return;
+            }
+            
+            // Verificar se a tabela existe
+            try {
+                $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_titulos'");
+                if (!$stmt->fetch()) {
+                    echo json_encode(['success' => false, 'message' => 'Tabela fluxogramas_titulos não existe. Execute o script SQL primeiro.']);
+                    return;
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao verificar tabela: ' . $e->getMessage()]);
+                return;
+            }
+            
+            // Validar dados
+            $titulo = trim($_POST['titulo'] ?? '');
+            $departamento_id = $_POST['departamento_id'] ?? '';
+            
+            if (empty($titulo) || empty($departamento_id)) {
+                echo json_encode(['success' => false, 'message' => 'Todos os campos são obrigatórios']);
+                return;
+            }
+            
+            // Normalizar título para verificação de duplicidade
+            $titulo_normalizado = $this->normalizarTitulo($titulo);
+            
+            // Verificar se já existe
+            $stmt = $this->db->prepare("SELECT id FROM fluxogramas_titulos WHERE titulo_normalizado = ?");
+            $stmt->execute([$titulo_normalizado]);
+            
+            if ($stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Já existe um fluxograma com este título']);
+                return;
+            }
+            
+            // Inserir no banco
+            $stmt = $this->db->prepare("
+                INSERT INTO fluxogramas_titulos (titulo, titulo_normalizado, departamento_id, criado_por) 
+                VALUES (?, ?, ?, ?)
+            ");
+            
+            $stmt->execute([$titulo, $titulo_normalizado, $departamento_id, $user_id]);
+            
+            echo json_encode(['success' => true, 'message' => 'Título cadastrado com sucesso!']);
+            
+        } catch (\Exception $e) {
+            // Log detalhado do erro
+            error_log("FluxogramasController::createTitulo - Erro: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+    
+    private function normalizarTitulo($titulo)
+    {
+        $titulo = mb_strtolower($titulo, 'UTF-8');
+        $titulo = preg_replace('/\s+/', ' ', $titulo);
+        return trim($titulo);
     }
 
     public function listTitulos()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'data' => []]);
+        
+        try {
+            // Verificar se a tabela existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_titulos'");
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Tabela fluxogramas_titulos não existe']);
+                return;
+            }
+            
+            // Buscar todos os títulos
+            $stmt = $this->db->query("
+                SELECT 
+                    t.id,
+                    t.titulo,
+                    t.criado_em,
+                    d.nome as departamento_nome,
+                    u.name as criado_por_nome
+                FROM fluxogramas_titulos t
+                LEFT JOIN departamentos d ON t.departamento_id = d.id
+                LEFT JOIN users u ON t.criado_por = u.id
+                ORDER BY t.criado_em DESC
+            ");
+            
+            $titulos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode(['success' => true, 'data' => $titulos]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::listTitulos - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao listar títulos: ' . $e->getMessage()]);
+        }
     }
 
     public function searchTitulos()

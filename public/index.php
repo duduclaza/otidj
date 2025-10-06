@@ -169,7 +169,7 @@ $router->get('/master/logout', [App\Controllers\MasterController::class, 'logout
 
 // Other routes
 $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
-$router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']);
+// $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']); // REMOVIDO - Agora usa FluxogramasController (linha 326)
 $router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
 $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
 // Amostragens actions
@@ -322,18 +322,16 @@ $router->get('/pops-its/solicitacoes/list', [App\Controllers\PopItsController::c
 $router->post('/pops-its/solicitacao/aprovar', [App\Controllers\PopItsController::class, 'aprovarSolicitacao']);
 $router->post('/pops-its/solicitacao/reprovar', [App\Controllers\PopItsController::class, 'reprovarSolicitacao']);
 
-// Fluxogramas routes - MÓDULO COMPLETAMENTE DESABILITADO
-// Todas as rotas do FluxogramasController foram desabilitadas devido a erro 500
-// Apenas a página "em desenvolvimento" funciona via PageController (linha ~117)
-// $router->get('/fluxogramas', [App\Controllers\FluxogramasController::class, 'index']);
-// $router->post('/fluxogramas/titulo/create', [App\Controllers\FluxogramasController::class, 'createTitulo']);
-// $router->get('/fluxogramas/titulos/list', [App\Controllers\FluxogramasController::class, 'listTitulos']);
-// $router->get('/fluxogramas/titulos/search', [App\Controllers\FluxogramasController::class, 'searchTitulos']);
-// $router->post('/fluxogramas/titulo/delete', [App\Controllers\FluxogramasController::class, 'deleteTitulo']);
-// $router->post('/fluxogramas/registro/create', [App\Controllers\FluxogramasController::class, 'createRegistro']);
-// $router->post('/fluxogramas/registro/editar', [App\Controllers\FluxogramasController::class, 'editarRegistro']);
-// $router->get('/fluxogramas/registros/meus', [App\Controllers\FluxogramasController::class, 'listMeusRegistros']);
-// $router->get('/fluxogramas/arquivo/{id}', [App\Controllers\FluxogramasController::class, 'downloadArquivo']);
+// ===== MÓDULO FLUXOGRAMAS (ATIVADO v2.5.0) =====
+$router->get('/fluxogramas', [App\Controllers\FluxogramasController::class, 'index']);
+$router->post('/fluxogramas/titulo/create', [App\Controllers\FluxogramasController::class, 'createTitulo']);
+$router->get('/fluxogramas/titulos/list', [App\Controllers\FluxogramasController::class, 'listTitulos']);
+$router->get('/fluxogramas/titulos/search', [App\Controllers\FluxogramasController::class, 'searchTitulos']);
+$router->delete('/fluxogramas/titulo/{id}', [App\Controllers\FluxogramasController::class, 'deleteTitulo']);
+$router->post('/fluxogramas/registro/create', [App\Controllers\FluxogramasController::class, 'createRegistro']);
+$router->post('/fluxogramas/registro/editar', [App\Controllers\FluxogramasController::class, 'editarRegistro']);
+$router->get('/fluxogramas/registros/meus', [App\Controllers\FluxogramasController::class, 'listMeusRegistros']);
+$router->get('/fluxogramas/arquivo/{id}', [App\Controllers\FluxogramasController::class, 'downloadArquivo']);
 
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
