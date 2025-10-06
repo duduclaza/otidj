@@ -534,8 +534,8 @@ async function editarAmostragem(id) {
   try {
     console.log('Carregando amostragem para edição:', id);
     
-    // Buscar dados da amostragem
-    const response = await fetch(`/amostragens-2/${id}/details`);
+    // Buscar dados da amostragem via API JSON
+    const response = await fetch(`/amostragens-2/${id}/details-json`);
     
     // Verificar se a resposta é válida
     if (!response.ok) {

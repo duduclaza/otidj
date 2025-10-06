@@ -20,11 +20,30 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.3.2';
+        $systemVersion = '2.3.3';
         $lastUpdate = '06/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.3.3',
+                'date' => '06/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Página de Detalhes Completos em Amostragens 2.0',
+                'description' => 'Criada página visual para exibir detalhes completos da amostragem',
+                'items' => [
+                    'Página dedicada de detalhes com layout profissional',
+                    'Cards separados por seção (Básicas, Produto, Quantidades)',
+                    'Exibição visual de todos os responsáveis com avatares',
+                    'Download de anexo NF com informações de tamanho',
+                    'Galeria de evidências (fotos) com preview',
+                    'Badge de status com cores diferenciadas',
+                    'Botão de impressão para documentação',
+                    'Layout responsivo para desktop e mobile',
+                    'Estatísticas de quantidades com destaque visual',
+                    'Link "Ver Detalhes Completos" nos emails agora funcional'
+                ]
+            ],
             [
                 'version' => '2.3.2',
                 'date' => '06/10/2025',

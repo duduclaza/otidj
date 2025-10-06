@@ -133,6 +133,7 @@ $router->get('/amostragens-2', [App\Controllers\Amostragens2Controller::class, '
 $router->post('/amostragens-2/store', [App\Controllers\Amostragens2Controller::class, 'store']);
 $router->get('/amostragens-2/{id}/download-nf', [App\Controllers\Amostragens2Controller::class, 'downloadNf']);
 $router->get('/amostragens-2/{id}/details', [App\Controllers\Amostragens2Controller::class, 'details']);
+$router->get('/amostragens-2/{id}/details-json', [App\Controllers\Amostragens2Controller::class, 'getDetailsJson']);
 $router->get('/amostragens-2/{id}/evidencias', [App\Controllers\Amostragens2Controller::class, 'getEvidencias']);
 $router->get('/amostragens-2/{id}/download-evidencia/{evidenciaId}', [App\Controllers\Amostragens2Controller::class, 'downloadEvidencia']);
 $router->post('/amostragens-2/update', [App\Controllers\Amostragens2Controller::class, 'update']);

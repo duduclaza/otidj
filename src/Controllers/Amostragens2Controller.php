@@ -609,6 +609,70 @@ class Amostragens2Controller
     public function details($id = null): void
     {
         try {
+            $id = (int)$id;
+            
+            if ($id <= 0) {
+                echo "ID inválido";
+                return;
+            }
+            
+            error_log("🔍 Carregando página de detalhes da amostragem ID: $id");
+            
+            // Buscar dados completos da amostragem com joins
+            $stmt = $this->db->prepare('
+                SELECT 
+                    a.*,
+                    u.name as criador_nome,
+                    f.nome as filial_nome,
+                    forn.nome as fornecedor_nome
+                FROM amostragens_2 a
+                LEFT JOIN users u ON a.user_id = u.id
+                LEFT JOIN filiais f ON a.filial_id = f.id
+                LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
+                WHERE a.id = :id
+            ');
+            
+            $stmt->execute([':id' => $id]);
+            $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$amostragem) {
+                echo "Amostragem não encontrada";
+                return;
+            }
+            
+            // Buscar responsáveis
+            $responsaveis = [];
+            if (!empty($amostragem['responsaveis'])) {
+                $responsaveisIds = explode(',', $amostragem['responsaveis']);
+                $placeholders = str_repeat('?,', count($responsaveisIds) - 1) . '?';
+                $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE id IN ($placeholders)");
+                $stmt->execute($responsaveisIds);
+                $responsaveis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+            // Buscar evidências
+            $stmt = $this->db->prepare('
+                SELECT id, nome, tipo, tamanho, ordem
+                FROM amostragens_2_evidencias 
+                WHERE amostragem_id = :id
+                ORDER BY ordem
+            ');
+            $stmt->execute([':id' => $id]);
+            $evidencias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $title = 'Detalhes da Amostragem - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/amostragens-2/details.php';
+            include __DIR__ . '/../../views/layouts/main.php';
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erro ao carregar detalhes: " . $e->getMessage());
+            echo "Erro ao carregar detalhes: " . $e->getMessage();
+        }
+    }
+    
+    public function getDetailsJson($id = null): void
+    {
+        try {
             // Limpar qualquer output anterior
             if (ob_get_level()) {
                 ob_end_clean();
@@ -620,16 +684,11 @@ class Amostragens2Controller
             
             $id = (int)$id;
             
-            error_log("🔍 Details() chamado - ID recebido: " . var_export($id, true));
-            
             if ($id <= 0) {
-                error_log("❌ ID inválido: $id");
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'ID inválido']);
                 exit;
             }
-            
-            error_log("🔍 Buscando detalhes da amostragem ID: $id");
             
             // Excluir campos BLOB para evitar problemas de memória/encoding
             $stmt = $this->db->prepare('
@@ -647,32 +706,21 @@ class Amostragens2Controller
             $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$amostragem) {
-                error_log("❌ Amostragem ID $id não encontrada no banco");
                 http_response_code(404);
                 echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
                 exit;
             }
             
-            error_log("✅ Amostragem encontrada: NF " . $amostragem['numero_nf']);
-            
-            $response = [
+            echo json_encode([
                 'success' => true,
                 'amostragem' => $amostragem
-            ];
-            
-            echo json_encode($response);
+            ]);
             exit;
             
-        } catch (\PDOException $e) {
-            error_log("❌ Erro de banco de dados: " . $e->getMessage());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Erro de banco de dados']);
-            exit;
         } catch (\Exception $e) {
-            error_log("❌ Erro ao buscar detalhes: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
+            error_log("❌ Erro ao buscar detalhes JSON: " . $e->getMessage());
             http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar detalhes']);
             exit;
         }
     }
