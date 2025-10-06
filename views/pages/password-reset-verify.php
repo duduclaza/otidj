@@ -58,6 +58,12 @@
                     >
                 </div>
 
+                <!-- Timer de Expiração -->
+                <div id="timerDisplay" class="bg-yellow-500 bg-opacity-20 border border-yellow-400 rounded-lg px-4 py-3 text-center">
+                    <p class="text-white text-sm mb-1">⏰ Tempo restante:</p>
+                    <p id="countdown" class="text-yellow-300 text-3xl font-bold">2:00</p>
+                </div>
+
                 <!-- Código -->
                 <div>
                     <label for="code" class="block text-white text-sm font-medium mb-2">
@@ -110,7 +116,7 @@
         <!-- Informação -->
         <div class="mt-6 text-center text-sm text-blue-100">
             <p>⏰ Não recebeu o código? Verifique sua caixa de spam</p>
-            <p class="mt-1">🔐 O código expira em 30 minutos</p>
+            <p class="mt-1">🔐 O código expira automaticamente</p>
         </div>
 </div>
 </div>
@@ -125,6 +131,47 @@ if (email) {
 } else {
     window.location.href = '/password-reset/request';
 }
+
+// Timer de contagem regressiva de 2 minutos
+let timeLeft = 120; // 2 minutos em segundos
+const countdownElement = document.getElementById('countdown');
+const timerDisplay = document.getElementById('timerDisplay');
+const btnSubmit = document.getElementById('btnSubmit');
+
+function updateTimer() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    
+    // Mudar cor baseado no tempo restante
+    if (timeLeft <= 30) {
+        timerDisplay.className = 'bg-red-500 bg-opacity-20 border border-red-400 rounded-lg px-4 py-3 text-center';
+        countdownElement.className = 'text-red-300 text-3xl font-bold animate-pulse';
+    } else if (timeLeft <= 60) {
+        timerDisplay.className = 'bg-orange-500 bg-opacity-20 border border-orange-400 rounded-lg px-4 py-3 text-center';
+        countdownElement.className = 'text-orange-300 text-3xl font-bold';
+    }
+    
+    if (timeLeft === 0) {
+        clearInterval(timerInterval);
+        countdownElement.textContent = 'EXPIRADO';
+        countdownElement.className = 'text-red-500 text-3xl font-bold';
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '⏰ Código Expirado';
+        document.getElementById('code').disabled = true;
+        
+        // Mostrar mensagem de expiração
+        const messageDiv = document.getElementById('message');
+        messageDiv.className = 'bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg';
+        messageDiv.innerHTML = '<p>⏰ O código expirou! Solicite um novo código.</p>';
+    }
+    
+    timeLeft--;
+}
+
+// Iniciar o timer
+updateTimer(); // Atualizar imediatamente
+const timerInterval = setInterval(updateTimer, 1000);
 
 // Auto-focus no campo de código
 document.getElementById('code').focus();
@@ -164,6 +211,12 @@ document.getElementById('formVerifyCode').addEventListener('submit', async funct
         const result = await response.json();
         
         if (result.success) {
+            // Parar o timer
+            clearInterval(timerInterval);
+            countdownElement.textContent = '✓ VÁLIDO';
+            countdownElement.className = 'text-green-300 text-3xl font-bold';
+            timerDisplay.className = 'bg-green-500 bg-opacity-20 border border-green-400 rounded-lg px-4 py-3 text-center';
+            
             messageDiv.className = 'bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg';
             messageDiv.innerHTML = `
                 <p class="font-medium">✅ ${result.message}</p>

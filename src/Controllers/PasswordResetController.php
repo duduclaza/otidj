@@ -73,8 +73,8 @@ class PasswordResetController
             
             error_log("Token gerado: " . $token . " para email: " . $email);
 
-            // Código expira em 30 minutos
-            $expiresAt = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+            // Código expira em 2 minutos
+            $expiresAt = date('Y-m-d H:i:s', strtotime('+2 minutes'));
 
             // Inserir código no banco
             $stmt = $this->db->prepare("
@@ -108,7 +108,7 @@ class PasswordResetController
                             {$token}
                         </p>
                         <p style='font-size: 12px; color: #999; margin: 10px 0 0 0; text-align: center;'>
-                            ⏰ Este código expira em 30 minutos
+                            ⏰ Use este código rapidamente
                         </p>
                     </div>
                     

@@ -82,7 +82,7 @@
         <!-- Informação -->
         <div class="mt-6 text-center text-sm text-blue-100">
             <p>💡 Você receberá um código de 6 dígitos no seu email</p>
-            <p class="mt-1">⏰ O código expira em 30 minutos</p>
+            <p class="mt-1">⏰ O código expira em 2 minutos</p>
         </div>
 </div>
 </div>
