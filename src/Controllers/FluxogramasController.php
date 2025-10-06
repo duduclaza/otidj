@@ -318,7 +318,109 @@ class FluxogramasController
     public function createRegistro()
     {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'Funcionalidade em desenvolvimento - Upload de arquivos em breve!']);
+        
+        try {
+            // Verificar autenticação
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            
+            // Validar dados obrigatórios
+            $titulo_id = $_POST['titulo_id'] ?? '';
+            $visibilidade = $_POST['visibilidade'] ?? '';
+            
+            if (empty($titulo_id) || empty($visibilidade)) {
+                echo json_encode(['success' => false, 'message' => 'Campos obrigatórios não preenchidos']);
+                return;
+            }
+            
+            // Validar arquivo
+            if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo não foi enviado corretamente']);
+                return;
+            }
+            
+            $arquivo = $_FILES['arquivo'];
+            $nome_arquivo = $arquivo['name'];
+            $tamanho = $arquivo['size'];
+            $tmp_name = $arquivo['tmp_name'];
+            
+            // Validar tamanho (max 10MB)
+            if ($tamanho > 10 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo muito grande. Máximo: 10MB']);
+                return;
+            }
+            
+            // Validar extensão
+            $extensao = strtolower(pathinfo($nome_arquivo, PATHINFO_EXTENSION));
+            $extensoes_permitidas = ['pdf', 'png', 'jpg', 'jpeg', 'ppt', 'pptx'];
+            
+            if (!in_array($extensao, $extensoes_permitidas)) {
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Apenas: PDF, PNG, JPEG, PPT, PPTX']);
+                return;
+            }
+            
+            // Ler conteúdo do arquivo
+            $conteudo_arquivo = file_get_contents($tmp_name);
+            
+            if ($conteudo_arquivo === false) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao ler arquivo']);
+                return;
+            }
+            
+            // Determinar próxima versão
+            $stmt = $this->db->prepare("SELECT COALESCE(MAX(versao), 0) + 1 as proxima_versao FROM fluxogramas_registros WHERE titulo_id = ?");
+            $stmt->execute([$titulo_id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $versao = $result['proxima_versao'];
+            
+            // Determinar se é público
+            $publico = ($visibilidade === 'publico') ? 1 : 0;
+            
+            // Inserir registro
+            $stmt = $this->db->prepare("
+                INSERT INTO fluxogramas_registros 
+                (titulo_id, versao, arquivo, nome_arquivo, extensao, tamanho_arquivo, publico, status, criado_por) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDENTE', ?)
+            ");
+            
+            $stmt->execute([
+                $titulo_id,
+                $versao,
+                $conteudo_arquivo,
+                $nome_arquivo,
+                $extensao,
+                $tamanho,
+                $publico,
+                $user_id
+            ]);
+            
+            $registro_id = $this->db->lastInsertId();
+            
+            // Se não for público, vincular departamentos
+            if ($publico == 0 && isset($_POST['departamentos_permitidos']) && is_array($_POST['departamentos_permitidos'])) {
+                $stmt_dept = $this->db->prepare("
+                    INSERT INTO fluxogramas_registros_departamentos (registro_id, departamento_id) 
+                    VALUES (?, ?)
+                ");
+                
+                foreach ($_POST['departamentos_permitidos'] as $dept_id) {
+                    $stmt_dept->execute([$registro_id, $dept_id]);
+                }
+            }
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Registro criado com sucesso! Versão: v' . $versao . '. Aguardando aprovação do administrador.'
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::createRegistro - Erro: " . $e->getMessage() . " | Line: " . $e->getLine());
+            echo json_encode(['success' => false, 'message' => 'Erro ao criar registro: ' . $e->getMessage()]);
+        }
     }
 
     public function editarRegistro()
