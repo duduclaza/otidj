@@ -1074,29 +1074,44 @@ class FluxogramasController
         header('Content-Type: application/json');
         
         try {
+            error_log("=== FluxogramasController::listVisualizacao - INÍCIO ===");
+            
             if (!isset($_SESSION['user_id'])) {
+                error_log("ERRO: Usuário não autenticado");
                 echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
                 return;
             }
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            error_log("User ID: " . $user_id . " | É Admin: " . ($isAdmin ? 'SIM' : 'NÃO'));
             
             // Verificar se tabelas existem
             $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_registros'");
-            if (!$stmt->fetch()) {
-                echo json_encode(['success' => true, 'data' => []]);
+            $tableExists = $stmt->fetch();
+            error_log("Tabela fluxogramas_registros existe: " . ($tableExists ? 'SIM' : 'NÃO'));
+            
+            if (!$tableExists) {
+                echo json_encode(['success' => true, 'data' => [], 'debug' => 'Tabela não existe']);
                 return;
             }
+            
+            // Contar registros aprovados
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM fluxogramas_registros WHERE status = 'APROVADO'");
+            $count = $stmt->fetch(PDO::FETCH_ASSOC);
+            error_log("Total de registros APROVADOS no banco: " . $count['total']);
             
             // Buscar departamento do usuário
             $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
             $stmt->execute([$user_id]);
             $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
             $user_departamento_id = $user_data['departamento_id'] ?? null;
+            error_log("Departamento do usuário: " . ($user_departamento_id ?? 'NULL'));
             
             if ($isAdmin) {
                 // ADMIN VÊ TUDO
+                error_log("Executando query para ADMIN");
+                
                 $query = "
                     SELECT 
                         r.id,
@@ -1119,7 +1134,9 @@ class FluxogramasController
                     ORDER BY r.aprovado_em DESC
                 ";
                 
+                error_log("Query SQL: " . $query);
                 $stmt = $this->db->query($query);
+                error_log("Query executada com sucesso");
                 
             } else {
                 // USUÁRIO COMUM VÊ: PÚBLICO + DO SEU DEPARTAMENTO
@@ -1162,8 +1179,19 @@ class FluxogramasController
             }
             
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("Total de registros retornados pela query: " . count($registros));
             
-            echo json_encode(['success' => true, 'data' => $registros]);
+            if (count($registros) > 0) {
+                error_log("Primeiro registro: " . json_encode($registros[0]));
+            } else {
+                error_log("ATENÇÃO: Query não retornou nenhum registro!");
+            }
+            
+            echo json_encode(['success' => true, 'data' => $registros, 'debug' => [
+                'total' => count($registros),
+                'is_admin' => $isAdmin,
+                'user_id' => $user_id
+            ]]);
             
         } catch (\Exception $e) {
             error_log("FluxogramasController::listVisualizacao - Erro: " . $e->getMessage());
