@@ -20,11 +20,30 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.3.0';
+        $systemVersion = '2.3.1';
         $lastUpdate = '06/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.3.1',
+                'date' => '06/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Sistema de Emails Automáticos em Amostragens 2.0',
+                'description' => 'Ativado envio automático de emails para responsáveis em amostragens',
+                'items' => [
+                    'Email automático ao criar nova amostragem',
+                    'Email automático ao atualizar status da amostragem',
+                    'Notificação para todos os responsáveis designados',
+                    'Templates HTML profissionais com gradientes',
+                    'Detalhes completos da amostragem no email',
+                    'Link direto para visualizar no sistema',
+                    'Cores diferenciadas por status (Aprovado, Reprovado, etc)',
+                    'Logs detalhados do envio de emails',
+                    'Tratamento de erros que não bloqueia operação',
+                    'Mesmo padrão usado em Melhoria Contínua 2.0'
+                ]
+            ],
             [
                 'version' => '2.3.0',
                 'date' => '06/10/2025',

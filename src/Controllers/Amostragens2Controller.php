@@ -250,27 +250,22 @@ class Amostragens2Controller
                 $this->processarEvidencias($amostragemId, $_FILES['evidencias']);
             }
 
-            // Email automático desabilitado - mantendo apenas notificações visuais
-            /*
             // Enviar email automático para responsáveis ao criar nova amostragem
             try {
-                error_log("🔧 DEBUG: Tentando enviar email para amostragem #{$amostragemId}");
+                error_log("📧 Tentando enviar email para amostragem #{$amostragemId}");
                 $emailEnviado = $this->enviarEmailNovaAmostragem($amostragemId);
                 if ($emailEnviado) {
-                    error_log("✅ Email de nova amostragem enviado automaticamente para amostragem #{$amostragemId}");
+                    error_log("✅ Email de nova amostragem enviado automaticamente");
                 } else {
-                    error_log("⚠️ Falha ao enviar email automático para amostragem #{$amostragemId} (não crítico)");
+                    error_log("⚠️ Falha ao enviar email automático (não crítico)");
                 }
             } catch (\Exception $e) {
                 // Log do erro mas não falha a operação
-                error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
-                error_log("⚠️ Stack trace: " . $e->getTraceAsString());
+                error_log("⚠️ Erro ao enviar email: " . $e->getMessage());
             } catch (\Error $e) {
                 // Log do erro fatal mas não falha a operação
-                error_log("⚠️ Erro fatal ao enviar email automático (não crítico): " . $e->getMessage());
-                error_log("⚠️ Stack trace: " . $e->getTraceAsString());
+                error_log("⚠️ Erro fatal ao enviar email: " . $e->getMessage());
             }
-            */
 
             echo json_encode([
                 'success' => true,
@@ -778,21 +773,19 @@ class Amostragens2Controller
                 $this->processarEvidencias($id, $_FILES['evidencias']);
             }
 
-            // Email automático desabilitado - mantendo apenas notificações visuais
-            /*
-            // Enviar email automático para responsáveis sempre que atualizar
+            // Enviar email automático para responsáveis ao atualizar status
             try {
+                error_log("📧 Tentando enviar email de atualização para amostragem #{$id}");
                 $emailEnviado = $this->enviarEmailMudancaStatusAmostragem($id, $statusFinal);
                 if ($emailEnviado) {
-                    error_log("✅ Email de mudança de status enviado automaticamente para amostragem #{$id} - Status: {$statusFinal}");
+                    error_log("✅ Email de mudança de status enviado - Status: {$statusFinal}");
                 } else {
-                    error_log("⚠️ Falha ao enviar email automático para amostragem #{$id} (não crítico)");
+                    error_log("⚠️ Falha ao enviar email (não crítico)");
                 }
             } catch (\Exception $e) {
                 // Log do erro mas não falha a operação
-                error_log("⚠️ Erro ao enviar email automático (não crítico): " . $e->getMessage());
+                error_log("⚠️ Erro ao enviar email: " . $e->getMessage());
             }
-            */
 
             echo json_encode([
                 'success' => true,
