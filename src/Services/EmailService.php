@@ -990,6 +990,370 @@ class EmailService
     }
 
     /**
+     * Send POP/IT aprovado notification
+     */
+    public function sendPopItsAprovadoNotification(string $email, string $tipo, string $titulo, string $versao, $registroId): bool
+    {
+        if (empty($email)) {
+            return false;
+        }
+
+        $subject = "SGQ - {$tipo} Aprovado ✅";
+        $body = $this->buildPopItsAprovadoTemplate($tipo, $titulo, $versao, $registroId);
+        
+        $altBody = "SGQ OTI DJ - POPs e ITs\n\n";
+        $altBody .= "Parabéns! Seu {$tipo} foi aprovado!\n\n";
+        $altBody .= "Título: {$titulo}\n";
+        $altBody .= "Versão: v{$versao}\n\n";
+        $altBody .= "O documento já está disponível para visualização no sistema.\n";
+        $altBody .= "Link: " . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/pops-e-its";
+        
+        return $this->send([$email], $subject, $body, $altBody);
+    }
+
+    private function buildPopItsAprovadoTemplate(string $tipo, string $titulo, string $versao, $registroId): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>{$tipo} Aprovado</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>✅ {$tipo} Aprovado!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - POPs e ITs</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #D1FAE5; border-left: 4px solid #10B981; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #065F46;'>
+                        <strong>🎉 Parabéns! Seu documento foi aprovado e já está disponível no sistema!</strong>
+                    </p>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Tipo:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$tipo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Título:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$titulo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Versão:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>v{$versao}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Status:</strong></td>
+                            <td style='padding: 10px 0;'><span style='background: #10B981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;'>APROVADO</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/pops-e-its' style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Visualizar no Sistema
+                    </a>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
+     * Send POP/IT reprovado notification
+     */
+    public function sendPopItsReprovadoNotification(string $email, string $tipo, string $titulo, string $versao, string $motivo, $registroId): bool
+    {
+        if (empty($email)) {
+            return false;
+        }
+
+        $subject = "SGQ - {$tipo} Reprovado ❌";
+        $body = $this->buildPopItsReprovadoTemplate($tipo, $titulo, $versao, $motivo, $registroId);
+        
+        $altBody = "SGQ OTI DJ - POPs e ITs\n\n";
+        $altBody .= "Seu {$tipo} foi reprovado.\n\n";
+        $altBody .= "Título: {$titulo}\n";
+        $altBody .= "Versão: v{$versao}\n";
+        $altBody .= "Motivo: {$motivo}\n\n";
+        $altBody .= "Você pode editar o documento e enviar novamente para aprovação.\n";
+        $altBody .= "Link: " . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/pops-e-its";
+        
+        return $this->send([$email], $subject, $body, $altBody);
+    }
+
+    private function buildPopItsReprovadoTemplate(string $tipo, string $titulo, string $versao, string $motivo, $registroId): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>{$tipo} Reprovado</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>❌ {$tipo} Reprovado</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - POPs e ITs</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #FEE2E2; border-left: 4px solid #EF4444; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #991B1B;'>
+                        <strong>⚠️ Seu documento foi reprovado e precisa de ajustes.</strong>
+                    </p>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Tipo:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$tipo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Título:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$titulo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Versão:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>v{$versao}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Status:</strong></td>
+                            <td style='padding: 10px 0;'><span style='background: #EF4444; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;'>REPROVADO</span></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style='background: #FFF7ED; border: 2px solid #F59E0B; border-radius: 10px; padding: 20px; margin: 20px 0;'>
+                    <h3 style='color: #92400E; margin: 0 0 10px 0; font-size: 16px;'>📝 Motivo da Reprovação:</h3>
+                    <p style='margin: 0; color: #78350F; font-size: 14px; line-height: 1.6;'>{$motivo}</p>
+                </div>
+
+                <div style='background: #EBF8FF; border: 2px solid #3B82F6; border-radius: 10px; padding: 20px; margin: 20px 0;'>
+                    <h3 style='color: #1E40AF; margin: 0 0 10px 0; font-size: 16px;'>🔄 Próximos Passos:</h3>
+                    <ul style='color: #1E40AF; margin: 0; padding-left: 20px; font-size: 14px;'>
+                        <li style='margin: 8px 0;'>Acesse a aba <strong>Meus Registros</strong></li>
+                        <li style='margin: 8px 0;'>Clique em <strong>Editar</strong> no registro reprovado</li>
+                        <li style='margin: 8px 0;'>Faça as correções necessárias</li>
+                        <li style='margin: 8px 0;'>Envie novamente para aprovação</li>
+                    </ul>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/pops-e-its' style='background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        ✏️ Editar Documento
+                    </a>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
+     * Send exclusão aprovada notification
+     */
+    public function sendExclusaoAprovadaNotification(string $email, string $titulo, int $protocoloId, string $observacoes = ''): bool
+    {
+        if (empty($email)) {
+            return false;
+        }
+
+        $subject = "SGQ - Solicitação de Exclusão Aprovada ✅";
+        $body = $this->buildExclusaoAprovadaTemplate($titulo, $protocoloId, $observacoes);
+        
+        $altBody = "SGQ OTI DJ - POPs e ITs\n\n";
+        $altBody .= "Sua solicitação de exclusão foi aprovada!\n\n";
+        $altBody .= "Protocolo: #{$protocoloId}\n";
+        $altBody .= "Documento: {$titulo}\n\n";
+        $altBody .= "O registro foi removido do sistema.\n";
+        
+        return $this->send([$email], $subject, $body, $altBody);
+    }
+
+    private function buildExclusaoAprovadaTemplate(string $titulo, int $protocoloId, string $observacoes): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        $obsHtml = '';
+        if (!empty($observacoes)) {
+            $obsHtml = "
+                <div style='background: #F3F4F6; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #666; font-size: 14px;'><strong>Observações do Avaliador:</strong></p>
+                    <p style='margin: 10px 0 0 0; color: #333; font-size: 14px;'>{$observacoes}</p>
+                </div>
+            ";
+        }
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Exclusão Aprovada</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>✅ Solicitação Aprovada!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - POPs e ITs</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #D1FAE5; border-left: 4px solid #10B981; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #065F46;'>
+                        <strong>🎉 Sua solicitação de exclusão foi aprovada e o registro foi removido do sistema!</strong>
+                    </p>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Protocolo:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>#{$protocoloId}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Documento:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$titulo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Status:</strong></td>
+                            <td style='padding: 10px 0;'><span style='background: #10B981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;'>APROVADO</span></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                {$obsHtml}
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/pops-e-its' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        📋 Acessar POPs e ITs
+                    </a>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
+     * Send exclusão reprovada notification
+     */
+    public function sendExclusaoReprovadaNotification(string $email, string $titulo, int $protocoloId, string $motivo): bool
+    {
+        if (empty($email)) {
+            return false;
+        }
+
+        $subject = "SGQ - Solicitação de Exclusão Reprovada ❌";
+        $body = $this->buildExclusaoReprovadaTemplate($titulo, $protocoloId, $motivo);
+        
+        $altBody = "SGQ OTI DJ - POPs e ITs\n\n";
+        $altBody .= "Sua solicitação de exclusão foi reprovada.\n\n";
+        $altBody .= "Protocolo: #{$protocoloId}\n";
+        $altBody .= "Documento: {$titulo}\n";
+        $altBody .= "Motivo: {$motivo}\n\n";
+        $altBody .= "O registro permanece no sistema.\n";
+        
+        return $this->send([$email], $subject, $body, $altBody);
+    }
+
+    private function buildExclusaoReprovadaTemplate(string $titulo, int $protocoloId, string $motivo): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Exclusão Reprovada</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>❌ Solicitação Reprovada</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - POPs e ITs</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #FEE2E2; border-left: 4px solid #EF4444; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #991B1B;'>
+                        <strong>⚠️ Sua solicitação de exclusão foi reprovada. O registro permanece no sistema.</strong>
+                    </p>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Protocolo:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>#{$protocoloId}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Documento:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$titulo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Status:</strong></td>
+                            <td style='padding: 10px 0;'><span style='background: #EF4444; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;'>REPROVADO</span></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style='background: #FFF7ED; border: 2px solid #F59E0B; border-radius: 10px; padding: 20px; margin: 20px 0;'>
+                    <h3 style='color: #92400E; margin: 0 0 10px 0; font-size: 16px;'>📝 Motivo da Reprovação:</h3>
+                    <p style='margin: 0; color: #78350F; font-size: 14px; line-height: 1.6;'>{$motivo}</p>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/pops-e-its' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        📋 Acessar POPs e ITs
+                    </a>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
      * Test email configuration
      */
     public function testConnection(): array

@@ -20,11 +20,30 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.4.0';
+        $systemVersion = '2.4.1';
         $lastUpdate = '06/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.4.1',
+                'date' => '06/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Sistema Completo de Emails para Criadores de POPs e ITs',
+                'description' => 'Implementado envio automático de emails em todas as etapas do ciclo de vida dos documentos',
+                'items' => [
+                    'Email automático quando POP/IT é aprovado',
+                    'Email automático quando POP/IT é reprovado (com motivo)',
+                    'Email automático quando solicitação de exclusão é aprovada',
+                    'Email automático quando solicitação de exclusão é reprovada',
+                    'Template verde para aprovações (parabéns!)',
+                    'Template vermelho para reprovações (com orientações)',
+                    'Motivo/observação destacado em cada email',
+                    'Link direto para o sistema em todos os emails',
+                    'Próximos passos explicados em reprovações',
+                    'Sistema completo de notificação do ciclo de vida dos documentos'
+                ]
+            ],
             [
                 'version' => '2.4.0',
                 'date' => '06/10/2025',

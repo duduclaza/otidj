@@ -782,6 +782,31 @@ class PopItsController
                     "pops_its_registro",
                     $registro_id
                 );
+                
+                // Enviar email para o criador
+                try {
+                    $stmt_user = $this->db->prepare("SELECT email FROM users WHERE id = ?");
+                    $stmt_user->execute([$registro_info['criado_por']]);
+                    $user_email = $stmt_user->fetchColumn();
+                    
+                    if ($user_email) {
+                        error_log("📧 Enviando email de aprovação para: $user_email");
+                        $emailService = new \App\Services\EmailService();
+                        $emailEnviado = $emailService->sendPopItsAprovadoNotification(
+                            $user_email,
+                            $registro_info['tipo'],
+                            $registro_info['titulo'],
+                            $registro_info['versao'],
+                            $registro_id
+                        );
+                        
+                        if ($emailEnviado) {
+                            error_log("✅ Email de aprovação enviado com sucesso");
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ Erro ao enviar email de aprovação: " . $e->getMessage());
+                }
             }
             
             echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
@@ -862,6 +887,32 @@ class PopItsController
                     "pops_its_registro",
                     $registro_id
                 );
+                
+                // Enviar email para o criador
+                try {
+                    $stmt_user = $this->db->prepare("SELECT email FROM users WHERE id = ?");
+                    $stmt_user->execute([$registro_info['criado_por']]);
+                    $user_email = $stmt_user->fetchColumn();
+                    
+                    if ($user_email) {
+                        error_log("📧 Enviando email de reprovação para: $user_email");
+                        $emailService = new \App\Services\EmailService();
+                        $emailEnviado = $emailService->sendPopItsReprovadoNotification(
+                            $user_email,
+                            $registro_info['tipo'],
+                            $registro_info['titulo'],
+                            $registro_info['versao'],
+                            $observacao,
+                            $registro_id
+                        );
+                        
+                        if ($emailEnviado) {
+                            error_log("✅ Email de reprovação enviado com sucesso");
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ Erro ao enviar email de reprovação: " . $e->getMessage());
+                }
             }
             
             echo json_encode(['success' => true, 'message' => 'Registro reprovado com sucesso!']);
@@ -2317,6 +2368,30 @@ class PopItsController
                     $solicitacao_id
                 );
                 
+                // Enviar email para o solicitante
+                try {
+                    $stmt_user = $this->db->prepare("SELECT email FROM users WHERE id = ?");
+                    $stmt_user->execute([$solicitacao['solicitante_id']]);
+                    $user_email = $stmt_user->fetchColumn();
+                    
+                    if ($user_email) {
+                        error_log("📧 Enviando email de exclusão aprovada para: $user_email");
+                        $emailService = new \App\Services\EmailService();
+                        $emailEnviado = $emailService->sendExclusaoAprovadaNotification(
+                            $user_email,
+                            $solicitacao['titulo'],
+                            $solicitacao_id,
+                            $observacoes
+                        );
+                        
+                        if ($emailEnviado) {
+                            error_log("✅ Email de exclusão aprovada enviado com sucesso");
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ Erro ao enviar email: " . $e->getMessage());
+                }
+                
                 echo json_encode([
                     'success' => true, 
                     'message' => "Solicitação aprovada e registro '{$solicitacao['titulo']}' excluído com sucesso"
@@ -2401,6 +2476,30 @@ class PopItsController
                 "pops_its_solicitacao",
                 $solicitacao_id
             );
+            
+            // Enviar email para o solicitante
+            try {
+                $stmt_user = $this->db->prepare("SELECT email FROM users WHERE id = ?");
+                $stmt_user->execute([$solicitacao['solicitante_id']]);
+                $user_email = $stmt_user->fetchColumn();
+                
+                if ($user_email) {
+                    error_log("📧 Enviando email de exclusão reprovada para: $user_email");
+                    $emailService = new \App\Services\EmailService();
+                    $emailEnviado = $emailService->sendExclusaoReprovadaNotification(
+                        $user_email,
+                        $solicitacao['titulo'],
+                        $solicitacao_id,
+                        $observacoes
+                    );
+                    
+                    if ($emailEnviado) {
+                        error_log("✅ Email de exclusão reprovada enviado com sucesso");
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("⚠️ Erro ao enviar email: " . $e->getMessage());
+            }
             
             echo json_encode([
                 'success' => true, 
