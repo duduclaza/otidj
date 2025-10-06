@@ -89,16 +89,32 @@ class FluxogramasController
         header('Content-Type: application/json');
         
         try {
+            // Debug: Log da requisição
+            error_log("=== FluxogramasController::createTitulo - INÍCIO ===");
+            error_log("POST data: " . json_encode($_POST));
+            
             // Verificar permissão
             if (!isset($_SESSION['user_id'])) {
+                error_log("ERRO: Usuário não autenticado");
                 echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
                 return;
             }
             
             $user_id = $_SESSION['user_id'];
+            error_log("User ID: " . $user_id);
+            
+            // Verificar conexão com banco
+            if (!$this->db) {
+                error_log("ERRO: Conexão com banco de dados falhou");
+                echo json_encode(['success' => false, 'message' => 'Erro de conexão com banco de dados']);
+                return;
+            }
+            
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            error_log("É Admin: " . ($isAdmin ? 'SIM' : 'NÃO'));
             
             if (!$isAdmin && !\App\Services\PermissionService::hasPermission($user_id, 'fluxogramas', 'edit')) {
+                error_log("ERRO: Sem permissão");
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para criar títulos']);
                 return;
             }
@@ -106,11 +122,15 @@ class FluxogramasController
             // Verificar se a tabela existe
             try {
                 $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_titulos'");
-                if (!$stmt->fetch()) {
+                $tableExists = $stmt->fetch();
+                error_log("Tabela existe: " . ($tableExists ? 'SIM' : 'NÃO'));
+                
+                if (!$tableExists) {
                     echo json_encode(['success' => false, 'message' => 'Tabela fluxogramas_titulos não existe. Execute o script SQL primeiro.']);
                     return;
                 }
             } catch (\Exception $e) {
+                error_log("ERRO ao verificar tabela: " . $e->getMessage());
                 echo json_encode(['success' => false, 'message' => 'Erro ao verificar tabela: ' . $e->getMessage()]);
                 return;
             }
@@ -119,36 +139,55 @@ class FluxogramasController
             $titulo = trim($_POST['titulo'] ?? '');
             $departamento_id = $_POST['departamento_id'] ?? '';
             
+            error_log("Título: " . $titulo);
+            error_log("Departamento ID: " . $departamento_id);
+            
             if (empty($titulo) || empty($departamento_id)) {
+                error_log("ERRO: Campos obrigatórios vazios");
                 echo json_encode(['success' => false, 'message' => 'Todos os campos são obrigatórios']);
                 return;
             }
             
             // Normalizar título para verificação de duplicidade
             $titulo_normalizado = $this->normalizarTitulo($titulo);
+            error_log("Título normalizado: " . $titulo_normalizado);
             
             // Verificar se já existe
             $stmt = $this->db->prepare("SELECT id FROM fluxogramas_titulos WHERE titulo_normalizado = ?");
             $stmt->execute([$titulo_normalizado]);
             
             if ($stmt->fetch()) {
+                error_log("ERRO: Título já existe");
                 echo json_encode(['success' => false, 'message' => 'Já existe um fluxograma com este título']);
                 return;
             }
             
             // Inserir no banco
+            error_log("Tentando inserir no banco...");
             $stmt = $this->db->prepare("
                 INSERT INTO fluxogramas_titulos (titulo, titulo_normalizado, departamento_id, criado_por) 
                 VALUES (?, ?, ?, ?)
             ");
             
-            $stmt->execute([$titulo, $titulo_normalizado, $departamento_id, $user_id]);
+            $result = $stmt->execute([$titulo, $titulo_normalizado, $departamento_id, $user_id]);
+            error_log("Resultado da inserção: " . ($result ? 'SUCESSO' : 'FALHA'));
             
-            echo json_encode(['success' => true, 'message' => 'Título cadastrado com sucesso!']);
+            if ($result) {
+                $lastId = $this->db->lastInsertId();
+                error_log("ID inserido: " . $lastId);
+                echo json_encode(['success' => true, 'message' => 'Título cadastrado com sucesso!']);
+            } else {
+                error_log("ERRO: Falha ao executar INSERT");
+                echo json_encode(['success' => false, 'message' => 'Erro ao inserir no banco de dados']);
+            }
             
         } catch (\Exception $e) {
             // Log detalhado do erro
-            error_log("FluxogramasController::createTitulo - Erro: " . $e->getMessage() . " | File: " . $e->getFile() . " | Line: " . $e->getLine());
+            $errorMsg = "FluxogramasController::createTitulo - Erro: " . $e->getMessage() . 
+                        " | File: " . $e->getFile() . 
+                        " | Line: " . $e->getLine() . 
+                        " | Trace: " . $e->getTraceAsString();
+            error_log($errorMsg);
             echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
         }
     }
