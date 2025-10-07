@@ -850,14 +850,7 @@ async function loadMeusRegistros() {
                             <div class="text-xs text-gray-500">${registro.extensao.toUpperCase()} - ${formatFileSize(registro.tamanho_arquivo)}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="flex items-center gap-2">
-                                <div class="text-sm text-gray-900">${registro.publico ? '🌍 Público' : '🏢 Restrito'}</div>
-                                <button onclick="editarVisibilidadeInline(${registro.id}, ${registro.publico}, '${departamentosTexto}')" 
-                                        class="text-purple-600 hover:text-purple-900 text-xs"
-                                        title="Editar visibilidade">
-                                    ✏️
-                                </button>
-                            </div>
+                            <div class="text-sm text-gray-900">${registro.publico ? '🌍 Público' : '🏢 Restrito'}</div>
                             ${!registro.publico && registro.departamentos_permitidos ? 
                                 `<div class="text-xs text-gray-500">${departamentosTexto}</div>` : ''}
                         </td>

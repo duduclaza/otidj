@@ -1132,20 +1132,12 @@ class FluxogramasController
                 error_log("Query executada com sucesso");
                 
             } else {
-                // USUÁRIO COMUM VÊ: PÚBLICO + DO SEU DEPARTAMENTO
+                // USUÁRIO COMUM VÊ: PÚBLICO + DO SEU DEPARTAMENTO + CRIADOS POR ELE
                 error_log("Executando query para USUÁRIO COMUM");
                 
-                // Buscar departamento do usuário
-                $user_departamento_id = null;
-                try {
-                    $stmt = $this->db->prepare("SELECT department_id FROM users WHERE id = ?");
-                    $stmt->execute([$user_id]);
-                    $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $user_departamento_id = $user_data['department_id'] ?? null;
-                    error_log("Departamento do usuário: " . ($user_departamento_id ?? 'NULL'));
-                } catch (\Exception $e) {
-                    error_log("Aviso: Coluna de departamento não encontrada");
-                }
+                // Buscar setor do usuário (igual ao POPs e ITs)
+                $user_setor = $this->getUserSetor($user_id);
+                error_log("Setor do usuário: " . ($user_setor ?? 'NULL'));
                 
                 $query = "
                     SELECT DISTINCT
@@ -1167,14 +1159,12 @@ class FluxogramasController
                     WHERE r.status = 'APROVADO'
                     AND (
                         r.publico = 1
-                        OR (
-                            r.publico = 0 
-                            AND EXISTS (
-                                SELECT 1 
-                                FROM fluxogramas_registros_departamentos rd2 
-                                WHERE rd2.registro_id = r.id 
-                                AND rd2.departamento_id = ?
-                            )
+                        OR r.criado_por = ?
+                        OR EXISTS (
+                            SELECT 1
+                            FROM fluxogramas_registros_departamentos rd3
+                            INNER JOIN departamentos d3 ON rd3.departamento_id = d3.id
+                            WHERE rd3.registro_id = r.id AND d3.nome = ?
                         )
                     )
                     GROUP BY r.id
@@ -1182,7 +1172,7 @@ class FluxogramasController
                 ";
                 
                 $stmt = $this->db->prepare($query);
-                $stmt->execute([$user_departamento_id]);
+                $stmt->execute([$user_id, $user_setor]);
             }
             
             $registros = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1206,6 +1196,23 @@ class FluxogramasController
         }
     }
     
+    private function getUserSetor($user_id)
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT setor, name FROM users WHERE id = ?");
+            $stmt->execute([$user_id]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            $setor = $result['setor'] ?? null;
+            error_log("SETOR DO USUÁRIO: {$result['name']} (ID: $user_id) -> Setor: '$setor'");
+            
+            return $setor;
+        } catch (\Exception $e) {
+            error_log("Erro ao obter setor do usuário: " . $e->getMessage());
+            return null;
+        }
+    }
+    
     public function visualizarArquivo($id)
     {
         try {
@@ -1218,23 +1225,8 @@ class FluxogramasController
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
-            // Buscar departamento do usuário (usar setor como departamento)
-            $user_departamento_id = null;
-            try {
-                $stmt = $this->db->prepare("SELECT setor FROM users WHERE id = ?");
-                $stmt->execute([$user_id]);
-                $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                // Tentar encontrar departamento pelo nome do setor
-                if ($user_data && !empty($user_data['setor'])) {
-                    $stmt = $this->db->prepare("SELECT id FROM departamentos WHERE nome = ?");
-                    $stmt->execute([$user_data['setor']]);
-                    $dept = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $user_departamento_id = $dept['id'] ?? null;
-                }
-            } catch (\Exception $e) {
-                error_log("Erro ao buscar departamento do usuário: " . $e->getMessage());
-            }
+            // Buscar setor do usuário
+            $user_setor = $this->getUserSetor($user_id);
             
             // Buscar registro
             $stmt = $this->db->prepare("
@@ -1244,7 +1236,8 @@ class FluxogramasController
                     r.nome_arquivo,
                     r.extensao,
                     r.publico,
-                    r.status
+                    r.status,
+                    r.criado_por
                 FROM fluxogramas_registros r
                 WHERE r.id = ?
             ");
@@ -1271,14 +1264,17 @@ class FluxogramasController
                 $tem_acesso = true; // Admin vê tudo
             } elseif ($registro['publico'] == 1) {
                 $tem_acesso = true; // Público todos veem
+            } elseif ($registro['criado_por'] == $user_id) {
+                $tem_acesso = true; // Criador sempre vê
             } else {
-                // Verificar se o departamento do usuário tem acesso
+                // Verificar se o setor do usuário tem acesso (pelo nome do departamento)
                 $stmt = $this->db->prepare("
                     SELECT COUNT(*) as tem_acesso
-                    FROM fluxogramas_registros_departamentos
-                    WHERE registro_id = ? AND departamento_id = ?
+                    FROM fluxogramas_registros_departamentos rd
+                    INNER JOIN departamentos d ON rd.departamento_id = d.id
+                    WHERE rd.registro_id = ? AND d.nome = ?
                 ");
-                $stmt->execute([$id, $user_departamento_id]);
+                $stmt->execute([$id, $user_setor]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
                 $tem_acesso = ($result['tem_acesso'] > 0);
             }
