@@ -854,16 +854,24 @@ async function loadMeusRegistros() {
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                             <button onclick="downloadArquivo(${registro.id})" 
-                                    class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-2 py-1 rounded">
+                                    class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-2 py-1 rounded"
+                                    title="Baixar arquivo">
                                 📥 Download
+                            </button>
+                            <button onclick="editarVisibilidade(${registro.id})" 
+                                    class="text-purple-600 hover:text-purple-900 hover:bg-purple-50 px-2 py-1 rounded"
+                                    title="Editar visibilidade">
+                                👁️ Visibilidade
                             </button>
                             ${registro.status === 'REPROVADO' ? 
                                 `<button onclick="editarRegistro(${registro.id})" 
-                                         class="text-green-600 hover:text-green-900 hover:bg-green-50 px-2 py-1 rounded">
+                                         class="text-green-600 hover:text-green-900 hover:bg-green-50 px-2 py-1 rounded"
+                                         title="Editar registro reprovado">
                                     ✏️ Editar
                                  </button>` : ''}
                             <button onclick="solicitarExclusao(${registro.id}, '${registro.titulo}', '${registro.nome_arquivo}')" 
-                                    class="text-red-600 hover:text-red-900 hover:bg-red-50 px-2 py-1 rounded">
+                                    class="text-red-600 hover:text-red-900 hover:bg-red-50 px-2 py-1 rounded"
+                                    title="Solicitar exclusão">
                                 🗑️ Excluir
                             </button>
                         </td>
@@ -1905,6 +1913,145 @@ function mostrarAvisoProtecao(mensagem) {
             toast.parentNode.removeChild(toast);
         }
     }, 3000);
+}
+
+// Editar visibilidade do registro (sem precisar de aprovação)
+async function editarVisibilidade(registroId) {
+    try {
+        // Buscar dados do registro
+        const response = await fetch(`/fluxogramas/registros/${registroId}`);
+        const result = await response.json();
+        
+        if (!result.success || !result.data) {
+            alert('Erro ao carregar dados do registro');
+            return;
+        }
+        
+        const registro = result.data;
+        
+        // Criar modal dinâmico
+        const modalHTML = `
+            <div id="modalVisibilidade" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) fecharModalVisibilidade()">
+                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-purple-50">
+                        <h3 class="text-lg font-semibold text-gray-900">👁️ Editar Visibilidade</h3>
+                        <button onclick="fecharModalVisibilidade()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p class="text-sm text-blue-800"><strong>Registro:</strong> ${registro.titulo} - v${registro.versao}</p>
+                            <p class="text-xs text-blue-600 mt-1">Altere a visibilidade sem necessidade de nova aprovação</p>
+                        </div>
+                        
+                        <form id="formEditarVisibilidade" class="space-y-4">
+                            <input type="hidden" name="registro_id" value="${registroId}">
+                            
+                            <!-- Visibilidade -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Visibilidade *</label>
+                                <div class="space-y-2">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" name="publico" value="1" ${registro.publico ? 'checked' : ''} 
+                                               onchange="document.getElementById('deptsVisibilidade').style.display='none'" 
+                                               class="mr-2">
+                                        <span class="text-sm">🌍 <strong>Público</strong> - Todos os usuários podem visualizar</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" name="publico" value="0" ${!registro.publico ? 'checked' : ''} 
+                                               onchange="document.getElementById('deptsVisibilidade').style.display='block'" 
+                                               class="mr-2">
+                                        <span class="text-sm">🏢 <strong>Restrito</strong> - Apenas departamentos selecionados</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Departamentos (se restrito) -->
+                            <div id="deptsVisibilidade" style="display: ${registro.publico ? 'none' : 'block'}">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Departamentos Permitidos *</label>
+                                <div class="border border-gray-300 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                                    ${departamentos.map(dept => `
+                                        <label class="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                            <input type="checkbox" name="departamentos[]" value="${dept.id}" class="mr-2">
+                                            <span class="text-sm">${dept.nome}</span>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-3 pt-4 border-t">
+                                <button type="button" onclick="fecharModalVisibilidade()" 
+                                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                                    Cancelar
+                                </button>
+                                <button type="submit" 
+                                        class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                                    💾 Salvar Visibilidade
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Marcar departamentos já selecionados
+        if (!registro.publico && registro.departamentos_ids) {
+            const deptsArray = Array.isArray(registro.departamentos_ids) 
+                ? registro.departamentos_ids 
+                : registro.departamentos_ids.split(',');
+            
+            deptsArray.forEach(deptId => {
+                const checkbox = document.querySelector(`input[name="departamentos[]"][value="${deptId}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+        
+        // Handler do formulário
+        document.getElementById('formEditarVisibilidade').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await salvarVisibilidade(e.target);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao abrir modal de visibilidade:', error);
+        alert('Erro ao carregar formulário de visibilidade');
+    }
+}
+
+function fecharModalVisibilidade() {
+    const modal = document.getElementById('modalVisibilidade');
+    if (modal) modal.remove();
+}
+
+async function salvarVisibilidade(form) {
+    try {
+        const formData = new FormData(form);
+        
+        const response = await fetch('/fluxogramas/registros/atualizar-visibilidade', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Visibilidade atualizada com sucesso!');
+            fecharModalVisibilidade();
+            loadMeusRegistros(); // Recarregar lista
+        } else {
+            alert('❌ ' + (result.message || 'Erro ao atualizar visibilidade'));
+        }
+    } catch (error) {
+        console.error('Erro ao salvar visibilidade:', error);
+        alert('❌ Erro ao salvar visibilidade');
+    }
 }
 
 // Aplicar proteções específicas por tipo de arquivo

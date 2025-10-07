@@ -1328,6 +1328,122 @@ class FluxogramasController
         }
     }
     
+    public function getRegistro($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = (int)$id;
+            
+            // Buscar registro com departamentos permitidos
+            $stmt = $this->db->prepare("
+                SELECT 
+                    r.*,
+                    t.titulo,
+                    GROUP_CONCAT(rd.departamento_id) as departamentos_ids
+                FROM fluxogramas_registros r
+                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                WHERE r.id = ? AND r.criado_por = ?
+                GROUP BY r.id
+            ");
+            $stmt->execute([$registro_id, $user_id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou você não tem permissão']);
+                return;
+            }
+            
+            echo json_encode(['success' => true, 'data' => $registro]);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::getRegistro - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao buscar registro']);
+        }
+    }
+    
+    public function atualizarVisibilidade()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            $user_id = $_SESSION['user_id'];
+            $registro_id = (int)($_POST['registro_id'] ?? 0);
+            $publico = (int)($_POST['publico'] ?? 0);
+            $departamentos = $_POST['departamentos'] ?? [];
+            
+            if ($registro_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro inválido']);
+                return;
+            }
+            
+            // Verificar se é o criador do registro
+            $stmt = $this->db->prepare("SELECT criado_por FROM fluxogramas_registros WHERE id = ?");
+            $stmt->execute([$registro_id]);
+            $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$registro) {
+                echo json_encode(['success' => false, 'message' => 'Registro não encontrado']);
+                return;
+            }
+            
+            if ($registro['criado_por'] != $user_id && !\App\Services\PermissionService::isAdmin($user_id)) {
+                echo json_encode(['success' => false, 'message' => 'Você não tem permissão para editar este registro']);
+                return;
+            }
+            
+            // Atualizar visibilidade SEM alterar o status
+            $stmt = $this->db->prepare("
+                UPDATE fluxogramas_registros 
+                SET publico = ?,
+                    atualizado_em = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$publico, $registro_id]);
+            
+            // Atualizar departamentos se for restrito
+            if ($publico == 0) {
+                // Remover departamentos antigos
+                $stmt = $this->db->prepare("DELETE FROM fluxogramas_registros_departamentos WHERE registro_id = ?");
+                $stmt->execute([$registro_id]);
+                
+                // Adicionar novos departamentos
+                if (!empty($departamentos)) {
+                    $stmt = $this->db->prepare("
+                        INSERT INTO fluxogramas_registros_departamentos (registro_id, departamento_id)
+                        VALUES (?, ?)
+                    ");
+                    
+                    foreach ($departamentos as $dept_id) {
+                        $stmt->execute([$registro_id, (int)$dept_id]);
+                    }
+                }
+            } else {
+                // Se público, remover todas as restrições de departamento
+                $stmt = $this->db->prepare("DELETE FROM fluxogramas_registros_departamentos WHERE registro_id = ?");
+                $stmt->execute([$registro_id]);
+            }
+            
+            echo json_encode(['success' => true, 'message' => 'Visibilidade atualizada com sucesso']);
+            
+        } catch (\Exception $e) {
+            error_log("FluxogramasController::atualizarVisibilidade - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar visibilidade: ' . $e->getMessage()]);
+        }
+    }
+    
     public function listLogs()
     {
         header('Content-Type: application/json');
