@@ -6,6 +6,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
+<script>
+// Disponibilizar departamentos globalmente para JavaScript
+const departamentos = <?= json_encode($departamentos ?? []) ?>;
+</script>
+
 <div class="container mx-auto px-4 py-6">
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
