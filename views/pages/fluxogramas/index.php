@@ -813,8 +813,18 @@ async function loadMeusRegistros() {
             tbody.innerHTML = result.data.map(registro => {
                 const statusColor = getStatusColor(registro.status);
                 const statusText = getStatusText(registro.status);
-                const visibilidade = registro.publico ? 'Público' : 
-                    (registro.departamentos_permitidos ? registro.departamentos_permitidos.join(', ') : 'Departamentos');
+                
+                // Tratar departamentos_permitidos (pode ser string ou array)
+                let departamentosTexto = 'Departamentos';
+                if (registro.departamentos_permitidos) {
+                    if (Array.isArray(registro.departamentos_permitidos)) {
+                        departamentosTexto = registro.departamentos_permitidos.join(', ');
+                    } else if (typeof registro.departamentos_permitidos === 'string') {
+                        departamentosTexto = registro.departamentos_permitidos;
+                    }
+                }
+                
+                const visibilidade = registro.publico ? 'Público' : departamentosTexto;
                 
                 return `
                     <tr class="hover:bg-gray-50">
@@ -837,7 +847,7 @@ async function loadMeusRegistros() {
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">${registro.publico ? '🌍 Público' : '🏢 Restrito'}</div>
                             ${!registro.publico && registro.departamentos_permitidos ? 
-                                `<div class="text-xs text-gray-500">${registro.departamentos_permitidos.join(', ')}</div>` : ''}
+                                `<div class="text-xs text-gray-500">${departamentosTexto}</div>` : ''}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             ${formatDate(registro.criado_em)}
