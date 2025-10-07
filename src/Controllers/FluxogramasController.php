@@ -412,6 +412,24 @@ class FluxogramasController
                 }
             }
             
+            // Buscar informações do título para notificação
+            $stmt_titulo = $this->db->prepare("SELECT titulo FROM fluxogramas_titulos WHERE id = ?");
+            $stmt_titulo->execute([$titulo_id]);
+            $titulo_info = $stmt_titulo->fetch(\PDO::FETCH_ASSOC);
+            
+            // Notificar administradores sobre novo registro pendente
+            if ($titulo_info) {
+                error_log("NOTIFICANDO ADMINS: Novo Fluxograma - {$titulo_info['titulo']} v{$versao}");
+                $notificacao_enviada = $this->notificarAdministradores(
+                    "📋 Novo Fluxograma Pendente",
+                    "Um novo registro '{$titulo_info['titulo']}' v{$versao} foi criado e aguarda aprovação.",
+                    "fluxogramas_pendente",
+                    "fluxogramas_registro",
+                    $registro_id
+                );
+                error_log("NOTIFICAÇÃO RESULTADO: " . ($notificacao_enviada ? 'SUCESSO' : 'FALHA'));
+            }
+            
             echo json_encode([
                 'success' => true, 
                 'message' => 'Registro criado com sucesso! Versão: v' . $versao . '. Aguardando aprovação do administrador.'
@@ -580,6 +598,52 @@ class FluxogramasController
             
             $stmt->execute([$user_id, $registro_id]);
             
+            // Buscar informações do registro para notificação
+            $stmt_info = $this->db->prepare("
+                SELECT r.criado_por, r.versao, t.titulo 
+                FROM fluxogramas_registros r 
+                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                WHERE r.id = ?
+            ");
+            $stmt_info->execute([$registro_id]);
+            $registro_info = $stmt_info->fetch(\PDO::FETCH_ASSOC);
+            
+            // Notificar o autor sobre aprovação
+            if ($registro_info) {
+                $this->criarNotificacao(
+                    $registro_info['criado_por'],
+                    "✅ Fluxograma Aprovado!",
+                    "Seu registro '{$registro_info['titulo']}' v{$registro_info['versao']} foi aprovado e está disponível para visualização.",
+                    'fluxogramas_aprovado',
+                    'fluxogramas_registro',
+                    $registro_id
+                );
+                
+                // Enviar email para o criador
+                try {
+                    $stmt_user = $this->db->prepare("SELECT email FROM users WHERE id = ?");
+                    $stmt_user->execute([$registro_info['criado_por']]);
+                    $user_email = $stmt_user->fetchColumn();
+                    
+                    if ($user_email) {
+                        error_log("📧 Enviando email de aprovação para: $user_email");
+                        $emailService = new \App\Services\EmailService();
+                        $emailEnviado = $emailService->sendFluxogramasAprovadoNotification(
+                            $user_email,
+                            $registro_info['titulo'],
+                            $registro_info['versao'],
+                            $registro_id
+                        );
+                        
+                        if ($emailEnviado) {
+                            error_log("✅ Email de aprovação enviado com sucesso");
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ Erro ao enviar email de aprovação: " . $e->getMessage());
+                }
+            }
+            
             echo json_encode(['success' => true, 'message' => 'Registro aprovado com sucesso!']);
             
         } catch (\Exception $e) {
@@ -645,6 +709,53 @@ class FluxogramasController
             ");
             
             $stmt->execute([$user_id, $observacao, $registro_id]);
+            
+            // Buscar informações do registro para notificação
+            $stmt_info = $this->db->prepare("
+                SELECT r.criado_por, r.versao, t.titulo 
+                FROM fluxogramas_registros r 
+                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                WHERE r.id = ?
+            ");
+            $stmt_info->execute([$registro_id]);
+            $registro_info = $stmt_info->fetch(\PDO::FETCH_ASSOC);
+            
+            // Notificar o autor sobre reprovação
+            if ($registro_info) {
+                $this->criarNotificacao(
+                    $registro_info['criado_por'],
+                    "❌ Fluxograma Reprovado",
+                    "Seu registro '{$registro_info['titulo']}' v{$registro_info['versao']} foi reprovado. Motivo: {$observacao}",
+                    'fluxogramas_reprovado',
+                    'fluxogramas_registro',
+                    $registro_id
+                );
+                
+                // Enviar email para o criador
+                try {
+                    $stmt_user = $this->db->prepare("SELECT email FROM users WHERE id = ?");
+                    $stmt_user->execute([$registro_info['criado_por']]);
+                    $user_email = $stmt_user->fetchColumn();
+                    
+                    if ($user_email) {
+                        error_log("📧 Enviando email de reprovação para: $user_email");
+                        $emailService = new \App\Services\EmailService();
+                        $emailEnviado = $emailService->sendFluxogramasReprovadoNotification(
+                            $user_email,
+                            $registro_info['titulo'],
+                            $registro_info['versao'],
+                            $observacao,
+                            $registro_id
+                        );
+                        
+                        if ($emailEnviado) {
+                            error_log("✅ Email de reprovação enviado com sucesso");
+                        }
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ Erro ao enviar email de reprovação: " . $e->getMessage());
+                }
+            }
             
             echo json_encode(['success' => true, 'message' => 'Registro reprovado. O autor será notificado.']);
             
@@ -1527,6 +1638,125 @@ class FluxogramasController
         } catch (\Exception $e) {
             error_log("FluxogramasController::listLogs - Erro: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao listar logs']);
+        }
+    }
+    
+    // ===== SISTEMA DE NOTIFICAÇÕES =====
+    
+    // Criar notificação para usuário
+    private function criarNotificacao($user_id, $titulo, $mensagem, $tipo, $related_type = null, $related_id = null)
+    {
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO notifications (user_id, title, message, type, related_type, related_id) 
+                VALUES (?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$user_id, $titulo, $mensagem, $tipo, $related_type, $related_id]);
+            
+            error_log("NOTIFICAÇÃO CRIADA: $titulo para usuário $user_id");
+            return true;
+        } catch (\Exception $e) {
+            error_log("Erro ao criar notificação: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    // Notificar administradores COM PERMISSÃO + ENVIAR EMAIL
+    private function notificarAdministradores($titulo, $mensagem, $tipo, $related_type = null, $related_id = null)
+    {
+        try {
+            error_log("=== INICIANDO NOTIFICAÇÃO PARA ADMINS COM PERMISSÃO (FLUXOGRAMAS) ===");
+            
+            // Buscar administradores com permissão específica para aprovar Fluxogramas
+            $admins = [];
+            
+            // Verificar se coluna pode_aprovar_fluxogramas existe
+            $hasColumn = false;
+            try {
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_fluxogramas'");
+                $hasColumn = $checkColumn->rowCount() > 0;
+            } catch (\Exception $e) {
+                error_log("Coluna pode_aprovar_fluxogramas não existe ainda");
+            }
+            
+            if ($hasColumn) {
+                // Buscar apenas admins com permissão específica
+                $stmt = $this->db->prepare("
+                    SELECT id, name, email 
+                    FROM users 
+                    WHERE role = 'admin' 
+                    AND pode_aprovar_fluxogramas = 1
+                    AND status = 'active'
+                ");
+                $stmt->execute();
+                $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                error_log("✅ ADMINS COM PERMISSÃO ENCONTRADOS: " . count($admins));
+            } else {
+                // Fallback: buscar todos os admins se coluna não existir
+                $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE role = 'admin' AND status = 'active'");
+                $stmt->execute();
+                $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                error_log("⚠️ Coluna não existe - usando todos admins: " . count($admins));
+            }
+            
+            if (empty($admins)) {
+                error_log("❌ NENHUM ADMINISTRADOR COM PERMISSÃO ENCONTRADO!");
+                return false;
+            }
+            
+            // Criar notificações no sistema para cada admin
+            $notificacoes_criadas = 0;
+            $emails = [];
+            
+            foreach ($admins as $admin) {
+                try {
+                    $stmt = $this->db->prepare("
+                        INSERT INTO notifications (user_id, title, message, type, related_type, related_id) 
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ");
+                    $resultado = $stmt->execute([$admin['id'], $titulo, $mensagem, $tipo, $related_type, $related_id]);
+                    
+                    if ($resultado) {
+                        $notificacoes_criadas++;
+                        if (!empty($admin['email'])) {
+                            $emails[] = $admin['email'];
+                        }
+                        error_log("✅ NOTIFICAÇÃO CRIADA para {$admin['name']}");
+                    }
+                } catch (\Exception $e) {
+                    error_log("❌ ERRO ao criar notificação para {$admin['name']}: " . $e->getMessage());
+                }
+            }
+            
+            // Enviar EMAIL para todos os admins com permissão
+            if (!empty($emails)) {
+                try {
+                    error_log("📧 ENVIANDO EMAIL PARA " . count($emails) . " ADMINISTRADORES");
+                    
+                    $emailService = new \App\Services\EmailService();
+                    $emailEnviado = $emailService->sendFluxogramasPendenteNotification(
+                        $emails,
+                        $titulo,
+                        $mensagem,
+                        $related_id
+                    );
+                    
+                    if ($emailEnviado) {
+                        error_log("✅ EMAIL ENVIADO COM SUCESSO");
+                    } else {
+                        error_log("⚠️ EMAIL NÃO ENVIADO (mas notificações criadas)");
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ ERRO ao enviar email: " . $e->getMessage());
+                }
+            }
+            
+            error_log("RESUMO: $notificacoes_criadas notificações criadas para $notificacoes_criadas admins");
+            return $notificacoes_criadas > 0;
+            
+        } catch (\Exception $e) {
+            error_log("ERRO CRÍTICO ao notificar administradores: " . $e->getMessage());
+            return false;
         }
     }
 }

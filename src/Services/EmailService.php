@@ -1366,6 +1366,273 @@ class EmailService
     /**
      * Test email configuration
      */
+    /**
+     * Send Fluxogramas pendente notification
+     */
+    public function sendFluxogramasPendenteNotification(array $emails, string $titulo, string $mensagem, $registroId = null): bool
+    {
+        if (empty($emails)) {
+            return false;
+        }
+
+        $subject = "SGQ - Novo Fluxograma Pendente de Aprovação 📋";
+        $body = $this->buildFluxogramasPendenteEmailTemplate($titulo, $mensagem, $registroId);
+        
+        $altBody = "SGQ OTI DJ - Fluxogramas\n\n";
+        $altBody .= "$titulo\n\n";
+        $altBody .= "$mensagem\n\n";
+        $altBody .= "Acesse o sistema para revisar e aprovar/reprovar o registro.\n";
+        $altBody .= "Link: " . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/fluxogramas";
+        
+        return $this->send($emails, $subject, $body, $altBody);
+    }
+
+    private function buildFluxogramasPendenteEmailTemplate(string $titulo, string $mensagem, $registroId): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Novo Fluxograma Pendente</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>📋 Novo Fluxograma Pendente!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Fluxogramas</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #92400E;'>
+                        <strong>⏳ Atenção: Há um novo registro aguardando sua aprovação!</strong>
+                    </p>
+                </div>
+                
+                <h2 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>$titulo</h2>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #374151; font-size: 15px;'>
+                        $mensagem
+                    </p>
+                </div>
+                
+                <div style='background: #EBF8FF; border: 2px solid #3B82F6; border-radius: 10px; padding: 25px; margin: 25px 0;'>
+                    <h3 style='color: #1E40AF; margin: 0 0 15px 0; font-size: 18px;'>🔍 Próximos Passos:</h3>
+                    <ul style='color: #1E40AF; margin: 0; padding-left: 20px; font-size: 14px;'>
+                        <li style='margin: 8px 0;'>Acesse o sistema SGQ OTI DJ</li>
+                        <li style='margin: 8px 0;'>Navegue até <strong>Fluxogramas → Pendente Aprovação</strong></li>
+                        <li style='margin: 8px 0;'>Revise o documento cuidadosamente</li>
+                        <li style='margin: 8px 0;'>Aprove ou reprove com justificativa</li>
+                    </ul>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/fluxogramas' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Acessar Fluxogramas
+                    </a>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #666; font-size: 14px;'>
+                        <strong>Nota:</strong> Você recebeu este email porque está configurado como aprovador de Fluxogramas no sistema. 
+                        Para alterar suas preferências, entre em contato com o administrador do sistema.
+                    </p>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
+     * Send Fluxograma aprovado notification
+     */
+    public function sendFluxogramasAprovadoNotification(string $email, string $titulo, string $versao, $registroId): bool
+    {
+        if (empty($email)) {
+            return false;
+        }
+
+        $subject = "SGQ - Fluxograma Aprovado ✅";
+        $body = $this->buildFluxogramasAprovadoTemplate($titulo, $versao, $registroId);
+        
+        $altBody = "SGQ OTI DJ - Fluxogramas\n\n";
+        $altBody .= "Parabéns! Seu Fluxograma foi aprovado!\n\n";
+        $altBody .= "Título: {$titulo}\n";
+        $altBody .= "Versão: v{$versao}\n\n";
+        $altBody .= "O documento já está disponível para visualização no sistema.\n";
+        $altBody .= "Link: " . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/fluxogramas";
+        
+        return $this->send([$email], $subject, $body, $altBody);
+    }
+
+    private function buildFluxogramasAprovadoTemplate(string $titulo, string $versao, $registroId): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Fluxograma Aprovado</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>✅ Fluxograma Aprovado!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Fluxogramas</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #D1FAE5; border-left: 4px solid #10B981; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #065F46;'>
+                        <strong>🎉 Parabéns! Seu documento foi aprovado e já está disponível no sistema!</strong>
+                    </p>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Título:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$titulo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Versão:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>v{$versao}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Status:</strong></td>
+                            <td style='padding: 10px 0;'><span style='background: #10B981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;'>APROVADO</span></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/fluxogramas' style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Visualizar no Sistema
+                    </a>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
+     * Send Fluxograma reprovado notification
+     */
+    public function sendFluxogramasReprovadoNotification(string $email, string $titulo, string $versao, string $motivo, $registroId): bool
+    {
+        if (empty($email)) {
+            return false;
+        }
+
+        $subject = "SGQ - Fluxograma Reprovado ❌";
+        $body = $this->buildFluxogramasReprovadoTemplate($titulo, $versao, $motivo, $registroId);
+        
+        $altBody = "SGQ OTI DJ - Fluxogramas\n\n";
+        $altBody .= "Seu Fluxograma foi reprovado.\n\n";
+        $altBody .= "Título: {$titulo}\n";
+        $altBody .= "Versão: v{$versao}\n\n";
+        $altBody .= "Motivo: {$motivo}\n\n";
+        $altBody .= "Por favor, revise e envie uma nova versão.\n";
+        $altBody .= "Link: " . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/fluxogramas";
+        
+        return $this->send([$email], $subject, $body, $altBody);
+    }
+
+    private function buildFluxogramasReprovadoTemplate(string $titulo, string $versao, string $motivo, $registroId): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Fluxograma Reprovado</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>❌ Fluxograma Reprovado</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Fluxogramas</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #FEE2E2; border-left: 4px solid #EF4444; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #991B1B;'>
+                        <strong>⚠️ Seu documento foi reprovado e precisa ser revisado.</strong>
+                    </p>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Título:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$titulo}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Versão:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>v{$versao}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>Status:</strong></td>
+                            <td style='padding: 10px 0;'><span style='background: #EF4444; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;'>REPROVADO</span></td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style='background: #FEE2E2; border: 2px solid #EF4444; border-radius: 10px; padding: 20px; margin: 20px 0;'>
+                    <h3 style='color: #991B1B; margin: 0 0 10px 0; font-size: 16px;'>📝 Motivo da Reprovação:</h3>
+                    <p style='margin: 0; color: #7F1D1D; font-size: 14px; line-height: 1.6;'>
+                        {$motivo}
+                    </p>
+                </div>
+                
+                <div style='background: #EBF8FF; border: 2px solid #3B82F6; border-radius: 10px; padding: 20px; margin: 20px 0;'>
+                    <h3 style='color: #1E40AF; margin: 0 0 10px 0; font-size: 16px;'>🔄 Próximos Passos:</h3>
+                    <ul style='color: #1E40AF; margin: 0; padding-left: 20px; font-size: 14px;'>
+                        <li style='margin: 8px 0;'>Revise o documento com base no motivo da reprovação</li>
+                        <li style='margin: 8px 0;'>Faça as correções necessárias</li>
+                        <li style='margin: 8px 0;'>Envie uma nova versão através do sistema</li>
+                    </ul>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/fluxogramas' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        📝 Acessar Sistema
+                    </a>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+    }
+    
     public function testConnection(): array
     {
         try {
