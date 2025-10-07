@@ -1218,11 +1218,23 @@ class FluxogramasController
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
             
-            // Buscar departamento do usuário
-            $stmt = $this->db->prepare("SELECT departamento_id FROM users WHERE id = ?");
-            $stmt->execute([$user_id]);
-            $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
-            $user_departamento_id = $user_data['departamento_id'] ?? null;
+            // Buscar departamento do usuário (usar setor como departamento)
+            $user_departamento_id = null;
+            try {
+                $stmt = $this->db->prepare("SELECT setor FROM users WHERE id = ?");
+                $stmt->execute([$user_id]);
+                $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                // Tentar encontrar departamento pelo nome do setor
+                if ($user_data && !empty($user_data['setor'])) {
+                    $stmt = $this->db->prepare("SELECT id FROM departamentos WHERE nome = ?");
+                    $stmt->execute([$user_data['setor']]);
+                    $dept = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $user_departamento_id = $dept['id'] ?? null;
+                }
+            } catch (\Exception $e) {
+                error_log("Erro ao buscar departamento do usuário: " . $e->getMessage());
+            }
             
             // Buscar registro
             $stmt = $this->db->prepare("
