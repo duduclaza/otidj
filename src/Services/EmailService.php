@@ -787,7 +787,7 @@ class EmailService
                 </table>
 
                 <div style='text-align: center; margin: 30px 0;'>
-                    <a href='{$appUrl}/amostragens-2' style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 17px; display: inline-block; margin-bottom: 10px;'>
+                    <a href='{$appUrl}/amostragens-2/{$amostragem['id']}/editar-resultados' style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 17px; display: inline-block; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);'>
                         ✅ Adicionar Resultados dos Testes
                     </a>
                     <br>

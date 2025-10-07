@@ -21,9 +21,9 @@ CREATE TABLE IF NOT EXISTS amostragens_2 (
     
     -- Quantidades
     quantidade_recebida INT NOT NULL,
-    quantidade_testada INT NOT NULL,
-    quantidade_aprovada INT NOT NULL DEFAULT 0,
-    quantidade_reprovada INT NOT NULL DEFAULT 0,
+    quantidade_testada INT NULL DEFAULT NULL,
+    quantidade_aprovada INT NULL DEFAULT NULL,
+    quantidade_reprovada INT NULL DEFAULT NULL,
     
     -- Fornecedor
     fornecedor_id INT NOT NULL,
@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS amostragens_2 (
     
     -- Status
     status_final ENUM('Aprovado', 'Aprovado Parcialmente', 'Reprovado', 'Pendente') DEFAULT 'Pendente',
+    
+    -- Observações
+    observacoes TEXT NULL,
     
     -- Timestamps
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

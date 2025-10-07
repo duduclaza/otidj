@@ -739,27 +739,43 @@ class Amostragens2Controller
         header('Content-Type: application/json');
 
         try {
-            $id = (int)($_POST['amostragem_id'] ?? 0);
+            // Aceitar tanto 'id' quanto 'amostragem_id'
+            $id = (int)($_POST['id'] ?? $_POST['amostragem_id'] ?? 0);
             
             if ($id <= 0) {
                 echo json_encode(['success' => false, 'message' => 'ID inválido']);
                 return;
             }
 
-            $numeroNf = trim($_POST['numero_nf'] ?? '');
-            $tipoProduto = $_POST['tipo_produto'] ?? '';
-            $produtoId = (int)($_POST['produto_id'] ?? 0);
-            $codigoProduto = trim($_POST['codigo_produto'] ?? '');
-            $nomeProduto = trim($_POST['nome_produto'] ?? '');
-            $quantidadeRecebida = (int)($_POST['quantidade_recebida'] ?? 0);
-            $quantidadeTestada = (int)($_POST['quantidade_testada'] ?? 0);
-            $quantidadeAprovada = (int)($_POST['quantidade_aprovada'] ?? 0);
-            $quantidadeReprovada = (int)($_POST['quantidade_reprovada'] ?? 0);
-            $fornecedorId = (int)($_POST['fornecedor_id'] ?? 0);
-            $responsaveis = $_POST['responsaveis'] ?? [];
-            $statusFinal = $_POST['status_final'] ?? 'Pendente';
+            // Buscar dados atuais da amostragem
+            $stmt = $this->db->prepare("SELECT * FROM amostragens_2 WHERE id = ?");
+            $stmt->execute([$id]);
+            $amostragemAtual = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            $responsaveisStr = !empty($responsaveis) ? implode(',', $responsaveis) : '';
+            if (!$amostragemAtual) {
+                echo json_encode(['success' => false, 'message' => 'Amostragem não encontrada']);
+                return;
+            }
+
+            // Campos - usar valores atuais se não fornecidos
+            $numeroNf = trim($_POST['numero_nf'] ?? $amostragemAtual['numero_nf']);
+            $tipoProduto = $_POST['tipo_produto'] ?? $amostragemAtual['tipo_produto'];
+            $produtoId = (int)($_POST['produto_id'] ?? $amostragemAtual['produto_id']);
+            $codigoProduto = trim($_POST['codigo_produto'] ?? $amostragemAtual['codigo_produto']);
+            $nomeProduto = trim($_POST['nome_produto'] ?? $amostragemAtual['nome_produto']);
+            $quantidadeRecebida = (int)($_POST['quantidade_recebida'] ?? $amostragemAtual['quantidade_recebida']);
+            
+            // Campos opcionais de teste
+            $quantidadeTestada = !empty($_POST['quantidade_testada']) ? (int)$_POST['quantidade_testada'] : null;
+            $quantidadeAprovada = !empty($_POST['quantidade_aprovada']) ? (int)$_POST['quantidade_aprovada'] : null;
+            $quantidadeReprovada = !empty($_POST['quantidade_reprovada']) ? (int)$_POST['quantidade_reprovada'] : null;
+            
+            $fornecedorId = (int)($_POST['fornecedor_id'] ?? $amostragemAtual['fornecedor_id']);
+            $responsaveis = $_POST['responsaveis'] ?? explode(',', $amostragemAtual['responsaveis'] ?? '');
+            $statusFinal = $_POST['status_final'] ?? $amostragemAtual['status_final'];
+            $observacoes = trim($_POST['observacoes'] ?? $amostragemAtual['observacoes'] ?? '');
+            
+            $responsaveisStr = !empty($responsaveis) ? (is_array($responsaveis) ? implode(',', $responsaveis) : $responsaveis) : '';
 
             // Processar novo anexo da NF se enviado
             $updateAnexoNf = '';
@@ -799,6 +815,7 @@ class Amostragens2Controller
                     fornecedor_id = :fornecedor_id,
                     responsaveis = :responsaveis,
                     status_final = :status_final,
+                    observacoes = :observacoes,
                     updated_at = NOW()
                     {$updateAnexoNf}
                 WHERE id = :id
@@ -817,7 +834,8 @@ class Amostragens2Controller
                 ':quantidade_reprovada' => $quantidadeReprovada,
                 ':fornecedor_id' => $fornecedorId,
                 ':responsaveis' => $responsaveisStr,
-                ':status_final' => $statusFinal
+                ':status_final' => $statusFinal,
+                ':observacoes' => $observacoes
             ];
             
             // Merge anexo NF params se existir
@@ -1081,5 +1099,45 @@ class Amostragens2Controller
     {
         // TODO: Implementar página de gráficos
         echo "Gráficos em desenvolvimento";
+    }
+
+    /**
+     * Página dedicada para editar resultados dos testes
+     */
+    public function editarResultados($id): void
+    {
+        try {
+            $id = (int)$id;
+            
+            // Buscar dados completos da amostragem
+            $stmt = $this->db->prepare("
+                SELECT a.*, 
+                       u.name as usuario_nome,
+                       f.nome as filial_nome,
+                       forn.nome as fornecedor_nome
+                FROM amostragens_2 a
+                LEFT JOIN users u ON a.user_id = u.id
+                LEFT JOIN filiais f ON a.filial_id = f.id
+                LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
+                WHERE a.id = :id
+            ");
+            $stmt->execute([':id' => $id]);
+            $amostragem = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$amostragem) {
+                http_response_code(404);
+                echo "Amostragem não encontrada";
+                return;
+            }
+            
+            // Carregar view dedicada SEM layout
+            $viewFile = __DIR__ . '/../../views/pages/amostragens-2/editar-resultados.php';
+            include $viewFile;
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao carregar página de edição: " . $e->getMessage());
+            http_response_code(500);
+            echo "Erro ao carregar página";
+        }
     }
 }
