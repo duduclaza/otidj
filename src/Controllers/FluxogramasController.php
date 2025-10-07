@@ -1365,21 +1365,42 @@ class FluxogramasController
             
             error_log("getRegistro - Preparando query...");
             
-            // Buscar registro com departamentos permitidos
-            $stmt = $this->db->prepare("
-                SELECT 
-                    r.*,
-                    t.titulo,
-                    GROUP_CONCAT(rd.departamento_id) as departamentos_ids
-                FROM fluxogramas_registros r
-                INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
-                LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
-                WHERE r.id = ? AND r.criado_por = ?
-                GROUP BY r.id
-            ");
+            // Verificar se é admin
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            error_log("getRegistro - User é admin: " . ($isAdmin ? 'SIM' : 'NÃO'));
             
-            error_log("getRegistro - Executando query com params: [{$registro_id}, {$user_id}]");
-            $stmt->execute([$registro_id, $user_id]);
+            // Buscar registro com departamentos permitidos
+            // Admin pode ver todos, usuário comum apenas os próprios
+            if ($isAdmin) {
+                $stmt = $this->db->prepare("
+                    SELECT 
+                        r.*,
+                        t.titulo,
+                        GROUP_CONCAT(rd.departamento_id) as departamentos_ids
+                    FROM fluxogramas_registros r
+                    INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                    LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                    WHERE r.id = ?
+                    GROUP BY r.id
+                ");
+                error_log("getRegistro - Executando query ADMIN com params: [{$registro_id}]");
+                $stmt->execute([$registro_id]);
+            } else {
+                $stmt = $this->db->prepare("
+                    SELECT 
+                        r.*,
+                        t.titulo,
+                        GROUP_CONCAT(rd.departamento_id) as departamentos_ids
+                    FROM fluxogramas_registros r
+                    INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                    LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                    WHERE r.id = ? AND r.criado_por = ?
+                    GROUP BY r.id
+                ");
+                error_log("getRegistro - Executando query USER com params: [{$registro_id}, {$user_id}]");
+                $stmt->execute([$registro_id, $user_id]);
+            }
+            
             $registro = $stmt->fetch(PDO::FETCH_ASSOC);
             
             error_log("getRegistro - Registro encontrado: " . ($registro ? 'SIM' : 'NÃO'));
