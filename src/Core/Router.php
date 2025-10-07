@@ -32,15 +32,26 @@ class Router
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
         $normalized = $this->normalize($uri);
 
+        // Debug para fluxogramas
+        if (strpos($normalized, '/fluxogramas/registros/') !== false) {
+            error_log("Router - Method: {$method}, URI: {$uri}, Normalized: {$normalized}");
+        }
 
         // First try exact match
         $handler = $this->routes[$method][$normalized] ?? null;
         $route = $normalized;
         
+        if (strpos($normalized, '/fluxogramas/registros/') !== false) {
+            error_log("Router - Exact match: " . ($handler ? 'SIM' : 'NÃO'));
+        }
+        
         // If no exact match, try pattern matching for dynamic routes
         if (!$handler && isset($this->routes[$method])) {
             foreach ($this->routes[$method] as $pattern => $routeHandler) {
                 if ($this->matchRoute($pattern, $normalized)) {
+                    if (strpos($normalized, '/fluxogramas/registros/') !== false) {
+                        error_log("Router - Pattern matched: {$pattern}");
+                    }
                     $handler = $routeHandler;
                     $route = $pattern;
                     break;
@@ -71,10 +82,20 @@ class Router
 
         if (is_array($handler)) {
             [$class, $methodName] = $handler;
+            
+            if (strpos($normalized, '/fluxogramas/registros/') !== false) {
+                error_log("Router - Handler encontrado: {$class}::{$methodName}");
+                error_log("Router - Route pattern: {$route}");
+            }
+            
             $instance = new $class();
             
             // Extract parameters from URL for dynamic routes
             $params = $this->extractParams($normalized, $route);
+            
+            if (strpos($normalized, '/fluxogramas/registros/') !== false) {
+                error_log("Router - Parâmetros extraídos: " . json_encode($params));
+            }
             
             if (!empty($params)) {
                 $instance->$methodName(...$params);
