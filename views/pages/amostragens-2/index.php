@@ -80,20 +80,20 @@ $toners = $toners ?? [];
 
         <!-- Quantidade Testada -->
         <div>
-          <label class="block text-sm font-medium text-gray-200 mb-1">Quantidade Testada *</label>
-          <input type="number" name="quantidade_testada" min="1" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-200 mb-1">Quantidade Testada <span class="text-gray-400 text-xs">(Opcional)</span></label>
+          <input type="number" name="quantidade_testada" min="0" value="" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
         </div>
 
         <!-- Quantidade Aprovada -->
         <div>
-          <label class="block text-sm font-medium text-gray-200 mb-1">Quantidade Aprovada *</label>
-          <input type="number" name="quantidade_aprovada" min="0" value="0" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-200 mb-1">Quantidade Aprovada <span class="text-gray-400 text-xs">(Opcional)</span></label>
+          <input type="number" name="quantidade_aprovada" min="0" value="" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
         </div>
 
         <!-- Quantidade Reprovada -->
         <div>
-          <label class="block text-sm font-medium text-gray-200 mb-1">Quantidade Reprovada *</label>
-          <input type="number" name="quantidade_reprovada" min="0" value="0" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-200 mb-1">Quantidade Reprovada <span class="text-gray-400 text-xs">(Opcional)</span></label>
+          <input type="number" name="quantidade_reprovada" min="0" value="" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
         </div>
 
         <!-- Fornecedor -->
@@ -120,13 +120,14 @@ $toners = $toners ?? [];
 
         <!-- Status Final -->
         <div>
-          <label class="block text-sm font-medium text-gray-200 mb-1">Status Final *</label>
-          <select name="status_final" required class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
+          <label class="block text-sm font-medium text-gray-200 mb-1">Status Final <span class="text-gray-400 text-xs">(Automático se campos vazios)</span></label>
+          <select name="status_final" id="statusFinalSelect" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500">
             <option value="Pendente">Pendente</option>
             <option value="Aprovado">Aprovado</option>
             <option value="Aprovado Parcialmente">Aprovado Parcialmente</option>
             <option value="Reprovado">Reprovado</option>
           </select>
+          <p class="text-xs text-gray-400 mt-1">💡 Status será "Pendente" automaticamente se não houver resultados de testes</p>
         </div>
 
         <!-- Evidências (Fotos) -->
@@ -449,6 +450,36 @@ function filtrarProdutos() {
   }
 }
 
+// Monitorar campos de teste e ajustar status automaticamente
+const qtdTestadaInput = document.querySelector('input[name="quantidade_testada"]');
+const qtdAprovadaInput = document.querySelector('input[name="quantidade_aprovada"]');
+const qtdReprovadaInput = document.querySelector('input[name="quantidade_reprovada"]');
+const statusSelect = document.getElementById('statusFinalSelect');
+
+function verificarCamposTestagem() {
+  const testada = qtdTestadaInput.value.trim();
+  const aprovada = qtdAprovadaInput.value.trim();
+  const reprovada = qtdReprovadaInput.value.trim();
+  
+  // Se algum campo estiver vazio, forçar status Pendente
+  if (!testada || !aprovada || !reprovada) {
+    statusSelect.value = 'Pendente';
+    statusSelect.style.opacity = '0.6';
+    statusSelect.title = 'Preencha os campos de teste para alterar o status';
+  } else {
+    statusSelect.style.opacity = '1';
+    statusSelect.title = '';
+  }
+}
+
+// Adicionar listeners
+if (qtdTestadaInput) qtdTestadaInput.addEventListener('input', verificarCamposTestagem);
+if (qtdAprovadaInput) qtdAprovadaInput.addEventListener('input', verificarCamposTestagem);
+if (qtdReprovadaInput) qtdReprovadaInput.addEventListener('input', verificarCamposTestagem);
+
+// Verificar ao carregar
+verificarCamposTestagem();
+
 // Submit do formulário
 document.getElementById('amostragemForm').addEventListener('submit', async function(e) {
   e.preventDefault();
@@ -467,6 +498,8 @@ document.getElementById('amostragemForm').addEventListener('submit', async funct
       alert(result.message);
       if (result.redirect) {
         window.location.href = result.redirect;
+      } else {
+        window.location.reload();
       }
     } else {
       alert('Erro: ' + result.message);

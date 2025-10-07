@@ -787,15 +787,25 @@ class EmailService
                 </table>
 
                 <div style='text-align: center; margin: 30px 0;'>
-                    <a href='{$appUrl}/amostragens-2/{$amostragem['id']}/details' style='background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
-                        👁️ Ver Detalhes da Amostragem
+                    <a href='{$appUrl}/amostragens-2' style='background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; padding: 16px 35px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 17px; display: inline-block; margin-bottom: 10px;'>
+                        ✅ Adicionar Resultados dos Testes
+                    </a>
+                    <br>
+                    <a href='{$appUrl}/amostragens-2' style='background: #6B7280; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px; display: inline-block;'>
+                        👁️ Ver Todas as Amostragens
                     </a>
                 </div>
                 
-                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
-                    <p style='margin: 0; color: #666; font-size: 14px;'>
-                        <strong>Próximos passos:</strong> Acesse o sistema para acompanhar o processo de análise e registrar os resultados dos testes de qualidade.
+                <div style='background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 20px; border-radius: 0 8px 8px 0; margin: 20px 0;'>
+                    <p style='margin: 0; color: #92400E; font-size: 14px;'>
+                        <strong>⚠️ Ação Necessária:</strong> Esta amostragem está aguardando os resultados dos testes. Clique no botão acima para adicionar:
                     </p>
+                    <ul style='margin: 10px 0 0 20px; color: #92400E; font-size: 14px;'>
+                        <li>Quantidade Testada</li>
+                        <li>Quantidade Aprovada</li>
+                        <li>Quantidade Reprovada</li>
+                        <li>Status Final</li>
+                    </ul>
                 </div>
             </div>
             

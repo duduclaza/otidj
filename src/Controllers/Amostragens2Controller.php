@@ -165,17 +165,26 @@ class Amostragens2Controller
             $codigoProduto = trim($_POST['codigo_produto'] ?? '');
             $nomeProduto = trim($_POST['nome_produto'] ?? '');
             $quantidadeRecebida = (int)($_POST['quantidade_recebida'] ?? 0);
-            $quantidadeTestada = (int)($_POST['quantidade_testada'] ?? 0);
-            $quantidadeAprovada = (int)($_POST['quantidade_aprovada'] ?? 0);
-            $quantidadeReprovada = (int)($_POST['quantidade_reprovada'] ?? 0);
+            
+            // Campos opcionais - podem estar vazios
+            $quantidadeTestada = !empty($_POST['quantidade_testada']) ? (int)$_POST['quantidade_testada'] : null;
+            $quantidadeAprovada = !empty($_POST['quantidade_aprovada']) ? (int)$_POST['quantidade_aprovada'] : null;
+            $quantidadeReprovada = !empty($_POST['quantidade_reprovada']) ? (int)$_POST['quantidade_reprovada'] : null;
+            
             $fornecedorId = (int)($_POST['fornecedor_id'] ?? 0);
             $responsaveis = $_POST['responsaveis'] ?? [];
-            $statusFinal = $_POST['status_final'] ?? 'Pendente';
+            
+            // Status automático: se campos de teste vazios, sempre "Pendente"
+            if ($quantidadeTestada === null || $quantidadeAprovada === null || $quantidadeReprovada === null) {
+                $statusFinal = 'Pendente';
+            } else {
+                $statusFinal = $_POST['status_final'] ?? 'Pendente';
+            }
 
-            error_log("Dados recebidos - NF: $numeroNf, Tipo: $tipoProduto, Produto: $produtoId, Fornecedor: $fornecedorId");
+            error_log("Dados recebidos - NF: $numeroNf, Tipo: $tipoProduto, Produto: $produtoId, Fornecedor: $fornecedorId, Status: $statusFinal");
 
-            if (empty($numeroNf) || empty($tipoProduto) || $produtoId <= 0 || $quantidadeRecebida <= 0 || $quantidadeTestada <= 0 || $fornecedorId <= 0) {
-                echo json_encode(['success' => false, 'message' => 'Preencha todos os campos obrigatórios']);
+            if (empty($numeroNf) || empty($tipoProduto) || $produtoId <= 0 || $quantidadeRecebida <= 0 || $fornecedorId <= 0) {
+                echo json_encode(['success' => false, 'message' => 'Preencha todos os campos obrigatórios (NF, Tipo, Produto, Quantidade Recebida e Fornecedor)']);
                 return;
             }
             
