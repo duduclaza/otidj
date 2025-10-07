@@ -1333,6 +1333,8 @@ class FluxogramasController
         header('Content-Type: application/json');
         
         try {
+            error_log("getRegistro - ID recebido: " . var_export($id, true));
+            
             if (!isset($_SESSION['user_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
                 return;
@@ -1340,6 +1342,13 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $registro_id = (int)$id;
+            
+            error_log("getRegistro - User ID: {$user_id}, Registro ID: {$registro_id}");
+            
+            if ($registro_id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro inválido']);
+                return;
+            }
             
             // Buscar registro com departamentos permitidos
             $stmt = $this->db->prepare("
@@ -1356,6 +1365,8 @@ class FluxogramasController
             $stmt->execute([$registro_id, $user_id]);
             $registro = $stmt->fetch(PDO::FETCH_ASSOC);
             
+            error_log("getRegistro - Registro encontrado: " . ($registro ? 'SIM' : 'NÃO'));
+            
             if (!$registro) {
                 echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou você não tem permissão']);
                 return;
@@ -1365,7 +1376,7 @@ class FluxogramasController
             
         } catch (\Exception $e) {
             error_log("FluxogramasController::getRegistro - Erro: " . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao buscar registro']);
+            echo json_encode(['success' => false, 'message' => 'Erro ao buscar registro: ' . $e->getMessage()]);
         }
     }
     

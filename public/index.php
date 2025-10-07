@@ -339,9 +339,9 @@ $router->get('/fluxogramas/titulos/search', [App\Controllers\FluxogramasControll
 $router->post('/fluxogramas/titulo/delete', [App\Controllers\FluxogramasController::class, 'deleteTitulo']);
 $router->post('/fluxogramas/registro/create', [App\Controllers\FluxogramasController::class, 'createRegistro']);
 $router->post('/fluxogramas/registro/editar', [App\Controllers\FluxogramasController::class, 'editarRegistro']);
+$router->post('/fluxogramas/registros/atualizar-visibilidade', [App\Controllers\FluxogramasController::class, 'atualizarVisibilidade']);
 $router->get('/fluxogramas/registros/meus', [App\Controllers\FluxogramasController::class, 'listMeusRegistros']);
 $router->get('/fluxogramas/registros/{id}', [App\Controllers\FluxogramasController::class, 'getRegistro']);
-$router->post('/fluxogramas/registros/atualizar-visibilidade', [App\Controllers\FluxogramasController::class, 'atualizarVisibilidade']);
 $router->get('/fluxogramas/arquivo/{id}', [App\Controllers\FluxogramasController::class, 'downloadArquivo']);
 $router->get('/fluxogramas/visualizar/{id}', [App\Controllers\FluxogramasController::class, 'visualizarArquivo']);
 $router->get('/fluxogramas/pendentes/list', [App\Controllers\FluxogramasController::class, 'listPendentes']);

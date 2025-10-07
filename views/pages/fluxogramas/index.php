@@ -1923,16 +1923,36 @@ function mostrarAvisoProtecao(mensagem) {
 // Editar visibilidade do registro (sem precisar de aprovação)
 async function editarVisibilidade(registroId) {
     try {
+        console.log('🔍 Buscando registro ID:', registroId);
+        
         // Buscar dados do registro
         const response = await fetch(`/fluxogramas/registros/${registroId}`);
-        const result = await response.json();
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+            alert('Erro ao buscar dados do registro (HTTP ' + response.status + ')');
+            return;
+        }
+        
+        const responseText = await response.text();
+        console.log('📄 Response text:', responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error('❌ Erro ao fazer parse do JSON:', e);
+            alert('Erro: Resposta inválida do servidor');
+            return;
+        }
         
         if (!result.success || !result.data) {
-            alert('Erro ao carregar dados do registro');
+            alert('Erro ao carregar dados do registro: ' + (result.message || 'Dados não encontrados'));
             return;
         }
         
         const registro = result.data;
+        console.log('✅ Registro carregado:', registro);
         
         // Criar modal dinâmico
         const modalHTML = `
