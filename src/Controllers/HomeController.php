@@ -20,16 +20,38 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.5.0';
-        $lastUpdate = '06/10/2025';
+        $systemVersion = '2.6.0';
+        $lastUpdate = '07/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
             [
+                'version' => '2.6.0',
+                'date' => '07/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Sistema Completo de Notificações por Email em Fluxogramas',
+                'description' => 'Implementado sistema completo de notificações automáticas por email e controle por setor para Fluxogramas',
+                'items' => [
+                    'Sistema de notificações automáticas para admins quando novo fluxograma é criado',
+                    'Email automático para criador quando fluxograma é aprovado',
+                    'Email automático para criador quando fluxograma é reprovado (com motivo)',
+                    'Templates HTML profissionais com gradientes (roxo, verde, vermelho)',
+                    'Permissão granular "pode_aprovar_fluxogramas" no cadastro de usuários',
+                    'Notificações apenas para admins com permissão específica ativada',
+                    'Sistema de controle de acesso por SETOR do usuário (users.setor)',
+                    'Usuários veem fluxogramas públicos + do seu setor + criados por eles',
+                    'Lógica idêntica ao POPs e ITs para consistência do sistema',
+                    'Método getUserSetor() para buscar setor do usuário',
+                    'Visualização protegida com verificação de setor',
+                    'Logs detalhados para monitoramento de envios',
+                    'Removidos selos BETA de Amostragens 2.0, Melhoria Contínua 2.0 e Fluxogramas'
+                ]
+            ],
+            [
                 'version' => '2.5.0',
                 'date' => '06/10/2025',
                 'type' => 'Melhoria',
-                'title' => 'Módulo Completo de Fluxogramas (BETA)',
+                'title' => 'Módulo Completo de Fluxogramas',
                 'description' => 'Implementado módulo completo de Fluxogramas com workflow de aprovação e controle por departamento',
                 'items' => [
                     'Sistema de cadastro de títulos de fluxogramas',

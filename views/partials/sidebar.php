@@ -37,7 +37,7 @@ $menu = [
       ['label' => 'Cadastro de Peças', 'href' => '/cadastro-pecas', 'icon' => '🔧', 'module' => 'cadastro_pecas'],
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
       ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪', 'module' => 'amostragens'],
-      ['label' => 'Amostragens 2.0', 'href' => '/amostragens-2', 'icon' => '🔬', 'module' => 'amostragens_2', 'beta' => true],
+      ['label' => 'Amostragens 2.0', 'href' => '/amostragens-2', 'icon' => '🔬', 'module' => 'amostragens_2'],
       ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️', 'module' => 'garantias'],
       ['label' => 'Controle de Descartes', 'href' => '/controle-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
     ]
@@ -52,12 +52,12 @@ $menu = [
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
       ['label' => 'FMEA', 'href' => '/fmea', 'icon' => '📈', 'module' => 'fmea'],
       ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its_visualizacao'],
-      ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas', 'beta' => true],
+      ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
       ['label' => '5W2H', 'href' => '/5w2h', 'icon' => '📋', 'module' => '5w2h'],
       ['label' => 'Auditorias', 'href' => '/auditorias', 'icon' => '🔍', 'module' => 'auditorias'],
       // Melhoria Contínua (com abas internas)
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
-      ['label' => 'Melhoria Contínua 2.0', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2', 'beta' => true],
+      ['label' => 'Melhoria Contínua 2.0', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
     ]
   ],
