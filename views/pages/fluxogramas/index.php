@@ -137,7 +137,7 @@ if (!isset($_SESSION['user_id'])) {
                             </thead>
                             <tbody id="listaTitulos" class="bg-white divide-y divide-gray-200">
                                 <tr>
-                                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                                    <td colspan="<?= $canViewPendenteAprovacao ? 6 : 5 ?>" class="px-6 py-4 text-center text-gray-500">
                                         <div class="flex items-center justify-center">
                                             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -700,6 +700,9 @@ async function loadTitulos() {
             
             tbody.innerHTML = result.data.map(titulo => `
                 <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        Fluxograma
+                    </td>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">${titulo.titulo}</div>
                     </td>
@@ -707,7 +710,7 @@ async function loadTitulos() {
                         ${titulo.departamento_nome || 'N/A'}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${titulo.criador_nome || 'N/A'}
+                        ${titulo.criado_por_nome || 'N/A'}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         ${formatDate(titulo.criado_em)}
@@ -726,7 +729,7 @@ async function loadTitulos() {
                 </tr>
             `).join('');
         } else {
-            // Verificar se usuário é admin para ajustar colspan
+            // Verificar se usuário é admin para ajustar colspan (5 colunas base + 1 ações se admin)
             const isAdmin = document.getElementById('tab-pendentes') !== null;
             const colspan = isAdmin ? 6 : 5;
             
@@ -746,7 +749,7 @@ async function loadTitulos() {
         }
     } catch (error) {
         console.error('Erro ao carregar títulos:', error);
-        // Verificar se usuário é admin para ajustar colspan
+        // Verificar se usuário é admin para ajustar colspan (5 colunas base + 1 ações se admin)
         const isAdmin = document.getElementById('tab-pendentes') !== null;
         const colspan = isAdmin ? 6 : 5;
         
