@@ -371,9 +371,32 @@ class Amostragens2Controller
                 }
                 
                 $emails = array_column($responsaveis, 'email');
+                
+                // Buscar emails de admins com permissão de aprovar amostragens
+                try {
+                    $stmtAdmins = $this->db->prepare("
+                        SELECT email 
+                        FROM users 
+                        WHERE role = 'admin' 
+                        AND pode_aprovar_amostragens = 1 
+                        AND status = 'active'
+                        AND email IS NOT NULL 
+                        AND email != ''
+                    ");
+                    $stmtAdmins->execute();
+                    $adminsEmails = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
+                    
+                    if (!empty($adminsEmails)) {
+                        error_log("📧 Admins com permissão encontrados: " . count($adminsEmails));
+                        $emails = array_merge($emails, $adminsEmails);
+                        $emails = array_unique($emails); // Remove duplicatas
+                    }
+                } catch (\Exception $e) {
+                    error_log("⚠️ Erro ao buscar admins com permissão (coluna pode não existir ainda): " . $e->getMessage());
+                }
 
                 if (empty($emails)) {
-                    error_log("❌ Amostragem #{$amostragemId}: Nenhum email válido encontrado para os responsáveis");
+                    error_log("❌ Amostragem #{$amostragemId}: Nenhum email válido encontrado");
                     return false;
                 }
 

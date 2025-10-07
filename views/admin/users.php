@@ -97,17 +97,50 @@
         </select>
       </div>
 
-      <!-- Permissão específica para aprovar POPs e ITs -->
-      <div id="popsItsPermissionContainer" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div class="flex items-start space-x-3">
-          <input type="checkbox" id="podeAprovarPopsIts" name="pode_aprovar_pops_its" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-          <div>
-            <label for="podeAprovarPopsIts" class="block text-sm font-medium text-gray-900 cursor-pointer">
-              🔐 Pode Aprovar POPs e ITs
-            </label>
-            <p class="text-xs text-gray-600 mt-1">
-              Quando marcado, este administrador receberá emails automáticos sempre que houver POPs ou ITs pendentes de aprovação.
-            </p>
+      <!-- Permissões específicas para aprovação de módulos -->
+      <div id="permissoesAprovacaoContainer" class="hidden space-y-3">
+        <!-- POPs e ITs -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <input type="checkbox" id="podeAprovarPopsIts" name="pode_aprovar_pops_its" class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+            <div>
+              <label for="podeAprovarPopsIts" class="block text-sm font-medium text-gray-900 cursor-pointer">
+                🔐 Pode Aprovar POPs e ITs
+              </label>
+              <p class="text-xs text-gray-600 mt-1">
+                Quando marcado, este administrador receberá emails automáticos sempre que houver POPs ou ITs pendentes de aprovação.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fluxogramas -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <input type="checkbox" id="podeAprovarFluxogramas" name="pode_aprovar_fluxogramas" class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+            <div>
+              <label for="podeAprovarFluxogramas" class="block text-sm font-medium text-gray-900 cursor-pointer">
+                🔀 Pode Aprovar Fluxogramas
+              </label>
+              <p class="text-xs text-gray-600 mt-1">
+                Quando marcado, este administrador receberá emails automáticos sempre que houver Fluxogramas pendentes de aprovação.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Amostragens -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div class="flex items-start space-x-3">
+            <input type="checkbox" id="podeAprovarAmostragens" name="pode_aprovar_amostragens" class="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+            <div>
+              <label for="podeAprovarAmostragens" class="block text-sm font-medium text-gray-900 cursor-pointer">
+                🧪 Pode Aprovar Amostragens
+              </label>
+              <p class="text-xs text-gray-600 mt-1">
+                Quando marcado, este administrador receberá emails automáticos sempre que houver Amostragens pendentes de aprovação.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -346,16 +379,18 @@ function displayUsers(users) {
   });
 }
 
-// Função para mostrar/esconder permissão de POPs e ITs
+// Função para mostrar/esconder permissões de aprovação
 function togglePopsItsPermission() {
   const role = document.getElementById('userRole').value;
-  const container = document.getElementById('popsItsPermissionContainer');
+  const container = document.getElementById('permissoesAprovacaoContainer');
   
   if (role === 'admin') {
     container.classList.remove('hidden');
   } else {
     container.classList.add('hidden');
     document.getElementById('podeAprovarPopsIts').checked = false;
+    document.getElementById('podeAprovarFluxogramas').checked = false;
+    document.getElementById('podeAprovarAmostragens').checked = false;
   }
 }
 
@@ -437,11 +472,17 @@ function editUser(userId) {
           document.getElementById('userStatus').value = user.status;
           document.getElementById('userProfile').value = user.profile_id || '';
           
-          // Preencher campo de aprovar POPs e ITs
-          const podeAprovar = user.pode_aprovar_pops_its == 1 || user.pode_aprovar_pops_its === true;
-          document.getElementById('podeAprovarPopsIts').checked = podeAprovar;
+          // Preencher campos de aprovação
+          const podeAprovarPopsIts = user.pode_aprovar_pops_its == 1 || user.pode_aprovar_pops_its === true;
+          document.getElementById('podeAprovarPopsIts').checked = podeAprovarPopsIts;
           
-          // Mostrar/esconder permissão de POPs e ITs baseado no role
+          const podeAprovarFluxogramas = user.pode_aprovar_fluxogramas == 1 || user.pode_aprovar_fluxogramas === true;
+          document.getElementById('podeAprovarFluxogramas').checked = podeAprovarFluxogramas;
+          
+          const podeAprovarAmostragens = user.pode_aprovar_amostragens == 1 || user.pode_aprovar_amostragens === true;
+          document.getElementById('podeAprovarAmostragens').checked = podeAprovarAmostragens;
+          
+          // Mostrar/esconder permissões de aprovação baseado no role
           togglePopsItsPermission();
           
           // Show password field but make it optional for editing
