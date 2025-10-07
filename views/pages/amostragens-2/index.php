@@ -422,7 +422,8 @@ function carregarProdutos() {
   produtos.forEach(p => {
     const option = document.createElement('option');
     option.value = p.id;
-    option.textContent = `${p.codigo} - ${p.nome}`;
+    // Todos os tipos: mostrar apenas código de referência
+    option.textContent = p.codigo;
     option.dataset.codigo = p.codigo;
     option.dataset.nome = p.nome;
     select.appendChild(option);
