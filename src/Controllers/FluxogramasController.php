@@ -1330,98 +1330,59 @@ class FluxogramasController
     
     public function getRegistro($id)
     {
-        // Limpar qualquer output anterior
-        if (ob_get_level()) ob_clean();
+        // Limpar buffers
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
         
-        header('Content-Type: application/json');
+        header('Content-Type: application/json; charset=utf-8');
         
         try {
-            error_log("=== getRegistro INICIADO ===");
-            error_log("getRegistro - ID recebido: " . var_export($id, true));
-            error_log("getRegistro - REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
-            
             if (!isset($_SESSION['user_id'])) {
-                error_log("getRegistro - Usuário não autenticado");
-                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
-                exit;
+                die(json_encode(['success' => false, 'message' => 'Usuário não autenticado']));
             }
             
             $user_id = $_SESSION['user_id'];
             $registro_id = (int)$id;
             
-            error_log("getRegistro - User ID: {$user_id}, Registro ID: {$registro_id}");
-            
             if ($registro_id <= 0) {
-                error_log("getRegistro - ID inválido");
-                echo json_encode(['success' => false, 'message' => 'ID do registro inválido']);
-                exit;
+                die(json_encode(['success' => false, 'message' => 'ID inválido']));
             }
-            
-            if (!$this->db) {
-                error_log("getRegistro - Database não inicializado");
-                echo json_encode(['success' => false, 'message' => 'Erro de conexão com banco']);
-                exit;
-            }
-            
-            error_log("getRegistro - Preparando query...");
             
             // Verificar se é admin
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
-            error_log("getRegistro - User é admin: " . ($isAdmin ? 'SIM' : 'NÃO'));
             
-            // Buscar registro com departamentos permitidos
-            // Admin pode ver todos, usuário comum apenas os próprios
+            // Query simples
             if ($isAdmin) {
-                $stmt = $this->db->prepare("
-                    SELECT 
-                        r.*,
-                        t.titulo,
-                        GROUP_CONCAT(rd.departamento_id) as departamentos_ids
-                    FROM fluxogramas_registros r
-                    INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
-                    LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
-                    WHERE r.id = ?
-                    GROUP BY r.id
-                ");
-                error_log("getRegistro - Executando query ADMIN com params: [{$registro_id}]");
-                $stmt->execute([$registro_id]);
+                $sql = "SELECT r.*, t.titulo, GROUP_CONCAT(rd.departamento_id) as departamentos_ids
+                        FROM fluxogramas_registros r
+                        INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                        LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                        WHERE r.id = ?
+                        GROUP BY r.id";
+                $params = [$registro_id];
             } else {
-                $stmt = $this->db->prepare("
-                    SELECT 
-                        r.*,
-                        t.titulo,
-                        GROUP_CONCAT(rd.departamento_id) as departamentos_ids
-                    FROM fluxogramas_registros r
-                    INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
-                    LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
-                    WHERE r.id = ? AND r.criado_por = ?
-                    GROUP BY r.id
-                ");
-                error_log("getRegistro - Executando query USER com params: [{$registro_id}, {$user_id}]");
-                $stmt->execute([$registro_id, $user_id]);
+                $sql = "SELECT r.*, t.titulo, GROUP_CONCAT(rd.departamento_id) as departamentos_ids
+                        FROM fluxogramas_registros r
+                        INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                        LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                        WHERE r.id = ? AND r.criado_por = ?
+                        GROUP BY r.id";
+                $params = [$registro_id, $user_id];
             }
             
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
             $registro = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            error_log("getRegistro - Registro encontrado: " . ($registro ? 'SIM' : 'NÃO'));
-            
             if (!$registro) {
-                error_log("getRegistro - Registro não encontrado para user {$user_id}");
-                echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou você não tem permissão']);
-                exit;
+                die(json_encode(['success' => false, 'message' => 'Registro não encontrado']));
             }
             
-            error_log("getRegistro - Retornando sucesso");
-            $result = json_encode(['success' => true, 'data' => $registro]);
-            error_log("getRegistro - JSON gerado: " . substr($result, 0, 200) . "...");
-            echo $result;
-            exit;
+            die(json_encode(['success' => true, 'data' => $registro]));
             
         } catch (\Exception $e) {
-            error_log("FluxogramasController::getRegistro - EXCEÇÃO: " . $e->getMessage());
-            error_log("FluxogramasController::getRegistro - Stack: " . $e->getTraceAsString());
-            echo json_encode(['success' => false, 'message' => 'Erro ao buscar registro: ' . $e->getMessage()]);
-            exit;
+            die(json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]));
         }
     }
     
