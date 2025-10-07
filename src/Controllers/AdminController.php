@@ -30,11 +30,15 @@ class AdminController
             // Get statistics
             $stats = $this->getStats();
             
+            // Get totais acumulados dos gráficos
+            $totaisAcumulados = $this->getTotaisAcumuladosGraficos();
+            
             $title = 'Painel Administrativo - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/admin/dashboard.php';
             include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Exception $e) {
             $error = 'Erro ao carregar dashboard: ' . $e->getMessage();
+            $totaisAcumulados = ['retornados_total' => 0, 'destinos_total' => 0, 'valor_recuperado' => 0];
             $title = 'Erro - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/admin/dashboard.php';
             include __DIR__ . '/../../views/layouts/main.php';
@@ -1047,6 +1051,42 @@ class AdminController
         }
         
         return $stats;
+    }
+
+    /**
+     * Get totais acumulados dos gráficos até a data atual
+     */
+    private function getTotaisAcumuladosGraficos(): array
+    {
+        $totais = [
+            'retornados_total' => 0,
+            'destinos_total' => 0,
+            'valor_recuperado' => 0
+        ];
+
+        try {
+            $dateColumn = $this->getDateColumn();
+            
+            // Total de Retornados (soma de todas as quantidades)
+            $stmt = $this->db->query("SELECT COALESCE(SUM(quantidade), 0) as total FROM toners_retornados");
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $totais['retornados_total'] = (int)($result['total'] ?? 0);
+
+            // Total de registros por destino (contagem de registros únicos)
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM toners_retornados");
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $totais['destinos_total'] = (int)($result['total'] ?? 0);
+
+            // Valor total recuperado em toners
+            $stmt = $this->db->query("SELECT COALESCE(SUM(valor), 0) as total FROM toners_retornados WHERE destino = 'Reaproveitado'");
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $totais['valor_recuperado'] = (float)($result['total'] ?? 0);
+
+        } catch (\Exception $e) {
+            error_log("Erro ao buscar totais acumulados dos gráficos: " . $e->getMessage());
+        }
+
+        return $totais;
     }
 
     /**

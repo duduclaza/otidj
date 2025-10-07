@@ -49,6 +49,70 @@
     </div>
   </div>
 
+  <!-- Cards de Totais Acumulados -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    
+    <!-- Card 1: Total Retornados por Mês -->
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+        </div>
+        <span class="text-white text-opacity-80 text-xs font-medium">Até <?= date('d/m/Y') ?></span>
+      </div>
+      <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Acumulado: Retornados por Mês</h3>
+      <div class="flex items-end justify-between">
+        <p class="text-4xl font-bold"><?= number_format($totaisAcumulados['retornados_total'] ?? 0, 0, ',', '.') ?></p>
+        <span class="text-white text-opacity-80 text-xs">unidades</span>
+      </div>
+      <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+        <p class="text-xs text-white text-opacity-80">📊 Soma total de toners retornados</p>
+      </div>
+    </div>
+
+    <!-- Card 2: Total Destino dos Retornados -->
+    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+          </svg>
+        </div>
+        <span class="text-white text-opacity-80 text-xs font-medium">Até <?= date('d/m/Y') ?></span>
+      </div>
+      <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Acumulado: Destino dos Retornados</h3>
+      <div class="flex items-end justify-between">
+        <p class="text-4xl font-bold"><?= number_format($totaisAcumulados['destinos_total'] ?? 0, 0, ',', '.') ?></p>
+        <span class="text-white text-opacity-80 text-xs">registros</span>
+      </div>
+      <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+        <p class="text-xs text-white text-opacity-80">🥧 Total de registros processados</p>
+      </div>
+    </div>
+
+    <!-- Card 3: Valor Total Recuperado -->
+    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <span class="text-white text-opacity-80 text-xs font-medium">Até <?= date('d/m/Y') ?></span>
+      </div>
+      <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Acumulado: Toners Recuperados</h3>
+      <div class="flex items-end justify-between">
+        <p class="text-4xl font-bold">R$ <?= number_format($totaisAcumulados['valor_recuperado'] ?? 0, 2, ',', '.') ?></p>
+      </div>
+      <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+        <p class="text-xs text-white text-opacity-80">💰 Valor total economizado</p>
+      </div>
+    </div>
+
+  </div>
 
   <!-- Gráficos dos Retornados -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

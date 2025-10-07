@@ -2,17 +2,8 @@
 
 namespace App\Controllers;
 
-use App\Config\Database;
-
 class HomeController
 {
-    private $db;
-
-    public function __construct()
-    {
-        $this->db = Database::getInstance();
-    }
-
     /**
      * Página inicial do sistema - acessível a todos os usuários autenticados
      */
@@ -27,9 +18,6 @@ class HomeController
         // Obter informações do usuário
         $userName = $_SESSION['user_name'] ?? 'Usuário';
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
-
-        // Buscar totais acumulados para os cards
-        $totais = $this->getTotaisAcumulados();
         
         // Informações do sistema
         $systemVersion = '2.5.0';
@@ -522,42 +510,5 @@ class HomeController
         $title = 'Início - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/pages/home.php';
         include __DIR__ . '/../../views/layouts/main.php';
-    }
-
-    /**
-     * Buscar totais acumulados até a data atual
-     */
-    private function getTotaisAcumulados(): array
-    {
-        $totais = [
-            'retornados' => 0,
-            'amostragens' => 0,
-            'melhorias' => 0
-        ];
-
-        try {
-            // Total de Retornados
-            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM toners_retornados");
-            $stmt->execute();
-            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $totais['retornados'] = (int)($result['total'] ?? 0);
-
-            // Total de Amostragens 2.0
-            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM amostragens_2");
-            $stmt->execute();
-            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $totais['amostragens'] = (int)($result['total'] ?? 0);
-
-            // Total de Melhorias Contínuas
-            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM melhorias_continuas_2");
-            $stmt->execute();
-            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            $totais['melhorias'] = (int)($result['total'] ?? 0);
-
-        } catch (\Exception $e) {
-            error_log("Erro ao buscar totais acumulados: " . $e->getMessage());
-        }
-
-        return $totais;
     }
 }
