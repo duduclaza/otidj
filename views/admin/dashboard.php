@@ -50,7 +50,7 @@
   </div>
 
   <!-- Cards de Totais Acumulados -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     
     <!-- Card 1: Total Retornados por Mês -->
     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
@@ -72,28 +72,7 @@
       </div>
     </div>
 
-    <!-- Card 2: Total Destino dos Retornados -->
-    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
-          </svg>
-        </div>
-        <span class="text-white text-opacity-80 text-xs font-medium">Até <?= date('d/m/Y') ?></span>
-      </div>
-      <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Acumulado: Destino dos Retornados</h3>
-      <div class="flex items-end justify-between">
-        <p class="text-4xl font-bold"><?= number_format($totaisAcumulados['destinos_total'] ?? 0, 0, ',', '.') ?></p>
-        <span class="text-white text-opacity-80 text-xs">registros</span>
-      </div>
-      <div class="mt-4 pt-4 border-t border-white border-opacity-20">
-        <p class="text-xs text-white text-opacity-80">🥧 Total de registros processados</p>
-      </div>
-    </div>
-
-    <!-- Card 3: Valor Total Recuperado -->
+    <!-- Card 2: Valor Total Recuperado -->
     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
       <div class="flex items-center justify-between mb-4">
         <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
