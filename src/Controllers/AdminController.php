@@ -1055,6 +1055,7 @@ class AdminController
 
     /**
      * Get totais acumulados dos gráficos até a data atual
+     * Usa a mesma lógica dos gráficos existentes
      */
     private function getTotaisAcumuladosGraficos(): array
     {
@@ -1065,20 +1066,22 @@ class AdminController
         ];
 
         try {
-            $dateColumn = $this->getDateColumn();
+            // Usar mesma detecção de colunas dos gráficos
+            $valorColumn = $this->getValorColumn();
+            $destinoColumn = $this->getDestinoColumn();
             
-            // Total de Retornados (soma de todas as quantidades)
-            $stmt = $this->db->query("SELECT COALESCE(SUM(quantidade), 0) as total FROM toners_retornados");
+            // 1. Total de Retornados (soma de todas as quantidades) - Igual ao gráfico de barras
+            $stmt = $this->db->query("SELECT COALESCE(SUM(quantidade), 0) as total FROM retornados");
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             $totais['retornados_total'] = (int)($result['total'] ?? 0);
 
-            // Total de registros por destino (contagem de registros únicos)
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM toners_retornados");
+            // 2. Total de registros processados - Igual ao gráfico de pizza
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM retornados");
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             $totais['destinos_total'] = (int)($result['total'] ?? 0);
 
-            // Valor total recuperado em toners
-            $stmt = $this->db->query("SELECT COALESCE(SUM(valor), 0) as total FROM toners_retornados WHERE destino = 'Reaproveitado'");
+            // 3. Valor total recuperado - Igual ao gráfico de linha (destino = 'estoque')
+            $stmt = $this->db->query("SELECT COALESCE(SUM({$valorColumn}), 0) as total FROM retornados WHERE {$destinoColumn} = 'estoque'");
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             $totais['valor_recuperado'] = (float)($result['total'] ?? 0);
 
