@@ -1330,14 +1330,20 @@ class FluxogramasController
     
     public function getRegistro($id)
     {
+        // Limpar qualquer output anterior
+        if (ob_get_level()) ob_clean();
+        
         header('Content-Type: application/json');
         
         try {
+            error_log("=== getRegistro INICIADO ===");
             error_log("getRegistro - ID recebido: " . var_export($id, true));
+            error_log("getRegistro - REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
             
             if (!isset($_SESSION['user_id'])) {
+                error_log("getRegistro - Usuário não autenticado");
                 echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
-                return;
+                exit;
             }
             
             $user_id = $_SESSION['user_id'];
@@ -1346,9 +1352,18 @@ class FluxogramasController
             error_log("getRegistro - User ID: {$user_id}, Registro ID: {$registro_id}");
             
             if ($registro_id <= 0) {
+                error_log("getRegistro - ID inválido");
                 echo json_encode(['success' => false, 'message' => 'ID do registro inválido']);
-                return;
+                exit;
             }
+            
+            if (!$this->db) {
+                error_log("getRegistro - Database não inicializado");
+                echo json_encode(['success' => false, 'message' => 'Erro de conexão com banco']);
+                exit;
+            }
+            
+            error_log("getRegistro - Preparando query...");
             
             // Buscar registro com departamentos permitidos
             $stmt = $this->db->prepare("
@@ -1362,21 +1377,30 @@ class FluxogramasController
                 WHERE r.id = ? AND r.criado_por = ?
                 GROUP BY r.id
             ");
+            
+            error_log("getRegistro - Executando query com params: [{$registro_id}, {$user_id}]");
             $stmt->execute([$registro_id, $user_id]);
             $registro = $stmt->fetch(PDO::FETCH_ASSOC);
             
             error_log("getRegistro - Registro encontrado: " . ($registro ? 'SIM' : 'NÃO'));
             
             if (!$registro) {
+                error_log("getRegistro - Registro não encontrado para user {$user_id}");
                 echo json_encode(['success' => false, 'message' => 'Registro não encontrado ou você não tem permissão']);
-                return;
+                exit;
             }
             
-            echo json_encode(['success' => true, 'data' => $registro]);
+            error_log("getRegistro - Retornando sucesso");
+            $result = json_encode(['success' => true, 'data' => $registro]);
+            error_log("getRegistro - JSON gerado: " . substr($result, 0, 200) . "...");
+            echo $result;
+            exit;
             
         } catch (\Exception $e) {
-            error_log("FluxogramasController::getRegistro - Erro: " . $e->getMessage());
+            error_log("FluxogramasController::getRegistro - EXCEÇÃO: " . $e->getMessage());
+            error_log("FluxogramasController::getRegistro - Stack: " . $e->getTraceAsString());
             echo json_encode(['success' => false, 'message' => 'Erro ao buscar registro: ' . $e->getMessage()]);
+            exit;
         }
     }
     
