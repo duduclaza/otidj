@@ -850,7 +850,14 @@ async function loadMeusRegistros() {
                             <div class="text-xs text-gray-500">${registro.extensao.toUpperCase()} - ${formatFileSize(registro.tamanho_arquivo)}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm text-gray-900">${registro.publico ? '🌍 Público' : '🏢 Restrito'}</div>
+                            <div class="flex items-center gap-2">
+                                <div class="text-sm text-gray-900">${registro.publico ? '🌍 Público' : '🏢 Restrito'}</div>
+                                <button onclick="editarVisibilidadeInline(${registro.id}, ${registro.publico}, '${departamentosTexto}')" 
+                                        class="text-purple-600 hover:text-purple-900 text-xs"
+                                        title="Editar visibilidade">
+                                    ✏️
+                                </button>
+                            </div>
                             ${!registro.publico && registro.departamentos_permitidos ? 
                                 `<div class="text-xs text-gray-500">${departamentosTexto}</div>` : ''}
                         </td>
@@ -861,23 +868,18 @@ async function loadMeusRegistros() {
                             <button onclick="downloadArquivo(${registro.id})" 
                                     class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-2 py-1 rounded"
                                     title="Baixar arquivo">
-                                📥 Download
-                            </button>
-                            <button onclick="editarVisibilidade(${registro.id})" 
-                                    class="text-purple-600 hover:text-purple-900 hover:bg-purple-50 px-2 py-1 rounded"
-                                    title="Editar visibilidade">
-                                👁️ Visibilidade
+                                📥
                             </button>
                             ${registro.status === 'REPROVADO' ? 
                                 `<button onclick="editarRegistro(${registro.id})" 
                                          class="text-green-600 hover:text-green-900 hover:bg-green-50 px-2 py-1 rounded"
                                          title="Editar registro reprovado">
-                                    ✏️ Editar
+                                    ✏️
                                  </button>` : ''}
                             <button onclick="solicitarExclusao(${registro.id}, '${registro.titulo}', '${registro.nome_arquivo}')" 
                                     class="text-red-600 hover:text-red-900 hover:bg-red-50 px-2 py-1 rounded"
                                     title="Solicitar exclusão">
-                                🗑️ Excluir
+                                🗑️
                             </button>
                         </td>
                     </tr>
@@ -1920,7 +1922,150 @@ function mostrarAvisoProtecao(mensagem) {
     }, 3000);
 }
 
-// Editar visibilidade do registro (sem precisar de aprovação)
+// Editar visibilidade inline (popup compacto)
+async function editarVisibilidadeInline(registroId, isPublico, departamentosAtuais) {
+    try {
+        console.log('🔍 Editando visibilidade inline - ID:', registroId);
+        
+        // Buscar dados do registro
+        const response = await fetch(`/fluxogramas/registros/${registroId}`);
+        
+        if (!response.ok) {
+            alert('Erro ao buscar dados do registro');
+            return;
+        }
+        
+        const responseText = await response.text();
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error('❌ Erro ao fazer parse do JSON:', e);
+            alert('Erro: Resposta inválida do servidor');
+            return;
+        }
+        
+        if (!result.success || !result.data) {
+            alert('Erro: ' + (result.message || 'Dados não encontrados'));
+            return;
+        }
+        
+        const registro = result.data;
+        
+        // Criar popup compacto inline
+        const popupHTML = `
+            <div id="popupVisibilidade" class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50" onclick="if(event.target === this) fecharPopupVisibilidade()">
+                <div class="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4">
+                    <div class="px-4 py-3 border-b border-gray-200 bg-purple-50 rounded-t-lg">
+                        <h3 class="text-sm font-semibold text-gray-900">✏️ Editar Visibilidade</h3>
+                        <p class="text-xs text-gray-600 mt-1">${registro.titulo} - v${registro.versao}</p>
+                    </div>
+                    
+                    <div class="p-4">
+                        <form id="formVisibilidadeInline" class="space-y-3">
+                            <input type="hidden" name="registro_id" value="${registroId}">
+                            
+                            <!-- Toggle Público/Restrito -->
+                            <div class="flex items-center gap-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="publico" value="1" ${registro.publico ? 'checked' : ''} 
+                                           onchange="document.getElementById('deptsInline').style.display='none'" 
+                                           class="mr-2">
+                                    <span class="text-sm">🌍 Público</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="publico" value="0" ${!registro.publico ? 'checked' : ''} 
+                                           onchange="document.getElementById('deptsInline').style.display='block'" 
+                                           class="mr-2">
+                                    <span class="text-sm">🏢 Restrito</span>
+                                </label>
+                            </div>
+                            
+                            <!-- Departamentos -->
+                            <div id="deptsInline" style="display: ${registro.publico ? 'none' : 'block'}">
+                                <label class="block text-xs font-medium text-gray-700 mb-2">Selecione os departamentos:</label>
+                                <div class="border border-gray-300 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1">
+                                    ${departamentos.map(dept => `
+                                        <label class="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded text-sm">
+                                            <input type="checkbox" name="departamentos[]" value="${dept.id}" class="mr-2">
+                                            ${dept.nome}
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end gap-2 pt-2">
+                                <button type="button" onclick="fecharPopupVisibilidade()" 
+                                        class="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+                                    Cancelar
+                                </button>
+                                <button type="submit" 
+                                        class="px-3 py-1.5 text-sm bg-purple-600 text-white rounded hover:bg-purple-700">
+                                    💾 Salvar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', popupHTML);
+        
+        // Marcar departamentos já selecionados
+        if (!registro.publico && registro.departamentos_ids) {
+            const deptsArray = Array.isArray(registro.departamentos_ids) 
+                ? registro.departamentos_ids 
+                : registro.departamentos_ids.split(',');
+            
+            deptsArray.forEach(deptId => {
+                const checkbox = document.querySelector(`#popupVisibilidade input[name="departamentos[]"][value="${deptId}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+        
+        // Handler do formulário
+        document.getElementById('formVisibilidadeInline').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await salvarVisibilidadeInline(e.target);
+        });
+        
+    } catch (error) {
+        console.error('Erro ao abrir popup de visibilidade:', error);
+        alert('Erro ao carregar formulário');
+    }
+}
+
+function fecharPopupVisibilidade() {
+    const popup = document.getElementById('popupVisibilidade');
+    if (popup) popup.remove();
+}
+
+async function salvarVisibilidadeInline(form) {
+    try {
+        const formData = new FormData(form);
+        
+        const response = await fetch('/fluxogramas/registros/atualizar-visibilidade', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Visibilidade atualizada!');
+            fecharPopupVisibilidade();
+            loadMeusRegistros(); // Recarregar lista
+        } else {
+            alert('❌ ' + (result.message || 'Erro ao atualizar'));
+        }
+    } catch (error) {
+        console.error('Erro ao salvar visibilidade:', error);
+        alert('❌ Erro ao salvar');
+    }
+}
+
+// Editar visibilidade do registro (MODAL COMPLETO - manter para compatibilidade)
 async function editarVisibilidade(registroId) {
     try {
         console.log('🔍 Buscando registro ID:', registroId);
