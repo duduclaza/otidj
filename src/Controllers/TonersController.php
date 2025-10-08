@@ -1205,6 +1205,8 @@ class TonersController
         header('Content-Type: application/json');
         
         try {
+            error_log('🔍 API: Buscando toners da tabela toners...');
+            
             $stmt = $this->db->query("
                 SELECT 
                     id,
@@ -1217,9 +1219,15 @@ class TonersController
             
             $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
+            error_log('✅ API: ' . count($toners) . ' toners encontrados');
+            if (count($toners) > 0) {
+                error_log('📦 Exemplo: ' . json_encode($toners[0]));
+            }
+            
             echo json_encode($toners);
             
         } catch (\PDOException $e) {
+            error_log('❌ API Toners erro: ' . $e->getMessage());
             http_response_code(500);
             echo json_encode([
                 'error' => 'Erro ao buscar toners',

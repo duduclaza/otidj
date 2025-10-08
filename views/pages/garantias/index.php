@@ -1054,27 +1054,34 @@ function configurarEventListenersItem(itemDiv) {
         }
         
         try {
+            console.log(`📡 Buscando ${tipo} em ${endpoint}...`);
             const response = await fetch(endpoint);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             
             const produtos = await response.json();
+            console.log(`✅ ${produtos.length} produtos recebidos:`, produtos);
             
             // Guardar todas as opções para filtro
             todasOpcoes = [];
             produtoSelect.innerHTML = '';
             
             produtos.forEach(produto => {
+                console.log(`🔍 Processando produto:`, produto);
+                
                 // Definir código e descrição baseado no tipo
                 let codigo, descricao;
                 if (tipo === 'Toner') {
                     codigo = produto.modelo || '';
                     descricao = 'Toner'; // Sempre "Toner" para toners
+                    console.log(`  📦 Toner: codigo=${codigo}, descricao=${descricao}`);
                 } else if (tipo === 'Máquina') {
                     codigo = produto.cod_referencia || '';
                     descricao = produto.modelo || produto.nome || '';
+                    console.log(`  🖨️ Máquina: codigo=${codigo}, descricao=${descricao}`);
                 } else if (tipo === 'Peça') {
                     codigo = produto.codigo_referencia || '';
                     descricao = produto.descricao || produto.nome || '';
+                    console.log(`  🔧 Peça: codigo=${codigo}, descricao=${descricao}`);
                 }
                 
                 // No select mostra APENAS o código
@@ -1097,6 +1104,8 @@ function configurarEventListenersItem(itemDiv) {
                 produtoSelect.appendChild(option);
             });
             
+            console.log(`✅ ${todasOpcoes.length} opções carregadas no select`);
+            
             produtoSelect.disabled = false;
             buscaInput.disabled = false;
             buscaInput.focus();
@@ -1107,11 +1116,16 @@ function configurarEventListenersItem(itemDiv) {
         }
     });
     
-    // Quando selecionar o produto
-    produtoSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
+    // Quando selecionar o produto (click ou enter)
+    produtoSelect.addEventListener('change', preencherDescricao);
+    produtoSelect.addEventListener('click', preencherDescricao);
+    
+    function preencherDescricao() {
+        const selectedOption = produtoSelect.options[produtoSelect.selectedIndex];
         
-        if (selectedOption.value) {
+        console.log('🔍 Evento disparado:', selectedOption);
+        
+        if (selectedOption && selectedOption.value) {
             const codigo = selectedOption.dataset.codigo || '';
             const descricao = selectedOption.dataset.nome || '';
             
@@ -1120,14 +1134,14 @@ function configurarEventListenersItem(itemDiv) {
             nomeHidden.value = descricao;
             descricaoInput.value = descricao; // Apenas a descrição (sem código)
             
-            console.log(`✅ Produto selecionado: ${codigo} → Descrição: ${descricao}`);
+            console.log(`✅ Produto selecionado: Código=${codigo}, Descrição=${descricao}`);
         } else {
             produtoIdHidden.value = '';
             codigoHidden.value = '';
             nomeHidden.value = '';
             descricaoInput.value = '';
         }
-    });
+    }
 }
 
 function removerItem(button) {
