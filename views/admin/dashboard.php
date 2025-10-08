@@ -393,13 +393,13 @@
           </select>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">📋 Origem</label>
-          <select id="filtroOrigemFornecedores" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-            <option value="">Todas as Origens</option>
+          <label class="block text-sm font-medium text-gray-700 mb-2">📋 Origem (Ctrl+Click para múltiplas)</label>
+          <select id="filtroOrigemFornecedores" multiple class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500" style="height: 80px;">
             <option value="Amostragem">Amostragem</option>
             <option value="Homologação">Homologação</option>
             <option value="Em Campo">Em Campo</option>
           </select>
+          <p class="text-xs text-gray-500 mt-1">💡 Segure Ctrl/Cmd para selecionar várias</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">📅 Data Inicial</label>
@@ -2077,7 +2077,11 @@ function initChartsFornecedores() {
 
 async function applyFiltersFornecedores() {
   const filial = document.getElementById('filtroFilialFornecedores').value;
-  const origem = document.getElementById('filtroOrigemFornecedores').value;
+  
+  // Pegar múltiplas origens selecionadas
+  const origemSelect = document.getElementById('filtroOrigemFornecedores');
+  const origemSelecionadas = Array.from(origemSelect.selectedOptions).map(option => option.value);
+  
   const dataInicial = document.getElementById('dataInicialFornecedores').value;
   const dataFinal = document.getElementById('dataFinalFornecedores').value;
   
@@ -2086,12 +2090,19 @@ async function applyFiltersFornecedores() {
     return;
   }
   
-  console.log('🔍 Aplicando filtros de fornecedores:', { filial, origem, dataInicial, dataFinal });
+  console.log('🔍 Aplicando filtros de fornecedores:', { filial, origens: origemSelecionadas, dataInicial, dataFinal });
   
   try {
     const params = new URLSearchParams();
     if (filial) params.append('filial', filial);
-    if (origem) params.append('origem', origem);
+    
+    // Enviar múltiplas origens como array
+    if (origemSelecionadas.length > 0) {
+      origemSelecionadas.forEach(origem => {
+        params.append('origem[]', origem);
+      });
+    }
+    
     if (dataInicial) params.append('data_inicial', dataInicial);
     if (dataFinal) params.append('data_final', dataFinal);
     
@@ -2208,7 +2219,10 @@ function getQualidadeColorClass(percentual) {
 
 function clearFiltersFornecedores() {
   document.getElementById('filtroFilialFornecedores').value = '';
-  document.getElementById('filtroOrigemFornecedores').value = '';
+  
+  // Desmarcar todas as origens selecionadas
+  const origemSelect = document.getElementById('filtroOrigemFornecedores');
+  Array.from(origemSelect.options).forEach(option => option.selected = false);
   
   const hoje = new Date();
   const inicioAno = new Date(hoje.getFullYear(), 0, 1);

@@ -1922,11 +1922,17 @@ class AdminController
         
         try {
             $filial = $_GET['filial'] ?? '';
-            $origem = $_GET['origem'] ?? '';
+            
+            // Receber múltiplas origens como array
+            $origens = isset($_GET['origem']) && is_array($_GET['origem']) ? $_GET['origem'] : [];
+            if (isset($_GET['origem']) && !is_array($_GET['origem']) && !empty($_GET['origem'])) {
+                $origens = [$_GET['origem']]; // Compatibilidade com valor único
+            }
+            
             $dataInicial = $_GET['data_inicial'] ?? '';
             $dataFinal = $_GET['data_final'] ?? '';
             
-            error_log("🏭 Buscando dados de fornecedores - Filtros: filial={$filial}, origem={$origem}, periodo={$dataInicial} a {$dataFinal}");
+            error_log("🏭 Buscando dados de fornecedores - Filtros: filial={$filial}, origens=" . implode(',', $origens) . ", periodo={$dataInicial} a {$dataFinal}");
             
             // Validar datas
             if (empty($dataInicial) || empty($dataFinal)) {
@@ -1993,9 +1999,11 @@ class AdminController
             // Garantias não tem coluna filial na tabela
             // O filtro de filial só se aplica às amostragens
             
-            if (!empty($origem)) {
-                $sqlGarantias .= " AND g.origem_garantia = ?";
-                $paramsGarantias[] = $origem;
+            // Filtro de múltiplas origens
+            if (!empty($origens)) {
+                $placeholders = str_repeat('?,', count($origens) - 1) . '?';
+                $sqlGarantias .= " AND g.origem_garantia IN ($placeholders)";
+                $paramsGarantias = array_merge($paramsGarantias, $origens);
             }
             
             $sqlGarantias .= "
