@@ -14,6 +14,36 @@ class Amostragens2Controller
     {
         $this->db = Database::getInstance();
     }
+    
+    /**
+     * Verifica se o usuário pode visualizar uma amostragem específica
+     * Admin: vê todas
+     * Usuário comum: só vê se for criador ou responsável
+     */
+    private function podeVisualizarAmostragem($amostragemId): bool
+    {
+        $userId = $_SESSION['user_id'];
+        $userRole = $_SESSION['user_role'] ?? 'user';
+        
+        // Admin vê todas
+        if ($userRole === 'admin') {
+            return true;
+        }
+        
+        // Usuário comum: verificar se é criador ou responsável
+        $stmt = $this->db->prepare('
+            SELECT id FROM amostragens_2 
+            WHERE id = :id 
+            AND (user_id = :user_id OR FIND_IN_SET(:user_id_resp, responsaveis) > 0)
+        ');
+        $stmt->execute([
+            ':id' => $amostragemId,
+            ':user_id' => $userId,
+            ':user_id_resp' => $userId
+        ]);
+        
+        return $stmt->fetch() !== false;
+    }
 
     public function index(): void
     {
@@ -68,6 +98,18 @@ class Amostragens2Controller
                 $where[] = "DATE(a.created_at) <= :data_fim";
                 $params[':data_fim'] = $_GET['data_fim'];
             }
+
+            // CONTROLE DE VISUALIZAÇÃO: Usuários não-admin só veem amostragens onde são responsáveis
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'] ?? 'user';
+            
+            if ($userRole !== 'admin') {
+                // Usuário comum: só vê amostragens onde está na lista de responsáveis
+                $where[] = "(FIND_IN_SET(:user_id_responsavel, a.responsaveis) > 0 OR a.user_id = :user_id_criador)";
+                $params[':user_id_responsavel'] = $userId;
+                $params[':user_id_criador'] = $userId;
+            }
+            // Admin vê todas as amostragens (sem filtro adicional)
 
             $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
@@ -562,6 +604,13 @@ class Amostragens2Controller
         try {
             $id = (int)$id;
             
+            // Verificar permissão de visualização
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo "Acesso negado";
+                return;
+            }
+            
             $stmt = $this->db->prepare('
                 SELECT anexo_nf, anexo_nf_nome, anexo_nf_tipo 
                 FROM amostragens_2 
@@ -594,6 +643,13 @@ class Amostragens2Controller
         try {
             $id = (int)$id;
             
+            // Verificar permissão de visualização
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                return;
+            }
+            
             error_log("Buscando evidências para amostragem ID: $id");
             
             $stmt = $this->db->prepare('
@@ -622,7 +678,15 @@ class Amostragens2Controller
     public function downloadEvidencia($id = null, $evidenciaId = null): void
     {
         try {
+            $id = (int)$id;
             $evidenciaId = (int)$evidenciaId;
+            
+            // Verificar permissão de visualização
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo "Acesso negado";
+                return;
+            }
             
             $stmt = $this->db->prepare('
                 SELECT evidencia, nome, tipo 
@@ -656,6 +720,13 @@ class Amostragens2Controller
             
             if ($id <= 0) {
                 echo "ID inválido";
+                return;
+            }
+            
+            // Verificar permissão de visualização
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo "<h1>Acesso Negado</h1><p>Você não tem permissão para visualizar esta amostragem.</p>";
                 return;
             }
             
@@ -733,6 +804,13 @@ class Amostragens2Controller
                 exit;
             }
             
+            // Verificar permissão de visualização
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Você não tem permissão para visualizar esta amostragem']);
+                exit;
+            }
+            
             // Excluir campos BLOB para evitar problemas de memória/encoding
             $stmt = $this->db->prepare('
                 SELECT 
@@ -778,6 +856,13 @@ class Amostragens2Controller
             
             if ($id <= 0) {
                 echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                return;
+            }
+
+            // Verificar permissão de visualização/edição
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Você não tem permissão para editar esta amostragem']);
                 return;
             }
 
@@ -926,6 +1011,13 @@ class Amostragens2Controller
                 exit;
             }
             
+            // Verificar permissão de visualização/edição
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Você não tem permissão para alterar o status desta amostragem']);
+                exit;
+            }
+            
             // Status válidos
             $statusValidos = ['Pendente', 'Aprovado', 'Aprovado Parcialmente', 'Reprovado'];
             if (!in_array($status, $statusValidos)) {
@@ -983,6 +1075,13 @@ class Amostragens2Controller
 
             if ($id <= 0) {
                 echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                return;
+            }
+
+            // Verificar permissão de visualização/edição
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Você não tem permissão para excluir esta amostragem']);
                 return;
             }
 
@@ -1142,6 +1241,13 @@ class Amostragens2Controller
     {
         try {
             $id = (int)$id;
+            
+            // Verificar permissão de visualização
+            if (!$this->podeVisualizarAmostragem($id)) {
+                http_response_code(403);
+                echo "<h1>Acesso Negado</h1><p>Você não tem permissão para editar esta amostragem.</p>";
+                return;
+            }
             
             // Buscar dados completos da amostragem
             $stmt = $this->db->prepare("

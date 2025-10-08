@@ -1765,6 +1765,17 @@ class AdminController
                 $params[':data_final'] = $dataFinal;
             }
             
+            // CONTROLE DE VISUALIZAÇÃO: Usuários não-admin só veem amostragens onde são responsáveis
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'] ?? 'user';
+            
+            if ($userRole !== 'admin') {
+                // Usuário comum: só vê amostragens onde está na lista de responsáveis
+                $where[] = "(FIND_IN_SET(:user_id_responsavel, a.responsaveis) > 0 OR a.user_id = :user_id_criador)";
+                $params[':user_id_responsavel'] = $userId;
+                $params[':user_id_criador'] = $userId;
+            }
+            
             $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
             
             // 1. Cards - Métricas principais
