@@ -204,6 +204,8 @@ $router->post('/garantias/{id}/delete', [App\Controllers\GarantiasController::cl
 $router->get('/garantias/anexo/{id}', [App\Controllers\GarantiasController::class, 'downloadAnexo']);
 $router->get('/garantias/{id}/anexos/download-all', [App\Controllers\GarantiasController::class, 'downloadAllAnexos']);
 $router->post('/garantias/anexo/{id}/delete', [App\Controllers\GarantiasController::class, 'deleteAnexo']);
+$router->get('/garantias/ficha', [App\Controllers\GarantiasController::class, 'ficha']);
+$router->post('/garantias/gerar-ticket', [App\Controllers\GarantiasController::class, 'gerarTicket']);
 
 // Controle de Descartes routes
 $router->get('/controle-descartes', [App\Controllers\ControleDescartesController::class, 'index']);

@@ -20,6 +20,12 @@ if (!isset($_SESSION['user_id'])) {
                 </svg>
                 <span>Formulário de Correios</span>
             </button>
+            <button onclick="abrirFichaGarantia()" type="button" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Ficha de Garantia</span>
+            </button>
             <button id="toggleGarantiaFormBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -623,6 +629,22 @@ function configurarEventos() {
     document.getElementById('filtroOrigem').addEventListener('change', aplicarFiltros);
     document.getElementById('filtroFornecedor').addEventListener('change', aplicarFiltros);
     document.getElementById('btnLimparFiltros').addEventListener('click', limparFiltros);
+}
+
+// Abrir Ficha de Garantia em nova janela
+function abrirFichaGarantia() {
+    console.log('🎫 Abrindo Ficha de Garantia...');
+    const url = '/garantias/ficha';
+    const largura = 900;
+    const altura = 700;
+    const esquerda = (screen.width - largura) / 2;
+    const topo = (screen.height - altura) / 2;
+    
+    window.open(
+        url,
+        'FichaGarantia',
+        `width=${largura},height=${altura},left=${esquerda},top=${topo},resizable=yes,scrollbars=yes`
+    );
 }
 
 // Toggle do formulário inline

@@ -27,6 +27,65 @@ class GarantiasController
             throw $e;
         }
     }
+    
+    // Página da Ficha de Garantia (standalone)
+    public function ficha()
+    {
+        // Página standalone (sem layout)
+        include __DIR__ . '/../../views/pages/garantias/ficha.php';
+    }
+    
+    // Gerar número de ticket único
+    public function gerarTicket()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Gerar ticket único no formato: TKG-YYYYMMDD-XXXX
+            $ano = date('Y');
+            $mes = date('m');
+            $dia = date('d');
+            $prefixo = "TKG-{$ano}{$mes}{$dia}";
+            
+            // Buscar último ticket do dia
+            $stmt = $this->db->prepare("
+                SELECT numero_ticket_interno 
+                FROM garantias 
+                WHERE numero_ticket_interno LIKE ? 
+                ORDER BY numero_ticket_interno DESC 
+                LIMIT 1
+            ");
+            $stmt->execute(["{$prefixo}-%"]);
+            $ultimoTicket = $stmt->fetchColumn();
+            
+            if ($ultimoTicket) {
+                // Extrair número sequencial e incrementar
+                $partes = explode('-', $ultimoTicket);
+                $sequencial = intval(end($partes)) + 1;
+            } else {
+                // Primeiro ticket do dia
+                $sequencial = 1;
+            }
+            
+            // Montar ticket com padding de 4 dígitos
+            $numeroTicket = sprintf("%s-%04d", $prefixo, $sequencial);
+            
+            error_log("🎫 Ticket gerado: {$numeroTicket}");
+            
+            echo json_encode([
+                'success' => true,
+                'ticket' => $numeroTicket,
+                'message' => 'Ticket gerado com sucesso'
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erro ao gerar ticket: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao gerar ticket: ' . $e->getMessage()
+            ]);
+        }
+    }
 
     // Criar nova garantia
     public function create()
