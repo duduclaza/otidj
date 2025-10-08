@@ -140,22 +140,34 @@ class Amostragens2Controller
             
             $userId = $_SESSION['user_id'];
             
-            // Verificar se o usuário existe no banco
-            $stmt = $this->db->prepare('SELECT id FROM users WHERE id = :user_id');
+            // Buscar usuário e sua filial do banco de dados
+            $stmt = $this->db->prepare('SELECT id, filial FROM users WHERE id = :user_id');
             $stmt->execute([':user_id' => $userId]);
-            if (!$stmt->fetch()) {
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$usuario) {
                 echo json_encode(['success' => false, 'message' => 'Usuário não encontrado no sistema']);
                 return;
             }
             
-            // Buscar filial do usuário ou usar primeira filial disponível
-            $filialId = $_SESSION['user_filial_id'] ?? null;
+            // Buscar ID da filial pelo nome no cadastro do usuário
+            $filialId = null;
+            if (!empty($usuario['filial'])) {
+                $stmt = $this->db->prepare('SELECT id FROM filiais WHERE nome = :nome LIMIT 1');
+                $stmt->execute([':nome' => $usuario['filial']]);
+                $filialBuscada = $stmt->fetch(PDO::FETCH_ASSOC);
+                $filialId = $filialBuscada['id'] ?? null;
+            }
             
+            // Se não encontrar filial, usar primeira disponível como fallback
             if (!$filialId) {
                 $stmt = $this->db->prepare('SELECT id FROM filiais LIMIT 1');
                 $stmt->execute();
                 $filial = $stmt->fetch(PDO::FETCH_ASSOC);
                 $filialId = $filial['id'] ?? 1;
+                error_log("⚠️ Filial não encontrada para usuário #{$userId}. Usando filial padrão #{$filialId}");
+            } else {
+                error_log("✅ Filial encontrada para usuário #{$userId}: Filial #{$filialId} ({$usuario['filial']})");
             }
 
             // Validar dados
