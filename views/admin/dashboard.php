@@ -266,7 +266,6 @@
         <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Total de Amostragens</h3>
         <div class="flex items-end justify-between">
           <p id="totalAmostragens" class="text-4xl font-bold">0</p>
-          <span class="text-white text-opacity-80 text-xs">testes</span>
         </div>
         <div class="mt-4 pt-4 border-t border-white border-opacity-20">
           <p class="text-xs text-white text-opacity-80">🧪 Total realizado</p>
@@ -285,7 +284,6 @@
         <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Aprovadas</h3>
         <div class="flex items-end justify-between">
           <p id="totalAprovadas" class="text-4xl font-bold">0</p>
-          <span class="text-white text-opacity-80 text-xs">testes</span>
         </div>
         <div class="mt-4 pt-4 border-t border-white border-opacity-20">
           <p class="text-xs text-white text-opacity-80">✅ Amostragens aprovadas</p>
@@ -304,7 +302,6 @@
         <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Reprovadas</h3>
         <div class="flex items-end justify-between">
           <p id="totalReprovadas" class="text-4xl font-bold">0</p>
-          <span class="text-white text-opacity-80 text-xs">testes</span>
         </div>
         <div class="mt-4 pt-4 border-t border-white border-opacity-20">
           <p class="text-xs text-white text-opacity-80">❌ Amostragens reprovadas</p>
@@ -323,7 +320,6 @@
         <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Pendentes</h3>
         <div class="flex items-end justify-between">
           <p id="totalPendentes" class="text-4xl font-bold">0</p>
-          <span class="text-white text-opacity-80 text-xs">testes</span>
         </div>
         <div class="mt-4 pt-4 border-t border-white border-opacity-20">
           <p class="text-xs text-white text-opacity-80">⏳ Aguardando análise</p>
