@@ -1974,13 +1974,13 @@ class AdminController
                 error_log("Compra {$idx}: Fornecedor {$c['fornecedor_id']} ({$c['fornecedor_nome']}), Tipo: {$c['tipo_produto']}, Qtd: {$c['total_comprados']}");
             }
             
-            // 2. Buscar garantias geradas
+            // 2. Buscar garantias geradas (SOMAR quantidades, não contar itens)
             $sqlGarantias = "
                 SELECT 
                     f.id as fornecedor_id,
                     f.nome as fornecedor_nome,
                     gi.tipo_produto,
-                    COUNT(gi.id) as total_garantias
+                    SUM(gi.quantidade) as total_garantias
                 FROM garantias g
                 INNER JOIN garantias_itens gi ON g.id = gi.garantia_id
                 INNER JOIN fornecedores f ON g.fornecedor_id = f.id
