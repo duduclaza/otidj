@@ -1787,23 +1787,25 @@ class AdminController
             $stmtTotal->execute($params);
             $totalAmostragens = $stmtTotal->fetch(\PDO::FETCH_ASSOC)['total'];
             
-            $stmtAprovacao = $this->db->prepare("
-                SELECT COUNT(*) as aprovados FROM amostragens_2 a
+            // Contar Aprovadas
+            $stmtAprovadas = $this->db->prepare("
+                SELECT COUNT(*) as aprovadas FROM amostragens_2 a
                 LEFT JOIN users u ON a.user_id = u.id
                 $whereClause AND a.status_final IN ('Aprovado', 'Aprovado Parcialmente')
             ");
-            $stmtAprovacao->execute($params);
-            $aprovados = $stmtAprovacao->fetch(\PDO::FETCH_ASSOC)['aprovados'];
-            $taxaAprovacao = $totalAmostragens > 0 ? ($aprovados / $totalAmostragens * 100) : 0;
+            $stmtAprovadas->execute($params);
+            $aprovadas = $stmtAprovadas->fetch(\PDO::FETCH_ASSOC)['aprovadas'];
             
-            $stmtTestados = $this->db->prepare("
-                SELECT SUM(quantidade_testada) as total FROM amostragens_2 a
+            // Contar Reprovadas
+            $stmtReprovadas = $this->db->prepare("
+                SELECT COUNT(*) as reprovadas FROM amostragens_2 a
                 LEFT JOIN users u ON a.user_id = u.id
-                $whereClause AND quantidade_testada IS NOT NULL
+                $whereClause AND a.status_final = 'Reprovado'
             ");
-            $stmtTestados->execute($params);
-            $produtosTestados = $stmtTestados->fetch(\PDO::FETCH_ASSOC)['total'] ?? 0;
+            $stmtReprovadas->execute($params);
+            $reprovadas = $stmtReprovadas->fetch(\PDO::FETCH_ASSOC)['reprovadas'];
             
+            // Contar Pendentes
             $stmtPendentes = $this->db->prepare("
                 SELECT COUNT(*) as pendentes FROM amostragens_2 a
                 LEFT JOIN users u ON a.user_id = u.id
@@ -1812,91 +1814,11 @@ class AdminController
             $stmtPendentes->execute($params);
             $pendentes = $stmtPendentes->fetch(\PDO::FETCH_ASSOC)['pendentes'];
             
-            // 2. Gráfico de Status
-            $stmtStatus = $this->db->prepare("
-                SELECT status_final, COUNT(*) as total
-                FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                $whereClause
-                GROUP BY status_final
-                ORDER BY total DESC
-            ");
-            $stmtStatus->execute($params);
-            $statusData = $stmtStatus->fetchAll(\PDO::FETCH_ASSOC);
-            
-            $statusLabels = array_column($statusData, 'status_final');
-            $statusValues = array_column($statusData, 'total');
-            
-            // 3. Gráfico de Tipos de Produto
-            $stmtTipos = $this->db->prepare("
-                SELECT tipo_produto, COUNT(*) as total
-                FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                $whereClause
-                GROUP BY tipo_produto
-                ORDER BY total DESC
-            ");
-            $stmtTipos->execute($params);
-            $tiposData = $stmtTipos->fetchAll(\PDO::FETCH_ASSOC);
-            
-            $tiposLabels = array_column($tiposData, 'tipo_produto');
-            $tiposValues = array_column($tiposData, 'total');
-            
-            // 4. Gráfico de Fornecedores (Top 5)
-            $stmtFornecedores = $this->db->prepare("
-                SELECT forn.nome as fornecedor, COUNT(*) as total
-                FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
-                $whereClause
-                GROUP BY forn.nome
-                ORDER BY total DESC
-                LIMIT 5
-            ");
-            $stmtFornecedores->execute($params);
-            $fornecedoresData = $stmtFornecedores->fetchAll(\PDO::FETCH_ASSOC);
-            
-            $fornecedoresLabels = array_column($fornecedoresData, 'fornecedor');
-            $fornecedoresValues = array_column($fornecedoresData, 'total');
-            
-            // 5. Gráfico de Evolução Temporal (últimos 12 meses)
-            $stmtEvolucao = $this->db->prepare("
-                SELECT DATE_FORMAT(a.created_at, '%Y-%m') as mes, COUNT(*) as total
-                FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                $whereClause
-                GROUP BY mes
-                ORDER BY mes DESC
-                LIMIT 12
-            ");
-            $stmtEvolucao->execute($params);
-            $evolucaoData = $stmtEvolucao->fetchAll(\PDO::FETCH_ASSOC);
-            $evolucaoData = array_reverse($evolucaoData); // Ordem cronológica
-            
-            $evolucaoLabels = array_column($evolucaoData, 'mes');
-            $evolucaoValues = array_column($evolucaoData, 'total');
-            
-            // 6. Gráfico de Filiais
-            $stmtFiliais = $this->db->prepare("
-                SELECT u.filial, COUNT(*) as total
-                FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                $whereClause AND u.filial IS NOT NULL AND u.filial != ''
-                GROUP BY u.filial
-                ORDER BY total DESC
-            ");
-            $stmtFiliais->execute($params);
-            $filiaisData = $stmtFiliais->fetchAll(\PDO::FETCH_ASSOC);
-            
-            $filiaisLabels = array_column($filiaisData, 'filial');
-            $filiaisValues = array_column($filiaisData, 'total');
-            
-            // 7. Gráfico de Quantidades por Período (últimos 12 meses)
+            // 2. Gráfico de Barras: Qtd Recebida x Qtd Testada por Mês (últimos 12 meses)
             $stmtQuantidades = $this->db->prepare("
                 SELECT 
                     DATE_FORMAT(a.created_at, '%Y-%m') as mes,
-                    SUM(COALESCE(quantidade_aprovada, 0)) as aprovadas,
-                    SUM(COALESCE(quantidade_reprovada, 0)) as reprovadas,
+                    SUM(COALESCE(quantidade_recebida, 0)) as recebidas,
                     SUM(COALESCE(quantidade_testada, 0)) as testadas
                 FROM amostragens_2 a
                 LEFT JOIN users u ON a.user_id = u.id
@@ -1910,9 +1832,40 @@ class AdminController
             $quantidadesData = array_reverse($quantidadesData); // Ordem cronológica
             
             $quantidadesLabels = array_column($quantidadesData, 'mes');
-            $quantidadesAprovadas = array_column($quantidadesData, 'aprovadas');
-            $quantidadesReprovadas = array_column($quantidadesData, 'reprovadas');
+            $quantidadesRecebidas = array_column($quantidadesData, 'recebidas');
             $quantidadesTestadas = array_column($quantidadesData, 'testadas');
+            
+            // 3. Gráfico de Pizza: Taxa de Aprovação/Reprovação por Fornecedor
+            $stmtFornecedores = $this->db->prepare("
+                SELECT 
+                    forn.nome as fornecedor,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN a.status_final IN ('Aprovado', 'Aprovado Parcialmente') THEN 1 ELSE 0 END) as aprovadas,
+                    SUM(CASE WHEN a.status_final = 'Reprovado' THEN 1 ELSE 0 END) as reprovadas
+                FROM amostragens_2 a
+                LEFT JOIN users u ON a.user_id = u.id
+                LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
+                $whereClause
+                GROUP BY forn.nome, forn.id
+                HAVING COUNT(*) > 0
+                ORDER BY total DESC
+            ");
+            $stmtFornecedores->execute($params);
+            $fornecedoresData = $stmtFornecedores->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Calcular taxas de aprovação e reprovação por fornecedor
+            $fornecedoresLabels = [];
+            $fornecedoresTaxaAprovacao = [];
+            $fornecedoresTaxaReprovacao = [];
+            
+            foreach ($fornecedoresData as $forn) {
+                $total = (int)$forn['total'];
+                if ($total > 0) {
+                    $fornecedoresLabels[] = $forn['fornecedor'];
+                    $fornecedoresTaxaAprovacao[] = round(((int)$forn['aprovadas'] / $total) * 100, 1);
+                    $fornecedoresTaxaReprovacao[] = round(((int)$forn['reprovadas'] / $total) * 100, 1);
+                }
+            }
             
             // Buscar todas as filiais para o dropdown
             $stmtAllFiliais = $this->db->prepare("
@@ -1931,35 +1884,19 @@ class AdminController
                 'data' => [
                     'cards' => [
                         'total_amostragens' => (int)$totalAmostragens,
-                        'taxa_aprovacao' => round($taxaAprovacao, 2),
-                        'produtos_testados' => (int)$produtosTestados,
+                        'aprovadas' => (int)$aprovadas,
+                        'reprovadas' => (int)$reprovadas,
                         'pendentes' => (int)$pendentes
                     ],
-                    'status' => [
-                        'labels' => $statusLabels,
-                        'data' => array_map('intval', $statusValues)
-                    ],
-                    'tipos_produto' => [
-                        'labels' => $tiposLabels,
-                        'data' => array_map('intval', $tiposValues)
-                    ],
-                    'fornecedores' => [
-                        'labels' => $fornecedoresLabels,
-                        'data' => array_map('intval', $fornecedoresValues)
-                    ],
-                    'evolucao' => [
-                        'labels' => $evolucaoLabels,
-                        'data' => array_map('intval', $evolucaoValues)
-                    ],
-                    'filiais' => [
-                        'labels' => $filiaisLabels,
-                        'data' => array_map('intval', $filiaisValues)
-                    ],
-                    'quantidades' => [
+                    'quantidades_mes' => [
                         'labels' => $quantidadesLabels,
-                        'aprovadas' => array_map('intval', $quantidadesAprovadas),
-                        'reprovadas' => array_map('intval', $quantidadesReprovadas),
+                        'recebidas' => array_map('intval', $quantidadesRecebidas),
                         'testadas' => array_map('intval', $quantidadesTestadas)
+                    ],
+                    'fornecedores_taxa' => [
+                        'labels' => $fornecedoresLabels,
+                        'taxa_aprovacao' => $fornecedoresTaxaAprovacao,
+                        'taxa_reprovacao' => $fornecedoresTaxaReprovacao
                     ],
                     'filiais_dropdown' => $allFiliais
                 ]
