@@ -41,6 +41,7 @@ class GarantiasController
             $numero_serie = trim($_POST['numero_serie'] ?? '');
             $numero_lote = trim($_POST['numero_lote'] ?? '');
             $numero_ticket_os = trim($_POST['numero_ticket_os'] ?? '');
+            $numero_ticket_interno = trim($_POST['numero_ticket_interno'] ?? '');
             $status = $_POST['status'] ?? 'Em andamento';
             $observacao = trim($_POST['observacao'] ?? '');
             $user_id = $_SESSION['user_id'];
@@ -79,14 +80,14 @@ class GarantiasController
                 INSERT INTO garantias (
                     fornecedor_id, origem_garantia, numero_nf_compras, numero_nf_remessa_simples, 
                     numero_nf_remessa_devolucao, numero_serie, numero_lote, 
-                    numero_ticket_os, status, observacao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    numero_ticket_os, numero_ticket_interno, status, observacao
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
             $stmt->execute([
                 $fornecedor_id, $origem_garantia, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
-                $numero_ticket_os, $status, $observacao
+                $numero_ticket_os, $numero_ticket_interno, $status, $observacao
             ]);
             
             $garantia_id = $this->db->lastInsertId();
@@ -232,6 +233,7 @@ class GarantiasController
             $numero_serie = trim($_POST['numero_serie'] ?? '');
             $numero_lote = trim($_POST['numero_lote'] ?? '');
             $numero_ticket_os = trim($_POST['numero_ticket_os'] ?? '');
+            $numero_ticket_interno = trim($_POST['numero_ticket_interno'] ?? '');
             $status = $_POST['status'] ?? 'Em andamento';
             $observacao = trim($_POST['observacao'] ?? '');
 
@@ -260,7 +262,7 @@ class GarantiasController
                 UPDATE garantias SET
                     fornecedor_id = ?, numero_nf_compras = ?, numero_nf_remessa_simples = ?,
                     numero_nf_remessa_devolucao = ?, numero_serie = ?, numero_lote = ?,
-                    numero_ticket_os = ?, origem_garantia = ?, status = ?, observacao = ?,
+                    numero_ticket_os = ?, numero_ticket_interno = ?, origem_garantia = ?, status = ?, observacao = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
@@ -268,7 +270,7 @@ class GarantiasController
             $stmt->execute([
                 $fornecedor_id, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
-                $numero_ticket_os, $origem_garantia, $status, $observacao, $id
+                $numero_ticket_os, $numero_ticket_interno, $origem_garantia, $status, $observacao, $id
             ]);
 
             // Atualizar itens se fornecidos

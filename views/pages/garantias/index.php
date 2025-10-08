@@ -159,6 +159,10 @@ if (!isset($_SESSION['user_id'])) {
                     <label class="block text-sm font-medium text-white mb-2">Número Ticket/OS</label>
                     <input type="text" name="numero_ticket_os" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número do ticket">
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Número Ticket Interno</label>
+                    <input type="text" name="numero_ticket_interno" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Digite o número do ticket interno">
+                </div>
             </div>
 
             <!-- Anexos dos Laudos -->
