@@ -1208,8 +1208,8 @@ class TonersController
             $stmt = $this->db->query("
                 SELECT 
                     id,
-                    modelo as codigo,
                     modelo,
+                    fabricante,
                     CONCAT(modelo, ' - ', fabricante) as nome
                 FROM toners
                 ORDER BY modelo

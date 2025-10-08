@@ -939,7 +939,8 @@ function adicionarItem() {
             </div>
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Produto *</label>
-                <select class="produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required disabled>
+                <input type="text" class="busca-produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="🔍 Buscar produto..." disabled>
+                <select class="produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required disabled size="5" style="height: 120px;">
                     <option value="">Selecione primeiro o tipo</option>
                 </select>
             </div>
@@ -984,11 +985,39 @@ function adicionarItem() {
 function configurarEventListenersItem(itemDiv) {
     const tipoProdutoSelect = itemDiv.querySelector('.tipo-produto-item');
     const produtoSelect = itemDiv.querySelector('.produto-item');
+    const buscaInput = itemDiv.querySelector('.busca-produto-item');
     const tipoHidden = itemDiv.querySelector('.item-tipo-hidden');
     const produtoIdHidden = itemDiv.querySelector('.item-produto-id-hidden');
     const codigoHidden = itemDiv.querySelector('.item-codigo-hidden');
     const nomeHidden = itemDiv.querySelector('.item-nome-hidden');
     const descricaoInput = itemDiv.querySelector('.item-descricao-auto');
+    
+    let todasOpcoes = []; // Guardar todas as opções para filtrar
+    
+    // Configurar busca no select
+    buscaInput.addEventListener('input', function() {
+        const termoBusca = this.value.toLowerCase();
+        
+        // Filtrar opções
+        produtoSelect.innerHTML = '';
+        
+        const opcoesFiltradas = todasOpcoes.filter(opcao => 
+            opcao.text.toLowerCase().includes(termoBusca)
+        );
+        
+        if (opcoesFiltradas.length === 0) {
+            produtoSelect.innerHTML = '<option value="">Nenhum produto encontrado</option>';
+        } else {
+            opcoesFiltradas.forEach(opcaoData => {
+                const option = document.createElement('option');
+                option.value = opcaoData.value;
+                option.textContent = opcaoData.text;
+                option.dataset.codigo = opcaoData.codigo;
+                option.dataset.nome = opcaoData.nome;
+                produtoSelect.appendChild(option);
+            });
+        }
+    });
     
     // Quando mudar o tipo de produto
     tipoProdutoSelect.addEventListener('change', async function() {
@@ -997,11 +1026,14 @@ function configurarEventListenersItem(itemDiv) {
         // Limpar
         produtoSelect.innerHTML = '<option value="">Carregando...</option>';
         produtoSelect.disabled = true;
+        buscaInput.disabled = true;
+        buscaInput.value = '';
         tipoHidden.value = '';
         produtoIdHidden.value = '';
         codigoHidden.value = '';
         nomeHidden.value = '';
         descricaoInput.value = '';
+        todasOpcoes = [];
         
         if (!tipo) {
             produtoSelect.innerHTML = '<option value="">Selecione primeiro o tipo</option>';
@@ -1027,11 +1059,11 @@ function configurarEventListenersItem(itemDiv) {
             
             const produtos = await response.json();
             
-            produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
+            // Guardar todas as opções para filtro
+            todasOpcoes = [];
+            produtoSelect.innerHTML = '';
+            
             produtos.forEach(produto => {
-                const option = document.createElement('option');
-                option.value = produto.id;
-                
                 // Definir código e nome baseado no tipo
                 let codigo, nome;
                 if (tipo === 'Toner') {
@@ -1045,14 +1077,28 @@ function configurarEventListenersItem(itemDiv) {
                     nome = produto.nome || produto.descricao || '';
                 }
                 
+                const textoOpcao = codigo ? `${codigo} - ${nome}` : nome;
+                
+                // Guardar no array para busca
+                todasOpcoes.push({
+                    value: produto.id,
+                    text: textoOpcao,
+                    codigo: codigo,
+                    nome: nome
+                });
+                
+                // Adicionar no select
+                const option = document.createElement('option');
+                option.value = produto.id;
                 option.dataset.codigo = codigo;
                 option.dataset.nome = nome;
-                option.textContent = codigo ? `${codigo} - ${nome}` : nome;
-                
+                option.textContent = textoOpcao;
                 produtoSelect.appendChild(option);
             });
             
             produtoSelect.disabled = false;
+            buscaInput.disabled = false;
+            buscaInput.focus();
             
         } catch (error) {
             console.error('❌ Erro ao carregar produtos:', error);
