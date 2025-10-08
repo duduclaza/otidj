@@ -318,27 +318,17 @@ if (!isset($_SESSION['user_id'])) {
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Remetentes -->
             <div class="bg-white rounded-lg border border-green-200 p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">👤 Remetentes</h3>
-                    <button type="button" onclick="adicionarRemetente()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-                        + Adicionar Remetente
-                    </button>
-                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">👤 Remetente</h3>
                 <div id="remetentesContainer" class="space-y-4">
-                    <!-- Remetentes adicionados dinamicamente -->
+                    <!-- Remetente -->
                 </div>
             </div>
 
-            <!-- Destinatários -->
+            <!-- Destinatário -->
             <div class="bg-white rounded-lg border border-green-200 p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">📍 Destinatários</h3>
-                    <button type="button" onclick="adicionarDestinatario()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-                        + Adicionar Destinatário
-                    </button>
-                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-4">📍 Destinatário</h3>
                 <div id="destinatariosContainer" class="space-y-4">
-                    <!-- Destinatários adicionados dinamicamente -->
+                    <!-- Destinatário -->
                 </div>
             </div>
         </div>
@@ -2376,24 +2366,20 @@ function cancelCorreiosForm() {
     if (valorTotal) valorTotal.textContent = '0,00';
 }
 
-// Adicionar remetente
+// Adicionar remetente (apenas 1)
 function adicionarRemetente() {
     console.log('📤 adicionarRemetente() chamada');
     const container = document.getElementById('remetentesContainer');
-    const index = container.children.length;
-    console.log('📤 Container atual tem', index, 'remetentes');
+    
+    // Verificar se já existe um remetente
+    if (container.children.length > 0) {
+        console.log('⚠️ Remetente já existe, não adiciona outro');
+        return;
+    }
     
     const remetenteDiv = document.createElement('div');
     remetenteDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
     remetenteDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="font-medium text-gray-900">Remetente ${index + 1}</h4>
-            <button type="button" onclick="removerRemetente(this)" class="text-red-600 hover:text-red-800">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                </svg>
-            </button>
-        </div>
         <div class="grid grid-cols-1 gap-3">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
@@ -2429,24 +2415,20 @@ function adicionarRemetente() {
     container.appendChild(remetenteDiv);
 }
 
-// Adicionar destinatário
+// Adicionar destinatário (apenas 1)
 function adicionarDestinatario() {
     console.log('📥 adicionarDestinatario() chamada');
     const container = document.getElementById('destinatariosContainer');
-    const index = container.children.length;
-    console.log('📥 Container atual tem', index, 'destinatários');
+    
+    // Verificar se já existe um destinatário
+    if (container.children.length > 0) {
+        console.log('⚠️ Destinatário já existe, não adiciona outro');
+        return;
+    }
     
     const destinatarioDiv = document.createElement('div');
     destinatarioDiv.className = 'border border-gray-200 rounded-lg p-4 bg-gray-50';
     destinatarioDiv.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h4 class="font-medium text-gray-900">Destinatário ${index + 1}</h4>
-            <button type="button" onclick="removerDestinatario(this)" class="text-red-600 hover:text-red-800">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                </svg>
-            </button>
-        </div>
         <div class="grid grid-cols-1 gap-3">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nome *</label>
