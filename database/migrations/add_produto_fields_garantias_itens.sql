@@ -1,31 +1,46 @@
--- ===== MIGRATION: Adicionar campos de produto na tabela garantias =====
+-- ===== MIGRATION: Adicionar campos de produto na tabela garantias_itens =====
 -- Data: 2025-10-08
 -- Objetivo: Padronizar seleção de produtos igual ao módulo Amostragens 2.0
 -- Autor: Sistema SGQ OTI DJ
 
--- Adicionar novas colunas para seleção padronizada de produtos
-ALTER TABLE garantias
-ADD COLUMN tipo_produto ENUM('Toner', 'Máquina', 'Peça') NULL AFTER fornecedor_id,
-ADD COLUMN produto_id INT NULL AFTER tipo_produto,
-ADD COLUMN codigo_produto VARCHAR(100) NULL AFTER produto_id,
-ADD COLUMN nome_produto VARCHAR(255) NULL AFTER codigo_produto;
+-- Verificar se as colunas já existem antes de adicionar
+SET @dbname = DATABASE();
+SET @tablename = 'garantias_itens';
 
--- Adicionar índice para busca por tipo de produto
-ALTER TABLE garantias
-ADD INDEX idx_tipo_produto (tipo_produto),
-ADD INDEX idx_produto_id (produto_id),
-ADD INDEX idx_codigo_produto (codigo_produto);
+-- Adicionar novas colunas para seleção padronizada de produtos (SE NÃO EXISTIREM)
+SET @s = (SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
+     WHERE TABLE_SCHEMA = @dbname 
+     AND TABLE_NAME = @tablename 
+     AND COLUMN_NAME = 'tipo_produto') = 0,
+    'ALTER TABLE garantias_itens 
+     ADD COLUMN tipo_produto ENUM(''Toner'', ''Máquina'', ''Peça'') NULL AFTER descricao,
+     ADD COLUMN produto_id INT NULL AFTER tipo_produto,
+     ADD COLUMN codigo_produto VARCHAR(100) NULL AFTER produto_id,
+     ADD COLUMN nome_produto VARCHAR(255) NULL AFTER codigo_produto',
+    'SELECT ''Colunas já existem'' AS resultado'
+));
 
--- Comentários descritivos
-ALTER TABLE garantias
-MODIFY COLUMN tipo_produto ENUM('Toner', 'Máquina', 'Peça') NULL
-    COMMENT 'Tipo do produto: Toner, Máquina ou Peça',
-MODIFY COLUMN produto_id INT NULL 
-    COMMENT 'ID do produto na tabela correspondente (toners, maquinas ou pecas)',
-MODIFY COLUMN codigo_produto VARCHAR(100) NULL 
-    COMMENT 'Código do produto para referência rápida',
-MODIFY COLUMN nome_produto VARCHAR(255) NULL
-    COMMENT 'Nome/descrição do produto';
+PREPARE stmt FROM @s;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Adicionar índices para busca por tipo de produto (SE NÃO EXISTIREM)
+SET @s = (SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS 
+     WHERE TABLE_SCHEMA = @dbname 
+     AND TABLE_NAME = @tablename 
+     AND INDEX_NAME = 'idx_tipo_produto') = 0,
+    'ALTER TABLE garantias_itens 
+     ADD INDEX idx_tipo_produto (tipo_produto),
+     ADD INDEX idx_produto_id (produto_id),
+     ADD INDEX idx_codigo_produto (codigo_produto)',
+    'SELECT ''Índices já existem'' AS resultado'
+));
+
+PREPARE stmt FROM @s;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- ===== NOTAS DE IMPLEMENTAÇÃO =====
 /*
