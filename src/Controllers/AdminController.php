@@ -1969,6 +1969,11 @@ class AdminController
             
             error_log("📦 Total de registros de compras: " . count($comprados));
             
+            // Log detalhado dos comprados
+            foreach ($comprados as $idx => $c) {
+                error_log("Compra {$idx}: Fornecedor {$c['fornecedor_id']} ({$c['fornecedor_nome']}), Tipo: {$c['tipo_produto']}, Qtd: {$c['total_comprados']}");
+            }
+            
             // 2. Buscar garantias geradas
             $sqlGarantias = "
                 SELECT 
@@ -2004,6 +2009,11 @@ class AdminController
             
             error_log("⚠️ Total de registros de garantias: " . count($garantias));
             
+            // Log detalhado das garantias
+            foreach ($garantias as $idx => $g) {
+                error_log("Garantia {$idx}: Fornecedor {$g['fornecedor_id']} ({$g['fornecedor_nome']}), Tipo: {$g['tipo_produto']}, Qtd: {$g['total_garantias']}");
+            }
+            
             // 3. Processar dados por fornecedor
             $fornecedoresMap = [];
             
@@ -2035,16 +2045,34 @@ class AdminController
                 $fornecedorId = $row['fornecedor_id'];
                 $tipo = $row['tipo_produto'];
                 
+                error_log("🔍 Processando garantia: Fornecedor {$fornecedorId}, Tipo: {$tipo}, Qtd: {$row['total_garantias']}");
+                
+                // Se fornecedor não existe no map, inicializar (pode ter garantias sem compras)
                 if (!isset($fornecedoresMap[$fornecedorId])) {
-                    // Fornecedor com garantias mas sem compras (ignorar ou inicializar?)
-                    continue;
+                    error_log("⚠️ Fornecedor {$fornecedorId} tem garantias mas não tem compras - inicializando");
+                    $fornecedoresMap[$fornecedorId] = [
+                        'id' => $fornecedorId,
+                        'nome' => $row['fornecedor_nome'],
+                        'toner' => ['comprados' => 0, 'garantias' => 0, 'qualidade' => 100],
+                        'maquina' => ['comprados' => 0, 'garantias' => 0, 'qualidade' => 100],
+                        'peca' => ['comprados' => 0, 'garantias' => 0, 'qualidade' => 100],
+                        'qualidade_geral' => 100
+                    ];
                 }
                 
+                // Normalizar tipo para lowercase
                 $tipoKey = strtolower($tipo);
-                if ($tipo === 'Máquina') $tipoKey = 'maquina';
-                if ($tipo === 'Peça') $tipoKey = 'peca';
+                if ($tipoKey === 'máquina') $tipoKey = 'maquina';
+                if ($tipoKey === 'peça') $tipoKey = 'peca';
                 
-                $fornecedoresMap[$fornecedorId][$tipoKey]['garantias'] = (int)$row['total_garantias'];
+                error_log("✅ Mapeando {$tipo} -> {$tipoKey}");
+                
+                if (isset($fornecedoresMap[$fornecedorId][$tipoKey])) {
+                    $fornecedoresMap[$fornecedorId][$tipoKey]['garantias'] = (int)$row['total_garantias'];
+                    error_log("✅ Garantia adicionada: {$row['total_garantias']} para {$tipoKey}");
+                } else {
+                    error_log("❌ ERRO: tipoKey '{$tipoKey}' não existe no map do fornecedor!");
+                }
             }
             
             // 4. Calcular percentuais de qualidade
