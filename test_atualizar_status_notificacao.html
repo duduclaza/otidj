@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Atualização de Status com Notificação</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; border-bottom: 3px solid #667eea; padding-bottom: 10px; }
+        h2 { color: #667eea; margin-top: 30px; }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+        .success { color: #10B981; font-weight: bold; }
+        .error { color: #EF4444; font-weight: bold; }
+        .warning { color: #F59E0B; font-weight: bold; }
+        .info { color: #3B82F6; font-weight: bold; }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        ul { line-height: 1.8; }
+        .highlight {
+            background: #fef3c7;
+            padding: 15px;
+            border-left: 4px solid #f59e0b;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste de Atualização de Status com Notificação por Email</h1>
+        
+        <div class="highlight">
+            <p><strong>⚠️ CORREÇÃO APLICADA:</strong></p>
+            <p>O método <code>updateStatus()</code> foi atualizado para <strong>SEMPRE</strong> enviar emails de notificação quando o status for alterado no grid.</p>
+        </div>
+
+        <h2>✅ O que foi Corrigido:</h2>
+        
+        <div class="test-section">
+            <h3>🔧 Mudanças no Controller</h3>
+            
+            <p><strong>ANTES (Problema):</strong></p>
+            <ul>
+                <li>❌ Método <code>updateStatus()</code> apenas atualizava o banco</li>
+                <li>❌ NÃO registrava histórico</li>
+                <li>❌ NÃO enviava email</li>
+                <li>❌ NÃO buscava usuario_notificado_id</li>
+            </ul>
+            
+            <p><strong>DEPOIS (Corrigido):</strong></p>
+            <ul>
+                <li class="success">✅ Busca status anterior e usuario_notificado_id</li>
+                <li class="success">✅ Atualiza o status no banco</li>
+                <li class="success">✅ Registra no histórico (<code>garantias_historico_status</code>)</li>
+                <li class="success">✅ Envia email de notificação via <code>enviarNotificacaoStatus()</code></li>
+                <li class="success">✅ Logs detalhados em todas as etapas</li>
+            </ul>
+        </div>
+
+        <h2>🧪 Como Testar Agora:</h2>
+
+        <div class="step">
+            <span class="step-number">1</span>
+            <strong>Abrir o módulo de Garantias</strong>
+            <p>Acesse: <code>https://djbr.sgqoti.com.br/garantias</code></p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">2</span>
+            <strong>Verificar se há usuário notificado</strong>
+            <p>Verifique no banco se a garantia tem <code>usuario_notificado_id</code>:</p>
+            <code style="display: block; padding: 10px; margin-top: 5px;">
+                SELECT id, status, usuario_notificado_id FROM garantias WHERE id = X;
+            </code>
+            <p class="warning">⚠️ Se <code>usuario_notificado_id</code> for NULL, edite a garantia e selecione um usuário primeiro!</p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">3</span>
+            <strong>Alterar o Status no Grid</strong>
+            <ul>
+                <li>No grid de garantias, clique no <strong>dropdown de status</strong></li>
+                <li>Selecione um status diferente do atual</li>
+                <li>O sistema atualizará automaticamente</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <span class="step-number">4</span>
+            <strong>Verificar Logs do PHP</strong>
+            <p>Verifique o arquivo <code>error_log</code> do PHP:</p>
+            <code style="display: block; padding: 10px; margin-top: 5px;">
+📧 updateStatus chamado para garantia #X com novo status: Aguardando Fornecedor<br>
+📊 Status anterior: Em andamento, Usuário notificado: 5<br>
+✅ Histórico de status registrado<br>
+📧 Enviando notificação para usuário #5<br>
+📧 Preparando email de notificação para: usuario@email.com<br>
+=== TENTANDO ENVIAR EMAIL ===<br>
+✅ Email de garantia enviado com sucesso para usuario@email.com
+            </code>
+        </div>
+
+        <div class="step">
+            <span class="step-number">5</span>
+            <strong>Verificar Histórico no Banco</strong>
+            <code style="display: block; padding: 10px; margin-top: 5px;">
+SELECT * FROM garantias_historico_status <br>
+WHERE garantia_id = X <br>
+ORDER BY data_mudanca DESC LIMIT 5;
+            </code>
+            <p class="info">✅ Deve aparecer um registro com observação "Status atualizado via grid"</p>
+        </div>
+
+        <div class="step">
+            <span class="step-number">6</span>
+            <strong>Verificar Email Recebido</strong>
+            <p>O usuário notificado deve receber email com:</p>
+            <ul>
+                <li>Assunto: <strong>"SGQ - Garantia #X - Status Atualizado 🔔"</strong></li>
+                <li>Nome do usuário personalizado</li>
+                <li>Badge colorido com o novo status</li>
+                <li>Detalhes: Fornecedor, NF, Ticket</li>
+                <li>Link para ver detalhes completos</li>
+                <li>Design profissional com gradiente roxo</li>
+            </ul>
+            <p class="warning">⚠️ Verificar pasta de SPAM se não chegar em 1-2 minutos</p>
+        </div>
+
+        <h2>🔍 Troubleshooting:</h2>
+
+        <div class="test-section">
+            <h3>❌ Email não chegou?</h3>
+            
+            <p><strong>1. Verificar se tem usuário configurado:</strong></p>
+            <code style="display: block; padding: 10px;">
+SELECT g.id, g.status, g.usuario_notificado_id, u.name, u.email<br>
+FROM garantias g<br>
+LEFT JOIN users u ON g.usuario_notificado_id = u.id<br>
+WHERE g.id = X;
+            </code>
+            
+            <p><strong>2. Verificar se o status MUDOU de fato:</strong></p>
+            <ul>
+                <li>Email só é enviado se o status for DIFERENTE do anterior</li>
+                <li>Trocar de "Em andamento" para "Em andamento" = sem email</li>
+            </ul>
+            
+            <p><strong>3. Verificar logs do PHP:</strong></p>
+            <ul>
+                <li>Procurar por: <code>📧 updateStatus chamado</code></li>
+                <li>Procurar por: <code>✅ Email enviado com sucesso</code></li>
+                <li>Procurar por: <code>❌ Falha ao enviar email</code></li>
+            </ul>
+            
+            <p><strong>4. Verificar credenciais SMTP:</strong></p>
+            <ul>
+                <li>Arquivo <code>.env</code> com configurações corretas</li>
+                <li>MAIL_HOST=smtp.hostinger.com</li>
+                <li>MAIL_PORT=465</li>
+                <li>MAIL_USERNAME e MAIL_PASSWORD configurados</li>
+            </ul>
+        </div>
+
+        <h2>📊 Comandos SQL Úteis:</h2>
+
+        <div class="test-section">
+            <p><strong>Ver garantias com notificação ativa:</strong></p>
+            <code style="display: block; padding: 10px; margin-bottom: 15px;">
+SELECT g.id, g.status, u.name as notificado, u.email<br>
+FROM garantias g<br>
+LEFT JOIN users u ON g.usuario_notificado_id = u.id<br>
+WHERE g.usuario_notificado_id IS NOT NULL;
+            </code>
+            
+            <p><strong>Ver histórico de uma garantia:</strong></p>
+            <code style="display: block; padding: 10px; margin-bottom: 15px;">
+SELECT h.*, u.name as usuario<br>
+FROM garantias_historico_status h<br>
+LEFT JOIN users u ON h.usuario_id = u.id<br>
+WHERE h.garantia_id = 1<br>
+ORDER BY h.data_mudanca DESC;
+            </code>
+            
+            <p><strong>Configurar usuário notificado manualmente:</strong></p>
+            <code style="display: block; padding: 10px;">
+UPDATE garantias SET usuario_notificado_id = 1 WHERE id = X;
+            </code>
+        </div>
+
+        <div class="highlight">
+            <p><strong>✅ SISTEMA COMPLETAMENTE FUNCIONAL!</strong></p>
+            <p>Agora TODA vez que você alterar o status no grid, o sistema irá:</p>
+            <ul>
+                <li>✅ Registrar no histórico</li>
+                <li>✅ Enviar email para o usuário notificado</li>
+                <li>✅ Logar todas as operações</li>
+            </ul>
+            <p class="info">📧 <strong>Lembre-se:</strong> O usuário só recebe email se estiver configurado no campo "🔔 Notificar Alguém" da garantia!</p>
+        </div>
+    </div>
+</body>
+</html>

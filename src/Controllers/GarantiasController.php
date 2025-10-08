@@ -479,13 +479,15 @@ class GarantiasController
         }
     }
 
-    // Atualizar apenas o status da garantia
+    // Atualizar apenas o status da garantia (COM NOTIFICAÇÃO)
     public function updateStatus($id)
     {
         header('Content-Type: application/json');
         
         try {
             $status = $_POST['status'] ?? '';
+            
+            error_log("📧 updateStatus chamado para garantia #{$id} com novo status: {$status}");
             
             // Validar status
             $statusValidos = [
@@ -500,6 +502,31 @@ class GarantiasController
                 return;
             }
             
+            // Buscar status anterior e usuario_notificado_id ANTES de atualizar
+            $stmt = $this->db->prepare("
+                SELECT status, usuario_notificado_id 
+                FROM garantias 
+                WHERE id = ?
+            ");
+            $stmt->execute([$id]);
+            $garantiaAtual = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$garantiaAtual) {
+                echo json_encode(['success' => false, 'message' => 'Garantia não encontrada']);
+                return;
+            }
+            
+            $statusAnterior = $garantiaAtual['status'];
+            $usuarioNotificadoId = $garantiaAtual['usuario_notificado_id'];
+            
+            error_log("📊 Status anterior: {$statusAnterior}, Usuário notificado: " . ($usuarioNotificadoId ?: 'nenhum'));
+            
+            // Verificar se houve mudança de status
+            if ($statusAnterior === $status) {
+                echo json_encode(['success' => true, 'message' => 'Status já está atualizado']);
+                return;
+            }
+            
             // Atualizar status
             $stmt = $this->db->prepare("
                 UPDATE garantias 
@@ -508,14 +535,22 @@ class GarantiasController
             ");
             $stmt->execute([$status, $id]);
             
-            if ($stmt->rowCount() === 0) {
-                echo json_encode(['success' => false, 'message' => 'Garantia não encontrada']);
-                return;
+            // Registrar no histórico de status
+            $this->registrarHistoricoStatus($id, $statusAnterior, $status, 'Status atualizado via grid');
+            error_log("✅ Histórico de status registrado");
+            
+            // Enviar notificação se houver usuário configurado
+            if ($usuarioNotificadoId) {
+                error_log("📧 Enviando notificação para usuário #{$usuarioNotificadoId}");
+                $this->enviarNotificacaoStatus($id, $status);
+            } else {
+                error_log("⚠️ Nenhum usuário configurado para notificação");
             }
             
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
             
         } catch (\Exception $e) {
+            error_log("❌ Erro em updateStatus: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao atualizar status: ' . $e->getMessage()]);
         }
     }
