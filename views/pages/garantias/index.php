@@ -1907,6 +1907,10 @@ function preencherFormularioEdicao(garantia) {
     document.querySelector('[name="numero_serie"]').value = garantia.numero_serie || '';
     document.querySelector('[name="numero_lote"]').value = garantia.numero_lote || '';
     document.querySelector('[name="numero_ticket_os"]').value = garantia.numero_ticket_os || '';
+    document.querySelector('[name="numero_ticket_interno"]').value = garantia.numero_ticket_interno || '';
+    
+    // Preencher usuário notificado
+    document.querySelector('[name="usuario_notificado_id"]').value = garantia.usuario_notificado_id || '';
     
     // Preencher status e observação
     document.querySelector('[name="status"]').value = garantia.status || 'Em andamento';
@@ -1951,13 +1955,14 @@ function preencherFormularioEdicao(garantia) {
     showNotification(`Garantia #${garantia.id} carregada para edição`, 'info');
 }
 
-// Adicionar item com dados existentes
+// Adicionar item com dados existentes (NOVO FORMATO)
 function adicionarItemEdicao(itemData) {
     const container = document.getElementById('itensContainer');
     const itemIndex = container.children.length;
     
     const itemDiv = document.createElement('div');
     itemDiv.className = 'item-garantia bg-gray-600 p-4 rounded-lg border border-gray-500';
+    itemDiv.dataset.index = itemIndex;
     itemDiv.innerHTML = `
         <div class="flex justify-between items-center mb-3">
             <h4 class="text-white font-medium">Item ${itemIndex + 1}</h4>
@@ -1967,20 +1972,46 @@ function adicionarItemEdicao(itemData) {
                 </svg>
             </button>
         </div>
+        
+        <!-- Seleção de Produto (igual Amostragens 2.0) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-white mb-1">Tipo de Produto *</label>
+                <select class="tipo-produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    <option value="">Selecione o tipo</option>
+                    <option value="Toner" ${itemData.tipo_produto === 'Toner' ? 'selected' : ''}>Toner</option>
+                    <option value="Máquina" ${itemData.tipo_produto === 'Máquina' ? 'selected' : ''}>Máquina</option>
+                    <option value="Peça" ${itemData.tipo_produto === 'Peça' ? 'selected' : ''}>Peça</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-white mb-1">Produto *</label>
+                <input type="text" class="busca-produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="🔍 Buscar produto..." ${itemData.tipo_produto ? '' : 'disabled'}>
+                <select class="produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required ${itemData.tipo_produto ? '' : 'disabled'} size="5" style="height: 120px;">
+                    <option value="">Carregando...</option>
+                </select>
+            </div>
+            <!-- Hidden inputs para envio -->
+            <input type="hidden" name="item_tipo_produto[]" class="item-tipo-hidden" value="${itemData.tipo_produto || ''}">
+            <input type="hidden" name="item_produto_id[]" class="item-produto-id-hidden" value="${itemData.produto_id || ''}">
+            <input type="hidden" name="item_codigo_produto[]" class="item-codigo-hidden" value="${itemData.codigo_produto || ''}">
+            <input type="hidden" name="item_nome_produto[]" class="item-nome-hidden" value="${itemData.nome_produto || ''}">
+        </div>
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-white mb-1">Descrição *</label>
-                <input type="text" name="item_descricao" required value="${itemData.descricao || ''}" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Descrição do item">
+                <label class="block text-sm font-medium text-white mb-1">Descrição (preenchido automaticamente)</label>
+                <input type="text" name="item_descricao[]" readonly value="${itemData.descricao || ''}" class="item-descricao-auto w-full bg-gray-600 border border-gray-500 text-gray-300 rounded px-3 py-2 placeholder-gray-400" placeholder="Selecione um produto">
             </div>
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Quantidade *</label>
-                <input type="number" name="item_quantidade" min="1" required value="${itemData.quantidade || 1}" onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="1">
+                <input type="number" name="item_quantidade[]" min="1" value="${itemData.quantidade || 1}" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="1">
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Valor Unitário (R$) *</label>
-                <input type="number" name="item_valor" step="0.01" min="0" required value="${itemData.valor_unitario || 0}" onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0,00">
+                <input type="number" name="item_valor[]" step="0.01" min="0" value="${itemData.valor_unitario || 0}" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0,00">
             </div>
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Valor Total</label>
@@ -1990,7 +2021,73 @@ function adicionarItemEdicao(itemData) {
     `;
     
     container.appendChild(itemDiv);
+    
+    // Configurar event listeners para este item
+    configurarEventListenersItem(itemDiv);
+    
+    // Se já tem tipo de produto, carregar produtos
+    if (itemData.tipo_produto) {
+        carregarProdutosEdicao(itemDiv, itemData);
+    }
+    
     atualizarTotais();
+}
+
+// Carregar produtos para item em edição
+async function carregarProdutosEdicao(itemDiv, itemData) {
+    const tipo = itemData.tipo_produto;
+    const produtoSelect = itemDiv.querySelector('.produto-item');
+    const buscaInput = itemDiv.querySelector('.busca-produto-item');
+    
+    let endpoint = '';
+    switch(tipo) {
+        case 'Toner': endpoint = '/api/toners'; break;
+        case 'Máquina': endpoint = '/api/maquinas'; break;
+        case 'Peça': endpoint = '/api/pecas'; break;
+        default: return;
+    }
+    
+    try {
+        const response = await fetch(endpoint);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const produtos = await response.json();
+        produtoSelect.innerHTML = '';
+        
+        produtos.forEach(produto => {
+            let codigo, nome;
+            if (tipo === 'Toner') {
+                codigo = produto.modelo || '';
+                nome = produto.nome || produto.modelo || '';
+            } else if (tipo === 'Máquina') {
+                codigo = produto.cod_referencia || produto.modelo || '';
+                nome = produto.nome || produto.modelo || '';
+            } else if (tipo === 'Peça') {
+                codigo = produto.codigo_referencia || '';
+                nome = produto.nome || produto.descricao || '';
+            }
+            
+            const option = document.createElement('option');
+            option.value = produto.id;
+            option.dataset.codigo = codigo;
+            option.dataset.nome = nome;
+            option.textContent = codigo;
+            
+            // Marcar como selecionado se for o item atual
+            if (itemData.produto_id && produto.id == itemData.produto_id) {
+                option.selected = true;
+            }
+            
+            produtoSelect.appendChild(option);
+        });
+        
+        produtoSelect.disabled = false;
+        buscaInput.disabled = false;
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar produtos para edição:', error);
+        produtoSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+    }
 }
 
 // Mostrar anexos existentes (apenas informativo)
