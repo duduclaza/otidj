@@ -1628,7 +1628,7 @@ async function loadDashboardAmostragens() {
     if (result.success) {
       console.log('✅ Dados recebidos:', result.data);
       updateDashboardAmostragens(result.data);
-      populateFilialOptionsAmostragens(result.data.filiais);
+      populateFilialOptionsAmostragens(result.data.filiais_dropdown);
     } else {
       console.error('❌ Erro ao carregar dados:', result.message);
     }

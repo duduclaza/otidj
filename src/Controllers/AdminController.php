@@ -1961,7 +1961,7 @@ class AdminController
                         'reprovadas' => array_map('intval', $quantidadesReprovadas),
                         'testadas' => array_map('intval', $quantidadesTestadas)
                     ],
-                    'filiais' => $allFiliais
+                    'filiais_dropdown' => $allFiliais
                 ]
             ];
             
