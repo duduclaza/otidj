@@ -796,31 +796,154 @@ class GarantiasController
             $garantia = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$garantia || !$garantia['email']) {
+                error_log("Garantia #{$garantia_id}: Sem usuário notificado ou email não encontrado");
                 return; // Sem usuário para notificar
             }
             
-            // Enviar email
-            $subject = "Garantia #{$garantia_id} - Status Atualizado para: {$status_novo}";
-            $message = "
-                <h2>Atualização de Status - Garantia #{$garantia_id}</h2>
-                <p>Olá {$garantia['nome_notificado']},</p>
-                <p>A garantia que você está acompanhando foi atualizada:</p>
-                <ul>
-                    <li><strong>Fornecedor:</strong> {$garantia['fornecedor_nome']}</li>
-                    <li><strong>Novo Status:</strong> {$status_novo}</li>
-                    <li><strong>NF Compras:</strong> {$garantia['numero_nf_compras']}</li>
-                    <li><strong>Ticket/OS:</strong> {$garantia['numero_ticket_os']}</li>
-                </ul>
-                <p>Acesse o sistema para mais detalhes.</p>
-            ";
+            error_log("📧 Preparando email de notificação para: {$garantia['email']}");
             
-            // Aqui você pode usar o EmailService se tiver configurado
-            // Por enquanto apenas loga
-            error_log("Email de notificação enviado para {$garantia['email']}");
+            // Usar EmailService para enviar
+            $emailService = new \App\Services\EmailService();
+            
+            $subject = "SGQ - Garantia #{$garantia_id} - Status Atualizado 🔔";
+            $body = $this->buildGarantiaEmailTemplate($garantia, $status_novo, $garantia_id);
+            
+            $altBody = "Atualização de Garantia\n\n";
+            $altBody .= "Garantia: #{$garantia_id}\n";
+            $altBody .= "Fornecedor: {$garantia['fornecedor_nome']}\n";
+            $altBody .= "Novo Status: {$status_novo}\n";
+            $altBody .= "NF Compras: {$garantia['numero_nf_compras']}\n";
+            if ($garantia['numero_ticket_os']) {
+                $altBody .= "Ticket/OS: {$garantia['numero_ticket_os']}\n";
+            }
+            $altBody .= "\nAcesse o sistema para mais detalhes.\n";
+            
+            $resultado = $emailService->send($garantia['email'], $subject, $body, $altBody);
+            
+            if ($resultado) {
+                error_log("✅ Email de garantia enviado com sucesso para {$garantia['email']}");
+            } else {
+                error_log("❌ Falha ao enviar email: " . $emailService->getLastError());
+            }
             
         } catch (\Exception $e) {
-            error_log("Erro ao enviar notificação: " . $e->getMessage());
+            error_log("❌ Erro ao enviar notificação de garantia: " . $e->getMessage());
         }
+    }
+    
+    private function buildGarantiaEmailTemplate($garantia, $status_novo, $garantia_id)
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        $statusColors = [
+            'Em andamento' => '#3B82F6',
+            'Aguardando Fornecedor' => '#F59E0B',
+            'Aguardando Recebimento' => '#8B5CF6',
+            'Aguardando Testes' => '#EC4899',
+            'Finalizado' => '#10B981',
+            'Garantia Expirada' => '#EF4444',
+            'Garantia não coberta' => '#6B7280'
+        ];
+        
+        $statusColor = $statusColors[$status_novo] ?? '#3B82F6';
+        
+        $html = "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Atualização de Garantia</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>🛡️ Atualização de Garantia</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Sistema de Garantias</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='text-align: center; margin-bottom: 30px;'>
+                    <h2 style='color: #374151; margin: 0 0 10px 0;'>Olá, {$garantia['nome_notificado']}!</h2>
+                    <p style='color: #666; font-size: 16px; margin: 0;'>A garantia que você está acompanhando foi atualizada.</p>
+                </div>
+                
+                <div style='text-align: center; margin-bottom: 30px;'>
+                    <div style='background: {$statusColor}; color: white; padding: 15px 25px; border-radius: 25px; display: inline-block; font-weight: bold; font-size: 18px;'>
+                        {$status_novo}
+                    </div>
+                </div>
+                
+                <h3 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>Detalhes da Garantia</h3>
+                
+                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold; width: 40%;'>Garantia:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>#{$garantia_id}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Fornecedor:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$garantia['fornecedor_nome']}</td>
+                    </tr>
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Status:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'><strong style='color: {$statusColor};'>{$status_novo}</strong></td>
+                    </tr>";
+        
+        if (!empty($garantia['numero_nf_compras'])) {
+            $html .= "
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>NF Compras:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$garantia['numero_nf_compras']}</td>
+                    </tr>";
+        }
+        
+        if (!empty($garantia['numero_ticket_os'])) {
+            $html .= "
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Ticket/OS:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$garantia['numero_ticket_os']}</td>
+                    </tr>";
+        }
+        
+        if (!empty($garantia['origem_garantia'])) {
+            $html .= "
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Origem:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>{$garantia['origem_garantia']}</td>
+                    </tr>";
+        }
+        
+        $html .= "
+                    <tr>
+                        <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Data da Atualização:</td>
+                        <td style='padding: 12px; border: 1px solid #e9ecef;'>" . date('d/m/Y H:i') . "</td>
+                    </tr>
+                </table>
+                
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/garantias/{$garantia_id}/detalhes' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Ver Detalhes Completos
+                    </a>
+                </div>
+                
+                <div style='background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 10px; padding: 20px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #1e40af; font-size: 14px;'>
+                        <strong>💡 Dica:</strong> Você está recebendo este email porque foi configurado como pessoa notificada desta garantia. 
+                        Acesse o sistema para acompanhar todas as atualizações e histórico completo.
+                    </p>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+        
+        return $html;
     }
     
     // Processar dados de logística
