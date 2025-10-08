@@ -104,6 +104,35 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
 
+            <!-- Seleção de Produto (Padrão Amostragens 2.0) -->
+            <div class="bg-gray-700 rounded-lg p-4">
+                <h3 class="text-lg font-medium text-white mb-4">📦 Produto em Garantia</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Tipo de Produto *</label>
+                        <select id="tipoProdutoGarantia" name="tipo_produto" required class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Selecione o tipo</option>
+                            <option value="Toner">Toner</option>
+                            <option value="Máquina">Máquina</option>
+                            <option value="Peça">Peça</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Escolha se é toner, máquina ou peça</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-white mb-2">Produto *</label>
+                        <select id="produtoGarantia" name="produto_id" required disabled class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Selecione primeiro o tipo</option>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Selecione o produto na lista</p>
+                    </div>
+                    
+                    <!-- Campos ocultos preenchidos automaticamente -->
+                    <input type="hidden" id="codigoProdutoGarantia" name="codigo_produto">
+                    <input type="hidden" id="nomeProdutoGarantia" name="nome_produto">
+                </div>
+            </div>
+
             <!-- Números de NF -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
@@ -575,6 +604,116 @@ function configurarEventos() {
     document.getElementById('filtroOrigem').addEventListener('change', aplicarFiltros);
     document.getElementById('filtroFornecedor').addEventListener('change', aplicarFiltros);
     document.getElementById('btnLimparFiltros').addEventListener('click', limparFiltros);
+    
+    // Seleção de produtos (padrão Amostragens 2.0)
+    configurarSelecaoProdutos();
+}
+
+// Configurar seleção de produtos igual Amostragens 2.0
+function configurarSelecaoProdutos() {
+    const tipoProdutoSelect = document.getElementById('tipoProdutoGarantia');
+    const produtoSelect = document.getElementById('produtoGarantia');
+    
+    if (!tipoProdutoSelect || !produtoSelect) return;
+    
+    // Quando mudar o tipo de produto
+    tipoProdutoSelect.addEventListener('change', async function() {
+        const tipo = this.value;
+        
+        // Limpar select de produto
+        produtoSelect.innerHTML = '<option value="">Carregando...</option>';
+        produtoSelect.disabled = true;
+        document.getElementById('codigoProdutoGarantia').value = '';
+        document.getElementById('nomeProdutoGarantia').value = '';
+        
+        if (!tipo) {
+            produtoSelect.innerHTML = '<option value="">Selecione primeiro o tipo</option>';
+            return;
+        }
+        
+        // Determinar endpoint da API baseado no tipo
+        let endpoint = '';
+        switch(tipo) {
+            case 'Toner':
+                endpoint = '/api/toners';
+                break;
+            case 'Máquina':
+                endpoint = '/api/maquinas';
+                break;
+            case 'Peça':
+                endpoint = '/api/pecas';
+                break;
+            default:
+                produtoSelect.innerHTML = '<option value="">Tipo inválido</option>';
+                return;
+        }
+        
+        try {
+            console.log(`📡 Buscando produtos do tipo ${tipo} em ${endpoint}`);
+            const response = await fetch(endpoint);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const produtos = await response.json();
+            console.log(`✅ ${produtos.length} produtos carregados`);
+            
+            // Preencher select com produtos
+            produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
+            
+            produtos.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.id;
+                
+                // Definir código e nome baseado no tipo
+                let codigo, nome;
+                if (tipo === 'Toner') {
+                    codigo = produto.codigo || '';
+                    nome = produto.nome || '';
+                } else if (tipo === 'Máquina') {
+                    codigo = produto.modelo || produto.cod_referencia || '';
+                    nome = produto.modelo || '';
+                } else if (tipo === 'Peça') {
+                    codigo = produto.codigo_referencia || '';
+                    nome = produto.descricao || '';
+                }
+                
+                option.dataset.codigo = codigo;
+                option.dataset.nome = nome;
+                option.textContent = codigo ? `${codigo} - ${nome}` : nome;
+                
+                produtoSelect.appendChild(option);
+            });
+            
+            produtoSelect.disabled = false;
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar produtos:', error);
+            produtoSelect.innerHTML = '<option value="">Erro ao carregar produtos</option>';
+            alert(`Erro ao carregar produtos: ${error.message}`);
+        }
+    });
+    
+    // Quando selecionar o produto
+    produtoSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption.value) {
+            // Preencher campos ocultos automaticamente
+            const codigo = selectedOption.dataset.codigo || '';
+            const nome = selectedOption.dataset.nome || '';
+            
+            document.getElementById('codigoProdutoGarantia').value = codigo;
+            document.getElementById('nomeProdutoGarantia').value = nome;
+            
+            console.log(`✅ Produto selecionado: ${codigo} - ${nome}`);
+        } else {
+            // Limpar campos se desselecionar
+            document.getElementById('codigoProdutoGarantia').value = '';
+            document.getElementById('nomeProdutoGarantia').value = '';
+        }
+    });
 }
 
 // Toggle do formulário inline
