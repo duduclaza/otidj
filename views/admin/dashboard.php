@@ -9,6 +9,54 @@
     <h1 class="text-2xl font-semibold text-gray-900">📊 Dashboard - Análise de Dados</h1>
   </div>
 
+  <!-- Sistema de Abas -->
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="flex border-b border-gray-200">
+      <button onclick="switchTab('retornados')" id="tab-retornados" class="tab-button active flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          📦 Retornados
+        </span>
+      </button>
+      <button onclick="switchTab('amostragens')" id="tab-amostragens" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+          </svg>
+          🧪 Amostragens 2.0
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <style>
+    .tab-button {
+      color: #6B7280;
+      background: white;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-button:hover {
+      background: #F9FAFB;
+      color: #3B82F6;
+    }
+    .tab-button.active {
+      color: #3B82F6;
+      background: #EFF6FF;
+      border-bottom-color: #3B82F6;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+
+  <!-- CONTEÚDO ABA RETORNADOS -->
+  <div id="content-retornados" class="tab-content active">
+
   <!-- Filtros -->
   <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
     <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -156,6 +204,240 @@
       <canvas id="tonersRecuperadosChart" width="800" height="300"></canvas>
     </div>
   </div>
+
+  </div>
+  <!-- FIM CONTEÚDO ABA RETORNADOS -->
+
+  <!-- CONTEÚDO ABA AMOSTRAGENS 2.0 -->
+  <div id="content-amostragens" class="tab-content space-y-6">
+    
+    <!-- Filtros AMOSTRAGENS -->
+    <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-teal-500">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+        </svg>
+        🔍 Filtros de Análise - Amostragens
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">🏢 Filial</label>
+          <select id="filtroFilialAmostragens" onchange="loadDashboardAmostragens()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            <option value="">Todas as Filiais</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">📅 Data Inicial</label>
+          <input type="date" id="dataInicialAmostragens" onchange="loadDashboardAmostragens()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">📅 Data Final</label>
+          <input type="date" id="dataFinalAmostragens" onchange="loadDashboardAmostragens()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+        </div>
+      </div>
+      <div class="mt-4 flex space-x-3">
+        <button onclick="loadDashboardAmostragens()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <span>Aplicar Filtros</span>
+        </button>
+        <button onclick="clearFiltersAmostragens()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span>Limpar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cards de Totais AMOSTRAGENS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      
+      <!-- Card 1: Total de Amostragens -->
+      <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Total de Amostragens</h3>
+        <div class="flex items-end justify-between">
+          <p id="totalAmostragens" class="text-4xl font-bold">0</p>
+          <span class="text-white text-opacity-80 text-xs">testes</span>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+          <p class="text-xs text-white text-opacity-80">🧪 Total realizado</p>
+        </div>
+      </div>
+
+      <!-- Card 2: Taxa de Aprovação -->
+      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Taxa de Aprovação</h3>
+        <div class="flex items-end justify-between">
+          <p id="taxaAprovacao" class="text-4xl font-bold">0%</p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+          <p class="text-xs text-white text-opacity-80">✅ Produtos aprovados</p>
+        </div>
+      </div>
+
+      <!-- Card 3: Produtos Testados -->
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Produtos Testados</h3>
+        <div class="flex items-end justify-between">
+          <p id="produtosTestados" class="text-4xl font-bold">0</p>
+          <span class="text-white text-opacity-80 text-xs">itens</span>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+          <p class="text-xs text-white text-opacity-80">📦 Quantidade testada</p>
+        </div>
+      </div>
+
+      <!-- Card 4: Pendentes -->
+      <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Pendentes</h3>
+        <div class="flex items-end justify-between">
+          <p id="totalPendentes" class="text-4xl font-bold">0</p>
+          <span class="text-white text-opacity-80 text-xs">testes</span>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+          <p class="text-xs text-white text-opacity-80">⏳ Aguardando análise</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Gráficos das Amostragens -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Gráfico de Pizza - Status das Amostragens -->
+      <div class="bg-white rounded-lg shadow-lg border-l-4 border-teal-500">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+            </svg>
+            🥧 Status das Amostragens
+          </h3>
+        </div>
+        <div class="p-6">
+          <canvas id="amostragemStatusChart" width="400" height="250"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico de Barras - Amostragens por Tipo de Produto -->
+      <div class="bg-white rounded-lg shadow-lg border-l-4 border-blue-500">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            📊 Por Tipo de Produto
+          </h3>
+        </div>
+        <div class="p-6">
+          <canvas id="amostragemTipoChart" width="400" height="250"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Segunda linha de gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Gráfico de Barras Horizontais - Top 5 Fornecedores -->
+      <div class="bg-white rounded-lg shadow-lg border-l-4 border-purple-500">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            🏆 Top 5 Fornecedores
+          </h3>
+        </div>
+        <div class="p-6">
+          <canvas id="amostragemFornecedoresChart" width="400" height="250"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico de Linha - Evolução Temporal -->
+      <div class="bg-white rounded-lg shadow-lg border-l-4 border-indigo-500">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+            </svg>
+            📈 Evolução Temporal
+          </h3>
+        </div>
+        <div class="p-6">
+          <canvas id="amostragemEvolucaoChart" width="400" height="250"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Terceira linha de gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Gráfico de Barras - Amostragens por Filial -->
+      <div class="bg-white rounded-lg shadow-lg border-l-4 border-cyan-500">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path>
+            </svg>
+            🏢 Por Filial
+          </h3>
+        </div>
+        <div class="p-6">
+          <canvas id="amostragemFilialChart" width="400" height="250"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico de Barras Empilhadas - Quantidades por Status -->
+      <div class="bg-white rounded-lg shadow-lg border-l-4 border-pink-500">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            📊 Quantidades por Período
+          </h3>
+        </div>
+        <div class="p-6">
+          <canvas id="amostragemQuantidadesChart" width="400" height="250"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+  <!-- FIM CONTEÚDO ABA AMOSTRAGENS -->
 
 </section>
 
@@ -1304,6 +1586,275 @@ function atualizarGraficoRecuperadosExpandido() {
       label.classList.add('text-gray-300');
     }, 500);
   }
+}
+
+// ===== SISTEMA DE ABAS =====
+function switchTab(tabName) {
+  // Remover active de todos os botões e conteúdos
+  document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  
+  // Adicionar active no botão e conteúdo selecionado
+  document.getElementById(`tab-${tabName}`).classList.add('active');
+  document.getElementById(`content-${tabName}`).classList.add('active');
+  
+  // Carregar dados da aba se for amostragens
+  if (tabName === 'amostragens' && !window.amostragens_loaded) {
+    console.log('📊 Carregando dados de Amostragens 2.0...');
+    loadDashboardAmostragens();
+    window.amostragens_loaded = true;
+  }
+}
+
+// ===== DASHBOARD AMOSTRAGENS 2.0 =====
+let amostragemCharts = {};
+
+async function loadDashboardAmostragens() {
+  try {
+    const filial = document.getElementById('filtroFilialAmostragens')?.value || '';
+    const dataInicial = document.getElementById('dataInicialAmostragens')?.value || '';
+    const dataFinal = document.getElementById('dataFinalAmostragens')?.value || '';
+    
+    const params = new URLSearchParams();
+    if (filial) params.append('filial', filial);
+    if (dataInicial) params.append('data_inicial', dataInicial);
+    if (dataFinal) params.append('data_final', dataFinal);
+    
+    console.log('📡 Buscando dados:', `/admin/dashboard/amostragens-data?${params.toString()}`);
+    
+    const response = await fetch(`/admin/dashboard/amostragens-data?${params.toString()}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✅ Dados recebidos:', result.data);
+      updateDashboardAmostragens(result.data);
+      populateFilialOptionsAmostragens(result.data.filiais);
+    } else {
+      console.error('❌ Erro ao carregar dados:', result.message);
+    }
+  } catch (error) {
+    console.error('❌ Erro na requisição:', error);
+  }
+}
+
+function updateDashboardAmostragens(data) {
+  // Atualizar Cards
+  document.getElementById('totalAmostragens').textContent = data.cards.total_amostragens.toLocaleString('pt-BR');
+  document.getElementById('taxaAprovacao').textContent = data.cards.taxa_aprovacao.toFixed(1) + '%';
+  document.getElementById('produtosTestados').textContent = data.cards.produtos_testados.toLocaleString('pt-BR');
+  document.getElementById('totalPendentes').textContent = data.cards.pendentes;
+  
+  // Criar/Atualizar Gráficos
+  createAmostragemCharts(data);
+}
+
+function createAmostragemCharts(data) {
+  // Gráfico de Status
+  const ctxStatus = document.getElementById('amostragemStatusChart').getContext('2d');
+  if (amostragemCharts.status) amostragemCharts.status.destroy();
+  amostragemCharts.status = new Chart(ctxStatus, {
+    type: 'doughnut',
+    data: {
+      labels: data.status.labels,
+      datasets: [{
+        data: data.status.data,
+        backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#F97316'],
+        borderColor: ['#059669', '#D97706', '#DC2626', '#EA580C'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((context.parsed / total) * 100).toFixed(1);
+              return `${context.label}: ${context.parsed} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Gráfico de Tipos
+  const ctxTipo = document.getElementById('amostragemTipoChart').getContext('2d');
+  if (amostragemCharts.tipo) amostragemCharts.tipo.destroy();
+  amostragemCharts.tipo = new Chart(ctxTipo, {
+    type: 'bar',
+    data: {
+      labels: data.tipos_produto.labels,
+      datasets: [{
+        label: 'Quantidade',
+        data: data.tipos_produto.data,
+        backgroundColor: '#3B82F6',
+        borderColor: '#2563EB',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#6B7280' } },
+        x: { ticks: { color: '#6B7280' } }
+      }
+    }
+  });
+  
+  // Gráfico de Fornecedores
+  const ctxForn = document.getElementById('amostragemFornecedoresChart').getContext('2d');
+  if (amostragemCharts.fornecedores) amostragemCharts.fornecedores.destroy();
+  amostragemCharts.fornecedores = new Chart(ctxForn, {
+    type: 'bar',
+    data: {
+      labels: data.fornecedores.labels,
+      datasets: [{
+        label: 'Amostragens',
+        data: data.fornecedores.data,
+        backgroundColor: '#8B5CF6',
+        borderColor: '#7C3AED',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { color: '#6B7280' } },
+        y: { ticks: { color: '#6B7280' } }
+      }
+    }
+  });
+  
+  // Gráfico de Evolução
+  const ctxEvo = document.getElementById('amostragemEvolucaoChart').getContext('2d');
+  if (amostragemCharts.evolucao) amostragemCharts.evolucao.destroy();
+  amostragemCharts.evolucao = new Chart(ctxEvo, {
+    type: 'line',
+    data: {
+      labels: data.evolucao.labels,
+      datasets: [{
+        label: 'Amostragens',
+        data: data.evolucao.data,
+        backgroundColor: 'rgba(20, 184, 166, 0.2)',
+        borderColor: '#14B8A6',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#6B7280' } },
+        x: { ticks: { color: '#6B7280' } }
+      }
+    }
+  });
+  
+  // Gráfico de Filiais
+  const ctxFilial = document.getElementById('amostragemFilialChart').getContext('2d');
+  if (amostragemCharts.filial) amostragemCharts.filial.destroy();
+  amostragemCharts.filial = new Chart(ctxFilial, {
+    type: 'bar',
+    data: {
+      labels: data.filiais.labels,
+      datasets: [{
+        label: 'Amostragens',
+        data: data.filiais.data,
+        backgroundColor: '#06B6D4',
+        borderColor: '#0891B2',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#6B7280' } },
+        x: { ticks: { color: '#6B7280' } }
+      }
+    }
+  });
+  
+  // Gráfico de Quantidades
+  const ctxQtd = document.getElementById('amostragemQuantidadesChart').getContext('2d');
+  if (amostragemCharts.quantidades) amostragemCharts.quantidades.destroy();
+  amostragemCharts.quantidades = new Chart(ctxQtd, {
+    type: 'bar',
+    data: {
+      labels: data.quantidades.labels,
+      datasets: [
+        {
+          label: 'Aprovadas',
+          data: data.quantidades.aprovadas,
+          backgroundColor: '#10B981',
+          borderColor: '#059669',
+          borderWidth: 2
+        },
+        {
+          label: 'Reprovadas',
+          data: data.quantidades.reprovadas,
+          backgroundColor: '#EF4444',
+          borderColor: '#DC2626',
+          borderWidth: 2
+        },
+        {
+          label: 'Testadas',
+          data: data.quantidades.testadas,
+          backgroundColor: '#3B82F6',
+          borderColor: '#2563EB',
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        x: { stacked: true, ticks: { color: '#6B7280' } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: '#6B7280' } }
+      }
+    }
+  });
+}
+
+function populateFilialOptionsAmostragens(filiais) {
+  const select = document.getElementById('filtroFilialAmostragens');
+  if (!select) return;
+  
+  while (select.children.length > 1) {
+    select.removeChild(select.lastChild);
+  }
+  
+  filiais.forEach(filial => {
+    const option = document.createElement('option');
+    option.value = filial;
+    option.textContent = filial;
+    select.appendChild(option);
+  });
+}
+
+function clearFiltersAmostragens() {
+  document.getElementById('filtroFilialAmostragens').value = '';
+  document.getElementById('dataInicialAmostragens').value = '';
+  document.getElementById('dataFinalAmostragens').value = '';
+  loadDashboardAmostragens();
 }
 
 // Inicializar dashboard quando a página carregar
