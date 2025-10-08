@@ -1205,33 +1205,44 @@ class TonersController
         header('Content-Type: application/json');
         
         try {
-            error_log('🔍 API: Buscando toners da tabela toners...');
+            // Testar conexão primeiro
+            $testStmt = $this->db->query("SHOW TABLES LIKE 'toners'");
+            $tableExists = $testStmt->fetch();
             
+            if (!$tableExists) {
+                throw new \Exception('Tabela toners não encontrada no banco de dados');
+            }
+            
+            // Testar colunas
+            $columnsStmt = $this->db->query("SHOW COLUMNS FROM toners");
+            $columns = $columnsStmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            // Query simplificada
             $stmt = $this->db->query("
                 SELECT 
                     id,
                     modelo,
-                    fabricante,
-                    CONCAT(modelo, ' - ', fabricante) as nome
+                    fabricante
                 FROM toners
                 ORDER BY modelo
+                LIMIT 100
             ");
             
             $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            error_log('✅ API: ' . count($toners) . ' toners encontrados');
-            if (count($toners) > 0) {
-                error_log('📦 Exemplo: ' . json_encode($toners[0]));
+            // Adicionar campo 'nome' depois
+            foreach ($toners as &$toner) {
+                $toner['nome'] = ($toner['modelo'] ?? '') . ' - ' . ($toner['fabricante'] ?? '');
             }
             
             echo json_encode($toners);
             
-        } catch (\PDOException $e) {
-            error_log('❌ API Toners erro: ' . $e->getMessage());
+        } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode([
                 'error' => 'Erro ao buscar toners',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
