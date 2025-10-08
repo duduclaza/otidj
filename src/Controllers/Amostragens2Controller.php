@@ -74,12 +74,11 @@ class Amostragens2Controller
             $stmt = $this->db->prepare("
                 SELECT a.*, 
                        u.name as usuario_nome,
-                       f.nome as filial_nome,
+                       u.filial as filial_nome,
                        forn.nome as fornecedor_nome,
                        (SELECT COUNT(*) FROM amostragens_2_evidencias WHERE amostragem_id = a.id) as total_evidencias
                 FROM amostragens_2 a
                 LEFT JOIN users u ON a.user_id = u.id
-                LEFT JOIN filiais f ON a.filial_id = f.id
                 LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
                 $whereClause
                 ORDER BY a.created_at DESC
