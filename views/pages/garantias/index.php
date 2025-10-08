@@ -669,14 +669,14 @@ function configurarSelecaoProdutos() {
                 // Definir código e nome baseado no tipo
                 let codigo, nome;
                 if (tipo === 'Toner') {
-                    codigo = produto.codigo || '';
-                    nome = produto.nome || '';
+                    codigo = produto.modelo || '';
+                    nome = produto.nome || produto.modelo || '';
                 } else if (tipo === 'Máquina') {
-                    codigo = produto.modelo || produto.cod_referencia || '';
-                    nome = produto.modelo || '';
+                    codigo = produto.cod_referencia || produto.modelo || '';
+                    nome = produto.nome || produto.modelo || '';
                 } else if (tipo === 'Peça') {
                     codigo = produto.codigo_referencia || '';
-                    nome = produto.descricao || '';
+                    nome = produto.nome || produto.descricao || '';
                 }
                 
                 option.dataset.codigo = codigo;
@@ -1174,14 +1174,14 @@ function configurarEventListenersItem(itemDiv) {
                 // Definir código e nome baseado no tipo
                 let codigo, nome;
                 if (tipo === 'Toner') {
-                    codigo = produto.codigo || '';
-                    nome = produto.nome || '';
+                    codigo = produto.modelo || '';
+                    nome = produto.nome || produto.modelo || '';
                 } else if (tipo === 'Máquina') {
-                    codigo = produto.modelo || produto.cod_referencia || '';
-                    nome = produto.modelo || '';
+                    codigo = produto.cod_referencia || produto.modelo || '';
+                    nome = produto.nome || produto.modelo || '';
                 } else if (tipo === 'Peça') {
                     codigo = produto.codigo_referencia || '';
-                    nome = produto.descricao || '';
+                    nome = produto.nome || produto.descricao || '';
                 }
                 
                 option.dataset.codigo = codigo;

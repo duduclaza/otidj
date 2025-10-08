@@ -1195,4 +1195,36 @@ class TonersController
         $layout = __DIR__ . '/../../views/layouts/main.php';
         include $layout;
     }
+    
+    /**
+     * API: Lista todos os toners para seleção em dropdowns
+     * Usado em: Amostragens 2.0, Garantias
+     */
+    public function apiListToners(): void
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->query("
+                SELECT 
+                    id,
+                    modelo as codigo,
+                    modelo,
+                    CONCAT(modelo, ' - ', fabricante) as nome
+                FROM toners
+                ORDER BY modelo
+            ");
+            
+            $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            echo json_encode($toners);
+            
+        } catch (\PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'error' => 'Erro ao buscar toners',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

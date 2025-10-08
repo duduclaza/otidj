@@ -271,6 +271,11 @@ $router->get('/api/setores', [App\Controllers\RegistrosController::class, 'getDe
 $router->get('/api/filiais', [App\Controllers\RegistrosController::class, 'getFiliais']);
 $router->get('/api/parametros', [App\Controllers\RegistrosController::class, 'getParametros']);
 
+// API routes para seleção de produtos (Amostragens 2.0 e Garantias)
+$router->get('/api/toners', [App\Controllers\TonersController::class, 'apiListToners']);
+$router->get('/api/maquinas', [App\Controllers\MaquinasController::class, 'apiListMaquinas']);
+$router->get('/api/pecas', [App\Controllers\PecasController::class, 'apiListPecas']);
+
 // Profile routes
 $router->get('/profile', [App\Controllers\ProfileController::class, 'index']);
 
