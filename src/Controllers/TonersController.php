@@ -1205,34 +1205,21 @@ class TonersController
         header('Content-Type: application/json');
         
         try {
-            // Testar conexão primeiro
-            $testStmt = $this->db->query("SHOW TABLES LIKE 'toners'");
-            $tableExists = $testStmt->fetch();
-            
-            if (!$tableExists) {
-                throw new \Exception('Tabela toners não encontrada no banco de dados');
-            }
-            
-            // Testar colunas
-            $columnsStmt = $this->db->query("SHOW COLUMNS FROM toners");
-            $columns = $columnsStmt->fetchAll(PDO::FETCH_COLUMN);
-            
-            // Query simplificada
-            $stmt = $this->db->query("
+            // Mesma query usada em Amostragens 2.0
+            $stmt = $this->db->prepare('
                 SELECT 
-                    id,
-                    modelo,
-                    fabricante
-                FROM toners
+                    id, 
+                    modelo as codigo, 
+                    modelo as nome 
+                FROM toners 
                 ORDER BY modelo
-                LIMIT 100
-            ");
-            
+            ');
+            $stmt->execute();
             $toners = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Adicionar campo 'nome' depois
+            // Adicionar campo 'modelo' também para compatibilidade
             foreach ($toners as &$toner) {
-                $toner['nome'] = ($toner['modelo'] ?? '') . ' - ' . ($toner['fabricante'] ?? '');
+                $toner['modelo'] = $toner['codigo'];
             }
             
             echo json_encode($toners);
@@ -1241,8 +1228,7 @@ class TonersController
             http_response_code(500);
             echo json_encode([
                 'error' => 'Erro ao buscar toners',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'message' => $e->getMessage()
             ]);
         }
     }
