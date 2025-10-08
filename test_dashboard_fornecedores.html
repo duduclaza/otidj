@@ -248,23 +248,46 @@
             <h3>📦 Itens Comprados:</h3>
             <p><strong>Origem:</strong> Amostragens 2.0</p>
             <code style="display: block; padding: 10px; margin: 10px 0;">
-                SELECT SUM(quantidade_recebida) FROM amostragens_2_itens<br>
-                WHERE tipo_produto IN ('Toner', 'Máquina', 'Peça')
+                SELECT <br>
+                &nbsp;&nbsp;f.nome as fornecedor,<br>
+                &nbsp;&nbsp;a.tipo_produto,<br>
+                &nbsp;&nbsp;SUM(a.quantidade_recebida) as total_comprados<br>
+                FROM amostragens_2 a<br>
+                INNER JOIN fornecedores f ON a.fornecedor_id = f.id<br>
+                INNER JOIN filiais fil ON a.filial_id = fil.id<br>
+                WHERE DATE(a.created_at) BETWEEN '2025-01-01' AND '2025-07-31'<br>
+                GROUP BY f.id, a.tipo_produto
             </code>
 
             <h3>⚠️ Garantias Geradas:</h3>
             <p><strong>Origem:</strong> Módulo de Garantias</p>
             <code style="display: block; padding: 10px; margin: 10px 0;">
-                SELECT COUNT(DISTINCT g.id) FROM garantias g<br>
-                JOIN garantias_itens gi ON g.id = gi.garantia_id<br>
-                WHERE gi.tipo_produto IN ('Toner', 'Máquina', 'Peça')
+                SELECT <br>
+                &nbsp;&nbsp;f.nome as fornecedor,<br>
+                &nbsp;&nbsp;gi.tipo_produto,<br>
+                &nbsp;&nbsp;COUNT(gi.id) as total_garantias<br>
+                FROM garantias g<br>
+                INNER JOIN garantias_itens gi ON g.id = gi.garantia_id<br>
+                INNER JOIN fornecedores f ON g.fornecedor_id = f.id<br>
+                WHERE DATE(g.created_at) BETWEEN '2025-01-01' AND '2025-07-31'<br>
+                AND gi.tipo_produto IS NOT NULL<br>
+                GROUP BY f.id, gi.tipo_produto
             </code>
 
             <h3>🔗 Relacionamento:</h3>
             <ul>
-                <li>Ambos vinculados ao <code>fornecedor_id</code></li>
-                <li>Filtrado por período (data de recebimento vs data de criação)</li>
+                <li>Ambos vinculados ao <code>fornecedor_id</code> (tabela fornecedores)</li>
+                <li>Filtrado por período: <code>created_at</code> de ambas as tabelas</li>
                 <li>Separado por tipo de produto (Toner, Máquina, Peça)</li>
+                <li>Amostragens: quantidade_recebida agregada por fornecedor e tipo</li>
+                <li>Garantias: contagem de itens agregada por fornecedor e tipo</li>
+            </ul>
+            
+            <h3>⚠️ Importante:</h3>
+            <ul>
+                <li><strong>Filtro de Filial:</strong> Aplica-se apenas às amostragens (garantias não têm filial)</li>
+                <li><strong>Filtro de Origem:</strong> Aplica-se apenas às garantias (Amostragem, Homologação, Em Campo)</li>
+                <li><strong>tipo_produto:</strong> Deve estar preenchido nas garantias_itens para aparecer no dashboard</li>
             </ul>
         </div>
 
@@ -312,6 +335,19 @@
                 <li>Clique em <strong>"Aplicar Filtros"</strong></li>
                 <li>Visualize os gráficos e tabela com os dados</li>
             </ol>
+            
+            <h3 style="color: #ef4444; margin-top: 20px;">⚠️ Pré-requisitos para ver dados:</h3>
+            <ul style="color: #dc2626;">
+                <li><strong>Amostragens 2.0:</strong> Deve haver registros com quantidade_recebida > 0</li>
+                <li><strong>Garantias:</strong> O campo <code>tipo_produto</code> deve estar preenchido em garantias_itens</li>
+                <li><strong>Fornecedores:</strong> Devem estar cadastrados e vinculados corretamente</li>
+                <li><strong>Período:</strong> Deve conter dados dentro das datas selecionadas</li>
+            </ul>
+            
+            <p style="background: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin-top: 15px;">
+                <strong>💡 Dica:</strong> Se os gráficos aparecerem vazios, verifique se existem dados de amostragens e garantias no período selecionado. 
+                Use um período amplo (ex: todo o ano de 2025) para os primeiros testes.
+            </p>
         </div>
 
         <div class="section">

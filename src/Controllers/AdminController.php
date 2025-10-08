@@ -1938,29 +1938,29 @@ class AdminController
                 SELECT 
                     f.id as fornecedor_id,
                     f.nome as fornecedor_nome,
-                    ai.tipo_produto,
-                    SUM(ai.quantidade_recebida) as total_comprados
+                    a.tipo_produto,
+                    SUM(a.quantidade_recebida) as total_comprados
                 FROM amostragens_2 a
-                INNER JOIN amostragens_2_itens ai ON a.id = ai.amostragem_id
                 INNER JOIN fornecedores f ON a.fornecedor_id = f.id
-                WHERE a.data_recebimento BETWEEN ? AND ?
+                INNER JOIN filiais fil ON a.filial_id = fil.id
+                WHERE DATE(a.created_at) BETWEEN ? AND ?
             ";
             
             $params = [$dataInicial, $dataFinal];
             
             if (!empty($filial)) {
-                $sqlComprados .= " AND a.filial = ?";
+                $sqlComprados .= " AND fil.nome = ?";
                 $params[] = $filial;
             }
             
             if (!empty($origem)) {
-                $sqlComprados .= " AND a.origem = ?";
-                $params[] = $origem;
+                // Amostragens 2.0 não tem campo origem, mas podemos adicionar um filtro se necessário
+                // Por enquanto, ignoramos este filtro para amostragens
             }
             
             $sqlComprados .= "
-                GROUP BY f.id, f.nome, ai.tipo_produto
-                ORDER BY f.nome, ai.tipo_produto
+                GROUP BY f.id, f.nome, a.tipo_produto
+                ORDER BY f.nome, a.tipo_produto
             ";
             
             $stmt = $this->db->prepare($sqlComprados);
@@ -1975,19 +1975,18 @@ class AdminController
                     f.id as fornecedor_id,
                     f.nome as fornecedor_nome,
                     gi.tipo_produto,
-                    COUNT(DISTINCT g.id) as total_garantias
+                    COUNT(gi.id) as total_garantias
                 FROM garantias g
                 INNER JOIN garantias_itens gi ON g.id = gi.garantia_id
                 INNER JOIN fornecedores f ON g.fornecedor_id = f.id
-                WHERE g.created_at BETWEEN ? AND ?
+                WHERE DATE(g.created_at) BETWEEN ? AND ?
+                AND gi.tipo_produto IS NOT NULL
             ";
             
-            $paramsGarantias = [$dataInicial . ' 00:00:00', $dataFinal . ' 23:59:59'];
+            $paramsGarantias = [$dataInicial, $dataFinal];
             
-            if (!empty($filial)) {
-                $sqlGarantias .= " AND g.filial = ?";
-                $paramsGarantias[] = $filial;
-            }
+            // Garantias não tem coluna filial na tabela
+            // O filtro de filial só se aplica às amostragens
             
             if (!empty($origem)) {
                 $sqlGarantias .= " AND g.origem_garantia = ?";
@@ -1995,7 +1994,6 @@ class AdminController
             }
             
             $sqlGarantias .= "
-                AND gi.tipo_produto IS NOT NULL
                 GROUP BY f.id, f.nome, gi.tipo_produto
                 ORDER BY f.nome, gi.tipo_produto
             ";
