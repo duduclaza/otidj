@@ -813,9 +813,9 @@ function submitGarantia(e) {
     // Verificar se pelo menos um item tem todos os campos preenchidos
     let itemValido = false;
     itens.forEach(item => {
-        const descricao = item.querySelector('input[name="item_descricao"]').value.trim();
-        const quantidade = item.querySelector('input[name="item_quantidade"]').value;
-        const valor = item.querySelector('input[name="item_valor"]').value;
+        const descricao = item.querySelector('input[name="item_descricao[]"]')?.value.trim() || '';
+        const quantidade = item.querySelector('input[name="item_quantidade[]"]')?.value || 0;
+        const valor = item.querySelector('input[name="item_valor[]"]')?.value || 0;
         
         if (descricao && quantidade && valor && quantidade > 0 && valor > 0) {
             itemValido = true;
@@ -830,9 +830,13 @@ function submitGarantia(e) {
     // Coletar dados dos itens válidos
     const itensData = [];
     itens.forEach((item, index) => {
-        const descricao = item.querySelector('input[name="item_descricao"]').value.trim();
-        const quantidade = item.querySelector('input[name="item_quantidade"]').value;
-        const valor = item.querySelector('input[name="item_valor"]').value;
+        const tipoProduto = item.querySelector('input[name="item_tipo_produto[]"]')?.value || '';
+        const produtoId = item.querySelector('input[name="item_produto_id[]"]')?.value || '';
+        const codigoProduto = item.querySelector('input[name="item_codigo_produto[]"]')?.value || '';
+        const nomeProduto = item.querySelector('input[name="item_nome_produto[]"]')?.value || '';
+        const descricao = item.querySelector('input[name="item_descricao[]"]')?.value.trim() || '';
+        const quantidade = item.querySelector('input[name="item_quantidade[]"]')?.value || 0;
+        const valor = item.querySelector('input[name="item_valor[]"]')?.value || 0;
         
         console.log(`Item ${index + 1}:`, {
             descricao: descricao,
@@ -842,6 +846,10 @@ function submitGarantia(e) {
         
         if (descricao && quantidade && valor && quantidade > 0 && valor > 0) {
             const itemData = {
+                tipo_produto: tipoProduto,
+                produto_id: produtoId,
+                codigo_produto: codigoProduto,
+                nome_produto: nomeProduto,
                 descricao: descricao,
                 quantidade: parseInt(quantidade),
                 valor_unitario: parseFloat(valor)
@@ -1172,8 +1180,11 @@ function atualizarTotais() {
     let valorTotal = 0;
     
     itens.forEach(item => {
-        const quantidade = parseFloat(item.querySelector('input[name="item_quantidade"]').value) || 0;
-        const valorUnitario = parseFloat(item.querySelector('input[name="item_valor"]').value) || 0;
+        const quantidadeInput = item.querySelector('input[name="item_quantidade[]"]');
+        const valorUnitarioInput = item.querySelector('input[name="item_valor[]"]');
+        
+        const quantidade = parseFloat(quantidadeInput?.value) || 0;
+        const valorUnitario = parseFloat(valorUnitarioInput?.value) || 0;
         const valorItemTotal = quantidade * valorUnitario;
         
         // Atualizar valor total do item
