@@ -1064,34 +1064,35 @@ function configurarEventListenersItem(itemDiv) {
             produtoSelect.innerHTML = '';
             
             produtos.forEach(produto => {
-                // Definir código e nome baseado no tipo
-                let codigo, nome;
+                // Definir código e descrição baseado no tipo
+                let codigo, descricao;
                 if (tipo === 'Toner') {
                     codigo = produto.modelo || '';
-                    nome = produto.nome || produto.modelo || '';
+                    descricao = 'Toner'; // Sempre "Toner" para toners
                 } else if (tipo === 'Máquina') {
-                    codigo = produto.cod_referencia || produto.modelo || '';
-                    nome = produto.nome || produto.modelo || '';
+                    codigo = produto.cod_referencia || '';
+                    descricao = produto.modelo || produto.nome || '';
                 } else if (tipo === 'Peça') {
                     codigo = produto.codigo_referencia || '';
-                    nome = produto.nome || produto.descricao || '';
+                    descricao = produto.descricao || produto.nome || '';
                 }
                 
-                const textoOpcao = codigo ? `${codigo} - ${nome}` : nome;
+                // No select mostra APENAS o código
+                const textoOpcao = codigo;
                 
                 // Guardar no array para busca
                 todasOpcoes.push({
                     value: produto.id,
                     text: textoOpcao,
                     codigo: codigo,
-                    nome: nome
+                    nome: descricao
                 });
                 
                 // Adicionar no select
                 const option = document.createElement('option');
                 option.value = produto.id;
                 option.dataset.codigo = codigo;
-                option.dataset.nome = nome;
+                option.dataset.nome = descricao;
                 option.textContent = textoOpcao;
                 produtoSelect.appendChild(option);
             });
@@ -1112,14 +1113,14 @@ function configurarEventListenersItem(itemDiv) {
         
         if (selectedOption.value) {
             const codigo = selectedOption.dataset.codigo || '';
-            const nome = selectedOption.dataset.nome || '';
+            const descricao = selectedOption.dataset.nome || '';
             
             produtoIdHidden.value = selectedOption.value;
             codigoHidden.value = codigo;
-            nomeHidden.value = nome;
-            descricaoInput.value = codigo ? `${codigo} - ${nome}` : nome;
+            nomeHidden.value = descricao;
+            descricaoInput.value = descricao; // Apenas a descrição (sem código)
             
-            console.log(`✅ Produto selecionado no item: ${codigo} - ${nome}`);
+            console.log(`✅ Produto selecionado: ${codigo} → Descrição: ${descricao}`);
         } else {
             produtoIdHidden.value = '';
             codigoHidden.value = '';
