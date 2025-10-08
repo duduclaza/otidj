@@ -20,11 +20,32 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.6.0';
-        $lastUpdate = '07/10/2025';
+        $systemVersion = '2.6.1';
+        $lastUpdate = '08/10/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.6.1',
+                'date' => '08/10/2025',
+                'type' => 'Melhoria',
+                'title' => 'Dashboard de Qualidade de Fornecedores',
+                'description' => 'Nova aba no Dashboard comparando Amostragens 2.0 com Garantias para análise de qualidade dos fornecedores',
+                'items' => [
+                    'Nova aba "Fornecedores" no Dashboard com análise completa de qualidade',
+                    'Cálculo automático de % de qualidade: (Comprados - Garantias) / Comprados × 100',
+                    'Gráfico de barras com ranking de fornecedores (do pior para o melhor)',
+                    'Gráficos de pizza comparando comprados vs garantias (Toners, Máquinas, Peças)',
+                    'Tabela detalhada com qualidade por tipo de produto e geral',
+                    'Filtros por filial, origem (multi-seleção), e período',
+                    'Correção: Garantias agora somam quantidades (SUM) ao invés de contar registros (COUNT)',
+                    'Formulário de Garantias corrigido para salvar tipo_produto automaticamente',
+                    'Queries otimizadas comparando amostragens_2 com garantias_itens',
+                    'Sistema de cores para qualidade (Verde: ≥95%, Amarelo: ≥80%, Vermelho: <70%)',
+                    'Documentação completa em test_dashboard_fornecedores.html',
+                    'Scripts SQL de diagnóstico e correção de dados'
+                ]
+            ],
             [
                 'version' => '2.6.0',
                 'date' => '07/10/2025',
