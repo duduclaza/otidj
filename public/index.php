@@ -196,6 +196,7 @@ $router->post('/garantias', [App\Controllers\GarantiasController::class, 'create
 $router->get('/garantias/list', [App\Controllers\GarantiasController::class, 'list']);
 $router->get('/garantias/fornecedores', [App\Controllers\GarantiasController::class, 'listFornecedores']);
 $router->post('/garantias/create', [App\Controllers\GarantiasController::class, 'create']);
+$router->get('/garantias/{id}/detalhes', [App\Controllers\GarantiasController::class, 'detalhes']);
 $router->get('/garantias/{id}', [App\Controllers\GarantiasController::class, 'show']);
 $router->post('/garantias/{id}/update', [App\Controllers\GarantiasController::class, 'update']);
 $router->post('/garantias/{id}/update-status', [App\Controllers\GarantiasController::class, 'updateStatus']);

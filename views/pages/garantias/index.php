@@ -205,6 +205,16 @@ if (!isset($_SESSION['user_id'])) {
                     <label class="block text-sm font-medium text-white mb-2">Observação</label>
                     <textarea name="observacao" rows="3" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Observações sobre a garantia..."></textarea>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">🔔 Notificar Alguém</label>
+                    <select name="usuario_notificado_id" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Nenhum (não enviar notificações)</option>
+                        <?php foreach ($usuarios as $usuario): ?>
+                            <option value="<?= $usuario['id'] ?>"><?= e($usuario['name']) ?> (<?= e($usuario['email']) ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">Pessoa receberá emails de todas as mudanças de status</p>
+                </div>
             </div>
 
             <!-- Informações de Logística (Opcional) -->
@@ -1359,15 +1369,15 @@ function renderizarTabela(dados) {
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
                 <div class="flex items-center space-x-2">
-                    <button onclick="visualizarGarantia(${garantia.id})" 
-                            class="text-blue-600 hover:text-blue-900 text-xs bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
-                            title="Ver detalhes completos">
+                    <a href="/garantias/${garantia.id}/detalhes" 
+                       class="text-blue-600 hover:text-blue-900 text-xs bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors inline-block"
+                       title="Ver detalhes completos">
                         <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
                             <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
                         </svg>
                         Ver
-                    </button>
+                    </a>
                     <button onclick="editarGarantia(${garantia.id})" 
                             class="text-indigo-600 hover:text-indigo-900 text-xs bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 transition-colors"
                             title="Editar garantia">

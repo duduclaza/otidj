@@ -18,6 +18,7 @@ class GarantiasController
     {
         try {
             $fornecedores = $this->getFornecedores();
+            $usuarios = $this->getUsuarios();
             
             $title = 'Garantias - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/garantias/index.php';
@@ -42,6 +43,7 @@ class GarantiasController
             $numero_lote = trim($_POST['numero_lote'] ?? '');
             $numero_ticket_os = trim($_POST['numero_ticket_os'] ?? '');
             $numero_ticket_interno = trim($_POST['numero_ticket_interno'] ?? '');
+            $usuario_notificado_id = !empty($_POST['usuario_notificado_id']) ? (int)$_POST['usuario_notificado_id'] : null;
             $status = $_POST['status'] ?? 'Em andamento';
             $observacao = trim($_POST['observacao'] ?? '');
             $user_id = $_SESSION['user_id'];
@@ -80,17 +82,25 @@ class GarantiasController
                 INSERT INTO garantias (
                     fornecedor_id, origem_garantia, numero_nf_compras, numero_nf_remessa_simples, 
                     numero_nf_remessa_devolucao, numero_serie, numero_lote, 
-                    numero_ticket_os, numero_ticket_interno, status, observacao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    numero_ticket_os, numero_ticket_interno, usuario_notificado_id, status, observacao
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
             $stmt->execute([
                 $fornecedor_id, $origem_garantia, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
-                $numero_ticket_os, $numero_ticket_interno, $status, $observacao
+                $numero_ticket_os, $numero_ticket_interno, $usuario_notificado_id, $status, $observacao
             ]);
             
             $garantia_id = $this->db->lastInsertId();
+            
+            // Registrar histórico inicial
+            $this->registrarHistoricoStatus($garantia_id, null, $status, 'Garantia criada');
+            
+            // Enviar notificação se houver usuário configurado
+            if ($usuario_notificado_id) {
+                $this->enviarNotificacaoStatus($garantia_id, $status);
+            }
 
             // Inserir itens
             foreach ($itens as $index => $item) {
@@ -164,7 +174,109 @@ class GarantiasController
         }
     }
 
-    // Obter detalhes de uma garantia
+    // Página de detalhes da garantia
+    public function detalhes($id)
+    {
+        try {
+            // Buscar garantia com dados relacionados
+            $stmt = $this->db->prepare("
+                SELECT g.*, 
+                       f.nome as fornecedor_nome,
+                       u.name as usuario_notificado_nome,
+                       u.email as usuario_notificado_email
+                FROM garantias g
+                LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
+                LEFT JOIN users u ON g.usuario_notificado_id = u.id
+                WHERE g.id = ?
+            ");
+            $stmt->execute([$id]);
+            $garantia = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$garantia) {
+                header('Location: /garantias');
+                exit;
+            }
+            
+            // Buscar itens
+            $stmt = $this->db->prepare("SELECT * FROM garantias_itens WHERE garantia_id = ? ORDER BY id");
+            $stmt->execute([$id]);
+            $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Buscar histórico REAL de status
+            $stmt = $this->db->prepare("
+                SELECT h.*, u.name as usuario_nome
+                FROM garantias_historico_status h
+                LEFT JOIN users u ON h.usuario_id = u.id
+                WHERE h.garantia_id = ?
+                ORDER BY h.data_mudanca DESC
+            ");
+            $stmt->execute([$id]);
+            $historicoStatus = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Calcular tempo REAL por status
+            $temposPorStatus = [];
+            $tempoTotalSegundos = 0;
+            
+            for ($i = count($historicoStatus) - 1; $i >= 0; $i--) {
+                $atual = $historicoStatus[$i];
+                $status = $atual['status_novo'];
+                
+                // Data de início deste status
+                $dataInicio = strtotime($atual['data_mudanca']);
+                
+                // Data de fim: próximo status ou agora
+                if ($i > 0) {
+                    $dataFim = strtotime($historicoStatus[$i - 1]['data_mudanca']);
+                } else {
+                    $dataFim = time(); // Status atual
+                }
+                
+                $segundos = $dataFim - $dataInicio;
+                $tempoTotalSegundos += $segundos;
+                
+                // Somar ao status (pode ter ficado mais de uma vez no mesmo status)
+                if (!isset($temposPorStatus[$status])) {
+                    $temposPorStatus[$status] = ['segundos' => 0];
+                }
+                $temposPorStatus[$status]['segundos'] += $segundos;
+            }
+            
+            // Formatar tempos
+            foreach ($temposPorStatus as $status => &$dados) {
+                $dados['tempo_formatado'] = $this->formatarTempo($dados['segundos']);
+            }
+            $tempoTotal = $this->formatarTempo($tempoTotalSegundos);
+            
+            $title = 'Garantia #' . $garantia['id'] . ' - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/garantias/detalhes.php';
+            include __DIR__ . '/../../views/layouts/main.php';
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao exibir detalhes da garantia: " . $e->getMessage());
+            header('Location: /garantias');
+            exit;
+        }
+    }
+    
+    private function formatarTempo($segundos)
+    {
+        if ($segundos < 60) {
+            return $segundos . ' seg';
+        } elseif ($segundos < 3600) {
+            $minutos = floor($segundos / 60);
+            return $minutos . ' min';
+        } elseif ($segundos < 86400) {
+            $horas = floor($segundos / 3600);
+            $minutos = floor(($segundos % 3600) / 60);
+            return $horas . 'h ' . $minutos . 'min';
+        } else {
+            $dias = floor($segundos / 86400);
+            $horas = floor(($segundos % 86400) / 3600);
+            return $dias . 'd ' . $horas . 'h';
+        }
+    }
+    
+    // Obter detalhes de uma garantia (JSON)
     public function show($id)
     {
         header('Content-Type: application/json');
@@ -234,8 +346,15 @@ class GarantiasController
             $numero_lote = trim($_POST['numero_lote'] ?? '');
             $numero_ticket_os = trim($_POST['numero_ticket_os'] ?? '');
             $numero_ticket_interno = trim($_POST['numero_ticket_interno'] ?? '');
+            $usuario_notificado_id = !empty($_POST['usuario_notificado_id']) ? (int)$_POST['usuario_notificado_id'] : null;
             $status = $_POST['status'] ?? 'Em andamento';
             $observacao = trim($_POST['observacao'] ?? '');
+            
+            // Buscar status anterior para comparar
+            $stmtAnterior = $this->db->prepare("SELECT status FROM garantias WHERE id = ?");
+            $stmtAnterior->execute([$id]);
+            $garantiaAnterior = $stmtAnterior->fetch(PDO::FETCH_ASSOC);
+            $statusAnterior = $garantiaAnterior['status'] ?? null;
 
             // Validações
             if ($fornecedor_id <= 0) {
@@ -262,7 +381,8 @@ class GarantiasController
                 UPDATE garantias SET
                     fornecedor_id = ?, numero_nf_compras = ?, numero_nf_remessa_simples = ?,
                     numero_nf_remessa_devolucao = ?, numero_serie = ?, numero_lote = ?,
-                    numero_ticket_os = ?, numero_ticket_interno = ?, origem_garantia = ?, status = ?, observacao = ?,
+                    numero_ticket_os = ?, numero_ticket_interno = ?, usuario_notificado_id = ?,
+                    origem_garantia = ?, status = ?, observacao = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
@@ -270,8 +390,19 @@ class GarantiasController
             $stmt->execute([
                 $fornecedor_id, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
-                $numero_ticket_os, $numero_ticket_interno, $origem_garantia, $status, $observacao, $id
+                $numero_ticket_os, $numero_ticket_interno, $usuario_notificado_id,
+                $origem_garantia, $status, $observacao, $id
             ]);
+            
+            // Verificar se houve mudança de status
+            if ($statusAnterior && $statusAnterior !== $status) {
+                $this->registrarHistoricoStatus($id, $statusAnterior, $status, 'Status atualizado');
+                
+                // Enviar notificação se houver usuário configurado
+                if ($usuario_notificado_id) {
+                    $this->enviarNotificacaoStatus($id, $status);
+                }
+            }
 
             // Atualizar itens se fornecidos
             if (isset($_POST['itens'])) {
@@ -615,6 +746,80 @@ class GarantiasController
             // Log do erro para debug
             error_log("Erro ao buscar fornecedores: " . $e->getMessage());
             return [];
+        }
+    }
+    
+    private function getUsuarios(): array
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE status = 'active' ORDER BY name");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            error_log("Erro ao buscar usuários: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    private function registrarHistoricoStatus($garantia_id, $status_anterior, $status_novo, $observacao = null)
+    {
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO garantias_historico_status 
+                (garantia_id, status_anterior, status_novo, usuario_id, observacao)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $garantia_id,
+                $status_anterior,
+                $status_novo,
+                $_SESSION['user_id'],
+                $observacao
+            ]);
+        } catch (\Exception $e) {
+            error_log("Erro ao registrar histórico de status: " . $e->getMessage());
+        }
+    }
+    
+    private function enviarNotificacaoStatus($garantia_id, $status_novo)
+    {
+        try {
+            // Buscar dados da garantia e usuário notificado
+            $stmt = $this->db->prepare("
+                SELECT g.*, u.email, u.name as nome_notificado, f.nome as fornecedor_nome
+                FROM garantias g
+                LEFT JOIN users u ON g.usuario_notificado_id = u.id
+                LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
+                WHERE g.id = ? AND g.usuario_notificado_id IS NOT NULL
+            ");
+            $stmt->execute([$garantia_id]);
+            $garantia = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$garantia || !$garantia['email']) {
+                return; // Sem usuário para notificar
+            }
+            
+            // Enviar email
+            $subject = "Garantia #{$garantia_id} - Status Atualizado para: {$status_novo}";
+            $message = "
+                <h2>Atualização de Status - Garantia #{$garantia_id}</h2>
+                <p>Olá {$garantia['nome_notificado']},</p>
+                <p>A garantia que você está acompanhando foi atualizada:</p>
+                <ul>
+                    <li><strong>Fornecedor:</strong> {$garantia['fornecedor_nome']}</li>
+                    <li><strong>Novo Status:</strong> {$status_novo}</li>
+                    <li><strong>NF Compras:</strong> {$garantia['numero_nf_compras']}</li>
+                    <li><strong>Ticket/OS:</strong> {$garantia['numero_ticket_os']}</li>
+                </ul>
+                <p>Acesse o sistema para mais detalhes.</p>
+            ";
+            
+            // Aqui você pode usar o EmailService se tiver configurado
+            // Por enquanto apenas loga
+            error_log("Email de notificação enviado para {$garantia['email']}");
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao enviar notificação: " . $e->getMessage());
         }
     }
     
