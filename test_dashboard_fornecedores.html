@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Fornecedores - Análise de Qualidade</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #7c3aed; border-bottom: 3px solid #7c3aed; padding-bottom: 10px; }
+        h2 { color: #7c3aed; margin-top: 30px; }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #7c3aed;
+            border-radius: 5px;
+        }
+        .success { color: #10B981; font-weight: bold; }
+        .warning { color: #F59E0B; font-weight: bold; }
+        .info { color: #7c3aed; font-weight: bold; }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .formula {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        ul { line-height: 1.8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏭 Dashboard de Qualidade de Fornecedores</h1>
+        
+        <div class="section">
+            <h2>✅ Nova Aba Implementada no Dashboard</h2>
+            
+            <p><strong>Localização:</strong> Dashboard → Aba "Fornecedores"</p>
+            
+            <h3>🎯 Objetivo:</h3>
+            <p>Comparar a quantidade de itens comprados (Amostragens 2.0) com as garantias geradas, calculando o percentual de qualidade de cada fornecedor.</p>
+        </div>
+
+        <div class="section">
+            <h2>📊 Cálculo da Qualidade</h2>
+            
+            <div class="formula">
+                <strong>Fórmula:</strong><br>
+                % Qualidade = ((Comprados - Garantias) / Comprados) × 100
+            </div>
+            
+            <h3>Exemplo Prático:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cenário</th>
+                        <th>Comprados</th>
+                        <th>Garantias</th>
+                        <th>Cálculo</th>
+                        <th>% Qualidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fornecedor Excelente</td>
+                        <td>200 itens</td>
+                        <td>1 garantia</td>
+                        <td>((200 - 1) / 200) × 100</td>
+                        <td class="success">99.50%</td>
+                    </tr>
+                    <tr>
+                        <td>Fornecedor Bom</td>
+                        <td>200 itens</td>
+                        <td>10 garantias</td>
+                        <td>((200 - 10) / 200) × 100</td>
+                        <td class="success">95.00%</td>
+                    </tr>
+                    <tr>
+                        <td>Fornecedor Regular</td>
+                        <td>200 itens</td>
+                        <td>30 garantias</td>
+                        <td>((200 - 30) / 200) × 100</td>
+                        <td class="warning">85.00%</td>
+                    </tr>
+                    <tr>
+                        <td>Fornecedor Ruim</td>
+                        <td>200 itens</td>
+                        <td>60 garantias</td>
+                        <td>((200 - 60) / 200) × 100</td>
+                        <td style="color: #ef4444; font-weight: bold;">70.00%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Filtros Disponíveis</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Filtro</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Período</strong></td>
+                        <td>Obrigatório</td>
+                        <td>Data inicial e final (ex: janeiro a julho)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Filial</strong></td>
+                        <td>Opcional</td>
+                        <td>Filtrar por filial específica</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Origem</strong></td>
+                        <td>Opcional</td>
+                        <td>Amostragem, Homologação ou Em Campo</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>📈 Visualizações Disponíveis</h2>
+            
+            <h3>1. 📊 Gráfico de Barras - Qualidade por Fornecedor</h3>
+            <ul>
+                <li>Mostra o <strong>% de qualidade geral</strong> de cada fornecedor</li>
+                <li>Ordenado do pior para o melhor (facilita identificar problemas)</li>
+                <li>Cores: Roxo com gradiente</li>
+                <li>Tooltip: Exibe percentual exato com 2 casas decimais</li>
+            </ul>
+
+            <h3>2. 🥧 Gráficos de Pizza - Por Tipo de Produto</h3>
+            <ul>
+                <li><strong>Toners:</strong> Comprados vs Garantias</li>
+                <li><strong>Máquinas:</strong> Comprados vs Garantias</li>
+                <li><strong>Peças:</strong> Comprados vs Garantias</li>
+            </ul>
+
+            <h3>3. 📋 Tabela Detalhada</h3>
+            <p>Mostra para cada fornecedor:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Coluna</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fornecedor</td>
+                        <td>Nome do fornecedor</td>
+                    </tr>
+                    <tr>
+                        <td>Toners Comprados</td>
+                        <td>Quantidade total de toners comprados</td>
+                    </tr>
+                    <tr>
+                        <td>Garantias Toner</td>
+                        <td>Garantias geradas de toners</td>
+                    </tr>
+                    <tr>
+                        <td>% Qualidade Toner</td>
+                        <td>Percentual de qualidade para toners</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">... (mesmo para Máquinas e Peças)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>% Qualidade Geral</strong></td>
+                        <td><strong>Percentual geral do fornecedor</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🎨 Cores por Qualidade</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Percentual</th>
+                        <th>Cor</th>
+                        <th>Significado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #dcfce7;">
+                        <td>≥ 95%</td>
+                        <td class="success">Verde</td>
+                        <td>Excelente qualidade</td>
+                    </tr>
+                    <tr style="background: #dbeafe;">
+                        <td>90% - 94.99%</td>
+                        <td style="color: #3b82f6; font-weight: bold;">Azul</td>
+                        <td>Muito bom</td>
+                    </tr>
+                    <tr style="background: #fef3c7;">
+                        <td>80% - 89.99%</td>
+                        <td class="warning">Amarelo</td>
+                        <td>Bom (atenção)</td>
+                    </tr>
+                    <tr style="background: #fed7aa;">
+                        <td>70% - 79.99%</td>
+                        <td style="color: #f97316; font-weight: bold;">Laranja</td>
+                        <td>Regular (cuidado)</td>
+                    </tr>
+                    <tr style="background: #fee2e2;">
+                        <td>< 70%</td>
+                        <td style="color: #ef4444; font-weight: bold;">Vermelho</td>
+                        <td>Ruim (crítico)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Fonte de Dados</h2>
+            
+            <h3>📦 Itens Comprados:</h3>
+            <p><strong>Origem:</strong> Amostragens 2.0</p>
+            <code style="display: block; padding: 10px; margin: 10px 0;">
+                SELECT SUM(quantidade_recebida) FROM amostragens_2_itens<br>
+                WHERE tipo_produto IN ('Toner', 'Máquina', 'Peça')
+            </code>
+
+            <h3>⚠️ Garantias Geradas:</h3>
+            <p><strong>Origem:</strong> Módulo de Garantias</p>
+            <code style="display: block; padding: 10px; margin: 10px 0;">
+                SELECT COUNT(DISTINCT g.id) FROM garantias g<br>
+                JOIN garantias_itens gi ON g.id = gi.garantia_id<br>
+                WHERE gi.tipo_produto IN ('Toner', 'Máquina', 'Peça')
+            </code>
+
+            <h3>🔗 Relacionamento:</h3>
+            <ul>
+                <li>Ambos vinculados ao <code>fornecedor_id</code></li>
+                <li>Filtrado por período (data de recebimento vs data de criação)</li>
+                <li>Separado por tipo de produto (Toner, Máquina, Peça)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📊 Cards Resumo</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Card</th>
+                        <th>Métrica</th>
+                        <th>Cor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🎯 Fornecedores Analisados</td>
+                        <td>Total de fornecedores no período</td>
+                        <td style="background: #3b82f6; color: white;">Azul</td>
+                    </tr>
+                    <tr>
+                        <td>📦 Total de Itens Comprados</td>
+                        <td>Soma de todos os itens (Toner + Máquina + Peça)</td>
+                        <td style="background: #10b981; color: white;">Verde</td>
+                    </tr>
+                    <tr>
+                        <td>⚠️ Total de Garantias</td>
+                        <td>Soma de todas as garantias geradas</td>
+                        <td style="background: #ef4444; color: white;">Vermelho</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Como Testar</h2>
+            
+            <ol style="line-height: 2;">
+                <li>Acesse: <code>https://djbr.sgqoti.com.br</code></li>
+                <li>Faça login com usuário que tenha permissão de <strong>Dashboard</strong></li>
+                <li>Clique na aba <strong>"🏭 Fornecedores"</strong></li>
+                <li>Selecione o período: <code>01/01/2025 a 31/07/2025</code></li>
+                <li>(Opcional) Selecione uma filial específica</li>
+                <li>(Opcional) Selecione uma origem (Amostragem, Homologação, Em Campo)</li>
+                <li>Clique em <strong>"Aplicar Filtros"</strong></li>
+                <li>Visualize os gráficos e tabela com os dados</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>💡 Interpretação dos Resultados</h2>
+            
+            <h3>Exemplo Real:</h3>
+            <p><strong>Fornecedor XYZ - Período: Janeiro a Julho</strong></p>
+            
+            <table>
+                <tr>
+                    <td><strong>Toners Comprados:</strong></td>
+                    <td>200 unidades</td>
+                </tr>
+                <tr>
+                    <td><strong>Garantias de Toner:</strong></td>
+                    <td>1 garantia</td>
+                </tr>
+                <tr>
+                    <td><strong>% Qualidade Toner:</strong></td>
+                    <td class="success">99.50%</td>
+                </tr>
+            </table>
+
+            <p><strong>Interpretação:</strong></p>
+            <ul>
+                <li>De 200 toners comprados, apenas 1 gerou garantia</li>
+                <li>Taxa de sucesso de <strong>99.50%</strong></li>
+                <li>Fornecedor com <strong>excelente qualidade</strong></li>
+                <li><span class="success">✅ Recomendado para novas compras</span></li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Casos de Uso</h2>
+            
+            <h3>1. Avaliação de Fornecedores:</h3>
+            <ul>
+                <li>Identificar fornecedores com alta taxa de garantias</li>
+                <li>Comparar qualidade entre diferentes fornecedores</li>
+                <li>Tomar decisões de compra baseadas em dados</li>
+            </ul>
+
+            <h3>2. Negociação:</h3>
+            <ul>
+                <li>Usar dados para negociar melhor qualidade</li>
+                <li>Solicitar melhorias em processos</li>
+                <li>Estabelecer metas de qualidade</li>
+            </ul>
+
+            <h3>3. Relatórios Gerenciais:</h3>
+            <ul>
+                <li>Apresentar análise de qualidade para diretoria</li>
+                <li>Justificar mudança de fornecedores</li>
+                <li>Demonstrar economia com menos garantias</li>
+            </ul>
+        </div>
+
+        <div class="section" style="background: #d1fae5; border-color: #10B981;">
+            <h2>✅ Implementação Completa!</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Componente</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Nova aba "Fornecedores" no Dashboard</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Filtros por Período, Filial e Origem</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Gráfico de Qualidade por Fornecedor</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Gráficos de Pizza por Tipo</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Tabela Detalhada</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Cards de Resumo</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Cálculo de % Qualidade</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Backend API</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Rota configurada</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                    <tr>
+                        <td>Integração Amostragens 2.0 + Garantias</td>
+                        <td class="success">✅ Implementado</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p style="margin-top: 20px; color: #059669; font-weight: bold;">
+                🎉 Sistema completo para análise de qualidade de fornecedores implementado com sucesso!
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>📋 Arquivos Modificados/Criados</h2>
+            
+            <ul>
+                <li><code>views/admin/dashboard.php</code> - Adicionada aba Fornecedores</li>
+                <li><code>src/Controllers/AdminController.php</code> - Método fornecedoresData()</li>
+                <li><code>public/index.php</code> - Rota /admin/dashboard/fornecedores-data</li>
+                <li><code>test_dashboard_fornecedores.html</code> - Documentação e testes</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

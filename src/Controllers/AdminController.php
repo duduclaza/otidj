@@ -1913,4 +1913,232 @@ class AdminController
         }
     }
     
+    /**
+     * Dados de qualidade de fornecedores
+     */
+    public function fornecedoresData()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $filial = $_GET['filial'] ?? '';
+            $origem = $_GET['origem'] ?? '';
+            $dataInicial = $_GET['data_inicial'] ?? '';
+            $dataFinal = $_GET['data_final'] ?? '';
+            
+            error_log("🏭 Buscando dados de fornecedores - Filtros: filial={$filial}, origem={$origem}, periodo={$dataInicial} a {$dataFinal}");
+            
+            // Validar datas
+            if (empty($dataInicial) || empty($dataFinal)) {
+                throw new \Exception('Período é obrigatório');
+            }
+            
+            // 1. Buscar itens comprados das amostragens 2.0
+            $sqlComprados = "
+                SELECT 
+                    f.id as fornecedor_id,
+                    f.nome as fornecedor_nome,
+                    ai.tipo_produto,
+                    SUM(ai.quantidade_recebida) as total_comprados
+                FROM amostragens_2 a
+                INNER JOIN amostragens_2_itens ai ON a.id = ai.amostragem_id
+                INNER JOIN fornecedores f ON a.fornecedor_id = f.id
+                WHERE a.data_recebimento BETWEEN ? AND ?
+            ";
+            
+            $params = [$dataInicial, $dataFinal];
+            
+            if (!empty($filial)) {
+                $sqlComprados .= " AND a.filial = ?";
+                $params[] = $filial;
+            }
+            
+            if (!empty($origem)) {
+                $sqlComprados .= " AND a.origem = ?";
+                $params[] = $origem;
+            }
+            
+            $sqlComprados .= "
+                GROUP BY f.id, f.nome, ai.tipo_produto
+                ORDER BY f.nome, ai.tipo_produto
+            ";
+            
+            $stmt = $this->db->prepare($sqlComprados);
+            $stmt->execute($params);
+            $comprados = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            error_log("📦 Total de registros de compras: " . count($comprados));
+            
+            // 2. Buscar garantias geradas
+            $sqlGarantias = "
+                SELECT 
+                    f.id as fornecedor_id,
+                    f.nome as fornecedor_nome,
+                    gi.tipo_produto,
+                    COUNT(DISTINCT g.id) as total_garantias
+                FROM garantias g
+                INNER JOIN garantias_itens gi ON g.id = gi.garantia_id
+                INNER JOIN fornecedores f ON g.fornecedor_id = f.id
+                WHERE g.created_at BETWEEN ? AND ?
+            ";
+            
+            $paramsGarantias = [$dataInicial . ' 00:00:00', $dataFinal . ' 23:59:59'];
+            
+            if (!empty($filial)) {
+                $sqlGarantias .= " AND g.filial = ?";
+                $paramsGarantias[] = $filial;
+            }
+            
+            if (!empty($origem)) {
+                $sqlGarantias .= " AND g.origem_garantia = ?";
+                $paramsGarantias[] = $origem;
+            }
+            
+            $sqlGarantias .= "
+                AND gi.tipo_produto IS NOT NULL
+                GROUP BY f.id, f.nome, gi.tipo_produto
+                ORDER BY f.nome, gi.tipo_produto
+            ";
+            
+            $stmt = $this->db->prepare($sqlGarantias);
+            $stmt->execute($paramsGarantias);
+            $garantias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            error_log("⚠️ Total de registros de garantias: " . count($garantias));
+            
+            // 3. Processar dados por fornecedor
+            $fornecedoresMap = [];
+            
+            // Inicializar fornecedores com dados de compras
+            foreach ($comprados as $row) {
+                $fornecedorId = $row['fornecedor_id'];
+                $tipo = $row['tipo_produto'];
+                
+                if (!isset($fornecedoresMap[$fornecedorId])) {
+                    $fornecedoresMap[$fornecedorId] = [
+                        'id' => $fornecedorId,
+                        'nome' => $row['fornecedor_nome'],
+                        'toner' => ['comprados' => 0, 'garantias' => 0, 'qualidade' => 100],
+                        'maquina' => ['comprados' => 0, 'garantias' => 0, 'qualidade' => 100],
+                        'peca' => ['comprados' => 0, 'garantias' => 0, 'qualidade' => 100],
+                        'qualidade_geral' => 100
+                    ];
+                }
+                
+                $tipoKey = strtolower($tipo);
+                if ($tipo === 'Máquina') $tipoKey = 'maquina';
+                if ($tipo === 'Peça') $tipoKey = 'peca';
+                
+                $fornecedoresMap[$fornecedorId][$tipoKey]['comprados'] = (int)$row['total_comprados'];
+            }
+            
+            // Adicionar dados de garantias
+            foreach ($garantias as $row) {
+                $fornecedorId = $row['fornecedor_id'];
+                $tipo = $row['tipo_produto'];
+                
+                if (!isset($fornecedoresMap[$fornecedorId])) {
+                    // Fornecedor com garantias mas sem compras (ignorar ou inicializar?)
+                    continue;
+                }
+                
+                $tipoKey = strtolower($tipo);
+                if ($tipo === 'Máquina') $tipoKey = 'maquina';
+                if ($tipo === 'Peça') $tipoKey = 'peca';
+                
+                $fornecedoresMap[$fornecedorId][$tipoKey]['garantias'] = (int)$row['total_garantias'];
+            }
+            
+            // 4. Calcular percentuais de qualidade
+            foreach ($fornecedoresMap as &$fornecedor) {
+                $totalComprados = 0;
+                $totalGarantias = 0;
+                
+                foreach (['toner', 'maquina', 'peca'] as $tipo) {
+                    $comprados = $fornecedor[$tipo]['comprados'];
+                    $garantias = $fornecedor[$tipo]['garantias'];
+                    
+                    if ($comprados > 0) {
+                        // % Qualidade = ((Comprados - Garantias) / Comprados) × 100
+                        $qualidade = (($comprados - $garantias) / $comprados) * 100;
+                        $fornecedor[$tipo]['qualidade'] = max(0, $qualidade); // Não pode ser negativo
+                    } else {
+                        $fornecedor[$tipo]['qualidade'] = 100; // Sem dados = 100%
+                    }
+                    
+                    $totalComprados += $comprados;
+                    $totalGarantias += $garantias;
+                }
+                
+                // Calcular qualidade geral do fornecedor
+                if ($totalComprados > 0) {
+                    $fornecedor['qualidade_geral'] = (($totalComprados - $totalGarantias) / $totalComprados) * 100;
+                } else {
+                    $fornecedor['qualidade_geral'] = 100;
+                }
+            }
+            
+            // 5. Ordenar por qualidade (pior para melhor)
+            $fornecedoresArray = array_values($fornecedoresMap);
+            usort($fornecedoresArray, function($a, $b) {
+                return $a['qualidade_geral'] <=> $b['qualidade_geral'];
+            });
+            
+            // 6. Calcular totais gerais
+            $totalCompradosToner = 0;
+            $totalGarantiasToner = 0;
+            $totalCompradosMaquina = 0;
+            $totalGarantiasMaquina = 0;
+            $totalCompradosPeca = 0;
+            $totalGarantiasPeca = 0;
+            
+            foreach ($fornecedoresArray as $f) {
+                $totalCompradosToner += $f['toner']['comprados'];
+                $totalGarantiasToner += $f['toner']['garantias'];
+                $totalCompradosMaquina += $f['maquina']['comprados'];
+                $totalGarantiasMaquina += $f['maquina']['garantias'];
+                $totalCompradosPeca += $f['peca']['comprados'];
+                $totalGarantiasPeca += $f['peca']['garantias'];
+            }
+            
+            $response = [
+                'success' => true,
+                'data' => [
+                    'fornecedores' => $fornecedoresArray,
+                    'resumo' => [
+                        'total_fornecedores' => count($fornecedoresArray),
+                        'total_itens_comprados' => $totalCompradosToner + $totalCompradosMaquina + $totalCompradosPeca,
+                        'total_garantias' => $totalGarantiasToner + $totalGarantiasMaquina + $totalGarantiasPeca,
+                        'por_tipo' => [
+                            'toner' => [
+                                'comprados' => $totalCompradosToner,
+                                'garantias' => $totalGarantiasToner
+                            ],
+                            'maquina' => [
+                                'comprados' => $totalCompradosMaquina,
+                                'garantias' => $totalGarantiasMaquina
+                            ],
+                            'peca' => [
+                                'comprados' => $totalCompradosPeca,
+                                'garantias' => $totalGarantiasPeca
+                            ]
+                        ]
+                    ]
+                ]
+            ];
+            
+            error_log("✅ Dados processados: " . count($fornecedoresArray) . " fornecedores");
+            
+            echo json_encode($response);
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erro em fornecedoresData: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao carregar dados: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
 }

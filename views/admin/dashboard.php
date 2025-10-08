@@ -28,6 +28,14 @@
           🧪 Amostragens 2.0
         </span>
       </button>
+      <button onclick="switchTab('fornecedores')" id="tab-fornecedores" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+          🏭 Fornecedores
+        </span>
+      </button>
     </div>
   </div>
 
@@ -365,6 +373,193 @@
 
   </div>
   <!-- FIM CONTEÚDO ABA AMOSTRAGENS -->
+
+  <!-- CONTEÚDO ABA FORNECEDORES -->
+  <div id="content-fornecedores" class="tab-content space-y-6">
+    
+    <!-- Filtros FORNECEDORES -->
+    <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+        </svg>
+        🔍 Filtros - Qualidade de Fornecedores
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">🏢 Filial</label>
+          <select id="filtroFilialFornecedores" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+            <option value="">Todas as Filiais</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">📋 Origem</label>
+          <select id="filtroOrigemFornecedores" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+            <option value="">Todas as Origens</option>
+            <option value="Amostragem">Amostragem</option>
+            <option value="Homologação">Homologação</option>
+            <option value="Em Campo">Em Campo</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">📅 Data Inicial</label>
+          <input type="date" id="dataInicialFornecedores" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">📅 Data Final</label>
+          <input type="date" id="dataFinalFornecedores" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+        </div>
+      </div>
+      <div class="mt-4 flex space-x-3">
+        <button onclick="applyFiltersFornecedores()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <span>Aplicar Filtros</span>
+        </button>
+        <button onclick="clearFiltersFornecedores()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          <span>Limpar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cards de Resumo por Fornecedor -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-blue-100 text-sm font-medium mb-1">🎯 Fornecedores Analisados</p>
+            <p class="text-3xl font-bold" id="totalFornecedores">0</p>
+          </div>
+          <svg class="w-12 h-12 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-green-100 text-sm font-medium mb-1">📦 Total de Itens Comprados</p>
+            <p class="text-3xl font-bold" id="totalItensComprados">0</p>
+          </div>
+          <svg class="w-12 h-12 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-red-100 text-sm font-medium mb-1">⚠️ Total de Garantias</p>
+            <p class="text-3xl font-bold" id="totalGarantias">0</p>
+          </div>
+          <svg class="w-12 h-12 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico de Qualidade por Fornecedor -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+          <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          📊 Análise de Qualidade por Fornecedor
+        </h3>
+        <div class="text-sm text-gray-600">
+          <span class="font-medium">Fórmula:</span> % Qualidade = ((Comprados - Garantias) / Comprados) × 100
+        </div>
+      </div>
+      <div class="relative" style="height: 500px;">
+        <canvas id="chartQualidadeFornecedores"></canvas>
+      </div>
+      <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+        <p class="text-sm text-gray-700">
+          <strong>💡 Interpretação:</strong> Quanto maior a % de qualidade, melhor o fornecedor. 
+          Uma qualidade de 95% significa que de 100 itens comprados, apenas 5 geraram garantias.
+        </p>
+      </div>
+    </div>
+
+    <!-- Gráfico de Itens Comprados vs Garantias por Tipo -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+        </svg>
+        📈 Comprados vs Garantias por Tipo de Produto
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <h4 class="text-center font-medium text-gray-700 mb-3">🖨️ Toners</h4>
+          <div style="height: 300px;">
+            <canvas id="chartToners"></canvas>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-center font-medium text-gray-700 mb-3">🖥️ Máquinas</h4>
+          <div style="height: 300px;">
+            <canvas id="chartMaquinas"></canvas>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-center font-medium text-gray-700 mb-3">🔧 Peças</h4>
+          <div style="height: 300px;">
+            <canvas id="chartPecas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabela Detalhada de Fornecedores -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+          <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+          </svg>
+          📋 Detalhamento por Fornecedor
+        </h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fornecedor</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Toners Comprados</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Garantias Toner</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">% Qualidade Toner</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Máquinas Compradas</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Garantias Máquina</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">% Qualidade Máquina</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Peças Compradas</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Garantias Peça</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">% Qualidade Peça</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider font-bold">% Qualidade Geral</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaFornecedores" class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td colspan="11" class="px-6 py-8 text-center text-gray-500">
+                Selecione os filtros e clique em "Aplicar Filtros" para ver os dados
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <!-- FIM CONTEÚDO ABA FORNECEDORES -->
 
 </section>
 
@@ -1531,6 +1726,13 @@ function switchTab(tabName) {
     loadDashboardAmostragens();
     window.amostragens_loaded = true;
   }
+  
+  // Carregar dados da aba se for fornecedores
+  if (tabName === 'fornecedores' && !window.fornecedores_loaded) {
+    console.log('🏭 Inicializando aba Fornecedores...');
+    initFornecedoresTab();
+    window.fornecedores_loaded = true;
+  }
 }
 
 // ===== DASHBOARD AMOSTRAGENS 2.0 =====
@@ -1735,4 +1937,297 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
   }, 1000);
 });
+
+// ===== DASHBOARD FORNECEDORES =====
+let fornecedoresCharts = {};
+
+function initFornecedoresTab() {
+  console.log('🏭 Inicializando aba Fornecedores');
+  
+  // Definir datas padrão (janeiro até hoje do ano atual)
+  const hoje = new Date();
+  const inicioAno = new Date(hoje.getFullYear(), 0, 1);
+  
+  document.getElementById('dataInicialFornecedores').value = inicioAno.toISOString().split('T')[0];
+  document.getElementById('dataFinalFornecedores').value = hoje.toISOString().split('T')[0];
+  
+  // Carregar filiais
+  carregarFiliaisFornecedores();
+  
+  // Inicializar gráficos vazios
+  initChartsFornecedores();
+}
+
+async function carregarFiliaisFornecedores() {
+  try {
+    const response = await fetch('/registros/filiais/list');
+    const result = await response.json();
+    
+    if (result.success) {
+      const select = document.getElementById('filtroFilialFornecedores');
+      result.data.forEach(filial => {
+        const option = document.createElement('option');
+        option.value = filial.nome;
+        option.textContent = filial.nome;
+        select.appendChild(option);
+      });
+    }
+  } catch (error) {
+    console.error('❌ Erro ao carregar filiais:', error);
+  }
+}
+
+function initChartsFornecedores() {
+  // Gráfico principal de qualidade
+  const ctxQualidade = document.getElementById('chartQualidadeFornecedores');
+  if (ctxQualidade && !fornecedoresCharts.qualidade) {
+    fornecedoresCharts.qualidade = new Chart(ctxQualidade, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: '% Qualidade Geral',
+          data: [],
+          backgroundColor: 'rgba(124, 58, 237, 0.8)',
+          borderColor: 'rgba(124, 58, 237, 1)',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: function(value) {
+                return value + '%';
+              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  // Gráficos de pizza por tipo
+  const chartConfigs = [
+    { id: 'chartToners', label: 'Toners' },
+    { id: 'chartMaquinas', label: 'Máquinas' },
+    { id: 'chartPecas', label: 'Peças' }
+  ];
+  
+  chartConfigs.forEach(config => {
+    const ctx = document.getElementById(config.id);
+    if (ctx && !fornecedoresCharts[config.id]) {
+      fornecedoresCharts[config.id] = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Comprados', 'Garantias'],
+          datasets: [{
+            data: [0, 0],
+            backgroundColor: [
+              'rgba(34, 197, 94, 0.8)',
+              'rgba(239, 68, 68, 0.8)'
+            ],
+            borderColor: [
+              'rgba(34, 197, 94, 1)',
+              'rgba(239, 68, 68, 1)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  return label + ': ' + value.toLocaleString('pt-BR');
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+  });
+}
+
+async function applyFiltersFornecedores() {
+  const filial = document.getElementById('filtroFilialFornecedores').value;
+  const origem = document.getElementById('filtroOrigemFornecedores').value;
+  const dataInicial = document.getElementById('dataInicialFornecedores').value;
+  const dataFinal = document.getElementById('dataFinalFornecedores').value;
+  
+  if (!dataInicial || !dataFinal) {
+    alert('Por favor, selecione o período (Data Inicial e Data Final)');
+    return;
+  }
+  
+  console.log('🔍 Aplicando filtros de fornecedores:', { filial, origem, dataInicial, dataFinal });
+  
+  try {
+    const params = new URLSearchParams();
+    if (filial) params.append('filial', filial);
+    if (origem) params.append('origem', origem);
+    if (dataInicial) params.append('data_inicial', dataInicial);
+    if (dataFinal) params.append('data_final', dataFinal);
+    
+    const response = await fetch(`/admin/dashboard/fornecedores-data?${params.toString()}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log('✅ Dados recebidos:', result.data);
+      updateDashboardFornecedores(result.data);
+    } else {
+      console.error('❌ Erro:', result.message);
+      alert('Erro ao carregar dados: ' + result.message);
+    }
+  } catch (error) {
+    console.error('❌ Erro na requisição:', error);
+    alert('Erro ao carregar dados. Verifique o console.');
+  }
+}
+
+function updateDashboardFornecedores(data) {
+  // Atualizar cards
+  document.getElementById('totalFornecedores').textContent = data.resumo.total_fornecedores || 0;
+  document.getElementById('totalItensComprados').textContent = (data.resumo.total_itens_comprados || 0).toLocaleString('pt-BR');
+  document.getElementById('totalGarantias').textContent = (data.resumo.total_garantias || 0).toLocaleString('pt-BR');
+  
+  // Atualizar gráfico de qualidade geral
+  if (fornecedoresCharts.qualidade) {
+    fornecedoresCharts.qualidade.data.labels = data.fornecedores.map(f => f.nome);
+    fornecedoresCharts.qualidade.data.datasets[0].data = data.fornecedores.map(f => f.qualidade_geral);
+    fornecedoresCharts.qualidade.update();
+  }
+  
+  // Atualizar gráficos de pizza por tipo
+  const totaisPorTipo = data.resumo.por_tipo || {
+    toner: { comprados: 0, garantias: 0 },
+    maquina: { comprados: 0, garantias: 0 },
+    peca: { comprados: 0, garantias: 0 }
+  };
+  
+  if (fornecedoresCharts.chartToners) {
+    fornecedoresCharts.chartToners.data.datasets[0].data = [
+      totaisPorTipo.toner.comprados,
+      totaisPorTipo.toner.garantias
+    ];
+    fornecedoresCharts.chartToners.update();
+  }
+  
+  if (fornecedoresCharts.chartMaquinas) {
+    fornecedoresCharts.chartMaquinas.data.datasets[0].data = [
+      totaisPorTipo.maquina.comprados,
+      totaisPorTipo.maquina.garantias
+    ];
+    fornecedoresCharts.chartMaquinas.update();
+  }
+  
+  if (fornecedoresCharts.chartPecas) {
+    fornecedoresCharts.chartPecas.data.datasets[0].data = [
+      totaisPorTipo.peca.comprados,
+      totaisPorTipo.peca.garantias
+    ];
+    fornecedoresCharts.chartPecas.update();
+  }
+  
+  // Atualizar tabela
+  updateTabelaFornecedores(data.fornecedores);
+}
+
+function updateTabelaFornecedores(fornecedores) {
+  const tbody = document.getElementById('tabelaFornecedores');
+  
+  if (!fornecedores || fornecedores.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11" class="px-6 py-8 text-center text-gray-500">
+          Nenhum dado encontrado para os filtros selecionados
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = fornecedores.map(f => `
+    <tr class="hover:bg-gray-50">
+      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${f.nome}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">${f.toner.comprados}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-medium">${f.toner.garantias}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center ${getQualidadeColorClass(f.toner.qualidade)}">
+        ${f.toner.qualidade.toFixed(2)}%
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">${f.maquina.comprados}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-medium">${f.maquina.garantias}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center ${getQualidadeColorClass(f.maquina.qualidade)}">
+        ${f.maquina.qualidade.toFixed(2)}%
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">${f.peca.comprados}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-medium">${f.peca.garantias}</td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center ${getQualidadeColorClass(f.peca.qualidade)}">
+        ${f.peca.qualidade.toFixed(2)}%
+      </td>
+      <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-bold ${getQualidadeColorClass(f.qualidade_geral)}">
+        ${f.qualidade_geral.toFixed(2)}%
+      </td>
+    </tr>
+  `).join('');
+}
+
+function getQualidadeColorClass(percentual) {
+  if (percentual >= 95) return 'text-green-600 font-semibold';
+  if (percentual >= 90) return 'text-blue-600 font-semibold';
+  if (percentual >= 80) return 'text-yellow-600 font-semibold';
+  if (percentual >= 70) return 'text-orange-600 font-semibold';
+  return 'text-red-600 font-semibold';
+}
+
+function clearFiltersFornecedores() {
+  document.getElementById('filtroFilialFornecedores').value = '';
+  document.getElementById('filtroOrigemFornecedores').value = '';
+  
+  const hoje = new Date();
+  const inicioAno = new Date(hoje.getFullYear(), 0, 1);
+  
+  document.getElementById('dataInicialFornecedores').value = inicioAno.toISOString().split('T')[0];
+  document.getElementById('dataFinalFornecedores').value = hoje.toISOString().split('T')[0];
+  
+  // Limpar tabela
+  document.getElementById('tabelaFornecedores').innerHTML = `
+    <tr>
+      <td colspan="11" class="px-6 py-8 text-center text-gray-500">
+        Selecione os filtros e clique em "Aplicar Filtros" para ver os dados
+      </td>
+    </tr>
+  `;
+  
+  // Limpar cards
+  document.getElementById('totalFornecedores').textContent = '0';
+  document.getElementById('totalItensComprados').textContent = '0';
+  document.getElementById('totalGarantias').textContent = '0';
+}
 </script>
