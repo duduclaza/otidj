@@ -1054,6 +1054,7 @@ function adicionarItem() {
     
     const itemDiv = document.createElement('div');
     itemDiv.className = 'item-garantia bg-gray-600 p-4 rounded-lg border border-gray-500';
+    itemDiv.dataset.index = itemIndex;
     itemDiv.innerHTML = `
         <div class="flex justify-between items-center mb-3">
             <h4 class="text-white font-medium">Item ${itemIndex + 1}</h4>
@@ -1063,20 +1064,45 @@ function adicionarItem() {
                 </svg>
             </button>
         </div>
+        
+        <!-- Seleção de Produto (igual Amostragens 2.0) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-white mb-1">Tipo de Produto *</label>
+                <select class="tipo-produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    <option value="">Selecione o tipo</option>
+                    <option value="Toner">Toner</option>
+                    <option value="Máquina">Máquina</option>
+                    <option value="Peça">Peça</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-white mb-1">Produto *</label>
+                <select class="produto-item w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required disabled>
+                    <option value="">Selecione primeiro o tipo</option>
+                </select>
+            </div>
+            <!-- Hidden inputs para envio -->
+            <input type="hidden" name="item_tipo_produto[]" class="item-tipo-hidden">
+            <input type="hidden" name="item_produto_id[]" class="item-produto-id-hidden">
+            <input type="hidden" name="item_codigo_produto[]" class="item-codigo-hidden">
+            <input type="hidden" name="item_nome_produto[]" class="item-nome-hidden">
+        </div>
+        
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-white mb-1">Descrição *</label>
-                <input type="text" name="item_descricao" required class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Descrição do item">
+                <label class="block text-sm font-medium text-white mb-1">Descrição (preenchido automaticamente)</label>
+                <input type="text" name="item_descricao[]" readonly class="item-descricao-auto w-full bg-gray-600 border border-gray-500 text-gray-300 rounded px-3 py-2 placeholder-gray-400" placeholder="Selecione um produto">
             </div>
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Quantidade *</label>
-                <input type="number" name="item_quantidade" min="1" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="1">
+                <input type="number" name="item_quantidade[]" min="1" value="1" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="1">
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Valor Unitário (R$) *</label>
-                <input type="number" name="item_valor" step="0.01" min="0" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0,00">
+                <input type="number" name="item_valor[]" step="0.01" min="0" value="0" required onchange="atualizarTotais()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="0,00">
             </div>
             <div>
                 <label class="block text-sm font-medium text-white mb-1">Valor Total</label>
@@ -1086,7 +1112,114 @@ function adicionarItem() {
     `;
     
     container.appendChild(itemDiv);
+    
+    // Configurar event listeners para este item específico
+    configurarEventListenersItem(itemDiv);
+    
     atualizarTotais();
+}
+
+// Configurar event listeners de um item específico
+function configurarEventListenersItem(itemDiv) {
+    const tipoProdutoSelect = itemDiv.querySelector('.tipo-produto-item');
+    const produtoSelect = itemDiv.querySelector('.produto-item');
+    const tipoHidden = itemDiv.querySelector('.item-tipo-hidden');
+    const produtoIdHidden = itemDiv.querySelector('.item-produto-id-hidden');
+    const codigoHidden = itemDiv.querySelector('.item-codigo-hidden');
+    const nomeHidden = itemDiv.querySelector('.item-nome-hidden');
+    const descricaoInput = itemDiv.querySelector('.item-descricao-auto');
+    
+    // Quando mudar o tipo de produto
+    tipoProdutoSelect.addEventListener('change', async function() {
+        const tipo = this.value;
+        
+        // Limpar
+        produtoSelect.innerHTML = '<option value="">Carregando...</option>';
+        produtoSelect.disabled = true;
+        tipoHidden.value = '';
+        produtoIdHidden.value = '';
+        codigoHidden.value = '';
+        nomeHidden.value = '';
+        descricaoInput.value = '';
+        
+        if (!tipo) {
+            produtoSelect.innerHTML = '<option value="">Selecione primeiro o tipo</option>';
+            return;
+        }
+        
+        tipoHidden.value = tipo;
+        
+        // Determinar endpoint
+        let endpoint = '';
+        switch(tipo) {
+            case 'Toner': endpoint = '/api/toners'; break;
+            case 'Máquina': endpoint = '/api/maquinas'; break;
+            case 'Peça': endpoint = '/api/pecas'; break;
+            default: 
+                produtoSelect.innerHTML = '<option value="">Tipo inválido</option>';
+                return;
+        }
+        
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const produtos = await response.json();
+            
+            produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
+            produtos.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = produto.id;
+                
+                // Definir código e nome baseado no tipo
+                let codigo, nome;
+                if (tipo === 'Toner') {
+                    codigo = produto.codigo || '';
+                    nome = produto.nome || '';
+                } else if (tipo === 'Máquina') {
+                    codigo = produto.modelo || produto.cod_referencia || '';
+                    nome = produto.modelo || '';
+                } else if (tipo === 'Peça') {
+                    codigo = produto.codigo_referencia || '';
+                    nome = produto.descricao || '';
+                }
+                
+                option.dataset.codigo = codigo;
+                option.dataset.nome = nome;
+                option.textContent = codigo ? `${codigo} - ${nome}` : nome;
+                
+                produtoSelect.appendChild(option);
+            });
+            
+            produtoSelect.disabled = false;
+            
+        } catch (error) {
+            console.error('❌ Erro ao carregar produtos:', error);
+            produtoSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+        }
+    });
+    
+    // Quando selecionar o produto
+    produtoSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption.value) {
+            const codigo = selectedOption.dataset.codigo || '';
+            const nome = selectedOption.dataset.nome || '';
+            
+            produtoIdHidden.value = selectedOption.value;
+            codigoHidden.value = codigo;
+            nomeHidden.value = nome;
+            descricaoInput.value = codigo ? `${codigo} - ${nome}` : nome;
+            
+            console.log(`✅ Produto selecionado no item: ${codigo} - ${nome}`);
+        } else {
+            produtoIdHidden.value = '';
+            codigoHidden.value = '';
+            nomeHidden.value = '';
+            descricaoInput.value = '';
+        }
+    });
 }
 
 function removerItem(button) {
