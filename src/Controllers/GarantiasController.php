@@ -161,11 +161,52 @@ class GarantiasController
             $stmt->execute();
             $garantias = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Garantir que os valores numéricos estejam corretos
+            // Buscar produtos dos itens para cada garantia
+            $stmtItens = $this->db->prepare("
+                SELECT codigo_produto, nome_produto, tipo_produto, descricao
+                FROM garantias_itens
+                WHERE garantia_id = ?
+                ORDER BY id
+            ");
+            
+            // Garantir que os valores numéricos estejam corretos e adicionar produtos
             foreach ($garantias as &$garantia) {
                 $garantia['total_itens'] = (int)($garantia['total_itens'] ?? 0);
                 $garantia['valor_total'] = (float)($garantia['valor_total'] ?? 0);
                 $garantia['total_anexos'] = (int)($garantia['total_anexos'] ?? 0);
+                
+                // Buscar produtos dos itens
+                $stmtItens->execute([$garantia['id']]);
+                $itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Criar lista de produtos (máximo 3 para não ficar muito grande)
+                $produtos = [];
+                foreach ($itens as $index => $item) {
+                    if ($index >= 3) break; // Limitar a 3 produtos
+                    
+                    $produto = '';
+                    if (!empty($item['tipo_produto'])) {
+                        $produto .= $item['tipo_produto'] . ': ';
+                    }
+                    if (!empty($item['codigo_produto'])) {
+                        $produto .= $item['codigo_produto'];
+                    } elseif (!empty($item['nome_produto'])) {
+                        $produto .= $item['nome_produto'];
+                    } elseif (!empty($item['descricao'])) {
+                        $produto .= $item['descricao'];
+                    }
+                    
+                    if (!empty($produto)) {
+                        $produtos[] = $produto;
+                    }
+                }
+                
+                // Se tem mais de 3 itens, adicionar indicador
+                if (count($itens) > 3) {
+                    $produtos[] = '+ ' . (count($itens) - 3) . ' mais';
+                }
+                
+                $garantia['produtos_lista'] = !empty($produtos) ? implode(', ', $produtos) : null;
             }
 
             echo json_encode(['success' => true, 'data' => $garantias]);
@@ -835,6 +876,52 @@ class GarantiasController
                 return; // Sem usuário para notificar
             }
             
+            // Buscar produtos da garantia
+            $stmt = $this->db->prepare("
+                SELECT tipo_produto, codigo_produto, nome_produto, descricao, quantidade
+                FROM garantias_itens
+                WHERE garantia_id = ?
+                ORDER BY id
+            ");
+            $stmt->execute([$garantia_id]);
+            $garantia['produtos'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Buscar histórico de status
+            $stmt = $this->db->prepare("
+                SELECT status_anterior, status_novo, data_mudanca
+                FROM garantias_historico_status
+                WHERE garantia_id = ?
+                ORDER BY data_mudanca ASC
+            ");
+            $stmt->execute([$garantia_id]);
+            $historico = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Calcular tempo em cada status
+            $temposPorStatus = [];
+            for ($i = 0; $i < count($historico); $i++) {
+                $atual = $historico[$i];
+                $status = $atual['status_novo'];
+                
+                $dataInicio = strtotime($atual['data_mudanca']);
+                
+                // Data fim: próximo status ou agora
+                if ($i < count($historico) - 1) {
+                    $dataFim = strtotime($historico[$i + 1]['data_mudanca']);
+                } else {
+                    $dataFim = time(); // Status atual
+                }
+                
+                $segundos = $dataFim - $dataInicio;
+                $dias = floor($segundos / 86400);
+                
+                if (!isset($temposPorStatus[$status])) {
+                    $temposPorStatus[$status] = 0;
+                }
+                $temposPorStatus[$status] += $dias;
+            }
+            
+            $garantia['tempos_por_status'] = $temposPorStatus;
+            
             error_log("📧 Preparando email de notificação para: {$garantia['email']}");
             
             // Usar EmailService para enviar
@@ -953,8 +1040,62 @@ class GarantiasController
                         <td style='padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; font-weight: bold;'>Data da Atualização:</td>
                         <td style='padding: 12px; border: 1px solid #e9ecef;'>" . date('d/m/Y H:i') . "</td>
                     </tr>
-                </table>
+                </table>";
+        
+        // Adicionar seção de produtos
+        if (!empty($garantia['produtos']) && count($garantia['produtos']) > 0) {
+            $html .= "
+                <h3 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-top: 30px;'>📦 Produtos</h3>
+                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                    <thead style='background: #f8f9fa;'>
+                        <tr>
+                            <th style='padding: 10px; border: 1px solid #e9ecef; text-align: left; font-weight: bold;'>Tipo</th>
+                            <th style='padding: 10px; border: 1px solid #e9ecef; text-align: left; font-weight: bold;'>Produto</th>
+                            <th style='padding: 10px; border: 1px solid #e9ecef; text-align: center; font-weight: bold;'>Qtd</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+            
+            foreach ($garantia['produtos'] as $produto) {
+                $nomeProduto = $produto['codigo_produto'] ?: ($produto['nome_produto'] ?: $produto['descricao']);
+                $tipoProduto = $produto['tipo_produto'] ?: 'N/A';
                 
+                $html .= "
+                        <tr>
+                            <td style='padding: 10px; border: 1px solid #e9ecef;'><span style='background: #dbeafe; color: #1e40af; padding: 3px 8px; border-radius: 4px; font-size: 12px;'>{$tipoProduto}</span></td>
+                            <td style='padding: 10px; border: 1px solid #e9ecef;'>{$nomeProduto}</td>
+                            <td style='padding: 10px; border: 1px solid #e9ecef; text-align: center;'>{$produto['quantidade']}</td>
+                        </tr>";
+            }
+            
+            $html .= "
+                    </tbody>
+                </table>";
+        }
+        
+        // Adicionar seção de tempo por status
+        if (!empty($garantia['tempos_por_status']) && count($garantia['tempos_por_status']) > 0) {
+            $html .= "
+                <h3 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-top: 30px;'>⏱️ Tempo em Cada Status</h3>
+                <table style='width: 100%; border-collapse: collapse; margin: 20px 0;'>
+                    <tbody>";
+            
+            foreach ($garantia['tempos_por_status'] as $status => $dias) {
+                $diasTexto = $dias == 0 ? 'Menos de 1 dia' : ($dias == 1 ? '1 dia' : "{$dias} dias");
+                
+                $html .= "
+                        <tr>
+                            <td style='padding: 10px; border: 1px solid #e9ecef; background: #f8f9fa; font-weight: bold; width: 60%;'>{$status}:</td>
+                            <td style='padding: 10px; border: 1px solid #e9ecef;'><strong style='color: #667eea;'>{$diasTexto}</strong></td>
+                        </tr>";
+            }
+            
+            $html .= "
+                    </tbody>
+                </table>";
+        }
+        
+        $html .= "
                 <div style='text-align: center; margin: 30px 0;'>
                     <a href='{$appUrl}/garantias/{$garantia_id}/detalhes' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
                         👁️ Ver Detalhes Completos

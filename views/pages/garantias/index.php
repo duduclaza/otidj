@@ -400,7 +400,7 @@ if (!isset($_SESSION['user_id'])) {
                 <input
                     type="text"
                     id="buscaGarantias"
-                    placeholder="🔍 Buscar por ID, fornecedor, NF, número de série, lote, ticket/OS, ticket interno..."
+                    placeholder="🔍 Buscar por ID, fornecedor, produto, NF, série, lote, ticket..."
                     class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     oninput="filtrarGarantias()"
                 >
@@ -466,6 +466,10 @@ if (!isset($_SESSION['user_id'])) {
                         </th>
                         <th data-column="ticket_interno" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 140px; min-width: 100px;">
                             Ticket Interno
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="produto" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 150px;">
+                            Produto
                             <div class="column-resizer"></div>
                         </th>
                         <th data-column="status" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 150px;">
@@ -1326,7 +1330,7 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     if (dados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="14" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="15" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
         return;
     }
     
@@ -1369,6 +1373,11 @@ function renderizarTabela(dados) {
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                 ${garantia.numero_ticket_interno || '-'}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-700 max-w-xs">
+                <div class="truncate" title="${garantia.produtos_lista || 'N/A'}">
+                    ${garantia.produtos_lista || '<span class="text-gray-400">-</span>'}
+                </div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
                 <select onchange="updateGarantiaStatus(${garantia.id}, this.value, this)" 
@@ -1542,6 +1551,11 @@ function filtrarGarantias() {
         
         // Busca por status
         if (garantia.status && garantia.status.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por produto
+        if (garantia.produtos_lista && garantia.produtos_lista.toLowerCase().includes(termoBusca)) {
             return true;
         }
         
