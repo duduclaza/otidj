@@ -172,11 +172,21 @@ class GarantiasController
 
                 $stmt = $this->db->prepare("
                     INSERT INTO garantias_itens (
-                        garantia_id, descricao, quantidade, valor_unitario
-                    ) VALUES (?, ?, ?, ?)
+                        garantia_id, descricao, quantidade, valor_unitario,
+                        tipo_produto, produto_id, codigo_produto, nome_produto
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 
-                $result = $stmt->execute([$garantia_id, trim($item['descricao']), (int)$item['quantidade'], (float)$item['valor_unitario']]);
+                $result = $stmt->execute([
+                    $garantia_id, 
+                    trim($item['descricao']), 
+                    (int)$item['quantidade'], 
+                    (float)$item['valor_unitario'],
+                    !empty($item['tipo_produto']) ? $item['tipo_produto'] : null,
+                    !empty($item['produto_id']) ? (int)$item['produto_id'] : null,
+                    !empty($item['codigo_produto']) ? trim($item['codigo_produto']) : null,
+                    !empty($item['nome_produto']) ? trim($item['nome_produto']) : null
+                ]);
                 error_log("DEBUG - Item $index inserido: " . ($result ? 'SUCESSO' : 'ERRO'));
                 
                 if (!$result) {
@@ -525,14 +535,19 @@ class GarantiasController
 
                     $stmt = $this->db->prepare("
                         INSERT INTO garantias_itens (
-                            garantia_id, descricao, quantidade, valor_unitario
-                        ) VALUES (?, ?, ?, ?)
+                            garantia_id, descricao, quantidade, valor_unitario,
+                            tipo_produto, produto_id, codigo_produto, nome_produto
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     $result = $stmt->execute([
                         $id,
                         trim($item['descricao']),
                         (int)$item['quantidade'],
-                        (float)$item['valor_unitario']
+                        (float)$item['valor_unitario'],
+                        !empty($item['tipo_produto']) ? $item['tipo_produto'] : null,
+                        !empty($item['produto_id']) ? (int)$item['produto_id'] : null,
+                        !empty($item['codigo_produto']) ? trim($item['codigo_produto']) : null,
+                        !empty($item['nome_produto']) ? trim($item['nome_produto']) : null
                     ]);
                     error_log("DEBUG UPDATE - Item $index inserido: " . ($result ? 'SUCESSO' : 'ERRO'));
                     
