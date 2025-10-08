@@ -380,7 +380,7 @@ if (!isset($_SESSION['user_id'])) {
     <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
         <!-- Controles da Tabela -->
         <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center mb-3">
                 <div class="flex items-center space-x-4">
                     <h3 class="text-sm font-medium text-gray-900">Tabela de Garantias</h3>
                     <span class="text-xs text-gray-500">Arraste as bordas das colunas para redimensionar</span>
@@ -393,6 +393,20 @@ if (!isset($_SESSION['user_id'])) {
                         Configurar Colunas
                     </button>
                 </div>
+            </div>
+            
+            <!-- Campo de Busca Inteligente -->
+            <div class="relative">
+                <input
+                    type="text"
+                    id="buscaGarantias"
+                    placeholder="🔍 Buscar por ID, fornecedor, NF, número de série, lote, ticket/OS, ticket interno..."
+                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    oninput="filtrarGarantias()"
+                >
+                <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
             </div>
         </div>
 
@@ -436,6 +450,22 @@ if (!isset($_SESSION['user_id'])) {
                         </th>
                         <th data-column="nfs" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 150px; min-width: 100px;">
                             NFs
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="serie" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 140px; min-width: 100px;">
+                            Nº Série
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="lote" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 120px; min-width: 90px;">
+                            Lote
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="ticket_os" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 140px; min-width: 100px;">
+                            Ticket/OS
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="ticket_interno" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 140px; min-width: 100px;">
+                            Ticket Interno
                             <div class="column-resizer"></div>
                         </th>
                         <th data-column="status" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 150px;">
@@ -1296,7 +1326,7 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     if (dados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="14" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
         return;
     }
     
@@ -1327,6 +1357,18 @@ function renderizarTabela(dados) {
             </td>
             <td class="px-4 py-3 text-xs text-gray-600 max-w-xs">
                 <div class="space-y-1">${nfsText}</div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                ${garantia.numero_serie || '-'}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                ${garantia.numero_lote || '-'}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                ${garantia.numero_ticket_os || '-'}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                ${garantia.numero_ticket_interno || '-'}
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
                 <select onchange="updateGarantiaStatus(${garantia.id}, this.value, this)" 
@@ -1436,6 +1478,80 @@ function calcularTempoDecorrido(data) {
     if (diffDias < 30) return `${diffDias} dias atrás`;
     if (diffDias < 365) return `${Math.floor(diffDias/30)} meses atrás`;
     return `${Math.floor(diffDias/365)} anos atrás`;
+}
+
+// Filtro de busca inteligente
+function filtrarGarantias() {
+    const termoBusca = document.getElementById('buscaGarantias').value.toLowerCase().trim();
+    
+    console.log('🔍 Filtrando garantias com termo:', termoBusca);
+    
+    if (!termoBusca) {
+        // Se busca vazia, mostra todas as garantias
+        renderizarTabela(garantias);
+        return;
+    }
+    
+    // Filtrar garantias por múltiplos campos
+    const garantiasFiltradas = garantias.filter(garantia => {
+        // Busca por ID
+        if (garantia.id.toString().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por fornecedor
+        if (garantia.fornecedor_nome && garantia.fornecedor_nome.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por origem
+        if (garantia.origem_garantia && garantia.origem_garantia.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por NFs
+        if (garantia.numero_nf_compras && garantia.numero_nf_compras.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        if (garantia.numero_nf_remessa_simples && garantia.numero_nf_remessa_simples.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        if (garantia.numero_nf_remessa_devolucao && garantia.numero_nf_remessa_devolucao.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por número de série
+        if (garantia.numero_serie && garantia.numero_serie.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por lote
+        if (garantia.numero_lote && garantia.numero_lote.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por ticket/OS
+        if (garantia.numero_ticket_os && garantia.numero_ticket_os.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por ticket interno
+        if (garantia.numero_ticket_interno && garantia.numero_ticket_interno.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        // Busca por status
+        if (garantia.status && garantia.status.toLowerCase().includes(termoBusca)) {
+            return true;
+        }
+        
+        return false;
+    });
+    
+    console.log(`✅ Encontradas ${garantiasFiltradas.length} garantias de ${garantias.length} total`);
+    
+    // Renderizar apenas garantias filtradas
+    renderizarTabela(garantiasFiltradas);
 }
 
 // Atualizar status da garantia no grid
