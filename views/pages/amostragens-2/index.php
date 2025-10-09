@@ -830,13 +830,13 @@ function exportarExcel() {
 // Alterar status da amostragem
 async function alterarStatus(id, novoStatus) {
   if (!confirm(`Tem certeza que deseja alterar o status para "${novoStatus}"?\n\nUm email será enviado aos responsáveis.`)) {
-    // Recarregar página para resetar o select
-    window.location.reload();
+    // Recarregar grid para resetar o select
+    loadAmostragens();
     return;
   }
   
   try {
-    console.log(`Alterando status da amostragem ${id} para: ${novoStatus}`);
+    console.log(`🔄 Alterando status da amostragem ${id} para: ${novoStatus}`);
     
     const response = await fetch('/amostragens-2/update-status', {
       method: 'POST',
@@ -845,18 +845,24 @@ async function alterarStatus(id, novoStatus) {
     });
     
     const result = await response.json();
+    console.log('📡 Resposta do servidor:', result);
     
     if (result.success) {
+      console.log('✅ Status atualizado com sucesso!');
       alert('✅ ' + result.message + '\n\n📧 Email enviado aos responsáveis!');
-      window.location.reload();
+      
+      // Recarregar grid para mostrar mudanças
+      console.log('🔄 Recarregando grid...');
+      await loadAmostragens();
+      console.log('✅ Grid recarregado!');
     } else {
       alert('❌ Erro: ' + result.message);
-      window.location.reload();
+      loadAmostragens(); // Recarregar mesmo com erro para reverter mudança visual
     }
   } catch (error) {
-    console.error('Erro ao alterar status:', error);
+    console.error('❌ Erro ao alterar status:', error);
     alert('❌ Erro ao alterar status: ' + error.message);
-    window.location.reload();
+    loadAmostragens(); // Recarregar para reverter mudança visual
   }
 }
 </script>
