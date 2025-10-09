@@ -117,6 +117,13 @@
                 <p class="text-gray-900"><?= nl2br(e($garantia['observacao'])) ?></p>
             </div>
             <?php endif; ?>
+            
+            <?php if ($garantia['descricao_defeito']): ?>
+            <div class="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+                <label class="text-sm text-gray-600 block mb-1">🔧 Descrição do Defeito</label>
+                <p class="text-gray-900"><?= nl2br(e($garantia['descricao_defeito'])) ?></p>
+            </div>
+            <?php endif; ?>
         </div>
         
         <!-- Itens da Garantia -->

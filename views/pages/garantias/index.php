@@ -211,6 +211,19 @@ if (!isset($_SESSION['user_id'])) {
                     <label class="block text-sm font-medium text-white mb-2">Observação</label>
                     <textarea name="observacao" rows="3" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Observações sobre a garantia..."></textarea>
                 </div>
+            </div>
+
+            <!-- Descrição do Defeito -->
+            <div class="grid grid-cols-1 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">🔧 Descrição do Defeito</label>
+                    <textarea name="descricao_defeito" rows="4" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400" placeholder="Descreva o defeito reportado pelo cliente..."></textarea>
+                    <p class="text-xs text-gray-400 mt-1">Detalhe o problema reportado, sintomas observados, etc.</p>
+                </div>
+            </div>
+
+            <!-- Notificação -->
+            <div class="grid grid-cols-1 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-white mb-2">🔔 Notificar Alguém</label>
                     <select name="usuario_notificado_id" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -470,6 +483,10 @@ if (!isset($_SESSION['user_id'])) {
                         </th>
                         <th data-column="status" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 150px;">
                             Status
+                            <div class="column-resizer"></div>
+                        </th>
+                        <th data-column="defeito" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 250px; min-width: 150px;">
+                            Descrição do Defeito
                             <div class="column-resizer"></div>
                         </th>
                         <th data-column="itens" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 80px; min-width: 60px;">
@@ -1342,7 +1359,7 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     if (dados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="15" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="16" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
         return;
     }
     
@@ -1405,6 +1422,11 @@ function renderizarTabela(dados) {
                     <option value="Garantia Expirada" ${garantia.status === 'Garantia Expirada' ? 'selected' : ''}>Garantia Expirada</option>
                     <option value="Garantia não coberta" ${garantia.status === 'Garantia não coberta' ? 'selected' : ''}>Garantia não coberta</option>
                 </select>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-700 max-w-xs">
+                <div class="truncate" title="${garantia.descricao_defeito || ''}">
+                    ${garantia.descricao_defeito ? garantia.descricao_defeito : '<span class="text-gray-400 text-xs">-</span>'}
+                </div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 text-center">
                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -2057,6 +2079,7 @@ function preencherFormularioEdicao(garantia) {
     // Preencher status e observação
     document.querySelector('[name="status"]').value = garantia.status || 'Em andamento';
     document.querySelector('[name="observacao"]').value = garantia.observacao || '';
+    document.querySelector('[name="descricao_defeito"]').value = garantia.descricao_defeito || '';
     
     // Preencher dados de logística se existirem
     if (garantia.logistica) {

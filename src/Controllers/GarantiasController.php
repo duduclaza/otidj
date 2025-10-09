@@ -105,6 +105,7 @@ class GarantiasController
             $usuario_notificado_id = !empty($_POST['usuario_notificado_id']) ? (int)$_POST['usuario_notificado_id'] : null;
             $status = $_POST['status'] ?? 'Em andamento';
             $observacao = trim($_POST['observacao'] ?? '');
+            $descricao_defeito = trim($_POST['descricao_defeito'] ?? '');
             $user_id = $_SESSION['user_id'];
 
             // Validações
@@ -141,14 +142,14 @@ class GarantiasController
                 INSERT INTO garantias (
                     fornecedor_id, origem_garantia, numero_nf_compras, numero_nf_remessa_simples, 
                     numero_nf_remessa_devolucao, numero_serie, numero_lote, 
-                    numero_ticket_os, numero_ticket_interno, usuario_notificado_id, status, observacao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    numero_ticket_os, numero_ticket_interno, usuario_notificado_id, status, observacao, descricao_defeito
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
             $stmt->execute([
                 $fornecedor_id, $origem_garantia, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
-                $numero_ticket_os, $numero_ticket_interno, $usuario_notificado_id, $status, $observacao
+                $numero_ticket_os, $numero_ticket_interno, $usuario_notificado_id, $status, $observacao, $descricao_defeito
             ]);
             
             $garantia_id = $this->db->lastInsertId();
@@ -459,6 +460,7 @@ class GarantiasController
             $usuario_notificado_id = !empty($_POST['usuario_notificado_id']) ? (int)$_POST['usuario_notificado_id'] : null;
             $status = $_POST['status'] ?? 'Em andamento';
             $observacao = trim($_POST['observacao'] ?? '');
+            $descricao_defeito = trim($_POST['descricao_defeito'] ?? '');
             
             // Buscar status anterior para comparar
             $stmtAnterior = $this->db->prepare("SELECT status FROM garantias WHERE id = ?");
@@ -492,7 +494,7 @@ class GarantiasController
                     fornecedor_id = ?, numero_nf_compras = ?, numero_nf_remessa_simples = ?,
                     numero_nf_remessa_devolucao = ?, numero_serie = ?, numero_lote = ?,
                     numero_ticket_os = ?, numero_ticket_interno = ?, usuario_notificado_id = ?,
-                    origem_garantia = ?, status = ?, observacao = ?,
+                    origem_garantia = ?, status = ?, observacao = ?, descricao_defeito = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ");
@@ -501,7 +503,7 @@ class GarantiasController
                 $fornecedor_id, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
                 $numero_ticket_os, $numero_ticket_interno, $usuario_notificado_id,
-                $origem_garantia, $status, $observacao, $id
+                $origem_garantia, $status, $observacao, $descricao_defeito, $id
             ]);
             
             // Verificar se houve mudança de status
