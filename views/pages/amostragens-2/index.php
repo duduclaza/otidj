@@ -296,6 +296,7 @@ $toners = $toners ?? [];
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <select onchange="alterarStatus(<?= $amostra['id'] ?>, this.value)" 
+                      data-old-value="<?= e($amostra['status_final']) ?>"
                       class="px-2 py-1 text-xs font-semibold rounded-md border-0 cursor-pointer
                         <?php
                           switch($amostra['status_final']) {
@@ -829,11 +830,18 @@ function exportarExcel() {
 
 // Alterar status da amostragem
 async function alterarStatus(id, novoStatus) {
+  // Salvar o select que foi alterado para poder reverter se cancelar
+  const selectElement = event.target;
+  const oldValue = selectElement.getAttribute('data-old-value') || selectElement.value;
+  
   if (!confirm(`Tem certeza que deseja alterar o status para "${novoStatus}"?\n\nUm email será enviado aos responsáveis.`)) {
-    // Recarregar grid para resetar o select
-    loadAmostragens();
+    // Reverter select ao valor anterior
+    selectElement.value = oldValue;
     return;
   }
+  
+  // Desabilitar select durante o processamento
+  selectElement.disabled = true;
   
   try {
     console.log(`🔄 Alterando status da amostragem ${id} para: ${novoStatus}`);
@@ -851,18 +859,21 @@ async function alterarStatus(id, novoStatus) {
       console.log('✅ Status atualizado com sucesso!');
       alert('✅ ' + result.message + '\n\n📧 Email enviado aos responsáveis!');
       
-      // Recarregar grid para mostrar mudanças
-      console.log('🔄 Recarregando grid...');
-      await loadAmostragens();
-      console.log('✅ Grid recarregado!');
+      // Recarregar página para mostrar mudanças
+      console.log('🔄 Recarregando página...');
+      window.location.reload();
     } else {
       alert('❌ Erro: ' + result.message);
-      loadAmostragens(); // Recarregar mesmo com erro para reverter mudança visual
+      // Reverter select ao valor anterior
+      selectElement.value = oldValue;
+      selectElement.disabled = false;
     }
   } catch (error) {
     console.error('❌ Erro ao alterar status:', error);
     alert('❌ Erro ao alterar status: ' + error.message);
-    loadAmostragens(); // Recarregar para reverter mudança visual
+    // Reverter select ao valor anterior
+    selectElement.value = oldValue;
+    selectElement.disabled = false;
   }
 }
 </script>

@@ -4,41 +4,56 @@
 
 Ao alterar o status de uma amostragem para "Reprovado" (ou qualquer outro status) usando o dropdown no grid, a mudança não estava sendo refletida visualmente.
 
+**Erro encontrado:** `loadAmostragens is not defined`
+
 **Imagem do problema:** Grid mostra "Pendente" mas foi alterado para "Reprovado"
 
 ---
 
-## 🔍 CAUSA
+## 🔍 CAUSA RAIZ
 
-A função `alterarStatus()` estava usando `window.location.reload()` que:
-1. Recarrega a página inteira (lento)
-2. Pode não funcionar corretamente em alguns navegadores
-3. Perde scroll position e estado de filtros
-4. Às vezes falha silenciosamente
-
-```javascript
-// ANTES - Problemático
-if (result.success) {
-    alert('✅ Status atualizado!');
-    window.location.reload(); // ❌ Não garantia atualização
-}
-```
+1. A página **não usa JavaScript** para carregar o grid
+2. O grid é renderizado em **PHP direto no servidor**
+3. Tentativa de chamar `loadAmostragens()` causou erro (função não existe)
+4. Necessário usar `window.location.reload()` mas de forma **mais robusta**
 
 ---
 
 ## ✅ SOLUÇÃO APLICADA
 
-Substituí `window.location.reload()` por `loadAmostragens()` que:
-1. Recarrega APENAS o grid (mais rápido)
-2. Mantém filtros ativos
-3. Preserva scroll position
-4. Mais confiável
+Melhorei a função `alterarStatus()` com:
+
+1. **Salva valor original** no atributo `data-old-value`
+2. **Reverte select** se usuário cancelar
+3. **Desabilita select** durante processamento
+4. **Reverte em caso de erro** (não deixa select incorreto)
+5. **Usa `window.location.reload()`** após sucesso
 
 ```javascript
 // DEPOIS - Corrigido
-if (result.success) {
-    alert('✅ Status atualizado!');
-    await loadAmostragens(); // ✅ Recarrega apenas grid
+async function alterarStatus(id, novoStatus) {
+  const selectElement = event.target;
+  const oldValue = selectElement.getAttribute('data-old-value');
+  
+  if (!confirm(...)) {
+    selectElement.value = oldValue; // ✅ Reverte
+    return;
+  }
+  
+  selectElement.disabled = true; // ✅ Desabilita
+  
+  try {
+    const result = await fetch(...);
+    if (result.success) {
+      window.location.reload(); // ✅ Recarrega
+    } else {
+      selectElement.value = oldValue; // ✅ Reverte em erro
+      selectElement.disabled = false;
+    }
+  } catch (error) {
+    selectElement.value = oldValue; // ✅ Reverte em exceção
+    selectElement.disabled = false;
+  }
 }
 ```
 
