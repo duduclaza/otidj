@@ -356,10 +356,10 @@ class FluxogramasController
             
             // Validar extensão
             $extensao = strtolower(pathinfo($nome_arquivo, PATHINFO_EXTENSION));
-            $extensoes_permitidas = ['pdf', 'png', 'jpg', 'jpeg', 'ppt', 'pptx'];
+            $extensoes_permitidas = ['pdf', 'png', 'jpg', 'jpeg'];
             
             if (!in_array($extensao, $extensoes_permitidas)) {
-                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Apenas: PDF, PNG, JPEG, PPT, PPTX']);
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Apenas: PDF, PNG, JPEG']);
                 return;
             }
             
@@ -502,10 +502,10 @@ class FluxogramasController
             
             // Validar extensão
             $extensao = strtolower(pathinfo($nome_arquivo, PATHINFO_EXTENSION));
-            $extensoes_permitidas = ['pdf', 'png', 'jpg', 'jpeg', 'ppt', 'pptx'];
+            $extensoes_permitidas = ['pdf', 'png', 'jpg', 'jpeg'];
             
             if (!in_array($extensao, $extensoes_permitidas)) {
-                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido']);
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Apenas: PDF, PNG, JPEG']);
                 return;
             }
             
@@ -1414,9 +1414,7 @@ class FluxogramasController
                 'pdf' => 'application/pdf',
                 'png' => 'image/png',
                 'jpg' => 'image/jpeg',
-                'jpeg' => 'image/jpeg',
-                'ppt' => 'application/vnd.ms-powerpoint',
-                'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+                'jpeg' => 'image/jpeg'
             ];
             
             $content_type = $mime_types[$registro['extensao']] ?? 'application/octet-stream';

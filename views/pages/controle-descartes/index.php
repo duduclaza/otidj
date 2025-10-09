@@ -213,8 +213,8 @@ $canExport = hasPermission('controle_descartes', 'export');
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Anexo da OS Assinada</label>
-                    <input type="file" id="anexo-os" name="anexo_os" accept=".png,.jpg,.jpeg,.pdf,.ppt,.pptx" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <small class="text-gray-500">Formatos aceitos: PNG, JPEG, PDF, PPT. Máximo 10MB</small>
+                    <input type="file" id="anexo-os" name="anexo_os" accept=".png,.jpg,.jpeg,.pdf" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <small class="text-gray-500">Formatos aceitos: PNG, JPEG, PDF. Máximo 10MB</small>
                 </div>
 
                 <div class="mb-6">

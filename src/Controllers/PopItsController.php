@@ -1336,9 +1336,7 @@ class PopItsController
             'gif' => 'image/gif',
             'webp' => 'image/webp',
             'bmp' => 'image/bmp',
-            'svg' => 'image/svg+xml',
-            'ppt' => 'application/vnd.ms-powerpoint',
-            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            'svg' => 'image/svg+xml'
         ];
         
         return $types[strtolower($extensao)] ?? 'application/octet-stream';

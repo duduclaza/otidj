@@ -161,9 +161,9 @@ class ControleDescartesController
                 }
 
                 // Validar tipo de arquivo
-                $allowed_types = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+                $allowed_types = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
                 if (!in_array($file['type'], $allowed_types)) {
-                    echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PNG, JPEG, PDF ou PPT.']);
+                    echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PNG, JPEG ou PDF.']);
                     return;
                 }
 
@@ -267,9 +267,9 @@ class ControleDescartesController
                 }
 
                 // Validar tipo de arquivo
-                $allowed_types = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+                $allowed_types = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
                 if (!in_array($file['type'], $allowed_types)) {
-                    echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PNG, JPEG, PDF ou PPT.']);
+                    echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PNG, JPEG ou PDF.']);
                     return;
                 }
 
