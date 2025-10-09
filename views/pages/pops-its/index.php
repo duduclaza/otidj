@@ -129,7 +129,24 @@ if (!isset($_SESSION['user_id'])) {
                 <!-- Lista de Títulos Cadastrados -->
                 <div class="bg-white rounded-lg shadow-sm border">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h4 class="text-lg font-semibold text-gray-900">📋 Títulos Cadastrados</h4>
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-lg font-semibold text-gray-900">📋 Títulos Cadastrados</h4>
+                            <!-- Busca Inteligente -->
+                            <div class="flex items-center space-x-2">
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        id="buscaTitulosCadastroPops"
+                                        placeholder="🔍 Buscar título..."
+                                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        onkeyup="filtrarTitulosCadastroPops()"
+                                    >
+                                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
@@ -334,8 +351,25 @@ if (!isset($_SESSION['user_id'])) {
             <div id="content-visualizacao" class="tab-content hidden">
                 <div class="bg-white shadow rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
-                        <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
+                                <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                            </div>
+                            <!-- Busca Inteligente -->
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="buscaVisualizacaoPops"
+                                    placeholder="🔍 Buscar por título, versão ou autor..."
+                                    class="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onkeyup="filtrarVisualizacaoPops()"
+                                >
+                                <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
@@ -1992,6 +2026,68 @@ function formatDateTime(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+// ===== FUNÇÕES DE BUSCA INTELIGENTE =====
+
+// Filtrar Títulos Cadastrados (POPs e ITs)
+function filtrarTitulosCadastroPops() {
+    const input = document.getElementById('buscaTitulosCadastroPops');
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById('listaTitulos');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 0; i < tr.length; i++) {
+        const tdTipo = tr[i].getElementsByTagName('td')[0];    // Tipo
+        const tdTitulo = tr[i].getElementsByTagName('td')[1];  // Título
+        const tdDept = tr[i].getElementsByTagName('td')[2];    // Departamento
+        const tdCriador = tr[i].getElementsByTagName('td')[3]; // Criador
+        
+        if (tdTipo || tdTitulo || tdDept || tdCriador) {
+            const txtTipo = tdTipo ? tdTipo.textContent || tdTipo.innerText : '';
+            const txtTitulo = tdTitulo ? tdTitulo.textContent || tdTitulo.innerText : '';
+            const txtDept = tdDept ? tdDept.textContent || tdDept.innerText : '';
+            const txtCriador = tdCriador ? tdCriador.textContent || tdCriador.innerText : '';
+            
+            const txtValue = txtTipo + ' ' + txtTitulo + ' ' + txtDept + ' ' + txtCriador;
+            
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = '';
+            } else {
+                tr[i].style.display = 'none';
+            }
+        }
+    }
+}
+
+// Filtrar Visualização (Registros Aprovados - POPs e ITs)
+function filtrarVisualizacaoPops() {
+    const input = document.getElementById('buscaVisualizacaoPops');
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById('listaVisualizacao');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 0; i < tr.length; i++) {
+        const tdTipo = tr[i].getElementsByTagName('td')[0];    // Tipo
+        const tdTitulo = tr[i].getElementsByTagName('td')[1];  // Título
+        const tdVersao = tr[i].getElementsByTagName('td')[2];  // Versão
+        const tdAutor = tr[i].getElementsByTagName('td')[3];   // Autor
+        
+        if (tdTipo || tdTitulo || tdVersao || tdAutor) {
+            const txtTipo = tdTipo ? tdTipo.textContent || tdTipo.innerText : '';
+            const txtTitulo = tdTitulo ? tdTitulo.textContent || tdTitulo.innerText : '';
+            const txtVersao = tdVersao ? tdVersao.textContent || tdVersao.innerText : '';
+            const txtAutor = tdAutor ? tdAutor.textContent || tdAutor.innerText : '';
+            
+            const txtValue = txtTipo + ' ' + txtTitulo + ' ' + txtVersao + ' ' + txtAutor;
+            
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = '';
+            } else {
+                tr[i].style.display = 'none';
+            }
+        }
+    }
 }
 
 </script>

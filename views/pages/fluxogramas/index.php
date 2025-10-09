@@ -124,7 +124,24 @@ const departamentos = <?= json_encode($departamentos ?? []) ?>;
                 <!-- Lista de Títulos Cadastrados -->
                 <div class="bg-white rounded-lg shadow-sm border">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h4 class="text-lg font-semibold text-gray-900">📋 Títulos Cadastrados</h4>
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-lg font-semibold text-gray-900">📋 Títulos Cadastrados</h4>
+                            <!-- Busca Inteligente -->
+                            <div class="flex items-center space-x-2">
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        id="buscaTitulosCadastro"
+                                        placeholder="🔍 Buscar título..."
+                                        class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        onkeyup="filtrarTitulosCadastro()"
+                                    >
+                                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
@@ -329,8 +346,25 @@ const departamentos = <?= json_encode($departamentos ?? []) ?>;
             <div id="content-visualizacao" class="tab-content hidden">
                 <div class="bg-white shadow rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
-                        <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
+                                <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
+                            </div>
+                            <!-- Busca Inteligente -->
+                            <div class="relative">
+                                <input 
+                                    type="text" 
+                                    id="buscaVisualizacao"
+                                    placeholder="🔍 Buscar por título, versão ou autor..."
+                                    class="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onkeyup="filtrarVisualizacao()"
+                                >
+                                <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
@@ -2277,6 +2311,64 @@ function formatDateTime(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+// ===== FUNÇÕES DE BUSCA INTELIGENTE =====
+
+// Filtrar Títulos Cadastrados
+function filtrarTitulosCadastro() {
+    const input = document.getElementById('buscaTitulosCadastro');
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById('listaTitulos');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 0; i < tr.length; i++) {
+        const tdTitulo = tr[i].getElementsByTagName('td')[1]; // Coluna do título
+        const tdDept = tr[i].getElementsByTagName('td')[2];   // Coluna do departamento
+        const tdCriador = tr[i].getElementsByTagName('td')[3]; // Coluna do criador
+        
+        if (tdTitulo || tdDept || tdCriador) {
+            const txtTitulo = tdTitulo ? tdTitulo.textContent || tdTitulo.innerText : '';
+            const txtDept = tdDept ? tdDept.textContent || tdDept.innerText : '';
+            const txtCriador = tdCriador ? tdCriador.textContent || tdCriador.innerText : '';
+            
+            const txtValue = txtTitulo + ' ' + txtDept + ' ' + txtCriador;
+            
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = '';
+            } else {
+                tr[i].style.display = 'none';
+            }
+        }
+    }
+}
+
+// Filtrar Visualização (Registros Aprovados)
+function filtrarVisualizacao() {
+    const input = document.getElementById('buscaVisualizacao');
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById('listaVisualizacao');
+    const tr = table.getElementsByTagName('tr');
+
+    for (let i = 0; i < tr.length; i++) {
+        const tdTitulo = tr[i].getElementsByTagName('td')[0];  // Título
+        const tdVersao = tr[i].getElementsByTagName('td')[1];  // Versão
+        const tdAutor = tr[i].getElementsByTagName('td')[2];   // Autor
+        
+        if (tdTitulo || tdVersao || tdAutor) {
+            const txtTitulo = tdTitulo ? tdTitulo.textContent || tdTitulo.innerText : '';
+            const txtVersao = tdVersao ? tdVersao.textContent || tdVersao.innerText : '';
+            const txtAutor = tdAutor ? tdAutor.textContent || tdAutor.innerText : '';
+            
+            const txtValue = txtTitulo + ' ' + txtVersao + ' ' + txtAutor;
+            
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = '';
+            } else {
+                tr[i].style.display = 'none';
+            }
+        }
+    }
 }
 
 </script>
