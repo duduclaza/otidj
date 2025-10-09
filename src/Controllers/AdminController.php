@@ -55,9 +55,21 @@ class AdminController
         // Check if it's an AJAX request
         if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
             try {
+                // Verificar se coluna notificacoes_ativadas existe
+                $hasColumnNotificacoes = false;
+                try {
+                    $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'notificacoes_ativadas'");
+                    $hasColumnNotificacoes = $checkColumn->rowCount() > 0;
+                } catch (\Exception $e) {
+                    // Coluna não existe ainda
+                }
+                
+                // Construir query dinamicamente
+                $notifColumn = $hasColumnNotificacoes ? 'u.notificacoes_ativadas,' : '1 as notificacoes_ativadas,';
+                
                 $stmt = $this->db->prepare("
                 SELECT u.id, u.name, u.email, u.setor, u.filial, u.role, u.status, u.created_at, u.profile_id,
-                       u.notificacoes_ativadas,
+                       {$notifColumn}
                        p.name as profile_name, p.description as profile_description
                 FROM users u 
                 LEFT JOIN profiles p ON u.profile_id = p.id 

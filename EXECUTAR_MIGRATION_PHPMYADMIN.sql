@@ -1,7 +1,7 @@
 /* ===== MIGRATION: Adicionar coluna notificacoes_ativadas na tabela users ===== */
 /* Data: 09/10/2025 */
 /* Descrição: Permite ativar/desativar o sino de notificações para cada usuário */
-/* Autor: Sistema SGQ-OTI DJ */
+/* EXECUTAR ESTE ARQUIVO NO PHPMYADMIN */
 
 /* Verificar se a coluna já existe antes de adicionar */
 SET @column_exists = (
