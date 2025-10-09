@@ -33,8 +33,31 @@ $viewFile = __FILE__;
       </div>
     </div>
 
-    <!-- Change Password Form -->
+    <!-- Notification Preferences -->
     <div class="border-t pt-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Preferências de Notificações</h3>
+      <div class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start space-x-3">
+          <div class="flex items-center h-5">
+            <input type="checkbox" id="notificacoesToggle" class="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded">
+          </div>
+          <div class="flex-1">
+            <label for="notificacoesToggle" class="font-medium text-gray-900 cursor-pointer">
+              🔔 Receber Notificações do Sistema
+            </label>
+            <p class="text-sm text-gray-600 mt-1">
+              Quando ativado, você verá o sino de notificações na barra lateral e receberá alertas visuais e sonoros sobre eventos importantes do sistema (aprovações, atualizações, etc).
+            </p>
+            <p class="text-xs text-gray-500 mt-2">
+              <strong>Dica:</strong> Desative se não quiser ser notificado ou se preferir verificar atualizações manualmente.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change Password Form -->
+    <div class="border-t pt-6 mt-6">
       <h3 class="text-lg font-medium text-gray-900 mb-4">Alterar Senha</h3>
       <form id="changePasswordForm" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -82,6 +105,17 @@ function loadUserProfile() {
       document.getElementById('userName').textContent = user.name;
       document.getElementById('userEmail').textContent = user.email;
       document.getElementById('userInfo').textContent = 'Usuário do Sistema';
+      
+      // Load notification preference
+      const notifToggle = document.getElementById('notificacoesToggle');
+      if (notifToggle) {
+        notifToggle.checked = user.notificacoes_ativadas == 1 || user.notificacoes_ativadas === true || user.notificacoes_ativadas === undefined;
+        
+        // Add change listener
+        notifToggle.addEventListener('change', function() {
+          updateNotificationPreference(this.checked);
+        });
+      }
       
       // Load profile photo if exists
       if (user.profile_photo) {
@@ -164,6 +198,60 @@ function uploadPhoto() {
   });
 }
 
+// Update notification preference
+function updateNotificationPreference(enabled) {
+  const formData = new FormData();
+  formData.append('notificacoes_ativadas', enabled ? '1' : '0');
+  
+  fetch('/api/profile/notifications', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      // Show success message
+      showNotification(result.message, 'success');
+      
+      // Reload page after 1.5 seconds to apply changes
+      if (result.reload_required) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }
+    } else {
+      // Revert checkbox on error
+      document.getElementById('notificacoesToggle').checked = !enabled;
+      showNotification('Erro: ' + result.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Erro ao atualizar notificações:', error);
+    document.getElementById('notificacoesToggle').checked = !enabled;
+    showNotification('Erro ao atualizar preferências de notificação', 'error');
+  });
+}
+
+// Show notification toast
+function showNotification(message, type = 'info') {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300 ${
+    type === 'success' ? 'bg-green-500 text-white' : 
+    type === 'error' ? 'bg-red-500 text-white' : 
+    'bg-blue-500 text-white'
+  }`;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // Fade out and remove after 3 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // Handle password change form
 document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
   e.preventDefault();
@@ -173,7 +261,7 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
   const confirmPassword = formData.get('confirm_password');
   
   if (newPassword !== confirmPassword) {
-    alert('A nova senha e a confirmação não coincidem.');
+    showNotification('A nova senha e a confirmação não coincidem.', 'error');
     return;
   }
   
@@ -184,15 +272,15 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
   .then(response => response.json())
   .then(result => {
     if (result.success) {
-      alert('Senha alterada com sucesso!');
+      showNotification('Senha alterada com sucesso!', 'success');
       this.reset();
     } else {
-      alert('Erro ao alterar senha: ' + result.message);
+      showNotification('Erro ao alterar senha: ' + result.message, 'error');
     }
   })
   .catch(error => {
     console.error('Erro ao alterar senha:', error);
-    alert('Erro ao alterar senha');
+    showNotification('Erro ao alterar senha', 'error');
   });
 });
 </script>

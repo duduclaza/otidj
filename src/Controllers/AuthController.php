@@ -69,6 +69,9 @@ class AuthController
                 $_SESSION['user_setor'] = $user['setor'];
                 $_SESSION['user_filial'] = $user['filial'];
                 
+                // Notificações ativadas (padrão: true se não definido)
+                $_SESSION['notificacoes_ativadas'] = isset($user['notificacoes_ativadas']) ? (bool)$user['notificacoes_ativadas'] : true;
+                
                 // Load user profile information
                 $profileInfo = \App\Services\PermissionService::getUserProfile($user['id']);
                 $_SESSION['user_profile'] = $profileInfo;

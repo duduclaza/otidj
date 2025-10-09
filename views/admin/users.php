@@ -97,6 +97,21 @@
         </select>
       </div>
 
+      <!-- Sistema de Notificações - Para todos os usuários -->
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start space-x-3">
+          <input type="checkbox" id="notificacoesAtivadas" name="notificacoes_ativadas" checked class="mt-1 h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded">
+          <div>
+            <label for="notificacoesAtivadas" class="block text-sm font-medium text-gray-900 cursor-pointer">
+              🔔 Notificações do Sistema Ativadas
+            </label>
+            <p class="text-xs text-gray-600 mt-1">
+              Quando marcado, o usuário verá o sino de notificações no sistema e receberá alertas visuais e sonoros. Quando desmarcado, o sino não será exibido.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Permissões específicas para aprovação de módulos -->
       <div id="permissoesAprovacaoContainer" class="hidden space-y-3">
         <!-- POPs e ITs -->
@@ -481,6 +496,10 @@ function editUser(userId) {
           
           const podeAprovarAmostragens = user.pode_aprovar_amostragens == 1 || user.pode_aprovar_amostragens === true;
           document.getElementById('podeAprovarAmostragens').checked = podeAprovarAmostragens;
+          
+          // Preencher campo de notificações (padrão: ativado se não informado)
+          const notificacoesAtivadas = user.notificacoes_ativadas === undefined || user.notificacoes_ativadas == 1 || user.notificacoes_ativadas === true;
+          document.getElementById('notificacoesAtivadas').checked = notificacoesAtivadas;
           
           // Mostrar/esconder permissões de aprovação baseado no role
           togglePopsItsPermission();

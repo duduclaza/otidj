@@ -57,6 +57,7 @@ class AdminController
             try {
                 $stmt = $this->db->prepare("
                 SELECT u.id, u.name, u.email, u.setor, u.filial, u.role, u.status, u.created_at, u.profile_id,
+                       u.notificacoes_ativadas,
                        p.name as profile_name, p.description as profile_description
                 FROM users u 
                 LEFT JOIN profiles p ON u.profile_id = p.id 
@@ -165,6 +166,9 @@ class AdminController
             $role = $_POST['role'] ?? 'user';
             $profileId = $_POST['profile_id'] ?? null;
             $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? 1 : 0;
+            $podeAprovarFluxogramas = isset($_POST['pode_aprovar_fluxogramas']) ? 1 : 0;
+            $podeAprovarAmostragens = isset($_POST['pode_aprovar_amostragens']) ? 1 : 0;
+            $notificacoesAtivadas = isset($_POST['notificacoes_ativadas']) ? 1 : 0;
             
             // Validar dados obrigatórios
             if (empty($name) || empty($email)) {
@@ -203,7 +207,7 @@ class AdminController
             $tempPassword = $this->generateTempPassword();
             $hashedPassword = password_hash($tempPassword, PASSWORD_DEFAULT);
             
-            // Verificar se coluna existe antes de inserir
+            // Verificar se colunas existem antes de inserir
             $columns = "name, email, password, setor, filial, role, profile_id, status";
             $placeholders = "?, ?, ?, ?, ?, ?, ?, 'active'";
             $params = [$name, $email, $hashedPassword, $setor, $filial, $role, $profileId];
@@ -218,6 +222,42 @@ class AdminController
                 }
             } catch (\Exception $e) {
                 error_log("Coluna pode_aprovar_pops_its não existe ainda: " . $e->getMessage());
+            }
+            
+            // Adicionar coluna pode_aprovar_fluxogramas se existir
+            try {
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_fluxogramas'");
+                if ($checkColumn->rowCount() > 0) {
+                    $columns .= ", pode_aprovar_fluxogramas";
+                    $placeholders .= ", ?";
+                    $params[] = $podeAprovarFluxogramas;
+                }
+            } catch (\Exception $e) {
+                error_log("Coluna pode_aprovar_fluxogramas não existe ainda: " . $e->getMessage());
+            }
+            
+            // Adicionar coluna pode_aprovar_amostragens se existir
+            try {
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_amostragens'");
+                if ($checkColumn->rowCount() > 0) {
+                    $columns .= ", pode_aprovar_amostragens";
+                    $placeholders .= ", ?";
+                    $params[] = $podeAprovarAmostragens;
+                }
+            } catch (\Exception $e) {
+                error_log("Coluna pode_aprovar_amostragens não existe ainda: " . $e->getMessage());
+            }
+            
+            // Adicionar coluna notificacoes_ativadas se existir
+            try {
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'notificacoes_ativadas'");
+                if ($checkColumn->rowCount() > 0) {
+                    $columns .= ", notificacoes_ativadas";
+                    $placeholders .= ", ?";
+                    $params[] = $notificacoesAtivadas;
+                }
+            } catch (\Exception $e) {
+                error_log("Coluna notificacoes_ativadas não existe ainda: " . $e->getMessage());
             }
             
             $stmt = $this->db->prepare("INSERT INTO users ($columns) VALUES ($placeholders)");
@@ -658,6 +698,9 @@ class AdminController
             $status = $_POST['status'] ?? 'active';
             $profileId = $_POST['profile_id'] ?? null;
             $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? 1 : 0;
+            $podeAprovarFluxogramas = isset($_POST['pode_aprovar_fluxogramas']) ? 1 : 0;
+            $podeAprovarAmostragens = isset($_POST['pode_aprovar_amostragens']) ? 1 : 0;
+            $notificacoesAtivadas = isset($_POST['notificacoes_ativadas']) ? 1 : 0;
             
             // Debug log
             error_log("UpdateUser - UserID: $userId, Name: $name, Email: $email");
@@ -716,26 +759,56 @@ class AdminController
             // Update user with or without password
             error_log("Starting user update...");
             
-            // Verificar se coluna pode_aprovar_pops_its existe
-            $hasColumn = false;
+            // Verificar quais colunas extras existem
+            $hasColumnPopsIts = false;
+            $hasColumnFluxogramas = false;
+            $hasColumnAmostragens = false;
+            $hasColumnNotificacoes = false;
+            
             try {
                 $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_pops_its'");
-                $hasColumn = $checkColumn->rowCount() > 0;
+                $hasColumnPopsIts = $checkColumn->rowCount() > 0;
+                
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_fluxogramas'");
+                $hasColumnFluxogramas = $checkColumn->rowCount() > 0;
+                
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_amostragens'");
+                $hasColumnAmostragens = $checkColumn->rowCount() > 0;
+                
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'notificacoes_ativadas'");
+                $hasColumnNotificacoes = $checkColumn->rowCount() > 0;
             } catch (\Exception $e) {
-                error_log("Erro ao verificar coluna: " . $e->getMessage());
+                error_log("Erro ao verificar colunas: " . $e->getMessage());
             }
             
             if (!empty($password)) {
                 error_log("Updating user with new password");
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                 
-                if ($hasColumn) {
-                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ?, pode_aprovar_pops_its = ? WHERE id = ?");
-                    $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId, $status, $podeAprovarPopsIts, $userId]);
-                } else {
-                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
-                    $result = $stmt->execute([$name, $email, $hashedPassword, $setor, $filial, $role, $profileId, $status, $userId]);
+                // Construir query dinamicamente
+                $updateFields = "name = ?, email = ?, password = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ?";
+                $params = [$name, $email, $hashedPassword, $setor, $filial, $role, $profileId, $status];
+                
+                if ($hasColumnPopsIts) {
+                    $updateFields .= ", pode_aprovar_pops_its = ?";
+                    $params[] = $podeAprovarPopsIts;
                 }
+                if ($hasColumnFluxogramas) {
+                    $updateFields .= ", pode_aprovar_fluxogramas = ?";
+                    $params[] = $podeAprovarFluxogramas;
+                }
+                if ($hasColumnAmostragens) {
+                    $updateFields .= ", pode_aprovar_amostragens = ?";
+                    $params[] = $podeAprovarAmostragens;
+                }
+                if ($hasColumnNotificacoes) {
+                    $updateFields .= ", notificacoes_ativadas = ?";
+                    $params[] = $notificacoesAtivadas;
+                }
+                
+                $params[] = $userId;
+                $stmt = $this->db->prepare("UPDATE users SET {$updateFields} WHERE id = ?");
+                $result = $stmt->execute($params);
                 
                 error_log("Update result with password: " . ($result ? 'success' : 'failed'));
                 
@@ -750,13 +823,30 @@ class AdminController
             } else {
                 error_log("Updating user without password change");
                 
-                if ($hasColumn) {
-                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ?, pode_aprovar_pops_its = ? WHERE id = ?");
-                    $result = $stmt->execute([$name, $email, $setor, $filial, $role, $profileId, $status, $podeAprovarPopsIts, $userId]);
-                } else {
-                    $stmt = $this->db->prepare("UPDATE users SET name = ?, email = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ? WHERE id = ?");
-                    $result = $stmt->execute([$name, $email, $setor, $filial, $role, $profileId, $status, $userId]);
+                // Construir query dinamicamente
+                $updateFields = "name = ?, email = ?, setor = ?, filial = ?, role = ?, profile_id = ?, status = ?";
+                $params = [$name, $email, $setor, $filial, $role, $profileId, $status];
+                
+                if ($hasColumnPopsIts) {
+                    $updateFields .= ", pode_aprovar_pops_its = ?";
+                    $params[] = $podeAprovarPopsIts;
                 }
+                if ($hasColumnFluxogramas) {
+                    $updateFields .= ", pode_aprovar_fluxogramas = ?";
+                    $params[] = $podeAprovarFluxogramas;
+                }
+                if ($hasColumnAmostragens) {
+                    $updateFields .= ", pode_aprovar_amostragens = ?";
+                    $params[] = $podeAprovarAmostragens;
+                }
+                if ($hasColumnNotificacoes) {
+                    $updateFields .= ", notificacoes_ativadas = ?";
+                    $params[] = $notificacoesAtivadas;
+                }
+                
+                $params[] = $userId;
+                $stmt = $this->db->prepare("UPDATE users SET {$updateFields} WHERE id = ?");
+                $result = $stmt->execute($params);
                 
                 error_log("Update result without password: " . ($result ? 'success' : 'failed'));
                 

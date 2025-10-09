@@ -35,7 +35,7 @@ class ProfileController
             }
             
             $stmt = $this->db->prepare("
-                SELECT id, name, email, profile_photo, profile_photo_type
+                SELECT id, name, email, profile_photo, profile_photo_type, notificacoes_ativadas
                 FROM users 
                 WHERE id = :id
             ");
@@ -188,6 +188,63 @@ class ProfileController
         } catch (\Exception $e) {
             http_response_code(500);
             echo 'Erro ao carregar foto';
+        }
+    }
+
+    /**
+     * Update notification preferences
+     */
+    public function updateNotifications()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            session_start();
+            $userId = $_SESSION['user_id'] ?? null;
+            
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Usuário não autenticado']);
+                return;
+            }
+            
+            // Get the notification preference (1 = enabled, 0 = disabled)
+            $notificacoesAtivadas = isset($_POST['notificacoes_ativadas']) && $_POST['notificacoes_ativadas'] == '1' ? 1 : 0;
+            
+            // Check if column exists before updating
+            try {
+                $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'notificacoes_ativadas'");
+                if ($checkColumn->rowCount() === 0) {
+                    echo json_encode(['success' => false, 'message' => 'Funcionalidade de notificações não disponível. Execute a migration necessária.']);
+                    return;
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao verificar funcionalidade: ' . $e->getMessage()]);
+                return;
+            }
+            
+            // Update database
+            $stmt = $this->db->prepare("UPDATE users SET notificacoes_ativadas = :notif WHERE id = :id");
+            $stmt->execute([
+                ':notif' => $notificacoesAtivadas,
+                ':id' => $userId
+            ]);
+            
+            // Update session immediately
+            $_SESSION['notificacoes_ativadas'] = (bool)$notificacoesAtivadas;
+            
+            $message = $notificacoesAtivadas 
+                ? 'Notificações ativadas com sucesso! Você receberá alertas do sistema.' 
+                : 'Notificações desativadas. Você não receberá mais alertas do sistema.';
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => $message,
+                'notificacoes_ativadas' => $notificacoesAtivadas,
+                'reload_required' => true // Indica que página precisa recarregar para aplicar mudanças
+            ]);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar preferências: ' . $e->getMessage()]);
         }
     }
 }

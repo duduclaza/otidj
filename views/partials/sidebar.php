@@ -208,7 +208,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         </a>
       </div>
       <div class="flex items-center gap-2">
-        <!-- Sininho de Notificações -->
+        <!-- Sininho de Notificações - Visível apenas se ativado -->
+        <?php if (isset($_SESSION['notificacoes_ativadas']) && $_SESSION['notificacoes_ativadas']): ?>
         <div class="relative">
           <button id="notificationBtn" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-700 transition-colors relative" title="Notificações">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,6 +241,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
             </div>
           </div>
         </div>
+        <?php endif; ?>
         
         <a href="/logout" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-700 transition-colors" title="Sair">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -455,6 +457,13 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
 
     // Inicializar sistema de notificações
     document.addEventListener('DOMContentLoaded', function() {
+      // Verificar se o sino de notificações está presente (usuário tem notificações ativadas)
+      const notificationBtn = document.getElementById('notificationBtn');
+      if (!notificationBtn) {
+        console.log('Sistema de notificações desativado para este usuário');
+        return; // Não inicializar se notificações estiverem desativadas
+      }
+      
       // Criar som de notificação
       try {
         notificationSound = createNotificationSound();
@@ -467,7 +476,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       notificationInterval = setInterval(loadNotifications, 30000);
       
       // Event listeners
-      document.getElementById('notificationBtn')?.addEventListener('click', toggleNotifications);
+      notificationBtn.addEventListener('click', toggleNotifications);
       document.getElementById('markAllReadBtn')?.addEventListener('click', markAllAsRead);
       document.getElementById('clearHistoryBtn')?.addEventListener('click', clearNotificationHistory);
       
@@ -475,7 +484,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       document.addEventListener('click', function(e) {
         const dropdown = document.getElementById('notificationDropdown');
         const btn = document.getElementById('notificationBtn');
-        if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+        if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
           dropdown.classList.add('hidden');
         }
       });
@@ -499,6 +508,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     // Atualizar contador
     function updateNotificationCount(count) {
       const counter = document.getElementById('notificationCount');
+      if (!counter) return; // Sair se elemento não existir (notificações desativadas)
+      
       const previousCount = hasUnreadNotifications;
       
       if (count > 0) {
@@ -547,6 +558,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     // Atualizar lista de notificações
     function updateNotificationsList(notifications) {
       const list = document.getElementById('notificationsList');
+      if (!list) return; // Sair se elemento não existir (notificações desativadas)
       
       if (notifications.length === 0) {
         list.innerHTML = '<div class="p-4 text-center text-gray-500 text-sm">Nenhuma notificação nos últimos 30 dias</div>';

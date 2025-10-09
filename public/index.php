@@ -287,6 +287,7 @@ $router->get('/profile', [App\Controllers\ProfileController::class, 'index']);
 $router->get('/api/profile', [App\Controllers\ProfileController::class, 'getProfile']);
 $router->post('/api/profile/password', [App\Controllers\ProfileController::class, 'changePassword']);
 $router->post('/api/profile/photo', [App\Controllers\ProfileController::class, 'uploadPhoto']);
+$router->post('/api/profile/notifications', [App\Controllers\ProfileController::class, 'updateNotifications']);
 
 // Notifications routes
 $router->get('/api/notifications', [App\Controllers\NotificationsController::class, 'getNotifications']);
