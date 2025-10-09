@@ -36,6 +36,24 @@ $viewFile = __FILE__;
     <!-- Notification Preferences -->
     <div class="border-t pt-6">
       <h3 class="text-lg font-medium text-gray-900 mb-4">Preferências de Notificações</h3>
+      
+      <!-- Alert de Reload -->
+      <div id="reloadAlert" class="hidden bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-blue-800">
+              ⏳ Aguarde... Página será recarregada para aplicar as mudanças!
+            </p>
+            <p class="text-xs text-blue-600 mt-1">
+              O sino aparecerá ou desaparecerá automaticamente após o reload.
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <div class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-4">
         <div class="flex items-start space-x-3">
           <div class="flex items-center h-5">
@@ -49,7 +67,7 @@ $viewFile = __FILE__;
               Quando ativado, você verá o sino de notificações na barra lateral e receberá alertas visuais e sonoros sobre eventos importantes do sistema (aprovações, atualizações, etc).
             </p>
             <p class="text-xs text-gray-500 mt-2">
-              <strong>Dica:</strong> Desative se não quiser ser notificado ou se preferir verificar atualizações manualmente.
+              <strong>Importante:</strong> Após alterar, a página recarregará automaticamente para aplicar as mudanças. O sino aparecerá ou desaparecerá após o reload.
             </p>
           </div>
         </div>
@@ -205,6 +223,12 @@ function updateNotificationPreference(enabled) {
   
   console.log('Atualizando notificações para:', enabled ? 'ATIVADO' : 'DESATIVADO');
   
+  // Mostrar alert de reload
+  const reloadAlert = document.getElementById('reloadAlert');
+  if (reloadAlert) {
+    reloadAlert.classList.remove('hidden');
+  }
+  
   fetch('/api/profile/notifications', {
     method: 'POST',
     body: formData
@@ -223,25 +247,40 @@ function updateNotificationPreference(enabled) {
       // Mostrar debug info se disponível
       if (result.debug) {
         console.log('Debug info:', result.debug);
+        console.log('✅ Banco atualizado para:', result.debug.novo_valor);
+        console.log('✅ Sessão atualizada:', result.debug.session_updated);
       }
       
       // Reload imediato e forçado com cache clear
-      console.log('Recarregando página em 1 segundo...');
+      console.log('⏳ Recarregando página em 1.5 segundos...');
+      console.log('🔔 Sino', enabled ? 'APARECERÁ' : 'DESAPARECERÁ', 'após o reload');
+      
       setTimeout(() => {
-        // Força reload sem cache
-        window.location.href = window.location.href + '?t=' + new Date().getTime();
-      }, 1000);
+        // Força reload completo sem cache
+        console.log('🔄 Executando reload...');
+        window.location.href = window.location.pathname + '?reload=' + Date.now();
+      }, 1500);
     } else {
       // Revert checkbox on error
       document.getElementById('notificacoesToggle').checked = !enabled;
       showNotification('Erro: ' + result.message, 'error');
       console.error('Erro ao salvar:', result.message);
+      
+      // Esconder alert de reload
+      if (reloadAlert) {
+        reloadAlert.classList.add('hidden');
+      }
     }
   })
   .catch(error => {
     console.error('Erro ao atualizar notificações:', error);
     document.getElementById('notificacoesToggle').checked = !enabled;
     showNotification('Erro ao atualizar preferências de notificação', 'error');
+    
+    // Esconder alert de reload
+    if (reloadAlert) {
+      reloadAlert.classList.add('hidden');
+    }
   });
 }
 
