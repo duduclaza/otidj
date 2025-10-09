@@ -98,8 +98,27 @@ header('Content-Type: text/html; charset=utf-8');
             <h2>💾 Status no Banco de Dados</h2>
             <?php
             try {
-                require_once __DIR__ . '/vendor/autoload.php';
-                $db = App\Config\Database::getInstance();
+                // Carregar .env manualmente
+                $envFile = __DIR__ . '/.env';
+                if (file_exists($envFile)) {
+                    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                    foreach ($lines as $line) {
+                        if (strpos(trim($line), '#') === 0) continue;
+                        list($name, $value) = explode('=', $line, 2);
+                        $name = trim($name);
+                        $value = trim($value, " \t\n\r\0\x0B\"'");
+                        $_ENV[$name] = $value;
+                        putenv("$name=$value");
+                    }
+                }
+                
+                // Conectar ao banco usando credenciais do .env
+                $db = new PDO(
+                    "mysql:host={$_ENV['DB_HOST']};port={$_ENV['DB_PORT']};dbname={$_ENV['DB_DATABASE']};charset=utf8mb4",
+                    $_ENV['DB_USERNAME'],
+                    $_ENV['DB_PASSWORD'],
+                    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+                );
                 
                 // Verificar se coluna existe
                 $checkColumn = $db->query("SHOW COLUMNS FROM users LIKE 'notificacoes_ativadas'");
