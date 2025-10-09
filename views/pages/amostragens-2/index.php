@@ -252,6 +252,7 @@ $toners = $toners ?? [];
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aprovada</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reprovada</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aprovado Por</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Anexo NF</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Evidências</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
@@ -309,6 +310,18 @@ $toners = $toners ?? [];
                 <option value="Aprovado Parcialmente" <?= $amostra['status_final'] == 'Aprovado Parcialmente' ? 'selected' : '' ?>>Aprovado Parcialmente</option>
                 <option value="Reprovado" <?= $amostra['status_final'] == 'Reprovado' ? 'selected' : '' ?>>Reprovado</option>
               </select>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <?php if (!empty($amostra['aprovado_por_nome'])): ?>
+                <div class="flex flex-col">
+                  <span class="text-gray-900 font-medium"><?= e($amostra['aprovado_por_nome']) ?></span>
+                  <?php if (!empty($amostra['aprovado_em'])): ?>
+                    <span class="text-xs text-gray-500"><?= date('d/m/Y H:i', strtotime($amostra['aprovado_em'])) ?></span>
+                  <?php endif; ?>
+                </div>
+              <?php else: ?>
+                <span class="text-gray-400 text-xs">-</span>
+              <?php endif; ?>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
               <?php if (!empty($amostra['anexo_nf_nome'])): ?>

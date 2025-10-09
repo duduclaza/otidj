@@ -118,10 +118,13 @@ class Amostragens2Controller
                        u.name as usuario_nome,
                        u.filial as filial_nome,
                        forn.nome as fornecedor_nome,
+                       aprovador.name as aprovado_por_nome,
+                       aprovador.email as aprovado_por_email,
                        (SELECT COUNT(*) FROM amostragens_2_evidencias WHERE amostragem_id = a.id) as total_evidencias
                 FROM amostragens_2 a
                 LEFT JOIN users u ON a.user_id = u.id
                 LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
+                LEFT JOIN users aprovador ON a.aprovado_por = aprovador.id
                 $whereClause
                 ORDER BY a.created_at DESC
             ");
@@ -1025,18 +1028,41 @@ class Amostragens2Controller
                 exit;
             }
             
-            // Atualizar status
-            $stmt = $this->db->prepare('
-                UPDATE amostragens_2 SET 
-                    status_final = :status,
-                    updated_at = NOW()
-                WHERE id = :id
-            ');
+            // Atualizar status e registrar quem/quando aprovou
+            $userId = $_SESSION['user_id'];
             
-            $stmt->execute([
-                ':id' => $id,
-                ':status' => $status
-            ]);
+            // Se o status está mudando para Aprovado, Aprovado Parcialmente ou Reprovado, registrar aprovação
+            if (in_array($status, ['Aprovado', 'Aprovado Parcialmente', 'Reprovado'])) {
+                $stmt = $this->db->prepare('
+                    UPDATE amostragens_2 SET 
+                        status_final = :status,
+                        aprovado_por = :aprovado_por,
+                        aprovado_em = NOW(),
+                        updated_at = NOW()
+                    WHERE id = :id
+                ');
+                
+                $stmt->execute([
+                    ':id' => $id,
+                    ':status' => $status,
+                    ':aprovado_por' => $userId
+                ]);
+            } else {
+                // Se voltando para Pendente, limpar aprovação
+                $stmt = $this->db->prepare('
+                    UPDATE amostragens_2 SET 
+                        status_final = :status,
+                        aprovado_por = NULL,
+                        aprovado_em = NULL,
+                        updated_at = NOW()
+                    WHERE id = :id
+                ');
+                
+                $stmt->execute([
+                    ':id' => $id,
+                    ':status' => $status
+                ]);
+            }
             
             error_log("✅ Status da amostragem #{$id} atualizado para: {$status}");
             
