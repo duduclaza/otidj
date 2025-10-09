@@ -177,10 +177,12 @@ class AdminController
             $filial = $_POST['filial'] ?? '';
             $role = $_POST['role'] ?? 'user';
             $profileId = $_POST['profile_id'] ?? null;
-            $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? 1 : 0;
-            $podeAprovarFluxogramas = isset($_POST['pode_aprovar_fluxogramas']) ? 1 : 0;
-            $podeAprovarAmostragens = isset($_POST['pode_aprovar_amostragens']) ? 1 : 0;
-            $notificacoesAtivadas = isset($_POST['notificacoes_ativadas']) ? 1 : 0;
+            
+            // Receber valores explícitos dos checkboxes (0 ou 1)
+            $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? (int)$_POST['pode_aprovar_pops_its'] : 0;
+            $podeAprovarFluxogramas = isset($_POST['pode_aprovar_fluxogramas']) ? (int)$_POST['pode_aprovar_fluxogramas'] : 0;
+            $podeAprovarAmostragens = isset($_POST['pode_aprovar_amostragens']) ? (int)$_POST['pode_aprovar_amostragens'] : 0;
+            $notificacoesAtivadas = isset($_POST['notificacoes_ativadas']) ? (int)$_POST['notificacoes_ativadas'] : 1; // Padrão: 1 (ativado)
             
             // Validar dados obrigatórios
             if (empty($name) || empty($email)) {
@@ -709,13 +711,16 @@ class AdminController
             $role = $_POST['role'] ?? 'user';
             $status = $_POST['status'] ?? 'active';
             $profileId = $_POST['profile_id'] ?? null;
-            $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? 1 : 0;
-            $podeAprovarFluxogramas = isset($_POST['pode_aprovar_fluxogramas']) ? 1 : 0;
-            $podeAprovarAmostragens = isset($_POST['pode_aprovar_amostragens']) ? 1 : 0;
-            $notificacoesAtivadas = isset($_POST['notificacoes_ativadas']) ? 1 : 0;
+            
+            // Receber valores explícitos dos checkboxes (0 ou 1)
+            $podeAprovarPopsIts = isset($_POST['pode_aprovar_pops_its']) ? (int)$_POST['pode_aprovar_pops_its'] : 0;
+            $podeAprovarFluxogramas = isset($_POST['pode_aprovar_fluxogramas']) ? (int)$_POST['pode_aprovar_fluxogramas'] : 0;
+            $podeAprovarAmostragens = isset($_POST['pode_aprovar_amostragens']) ? (int)$_POST['pode_aprovar_amostragens'] : 0;
+            $notificacoesAtivadas = isset($_POST['notificacoes_ativadas']) ? (int)$_POST['notificacoes_ativadas'] : 1; // Padrão: 1 (ativado)
             
             // Debug log
             error_log("UpdateUser - UserID: $userId, Name: $name, Email: $email");
+            error_log("Checkboxes - POPs/ITs: $podeAprovarPopsIts, Fluxogramas: $podeAprovarFluxogramas, Amostragens: $podeAprovarAmostragens, Notificações: $notificacoesAtivadas");
             
             // Test database connection and table structure
             try {

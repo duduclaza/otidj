@@ -548,6 +548,31 @@ function submitUser() {
   const formData = new FormData(form);
   const userId = document.getElementById('userId').value;
   
+  // IMPORTANTE: Adicionar checkboxes explicitamente (mesmo se desmarcados)
+  // FormData só envia checkboxes marcados, precisamos enviar todos
+  const checkboxMap = {
+    'notificacoes_ativadas': 'notificacoesAtivadas',
+    'pode_aprovar_pops_its': 'podeAprovarPopsIts',
+    'pode_aprovar_fluxogramas': 'podeAprovarFluxogramas',
+    'pode_aprovar_amostragens': 'podeAprovarAmostragens'
+  };
+  
+  Object.entries(checkboxMap).forEach(([fieldName, checkboxId]) => {
+    const checkbox = document.getElementById(checkboxId);
+    if (checkbox) {
+      // Remove o valor antigo se existir
+      formData.delete(fieldName);
+      // Adiciona explicitamente: '1' se marcado, '0' se desmarcado
+      const value = checkbox.checked ? '1' : '0';
+      formData.append(fieldName, value);
+      console.log(`✅ ${fieldName} = ${value} (checkbox ${checkbox.checked ? 'marcado' : 'desmarcado'})`);
+    } else {
+      console.warn(`⚠️ Checkbox ${checkboxId} não encontrado!`);
+    }
+  });
+  
+  console.log('📤 Enviando dados:', Object.fromEntries(formData));
+  
   const url = userId ? '/admin/users/update' : '/admin/users/create';
   
   fetch(url, {
