@@ -1033,38 +1033,90 @@ class Amostragens2Controller
             
             error_log("🔍 DEBUG - Amostragem #{$id} - Status: {$status} - User ID: {$userId}");
             
+            // Buscar quantidade testada para preencher automaticamente aprovada/reprovada
+            $stmtQtd = $this->db->prepare('SELECT quantidade_testada, quantidade_recebida FROM amostragens_2 WHERE id = :id');
+            $stmtQtd->execute([':id' => $id]);
+            $amostraData = $stmtQtd->fetch(\PDO::FETCH_ASSOC);
+            $qtdTestada = (int)($amostraData['quantidade_testada'] ?? 0);
+            $qtdRecebida = (int)($amostraData['quantidade_recebida'] ?? 0);
+            
+            // Se não testou nada, usa quantidade recebida como base
+            $qtdBase = $qtdTestada > 0 ? $qtdTestada : $qtdRecebida;
+            
             // Se o status está mudando para Aprovado, Aprovado Parcialmente ou Reprovado, registrar aprovação
             if (in_array($status, ['Aprovado', 'Aprovado Parcialmente', 'Reprovado'])) {
                 error_log("✅ Registrando aprovação - User ID: {$userId}");
                 
-                $stmt = $this->db->prepare('
-                    UPDATE amostragens_2 SET 
-                        status_final = :status,
-                        aprovado_por = :aprovado_por,
-                        aprovado_em = NOW(),
-                        updated_at = NOW()
-                    WHERE id = :id
-                ');
+                // Calcular quantidades baseado no status
+                $qtdAprovada = null;
+                $qtdReprovada = null;
                 
-                $result = $stmt->execute([
-                    ':id' => $id,
-                    ':status' => $status,
-                    ':aprovado_por' => $userId
-                ]);
+                if ($status === 'Aprovado') {
+                    // Tudo aprovado
+                    $qtdAprovada = $qtdBase;
+                    $qtdReprovada = 0;
+                    error_log("📊 AUTO: Aprovando tudo - Aprovada: {$qtdAprovada}, Reprovada: {$qtdReprovada}");
+                } elseif ($status === 'Reprovado') {
+                    // Tudo reprovado
+                    $qtdAprovada = 0;
+                    $qtdReprovada = $qtdBase;
+                    error_log("📊 AUTO: Reprovando tudo - Aprovada: {$qtdAprovada}, Reprovada: {$qtdReprovada}");
+                }
+                // Se "Aprovado Parcialmente", não preenche automaticamente (usuário deve editar)
+                
+                if ($qtdAprovada !== null && $qtdReprovada !== null) {
+                    // Atualizar com quantidades preenchidas
+                    $stmt = $this->db->prepare('
+                        UPDATE amostragens_2 SET 
+                            status_final = :status,
+                            quantidade_aprovada = :qtd_aprovada,
+                            quantidade_reprovada = :qtd_reprovada,
+                            aprovado_por = :aprovado_por,
+                            aprovado_em = NOW(),
+                            updated_at = NOW()
+                        WHERE id = :id
+                    ');
+                    
+                    $stmt->execute([
+                        ':id' => $id,
+                        ':status' => $status,
+                        ':qtd_aprovada' => $qtdAprovada,
+                        ':qtd_reprovada' => $qtdReprovada,
+                        ':aprovado_por' => $userId
+                    ]);
+                } else {
+                    // Aprovado Parcialmente - só atualiza status e aprovador
+                    $stmt = $this->db->prepare('
+                        UPDATE amostragens_2 SET 
+                            status_final = :status,
+                            aprovado_por = :aprovado_por,
+                            aprovado_em = NOW(),
+                            updated_at = NOW()
+                        WHERE id = :id
+                    ');
+                    
+                    $stmt->execute([
+                        ':id' => $id,
+                        ':status' => $status,
+                        ':aprovado_por' => $userId
+                    ]);
+                }
                 
                 $rowsAffected = $stmt->rowCount();
                 error_log("📝 UPDATE executado - Linhas afetadas: {$rowsAffected}");
                 
                 // Verificar se foi atualizado
-                $checkStmt = $this->db->prepare('SELECT aprovado_por, aprovado_em FROM amostragens_2 WHERE id = :id');
+                $checkStmt = $this->db->prepare('SELECT aprovado_por, aprovado_em, quantidade_aprovada, quantidade_reprovada FROM amostragens_2 WHERE id = :id');
                 $checkStmt->execute([':id' => $id]);
-                $check = $checkStmt->fetch(PDO::FETCH_ASSOC);
-                error_log("✅ Verificação - aprovado_por: " . ($check['aprovado_por'] ?? 'NULL') . " | aprovado_em: " . ($check['aprovado_em'] ?? 'NULL'));
+                $check = $checkStmt->fetch(\PDO::FETCH_ASSOC);
+                error_log("✅ Verificação - aprovado_por: " . ($check['aprovado_por'] ?? 'NULL') . " | aprovado_em: " . ($check['aprovado_em'] ?? 'NULL') . " | qtd_aprovada: " . ($check['quantidade_aprovada'] ?? 'NULL') . " | qtd_reprovada: " . ($check['quantidade_reprovada'] ?? 'NULL'));
             } else {
-                // Se voltando para Pendente, limpar aprovação
+                // Se voltando para Pendente, limpar aprovação E quantidades
                 $stmt = $this->db->prepare('
                     UPDATE amostragens_2 SET 
                         status_final = :status,
+                        quantidade_aprovada = NULL,
+                        quantidade_reprovada = NULL,
                         aprovado_por = NULL,
                         aprovado_em = NULL,
                         updated_at = NOW()
@@ -1075,6 +1127,8 @@ class Amostragens2Controller
                     ':id' => $id,
                     ':status' => $status
                 ]);
+                
+                error_log("📊 Status voltou para Pendente - Limpou quantidades aprovada/reprovada");
             }
             
             error_log("✅ Status da amostragem #{$id} atualizado para: {$status}");
