@@ -858,10 +858,10 @@ async function loadMeusRegistros() {
                             ${formatDate(registro.criado_em)}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                            <button onclick="downloadArquivo(${registro.id})" 
-                                    class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 px-2 py-1 rounded"
+                            <button onclick="baixarFluxograma(${registro.id})" 
+                                    class="text-green-600 hover:text-green-900 hover:bg-green-50 px-2 py-1 rounded"
                                     title="Baixar arquivo">
-                                📥
+                                📥 Baixar
                             </button>
                             ${registro.status === 'REPROVADO' ? 
                                 `<button onclick="editarRegistro(${registro.id})" 
@@ -942,6 +942,16 @@ function getStatusText(status) {
 }
 
 // Funções de ação para registros
+async function baixarFluxograma(registroId) {
+    try {
+        // Abrir em nova aba para download
+        window.open(`/fluxogramas/arquivo/${registroId}`, '_blank');
+    } catch (error) {
+        console.error('Erro ao baixar:', error);
+        alert('Erro ao baixar arquivo');
+    }
+}
+
 async function downloadArquivo(registroId) {
     try {
         window.open(`/pops-its/arquivo/${registroId}`, '_blank');
@@ -1722,22 +1732,13 @@ function visualizarArquivo(registroId, nomeArquivo, tipo) {
                     </button>
                 </div>
             </div>
-            <div class="p-4 relative" style="height: calc(100% - 80px);">
+            <div class="p-4 relative overflow-auto" style="height: calc(100% - 80px);">
                 <iframe src="/fluxogramas/visualizar/${registroId}" 
                         class="w-full h-full border-0 rounded" 
                         title="Visualização protegida"
                         onload="aplicarProtecoesPorTipo('${tipo}')"
-                        style="background: #f8f9fa; ${tipo === 'pdf' ? 'pointer-events: auto;' : 'pointer-events: none;'}">
+                        style="background: #f8f9fa; pointer-events: auto; overflow: auto;">
                 </iframe>
-                <!-- Overlay para imagens (não para PDFs) -->
-                ${tipo === 'imagem' ? `
-                <div class="absolute inset-4 pointer-events-auto" 
-                     oncontextmenu="return false;" 
-                     ondragstart="return false;" 
-                     onselectstart="return false;"
-                     style="user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;">
-                </div>
-                ` : ''}
             </div>
         </div>
     `;
