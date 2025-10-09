@@ -30,13 +30,13 @@ $menu = [
     'href' => '#', 
     'icon' => '🏭', 
     'category' => true,
-    'modules' => ['toners_cadastro', 'toners_retornados', 'amostragens', 'garantias', 'controle_descartes'],
+    'modules' => ['toners_cadastro', 'toners_retornados', 'amostragens_2', 'garantias', 'controle_descartes'],
     'submenu' => [
       ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '💧🩸', 'module' => 'toners_cadastro'],
       ['label' => 'Cadastro de Máquinas', 'href' => '/cadastro-maquinas', 'icon' => '🖨️', 'module' => 'cadastro_maquinas'],
       ['label' => 'Cadastro de Peças', 'href' => '/cadastro-pecas', 'icon' => '🔧', 'module' => 'cadastro_pecas'],
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
-      ['label' => 'Amostragens', 'href' => '/toners/amostragens', 'icon' => '🧪', 'module' => 'amostragens'],
+      // ['label' => 'Amostragens (Antigo)', 'href' => '/toners/amostragens', 'icon' => '🧪', 'module' => 'amostragens'], // DESATIVADO
       ['label' => 'Amostragens 2.0', 'href' => '/amostragens-2', 'icon' => '🔬', 'module' => 'amostragens_2'],
       ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️', 'module' => 'garantias'],
       ['label' => 'Controle de Descartes', 'href' => '/controle-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
@@ -676,7 +676,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       const navigationMap = {
         'access_request': '/admin/access-requests',
         'garantia': '/garantias',
-        'amostragem': '/toners/amostragens',
+        // 'amostragem': '/toners/amostragens', // DESATIVADO - usar amostragens_2
         'homologacao': '/homologacoes',
         'melhoria': '/melhoria-continua/solicitacoes',
         'melhoria_continua_2': '/melhoria-continua-2',
