@@ -1031,8 +1031,12 @@ class Amostragens2Controller
             // Atualizar status e registrar quem/quando aprovou
             $userId = $_SESSION['user_id'];
             
+            error_log("🔍 DEBUG - Amostragem #{$id} - Status: {$status} - User ID: {$userId}");
+            
             // Se o status está mudando para Aprovado, Aprovado Parcialmente ou Reprovado, registrar aprovação
             if (in_array($status, ['Aprovado', 'Aprovado Parcialmente', 'Reprovado'])) {
+                error_log("✅ Registrando aprovação - User ID: {$userId}");
+                
                 $stmt = $this->db->prepare('
                     UPDATE amostragens_2 SET 
                         status_final = :status,
@@ -1042,11 +1046,20 @@ class Amostragens2Controller
                     WHERE id = :id
                 ');
                 
-                $stmt->execute([
+                $result = $stmt->execute([
                     ':id' => $id,
                     ':status' => $status,
                     ':aprovado_por' => $userId
                 ]);
+                
+                $rowsAffected = $stmt->rowCount();
+                error_log("📝 UPDATE executado - Linhas afetadas: {$rowsAffected}");
+                
+                // Verificar se foi atualizado
+                $checkStmt = $this->db->prepare('SELECT aprovado_por, aprovado_em FROM amostragens_2 WHERE id = :id');
+                $checkStmt->execute([':id' => $id]);
+                $check = $checkStmt->fetch(PDO::FETCH_ASSOC);
+                error_log("✅ Verificação - aprovado_por: " . ($check['aprovado_por'] ?? 'NULL') . " | aprovado_em: " . ($check['aprovado_em'] ?? 'NULL'));
             } else {
                 // Se voltando para Pendente, limpar aprovação
                 $stmt = $this->db->prepare('
