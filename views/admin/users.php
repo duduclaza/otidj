@@ -487,19 +487,31 @@ function editUser(userId) {
           document.getElementById('userStatus').value = user.status;
           document.getElementById('userProfile').value = user.profile_id || '';
           
-          // Preencher campos de aprovação
-          const podeAprovarPopsIts = user.pode_aprovar_pops_its == 1 || user.pode_aprovar_pops_its === true;
+          // Debug: Ver valores que chegaram do banco
+          console.log('🔍 Dados do usuário recebidos:', user);
+          console.log('📊 Valores dos checkboxes do banco:');
+          console.log('  - pode_aprovar_pops_its:', user.pode_aprovar_pops_its);
+          console.log('  - pode_aprovar_fluxogramas:', user.pode_aprovar_fluxogramas);
+          console.log('  - pode_aprovar_amostragens:', user.pode_aprovar_amostragens);
+          console.log('  - notificacoes_ativadas:', user.notificacoes_ativadas);
+          
+          // Preencher campos de aprovação (converter para booleano)
+          const podeAprovarPopsIts = Boolean(Number(user.pode_aprovar_pops_its));
           document.getElementById('podeAprovarPopsIts').checked = podeAprovarPopsIts;
+          console.log('✅ POPs/ITs checkbox:', podeAprovarPopsIts ? 'MARCADO' : 'DESMARCADO');
           
-          const podeAprovarFluxogramas = user.pode_aprovar_fluxogramas == 1 || user.pode_aprovar_fluxogramas === true;
+          const podeAprovarFluxogramas = Boolean(Number(user.pode_aprovar_fluxogramas));
           document.getElementById('podeAprovarFluxogramas').checked = podeAprovarFluxogramas;
+          console.log('✅ Fluxogramas checkbox:', podeAprovarFluxogramas ? 'MARCADO' : 'DESMARCADO');
           
-          const podeAprovarAmostragens = user.pode_aprovar_amostragens == 1 || user.pode_aprovar_amostragens === true;
+          const podeAprovarAmostragens = Boolean(Number(user.pode_aprovar_amostragens));
           document.getElementById('podeAprovarAmostragens').checked = podeAprovarAmostragens;
+          console.log('✅ Amostragens checkbox:', podeAprovarAmostragens ? 'MARCADO' : 'DESMARCADO');
           
           // Preencher campo de notificações (padrão: ativado se não informado)
-          const notificacoesAtivadas = user.notificacoes_ativadas === undefined || user.notificacoes_ativadas == 1 || user.notificacoes_ativadas === true;
+          const notificacoesAtivadas = user.notificacoes_ativadas === undefined || Boolean(Number(user.notificacoes_ativadas));
           document.getElementById('notificacoesAtivadas').checked = notificacoesAtivadas;
+          console.log('✅ Notificações checkbox:', notificacoesAtivadas ? 'MARCADO' : 'DESMARCADO');
           
           // Mostrar/esconder permissões de aprovação baseado no role
           togglePopsItsPermission();

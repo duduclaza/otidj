@@ -55,21 +55,40 @@ class AdminController
         // Check if it's an AJAX request
         if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
             try {
-                // Verificar se coluna notificacoes_ativadas existe
+                // Verificar quais colunas de permissão existem
                 $hasColumnNotificacoes = false;
+                $hasColumnPopsIts = false;
+                $hasColumnFluxogramas = false;
+                $hasColumnAmostragens = false;
+                
                 try {
                     $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'notificacoes_ativadas'");
                     $hasColumnNotificacoes = $checkColumn->rowCount() > 0;
+                    
+                    $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_pops_its'");
+                    $hasColumnPopsIts = $checkColumn->rowCount() > 0;
+                    
+                    $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_fluxogramas'");
+                    $hasColumnFluxogramas = $checkColumn->rowCount() > 0;
+                    
+                    $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_amostragens'");
+                    $hasColumnAmostragens = $checkColumn->rowCount() > 0;
                 } catch (\Exception $e) {
-                    // Coluna não existe ainda
+                    // Colunas não existem ainda
                 }
                 
-                // Construir query dinamicamente
+                // Construir query dinamicamente com todos os campos de permissão
                 $notifColumn = $hasColumnNotificacoes ? 'u.notificacoes_ativadas,' : '1 as notificacoes_ativadas,';
+                $popsItsColumn = $hasColumnPopsIts ? 'u.pode_aprovar_pops_its,' : '0 as pode_aprovar_pops_its,';
+                $fluxogramasColumn = $hasColumnFluxogramas ? 'u.pode_aprovar_fluxogramas,' : '0 as pode_aprovar_fluxogramas,';
+                $amostragemColumn = $hasColumnAmostragens ? 'u.pode_aprovar_amostragens,' : '0 as pode_aprovar_amostragens,';
                 
                 $stmt = $this->db->prepare("
                 SELECT u.id, u.name, u.email, u.setor, u.filial, u.role, u.status, u.created_at, u.profile_id,
                        {$notifColumn}
+                       {$popsItsColumn}
+                       {$fluxogramasColumn}
+                       {$amostragemColumn}
                        p.name as profile_name, p.description as profile_description
                 FROM users u 
                 LEFT JOIN profiles p ON u.profile_id = p.id 
