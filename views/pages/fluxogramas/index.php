@@ -1766,7 +1766,12 @@ async function testarNotificacaoSimples() {
     }
 }
 
-// Visualizar arquivo em iframe (modal) com proteções
+// Variáveis globais para zoom e pan
+let currentZoom = 1;
+let isDragging = false;
+let startX, startY, scrollLeft, scrollTop;
+
+// Visualizar arquivo em iframe (modal) com proteções e zoom
 function visualizarArquivo(registroId, nomeArquivo, tipo) {
     // Criar modal
     const modal = document.createElement('div');
@@ -1776,12 +1781,34 @@ function visualizarArquivo(registroId, nomeArquivo, tipo) {
     const icone = tipo === 'pdf' ? '📄' : '🖼️';
     const titulo = tipo === 'pdf' ? 'PDF' : 'Imagem';
     
+    // Controles de zoom apenas para imagens
+    const zoomControls = tipo === 'imagem' ? `
+        <div class="flex items-center space-x-2 bg-gray-100 rounded px-2 py-1">
+            <button onclick="zoomOut()" class="px-2 py-1 bg-white rounded hover:bg-gray-200" title="Diminuir zoom (Scroll Down)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"></path>
+                </svg>
+            </button>
+            <span id="zoomLevel" class="text-sm font-medium text-gray-700 w-16 text-center">100%</span>
+            <button onclick="zoomIn()" class="px-2 py-1 bg-white rounded hover:bg-gray-200" title="Aumentar zoom (Scroll Up)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
+                </svg>
+            </button>
+            <button onclick="resetZoom()" class="px-2 py-1 bg-white rounded hover:bg-gray-200 text-xs" title="Reset (100%)">
+                ↺
+            </button>
+        </div>
+    ` : '';
+    
     modal.innerHTML = `
-        <div class="bg-white rounded-lg shadow-xl w-11/12 h-5/6 max-w-6xl relative">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 h-5/6 max-w-6xl relative flex flex-col">
             <div class="flex justify-between items-center p-4 border-b bg-gray-50 rounded-t-lg">
                 <h3 class="text-lg font-medium text-gray-900">${icone} ${titulo}: ${nomeArquivo}</h3>
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs text-red-600 font-medium">🔒 Visualização Protegida</span>
+                <div class="flex items-center space-x-3">
+                    ${zoomControls}
+                    <span class="text-xs text-blue-600 font-medium">💡 Use scroll do mouse para zoom</span>
+                    <span class="text-xs text-red-600 font-medium">🔒 Protegido</span>
                     <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -1789,22 +1816,123 @@ function visualizarArquivo(registroId, nomeArquivo, tipo) {
                     </button>
                 </div>
             </div>
-            <div class="p-4 relative overflow-auto" style="height: calc(100% - 80px);">
-                <iframe src="/fluxogramas/visualizar/${registroId}" 
-                        class="w-full h-full border-0 rounded" 
-                        title="Visualização protegida"
-                        onload="aplicarProtecoesPorTipo('${tipo}')"
-                        style="background: #f8f9fa; pointer-events: auto; overflow: auto;">
-                </iframe>
+            <div id="imageContainer" class="flex-1 overflow-auto relative bg-gray-100" style="cursor: ${tipo === 'imagem' ? 'grab' : 'default'};">
+                ${tipo === 'imagem' ? `
+                    <img src="/fluxogramas/visualizar/${registroId}" 
+                         id="zoomableImage"
+                         class="transition-transform duration-200"
+                         style="transform-origin: center center; max-width: none; display: block; margin: auto;"
+                         oncontextmenu="return false;"
+                         ondragstart="return false;">
+                ` : `
+                    <iframe src="/fluxogramas/visualizar/${registroId}" 
+                            class="w-full h-full border-0" 
+                            title="Visualização protegida"
+                            style="background: #f8f9fa;">
+                    </iframe>
+                `}
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
-    document.body.style.overflow = 'hidden'; // Prevenir scroll
+    document.body.style.overflow = 'hidden';
+    
+    // Configurar zoom e pan para imagens
+    if (tipo === 'imagem') {
+        setTimeout(() => {
+            setupImageZoomAndPan();
+        }, 100);
+    }
     
     // Aplicar proteções adicionais
     aplicarProtecoesSistema();
+}
+
+// Configurar zoom e pan na imagem
+function setupImageZoomAndPan() {
+    const container = document.getElementById('imageContainer');
+    const image = document.getElementById('zoomableImage');
+    
+    if (!container || !image) return;
+    
+    // Zoom com scroll do mouse
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        currentZoom = Math.max(0.5, Math.min(5, currentZoom + delta));
+        
+        applyZoom();
+    });
+    
+    // Pan (arrastar) quando imagem está com zoom
+    container.addEventListener('mousedown', (e) => {
+        if (currentZoom > 1) {
+            isDragging = true;
+            container.style.cursor = 'grabbing';
+            startX = e.pageX - container.offsetLeft;
+            startY = e.pageY - container.offsetTop;
+            scrollLeft = container.scrollLeft;
+            scrollTop = container.scrollTop;
+        }
+    });
+    
+    container.addEventListener('mouseleave', () => {
+        isDragging = false;
+        if (currentZoom > 1) container.style.cursor = 'grab';
+    });
+    
+    container.addEventListener('mouseup', () => {
+        isDragging = false;
+        if (currentZoom > 1) container.style.cursor = 'grab';
+    });
+    
+    container.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - container.offsetLeft;
+        const y = e.pageY - container.offsetTop;
+        const walkX = (x - startX) * 2;
+        const walkY = (y - startY) * 2;
+        container.scrollLeft = scrollLeft - walkX;
+        container.scrollTop = scrollTop - walkY;
+    });
+}
+
+// Funções de controle de zoom
+function zoomIn() {
+    currentZoom = Math.min(5, currentZoom + 0.25);
+    applyZoom();
+}
+
+function zoomOut() {
+    currentZoom = Math.max(0.5, currentZoom - 0.25);
+    applyZoom();
+}
+
+function resetZoom() {
+    currentZoom = 1;
+    applyZoom();
+}
+
+function applyZoom() {
+    const image = document.getElementById('zoomableImage');
+    const zoomLevel = document.getElementById('zoomLevel');
+    const container = document.getElementById('imageContainer');
+    
+    if (image) {
+        image.style.transform = `scale(${currentZoom})`;
+        
+        if (zoomLevel) {
+            zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+        }
+        
+        // Atualizar cursor
+        if (container) {
+            container.style.cursor = currentZoom > 1 ? 'grab' : 'default';
+        }
+    }
 }
 
 // Fechar modal
@@ -1814,6 +1942,10 @@ function fecharModal() {
         modal.remove();
         document.body.style.overflow = 'auto'; // Restaurar scroll
         removerProtecoesSistema(); // Remover proteções ao fechar
+        
+        // Reset zoom
+        currentZoom = 1;
+        isDragging = false;
     }
 }
 
