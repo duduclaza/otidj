@@ -316,7 +316,12 @@ $toners = $toners ?? [];
                 <div class="flex flex-col">
                   <span class="text-gray-900 font-medium"><?= e($amostra['aprovado_por_nome']) ?></span>
                   <?php if (!empty($amostra['aprovado_em'])): ?>
-                    <span class="text-xs text-gray-500"><?= date('d/m/Y H:i', strtotime($amostra['aprovado_em'])) ?></span>
+                    <?php
+                    // Converter para timezone do Brasil (América/São_Paulo = UTC-3)
+                    $dt = new DateTime($amostra['aprovado_em'], new DateTimeZone('UTC'));
+                    $dt->setTimezone(new DateTimeZone('America/Sao_Paulo'));
+                    ?>
+                    <span class="text-xs text-gray-500"><?= $dt->format('d/m/Y H:i') ?></span>
                   <?php endif; ?>
                 </div>
               <?php else: ?>
