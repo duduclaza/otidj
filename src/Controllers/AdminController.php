@@ -1880,41 +1880,24 @@ class AdminController
             
             $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
             
-            // 1. Cards - Métricas principais
-            $stmtTotal = $this->db->prepare("
-                SELECT COUNT(*) as total FROM amostragens_2 a
+            // 1. Cards - Somar QUANTIDADES (igual ao grid)
+            $stmtQuantidades = $this->db->prepare("
+                SELECT 
+                    COALESCE(SUM(quantidade_recebida), 0) as total_recebida,
+                    COALESCE(SUM(quantidade_testada), 0) as total_testada,
+                    COALESCE(SUM(quantidade_aprovada), 0) as total_aprovada,
+                    COALESCE(SUM(quantidade_reprovada), 0) as total_reprovada
+                FROM amostragens_2 a
                 LEFT JOIN users u ON a.user_id = u.id
                 $whereClause
             ");
-            $stmtTotal->execute($params);
-            $totalAmostragens = $stmtTotal->fetch(\PDO::FETCH_ASSOC)['total'];
+            $stmtQuantidades->execute($params);
+            $quantidades = $stmtQuantidades->fetch(\PDO::FETCH_ASSOC);
             
-            // Contar Aprovadas
-            $stmtAprovadas = $this->db->prepare("
-                SELECT COUNT(*) as aprovadas FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                $whereClause AND a.status_final IN ('Aprovado', 'Aprovado Parcialmente')
-            ");
-            $stmtAprovadas->execute($params);
-            $aprovadas = $stmtAprovadas->fetch(\PDO::FETCH_ASSOC)['aprovadas'];
-            
-            // Contar Reprovadas
-            $stmtReprovadas = $this->db->prepare("
-                SELECT COUNT(*) as reprovadas FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                $whereClause AND a.status_final = 'Reprovado'
-            ");
-            $stmtReprovadas->execute($params);
-            $reprovadas = $stmtReprovadas->fetch(\PDO::FETCH_ASSOC)['reprovadas'];
-            
-            // Contar Pendentes
-            $stmtPendentes = $this->db->prepare("
-                SELECT COUNT(*) as pendentes FROM amostragens_2 a
-                LEFT JOIN users u ON a.user_id = u.id
-                $whereClause AND a.status_final = 'Pendente'
-            ");
-            $stmtPendentes->execute($params);
-            $pendentes = $stmtPendentes->fetch(\PDO::FETCH_ASSOC)['pendentes'];
+            $qtdRecebida = (int)$quantidades['total_recebida'];
+            $qtdTestada = (int)$quantidades['total_testada'];
+            $qtdAprovada = (int)$quantidades['total_aprovada'];
+            $qtdReprovada = (int)$quantidades['total_reprovada'];
             
             // 2. Gráfico de Barras: Qtd Recebida x Qtd Testada por Mês (últimos 12 meses)
             $stmtQuantidades = $this->db->prepare("
@@ -1985,10 +1968,10 @@ class AdminController
                 'success' => true,
                 'data' => [
                     'cards' => [
-                        'total_amostragens' => (int)$totalAmostragens,
-                        'aprovadas' => (int)$aprovadas,
-                        'reprovadas' => (int)$reprovadas,
-                        'pendentes' => (int)$pendentes
+                        'qtd_recebida' => $qtdRecebida,
+                        'qtd_testada' => $qtdTestada,
+                        'qtd_aprovada' => $qtdAprovada,
+                        'qtd_reprovada' => $qtdReprovada,
                     ],
                     'quantidades_mes' => [
                         'labels' => $quantidadesLabels,

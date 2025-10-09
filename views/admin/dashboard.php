@@ -262,25 +262,43 @@
     <!-- Cards de Totais AMOSTRAGENS -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       
-      <!-- Card 1: Total de Amostragens -->
+      <!-- Card 1: Qtd Recebida -->
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Qtd Recebida</h3>
+        <div class="flex items-end justify-between">
+          <p id="qtdRecebida" class="text-4xl font-bold">0</p>
+        </div>
+        <div class="mt-4 pt-4 border-t border-white border-opacity-20">
+          <p class="text-xs text-white text-opacity-80">📦 Total recebido</p>
+        </div>
+      </div>
+
+      <!-- Card 2: Qtd Testada -->
       <div class="bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
             </svg>
           </div>
         </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Total de Amostragens</h3>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Qtd Testada</h3>
         <div class="flex items-end justify-between">
-          <p id="totalAmostragens" class="text-4xl font-bold">0</p>
+          <p id="qtdTestada" class="text-4xl font-bold">0</p>
         </div>
         <div class="mt-4 pt-4 border-t border-white border-opacity-20">
-          <p class="text-xs text-white text-opacity-80">🧪 Total realizado</p>
+          <p class="text-xs text-white text-opacity-80">🧪 Total testado</p>
         </div>
       </div>
 
-      <!-- Card 2: Aprovadas -->
+      <!-- Card 3: Qtd Aprovada -->
       <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
@@ -289,16 +307,16 @@
             </svg>
           </div>
         </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Aprovadas</h3>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Qtd Aprovada</h3>
         <div class="flex items-end justify-between">
-          <p id="totalAprovadas" class="text-4xl font-bold">0</p>
+          <p id="qtdAprovada" class="text-4xl font-bold">0</p>
         </div>
         <div class="mt-4 pt-4 border-t border-white border-opacity-20">
-          <p class="text-xs text-white text-opacity-80">✅ Amostragens aprovadas</p>
+          <p class="text-xs text-white text-opacity-80">✅ Total aprovado</p>
         </div>
       </div>
 
-      <!-- Card 3: Reprovadas -->
+      <!-- Card 4: Qtd Reprovada -->
       <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
         <div class="flex items-center justify-between mb-4">
           <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
@@ -307,30 +325,12 @@
             </svg>
           </div>
         </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Reprovadas</h3>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Qtd Reprovada</h3>
         <div class="flex items-end justify-between">
-          <p id="totalReprovadas" class="text-4xl font-bold">0</p>
+          <p id="qtdReprovada" class="text-4xl font-bold">0</p>
         </div>
         <div class="mt-4 pt-4 border-t border-white border-opacity-20">
-          <p class="text-xs text-white text-opacity-80">❌ Amostragens reprovadas</p>
-        </div>
-      </div>
-
-      <!-- Card 4: Pendentes -->
-      <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
-        <div class="flex items-center justify-between mb-4">
-          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center backdrop-blur-sm">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-        </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Pendentes</h3>
-        <div class="flex items-end justify-between">
-          <p id="totalPendentes" class="text-4xl font-bold">0</p>
-        </div>
-        <div class="mt-4 pt-4 border-t border-white border-opacity-20">
-          <p class="text-xs text-white text-opacity-80">⏳ Aguardando análise</p>
+          <p class="text-xs text-white text-opacity-80">❌ Total reprovado</p>
         </div>
       </div>
 
@@ -1767,11 +1767,11 @@ async function loadDashboardAmostragens() {
 }
 
 function updateDashboardAmostragens(data) {
-  // Atualizar Cards
-  document.getElementById('totalAmostragens').textContent = data.cards.total_amostragens.toLocaleString('pt-BR');
-  document.getElementById('totalAprovadas').textContent = data.cards.aprovadas.toLocaleString('pt-BR');
-  document.getElementById('totalReprovadas').textContent = data.cards.reprovadas.toLocaleString('pt-BR');
-  document.getElementById('totalPendentes').textContent = data.cards.pendentes.toLocaleString('pt-BR');
+  // Atualizar Cards com QUANTIDADES
+  document.getElementById('qtdRecebida').textContent = data.cards.qtd_recebida.toLocaleString('pt-BR');
+  document.getElementById('qtdTestada').textContent = data.cards.qtd_testada.toLocaleString('pt-BR');
+  document.getElementById('qtdAprovada').textContent = data.cards.qtd_aprovada.toLocaleString('pt-BR');
+  document.getElementById('qtdReprovada').textContent = data.cards.qtd_reprovada.toLocaleString('pt-BR');
   
   // Criar/Atualizar Gráficos
   createAmostragemCharts(data);
