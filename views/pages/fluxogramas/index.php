@@ -1547,31 +1547,54 @@ function getVisualizarButton(registro) {
     const extensao = registro.extensao.toLowerCase();
     const tiposImagem = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];
     
+    // Verificar se usuário é admin
+    const isAdmin = document.getElementById('tab-pendentes') !== null;
+    
+    let botoes = '';
+    
     if (extensao === 'pdf') {
-        return `
+        botoes = `
             <button onclick="visualizarArquivo(${registro.id}, '${registro.nome_arquivo}', 'pdf')" 
-                    class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center">
+                    class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center"
+                    title="Visualizar PDF">
                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
-                📄 Ver PDF
+                👁️ Ver
             </button>
         `;
     } else if (tiposImagem.includes(extensao)) {
-        return `
+        botoes = `
             <button onclick="visualizarArquivo(${registro.id}, '${registro.nome_arquivo}', 'imagem')" 
-                    class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors flex items-center">
+                    class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors flex items-center"
+                    title="Visualizar Imagem">
                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
-                🖼️ Ver Imagem
+                👁️ Ver
             </button>
         `;
     } else {
-        return `
-            <span class="text-gray-500 text-xs">Tipo não suportado</span>
+        botoes = `<span class="text-gray-500 text-xs">Tipo não suportado</span>`;
+    }
+    
+    // Adicionar botão de download APENAS para admins
+    if (isAdmin && (extensao === 'pdf' || tiposImagem.includes(extensao))) {
+        botoes += `
+            <button onclick="baixarFluxograma(${registro.id})" 
+                    class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors flex items-center ml-2"
+                    title="Baixar arquivo (Admin)">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                📥 Baixar
+            </button>
         `;
     }
+    
+    return botoes;
 }
 
 // ===== ABA 4: VISUALIZAÇÃO =====
