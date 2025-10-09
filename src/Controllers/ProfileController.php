@@ -199,7 +199,11 @@ class ProfileController
         header('Content-Type: application/json');
         
         try {
-            session_start();
+            // Iniciar sessão se não foi iniciada
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+            
             $userId = $_SESSION['user_id'] ?? null;
             
             if (!$userId) {
@@ -224,23 +228,37 @@ class ProfileController
             
             // Update database
             $stmt = $this->db->prepare("UPDATE users SET notificacoes_ativadas = :notif WHERE id = :id");
-            $stmt->execute([
+            $result = $stmt->execute([
                 ':notif' => $notificacoesAtivadas,
                 ':id' => $userId
             ]);
             
+            if (!$result) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao atualizar banco de dados']);
+                return;
+            }
+            
             // Update session immediately
             $_SESSION['notificacoes_ativadas'] = (bool)$notificacoesAtivadas;
             
+            // Force session save
+            session_write_close();
+            
             $message = $notificacoesAtivadas 
-                ? 'Notificações ativadas com sucesso! Você receberá alertas do sistema.' 
-                : 'Notificações desativadas. Você não receberá mais alertas do sistema.';
+                ? 'Notificações ativadas com sucesso! Recarregando página...' 
+                : 'Notificações desativadas com sucesso! Recarregando página...';
             
             echo json_encode([
                 'success' => true, 
                 'message' => $message,
                 'notificacoes_ativadas' => $notificacoesAtivadas,
-                'reload_required' => true // Indica que página precisa recarregar para aplicar mudanças
+                'reload_required' => true,
+                'debug' => [
+                    'user_id' => $userId,
+                    'novo_valor' => $notificacoesAtivadas,
+                    'db_updated' => true,
+                    'session_updated' => true
+                ]
             ]);
             
         } catch (\Exception $e) {

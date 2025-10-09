@@ -208,6 +208,12 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         </a>
       </div>
       <div class="flex items-center gap-2">
+        <!-- DEBUG: Valor da sessão -->
+        <?php 
+        $notifStatus = isset($_SESSION['notificacoes_ativadas']) ? $_SESSION['notificacoes_ativadas'] : 'não definido';
+        // error_log("DEBUG SIDEBAR - notificacoes_ativadas: " . var_export($notifStatus, true));
+        ?>
+        
         <!-- Sininho de Notificações - Visível apenas se ativado -->
         <?php if (isset($_SESSION['notificacoes_ativadas']) && $_SESSION['notificacoes_ativadas']): ?>
         <div class="relative">

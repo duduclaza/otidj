@@ -203,26 +203,39 @@ function updateNotificationPreference(enabled) {
   const formData = new FormData();
   formData.append('notificacoes_ativadas', enabled ? '1' : '0');
   
+  console.log('Atualizando notificações para:', enabled ? 'ATIVADO' : 'DESATIVADO');
+  
   fetch('/api/profile/notifications', {
     method: 'POST',
     body: formData
   })
-  .then(response => response.json())
+  .then(response => {
+    console.log('Response status:', response.status);
+    return response.json();
+  })
   .then(result => {
+    console.log('Resultado da API:', result);
+    
     if (result.success) {
       // Show success message
       showNotification(result.message, 'success');
       
-      // Reload page after 1.5 seconds to apply changes
-      if (result.reload_required) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+      // Mostrar debug info se disponível
+      if (result.debug) {
+        console.log('Debug info:', result.debug);
       }
+      
+      // Reload imediato e forçado com cache clear
+      console.log('Recarregando página em 1 segundo...');
+      setTimeout(() => {
+        // Força reload sem cache
+        window.location.href = window.location.href + '?t=' + new Date().getTime();
+      }, 1000);
     } else {
       // Revert checkbox on error
       document.getElementById('notificacoesToggle').checked = !enabled;
       showNotification('Erro: ' + result.message, 'error');
+      console.error('Erro ao salvar:', result.message);
     }
   })
   .catch(error => {
