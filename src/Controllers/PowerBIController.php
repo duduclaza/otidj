@@ -314,20 +314,27 @@ class PowerBIController
 
     /**
      * Verificar autenticação para API
-     * Aceita token via Authorization header ou sessão ativa
+     * Aceita token via: 1) Parâmetro URL, 2) Authorization header, 3) Sessão ativa
      */
     private function verificarAutenticacao(): bool
     {
-        // Verificar token no header Authorization
-        $headers = getallheaders();
-        $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
-
-        if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-            $token = $matches[1];
-            return $this->validarToken($token);
+        // MÉTODO 1: Token via parâmetro de URL (melhor compatibilidade com Power BI)
+        $urlToken = $_GET['api_token'] ?? null;
+        if ($urlToken && $this->validarToken($urlToken)) {
+            return true;
         }
 
-        // Fallback: verificar sessão ativa
+        // MÉTODO 2: Token via header Authorization (para ferramentas que suportam)
+        $headers = getallheaders();
+        if ($headers) {
+            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+            if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+                $token = $matches[1];
+                return $this->validarToken($token);
+            }
+        }
+
+        // MÉTODO 3: Sessão ativa (fallback)
         if (isset($_SESSION['user_id'])) {
             return true;
         }

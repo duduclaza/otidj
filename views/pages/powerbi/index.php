@@ -24,22 +24,22 @@
         </div>
 
         <!-- Informações de Autenticação -->
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8">
             <div class="flex">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-yellow-800">Autenticação Necessária</h3>
-                    <div class="mt-2 text-sm text-yellow-700">
-                        <p>Para acessar as APIs, inclua o token de autenticação no header:</p>
-                        <code class="block mt-2 p-2 bg-yellow-100 rounded text-xs">
-                            Authorization: Bearer sgqoti2024@powerbi
+                    <h3 class="text-sm font-medium text-blue-800">🔐 Autenticação</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <p><strong>Para Power BI:</strong> Adicione o token diretamente na URL:</p>
+                        <code class="block mt-2 p-2 bg-blue-100 rounded text-xs">
+                            ?api_token=sgqoti2024@powerbi
                         </code>
-                        <p class="mt-2 text-xs">
-                            Entre em contato com o administrador do sistema para obter um token personalizado.
+                        <p class="mt-2 text-xs text-blue-600">
+                            💡 <strong>Exemplo completo:</strong> /api/powerbi/garantias<strong>?api_token=sgqoti2024@powerbi</strong>
                         </p>
                     </div>
                 </div>
@@ -174,27 +174,18 @@
                         <strong>Obter Dados</strong> → <em>Web</em>
                     </li>
                     <li>
-                        Cole a URL da API:
-                        <code class="block mt-1 p-2 bg-gray-100 rounded text-xs">
-                            <?php echo $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br'; ?>/api/powerbi/garantias
+                        Cole a URL da API <strong>com o token incluído</strong>:
+                        <code class="block mt-1 p-2 bg-green-100 rounded text-xs break-all">
+                            <?php echo $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br'; ?>/api/powerbi/garantias<strong class="text-green-700">?api_token=sgqoti2024@powerbi</strong>
                         </code>
-                    </li>
-                    <li>
-                        Em <strong>Opções Avançadas</strong>, adicione o header de autenticação:
-                        <div class="mt-2 p-3 bg-gray-50 rounded border border-gray-200">
-                            <div class="text-xs">
-                                <strong>Nome do cabeçalho:</strong> <code>Authorization</code><br>
-                                <strong>Valor:</strong> <code>Bearer sgqoti2024@powerbi</code>
-                            </div>
-                        </div>
                     </li>
                     <li>
                         Clique em <strong>OK</strong> e os dados serão carregados automaticamente
                     </li>
                     <li>
-                        Você pode usar os filtros na URL para refinar os dados, por exemplo:
-                        <code class="block mt-1 p-2 bg-gray-100 rounded text-xs">
-                            /api/powerbi/garantias?data_inicio=2024-01-01&status=Em andamento
+                        Você pode adicionar filtros na URL, por exemplo:
+                        <code class="block mt-1 p-2 bg-gray-100 rounded text-xs break-all">
+                            /api/powerbi/garantias?api_token=sgqoti2024@powerbi&data_inicio=2024-01-01&status=Em%20andamento
                         </code>
                     </li>
                 </ol>
@@ -264,10 +255,10 @@ function fecharModalTeste() {
 
 function copiarURL(tipo) {
     const baseUrl = '<?php echo $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br'; ?>';
-    const url = `${baseUrl}/api/powerbi/${tipo}`;
+    const url = `${baseUrl}/api/powerbi/${tipo}?api_token=sgqoti2024@powerbi`;
     
     navigator.clipboard.writeText(url).then(() => {
-        alert('URL copiada para a área de transferência!');
+        alert('✓ URL copiada para a área de transferência! Cole no Power BI.');
     });
 }
 

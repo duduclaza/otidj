@@ -56,30 +56,39 @@ mysql -u u230868210_dusouza -p u230868210_djsgqpro < database/add_powerbi_api_pe
 3. JSON deve aparecer com dados de garantias
 
 ### 4. Testar API Manualmente
+
+#### Método 1: Token na URL (Recomendado para Power BI)
 ```bash
-# Via curl
+# Via curl - Token na URL
+curl -X GET "https://djbr.sgqoti.com.br/api/powerbi/garantias?api_token=sgqoti2024@powerbi"
+
+# Com filtros
+curl -X GET "https://djbr.sgqoti.com.br/api/powerbi/garantias?api_token=sgqoti2024@powerbi&data_inicio=2024-01-01&status=Em%20andamento"
+```
+
+#### Método 2: Token no Header (Alternativo)
+```bash
+# Via curl - Token no header
 curl -X GET "https://djbr.sgqoti.com.br/api/powerbi/garantias" \
   -H "Authorization: Bearer sgqoti2024@powerbi" \
   -H "Content-Type: application/json"
-
-# Com filtros
-curl -X GET "https://djbr.sgqoti.com.br/api/powerbi/garantias?data_inicio=2024-01-01&status=Em%20andamento" \
-  -H "Authorization: Bearer sgqoti2024@powerbi"
 ```
 
 ### 5. Testar no Power BI Desktop
 1. Abrir Power BI Desktop
 2. **Obter Dados** → **Web**
-3. URL Básica:
+3. **URL com token incluído**:
    ```
-   https://djbr.sgqoti.com.br/api/powerbi/garantias
+   https://djbr.sgqoti.com.br/api/powerbi/garantias?api_token=sgqoti2024@powerbi
    ```
-4. Em **Opções Avançadas**, adicionar:
-   - **Partes da URL HTTP**: (deixar em branco)
-   - **Cabeçalhos (opcional)**:
-     - Nome: `Authorization`
-     - Valor: `Bearer sgqoti2024@powerbi`
-5. Clicar **OK** → Dados devem carregar
+4. Clicar **OK** → Dados serão carregados automaticamente! ✅
+
+**💡 Filtros Opcionais:**
+   ```
+   https://djbr.sgqoti.com.br/api/powerbi/garantias?api_token=sgqoti2024@powerbi&data_inicio=2024-01-01&status=Em%20andamento
+   ```
+
+**⚠️ Nota:** O método de autenticação via parâmetro de URL é mais compatível com o Power BI Desktop, evitando erros de "caracteres de Cabeçalho HTTP inválidos".
 
 ---
 
