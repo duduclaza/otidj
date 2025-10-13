@@ -101,6 +101,11 @@ class PermissionMiddleware
         '/admin' => 'admin_painel',
         '/admin/dashboard/data' => 'dashboard',
         
+        // Power BI API
+        '/api/powerbi' => 'api_powerbi',
+        '/api/powerbi/documentacao' => 'api_powerbi',
+        '/api/powerbi/garantias' => 'api_powerbi',
+        
         // Perfil - removido pois é rota pública para usuários logados
     ];
     

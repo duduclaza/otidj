@@ -79,12 +79,13 @@ $menu = [
     'href' => '#', 
     'icon' => '⚙️', 
     'category' => true,
-    'modules' => ['admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel'],
+    'modules' => ['admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel', 'api_powerbi'],
     'submenu' => [
       ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥', 'module' => 'admin_usuarios'],
       ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
       ['label' => 'Solicitações de Acesso', 'href' => '/admin/access-requests', 'icon' => '📧', 'module' => 'admin_convites'],
       ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
+      ['label' => 'APIs para Power BI', 'href' => '/api/powerbi', 'icon' => '📊', 'module' => 'api_powerbi'],
     ]
   ],
 ];
