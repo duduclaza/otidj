@@ -104,6 +104,8 @@ class PermissionMiddleware
         // Power BI API
         '/api/powerbi' => 'api_powerbi',
         '/api/powerbi/documentacao' => 'api_powerbi',
+        '/api/powerbi/test' => 'api_powerbi',
+        '/api/powerbi/garantias-simples' => 'api_powerbi',
         '/api/powerbi/garantias' => 'api_powerbi',
         
         // Perfil - removido pois é rota pública para usuários logados

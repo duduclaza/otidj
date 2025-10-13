@@ -9,6 +9,7 @@
                     <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                         <span class="text-4xl">📊</span>
                         APIs para Power BI
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full">EM DESENVOLVIMENTO</span>
                     </h1>
                     <p class="mt-2 text-gray-600">
                         Integre os dados do SGQ com seus dashboards do Power BI
@@ -23,23 +24,21 @@
             </div>
         </div>
 
-        <!-- Informações de Autenticação -->
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8">
+        <!-- Aviso de Desenvolvimento -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
             <div class="flex">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-blue-800">🔐 Autenticação</h3>
-                    <div class="mt-2 text-sm text-blue-700">
-                        <p><strong>Para Power BI:</strong> Adicione o token diretamente na URL:</p>
-                        <code class="block mt-2 p-2 bg-blue-100 rounded text-xs">
-                            ?api_token=sgqoti2024@powerbi
-                        </code>
-                        <p class="mt-2 text-xs text-blue-600">
-                            💡 <strong>Exemplo completo:</strong> /api/powerbi/garantias<strong>?api_token=sgqoti2024@powerbi</strong>
+                    <h3 class="text-sm font-medium text-yellow-800">⚠️ Sistema em Desenvolvimento</h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>As APIs estão em fase de testes e desenvolvimento. Podem ocorrer mudanças sem aviso prévio.</p>
+                        <p class="mt-2">
+                            <strong>Status:</strong> Disponível para testes internos • 
+                            <strong>Token:</strong> <code class="bg-yellow-100 px-2 py-1 rounded">sgqoti2024@powerbi</code>
                         </p>
                     </div>
                 </div>
@@ -50,13 +49,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <!-- API Garantias -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow border-2 border-yellow-300">
+                <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-xl font-bold text-white">Garantias</h3>
+                        <div>
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                Garantias
+                                <span class="px-2 py-0.5 bg-yellow-800 text-yellow-100 text-xs rounded">BETA</span>
+                            </h3>
+                        </div>
                         <span class="text-3xl">🛡️</span>
                     </div>
-                    <p class="text-blue-100 text-sm mt-2">Dados completos de garantias</p>
+                    <p class="text-yellow-50 text-sm mt-2">Dados completos de garantias • Em testes</p>
                 </div>
                 <div class="p-6">
                     <div class="space-y-3">
@@ -109,8 +113,14 @@
                         </div>
                     </div>
 
-                    <div class="mt-6 flex gap-2">
-                        <button onclick="testarAPI('garantias')" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-xs text-yellow-800">
+                            <strong>⚠️ Em Desenvolvimento:</strong> API em fase de testes. Use apenas para fins de desenvolvimento.
+                        </p>
+                    </div>
+
+                    <div class="mt-4 flex gap-2">
+                        <button onclick="testarAPI('garantias')" class="flex-1 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium">
                             Testar API
                         </button>
                         <button onclick="copiarURL('garantias')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">

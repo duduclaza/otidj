@@ -48,20 +48,107 @@ class PowerBIController
             // Teste 3: Query simples em garantias
             $count = $this->db->query("SELECT COUNT(*) as total FROM garantias")->fetch();
             
+            // Teste 4: Colunas da tabela garantias
+            $columns = $this->db->query("SHOW COLUMNS FROM garantias")->fetchAll(PDO::FETCH_COLUMN);
+            
+            // Teste 5: Colunas da tabela garantias_itens
+            $itemsColumns = $this->db->query("SHOW COLUMNS FROM garantias_itens")->fetchAll(PDO::FETCH_COLUMN);
+            
+            // Teste 6: Query simples de garantias com JOIN
+            $simpleQuery = $this->db->query("
+                SELECT g.id, g.numero_ticket_interno, g.status, f.nome as fornecedor
+                FROM garantias g 
+                LEFT JOIN fornecedores f ON g.fornecedor_id = f.id 
+                LIMIT 1
+            ")->fetch();
+            
             echo json_encode([
                 'success' => true,
                 'tests' => [
                     'autenticacao' => $auth ? 'OK' : 'FALHOU',
                     'conexao_db' => $dbTest ? 'OK' : 'FALHOU',
-                    'tabela_garantias' => $count ? 'OK (' . $count['total'] . ' registros)' : 'FALHOU'
+                    'tabela_garantias' => $count ? 'OK (' . $count['total'] . ' registros)' : 'FALHOU',
+                    'query_simples_join' => $simpleQuery ? 'OK' : 'FALHOU'
                 ],
+                'table_info' => [
+                    'garantias_columns' => $columns,
+                    'garantias_itens_columns' => $itemsColumns
+                ],
+                'sample_data' => $simpleQuery,
                 'server_info' => [
                     'php_version' => PHP_VERSION,
-                    'api_token_presente' => isset($_GET['api_token']) ? 'SIM' : 'NÃO',
-                    'api_token_valor' => isset($_GET['api_token']) ? substr($_GET['api_token'], 0, 5) . '...' : 'N/A'
+                    'api_token_presente' => isset($_GET['api_token']) ? 'SIM' : 'NÃO'
                 ]
             ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine(),
+                'trace' => explode("\n", $e->getTraceAsString())
+            ], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    /**
+     * API Simplificada - Apenas dados básicos (sem estatísticas)
+     */
+    public function apiGarantiasSimples()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Access-Control-Allow-Origin: *');
+
+        try {
+            if (!$this->verificarAutenticacao()) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'error' => 'Unauthorized'], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            // Query simplificada - apenas dados básicos
+            $sql = "
+                SELECT 
+                    g.id,
+                    g.numero_ticket_interno,
+                    g.numero_ticket_os,
+                    g.fornecedor_id,
+                    f.nome AS fornecedor_nome,
+                    f.contato AS fornecedor_contato,
+                    f.rma AS fornecedor_rma,
+                    g.origem_garantia,
+                    g.numero_nf_compras,
+                    g.numero_nf_remessa_simples,
+                    g.numero_nf_remessa_devolucao,
+                    g.numero_serie,
+                    g.numero_lote,
+                    g.status,
+                    g.observacao,
+                    g.descricao_defeito,
+                    g.usuario_notificado_id,
+                    un.name AS usuario_notificado_nome,
+                    g.total_itens,
+                    g.valor_total,
+                    g.created_at,
+                    g.updated_at
+                FROM garantias g
+                LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
+                LEFT JOIN users un ON g.usuario_notificado_id = un.id
+                ORDER BY g.created_at DESC
+                LIMIT 100
+            ";
+
+            $garantias = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'data' => $garantias,
+                'total' => count($garantias),
+                'generated_at' => date('Y-m-d H:i:s')
+            ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
         } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode([
@@ -109,11 +196,12 @@ class PowerBIController
             $fornecedorId = $_GET['fornecedor_id'] ?? null;
             $origem = $_GET['origem'] ?? null;
 
-            // Query base
+            // Query base - usando campos corretos confirmados
             $sql = "
                 SELECT 
                     g.id,
                     g.numero_ticket_interno,
+                    g.numero_ticket_os,
                     g.fornecedor_id,
                     f.nome AS fornecedor_nome,
                     f.contato AS fornecedor_contato,
@@ -124,42 +212,42 @@ class PowerBIController
                     g.numero_nf_remessa_devolucao,
                     g.numero_serie,
                     g.numero_lote,
-                    g.ticket_os_fornecedor,
                     g.status,
                     g.observacao,
+                    g.descricao_defeito,
+                    g.usuario_notificado_id,
+                    un.name AS usuario_notificado_nome,
+                    un.email AS usuario_notificado_email,
                     g.total_itens,
                     g.valor_total,
-                    g.usuario_id,
-                    u.name AS usuario_nome,
-                    u.email AS usuario_email,
                     g.created_at,
                     g.updated_at,
                     -- Dados dos itens agregados
                     GROUP_CONCAT(
                         DISTINCT CONCAT(
                             gi.tipo_produto, ':', 
-                            gi.item, '|', 
+                            gi.codigo_produto, '|',
+                            gi.nome_produto, '|', 
                             gi.quantidade, '|', 
                             gi.valor_unitario, '|',
-                            gi.valor_total, '|',
-                            gi.defeito_relatado
+                            gi.descricao
                         ) SEPARATOR '||'
                     ) AS itens_detalhados,
                     -- Contagem de anexos
                     (SELECT COUNT(*) FROM garantias_anexos WHERE garantia_id = g.id) AS total_anexos,
-                    -- Tipos de produtos
+                    -- Tipos de produtos únicos
                     (SELECT COUNT(DISTINCT tipo_produto) FROM garantias_itens WHERE garantia_id = g.id) AS tipos_produtos,
-                    -- Resumo por tipo
-                    (SELECT SUM(quantidade) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'toner') AS qtd_toners,
-                    (SELECT SUM(quantidade) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'maquina') AS qtd_maquinas,
-                    (SELECT SUM(quantidade) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'peca') AS qtd_pecas,
+                    -- Resumo por tipo (quantidade)
+                    (SELECT COALESCE(SUM(quantidade), 0) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'toner') AS qtd_toners,
+                    (SELECT COALESCE(SUM(quantidade), 0) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'maquina') AS qtd_maquinas,
+                    (SELECT COALESCE(SUM(quantidade), 0) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'peca') AS qtd_pecas,
                     -- Valores por tipo
-                    (SELECT SUM(valor_total) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'toner') AS valor_toners,
-                    (SELECT SUM(valor_total) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'maquina') AS valor_maquinas,
-                    (SELECT SUM(valor_total) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'peca') AS valor_pecas
+                    (SELECT COALESCE(SUM(quantidade * valor_unitario), 0) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'toner') AS valor_toners,
+                    (SELECT COALESCE(SUM(quantidade * valor_unitario), 0) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'maquina') AS valor_maquinas,
+                    (SELECT COALESCE(SUM(quantidade * valor_unitario), 0) FROM garantias_itens WHERE garantia_id = g.id AND tipo_produto = 'peca') AS valor_pecas
                 FROM garantias g
                 LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
-                LEFT JOIN users u ON g.usuario_id = u.id
+                LEFT JOIN users un ON g.usuario_notificado_id = un.id
                 LEFT JOIN garantias_itens gi ON g.id = gi.garantia_id
                 WHERE 1=1
             ";
@@ -211,21 +299,28 @@ class PowerBIController
                 $garantia['valor_pecas'] = (float)($garantia['valor_pecas'] ?? 0);
 
                 // Processar itens detalhados
+                // Formato: tipo_produto:codigo_produto|nome_produto|quantidade|valor_unitario|descricao
                 if ($garantia['itens_detalhados']) {
                     $itensArray = [];
                     $itens = explode('||', $garantia['itens_detalhados']);
                     foreach ($itens as $item) {
+                        if (empty($item)) continue;
+                        
                         $partes = explode('|', $item);
                         if (count($partes) >= 5) {
-                            $tipo_produto = explode(':', $partes[0])[0];
-                            $item_nome = explode(':', $partes[0])[1] ?? '';
+                            // Primeiro campo contém tipo_produto:codigo_produto
+                            $tipoCodigo = explode(':', $partes[0]);
+                            $tipo_produto = $tipoCodigo[0] ?? '';
+                            $codigo_produto = $tipoCodigo[1] ?? '';
+                            
                             $itensArray[] = [
                                 'tipo_produto' => $tipo_produto,
-                                'item' => $item_nome,
-                                'quantidade' => (int)$partes[1],
-                                'valor_unitario' => (float)$partes[2],
-                                'valor_total' => (float)$partes[3],
-                                'defeito' => $partes[4]
+                                'codigo_produto' => $codigo_produto,
+                                'nome_produto' => $partes[1],
+                                'quantidade' => (int)$partes[2],
+                                'valor_unitario' => (float)$partes[3],
+                                'valor_total' => (int)$partes[2] * (float)$partes[3],
+                                'descricao' => $partes[4]
                             ];
                         }
                     }

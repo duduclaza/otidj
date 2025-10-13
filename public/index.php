@@ -390,6 +390,7 @@ $router->get('/registros/parametros', [App\Controllers\RegistrosController::clas
 $router->get('/api/powerbi', [App\Controllers\PowerBIController::class, 'index']);
 $router->get('/api/powerbi/documentacao', [App\Controllers\PowerBIController::class, 'documentacao']);
 $router->get('/api/powerbi/test', [App\Controllers\PowerBIController::class, 'apiTest']);
+$router->get('/api/powerbi/garantias-simples', [App\Controllers\PowerBIController::class, 'apiGarantiasSimples']);
 $router->get('/api/powerbi/garantias', [App\Controllers\PowerBIController::class, 'apiGarantias']);
 
 // Store routes

@@ -85,7 +85,7 @@ $menu = [
       ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
       ['label' => 'Solicitações de Acesso', 'href' => '/admin/access-requests', 'icon' => '📧', 'module' => 'admin_convites'],
       ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
-      ['label' => 'APIs para Power BI', 'href' => '/api/powerbi', 'icon' => '📊', 'module' => 'api_powerbi'],
+      ['label' => 'APIs para Power BI', 'href' => '/api/powerbi', 'icon' => '📊', 'module' => 'api_powerbi', 'badge' => 'BETA'],
     ]
   ],
 ];
@@ -173,6 +173,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                         <?= e($sub['label']) ?>
                         <?php if (isset($sub['beta']) && $sub['beta']): ?>
                           <span class="beta-badge">BETA</span>
+                        <?php elseif (isset($sub['badge'])): ?>
+                          <span class="px-1.5 py-0.5 bg-yellow-500 text-yellow-900 text-xs font-bold rounded"><?= e($sub['badge']) ?></span>
                         <?php endif; ?>
                       </span>
                     </a>
