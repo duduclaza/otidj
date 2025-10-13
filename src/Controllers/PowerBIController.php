@@ -31,28 +31,77 @@ class PowerBIController
     }
 
     /**
+     * Endpoint de teste simplificado
+     */
+    public function apiTest()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Access-Control-Allow-Origin: *');
+
+        try {
+            // Teste 1: Autenticação
+            $auth = $this->verificarAutenticacao();
+            
+            // Teste 2: Conexão com banco
+            $dbTest = $this->db->query("SELECT 1 as test")->fetch();
+            
+            // Teste 3: Query simples em garantias
+            $count = $this->db->query("SELECT COUNT(*) as total FROM garantias")->fetch();
+            
+            echo json_encode([
+                'success' => true,
+                'tests' => [
+                    'autenticacao' => $auth ? 'OK' : 'FALHOU',
+                    'conexao_db' => $dbTest ? 'OK' : 'FALHOU',
+                    'tabela_garantias' => $count ? 'OK (' . $count['total'] . ' registros)' : 'FALHOU'
+                ],
+                'server_info' => [
+                    'php_version' => PHP_VERSION,
+                    'api_token_presente' => isset($_GET['api_token']) ? 'SIM' : 'NÃO',
+                    'api_token_valor' => isset($_GET['api_token']) ? substr($_GET['api_token'], 0, 5) . '...' : 'N/A'
+                ]
+            ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine()
+            ], JSON_UNESCAPED_UNICODE);
+        }
+    }
+
+    /**
      * API: Garantias - Dados completos para Power BI
      * Endpoint: /api/powerbi/garantias
      */
     public function apiGarantias()
     {
+        // Configurar headers antes de qualquer saída
         header('Content-Type: application/json; charset=utf-8');
         header('Access-Control-Allow-Origin: *');
         header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
         header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-        // Verificar autenticação via token ou sessão
-        if (!$this->verificarAutenticacao()) {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => 'Unauthorized',
-                'message' => 'Token de autenticação inválido ou ausente'
-            ]);
-            exit;
-        }
-
         try {
+            // Log de acesso
+            error_log("🔵 API Garantias - Acesso recebido");
+            
+            // Verificar autenticação via token ou sessão
+            if (!$this->verificarAutenticacao()) {
+                error_log("❌ API Garantias - Autenticação falhou");
+                http_response_code(401);
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Unauthorized',
+                    'message' => 'Token de autenticação inválido ou ausente. Use: ?api_token=sgqoti2024@powerbi'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+
+            error_log("✅ API Garantias - Autenticação OK");
             // Parâmetros de filtro opcionais
             $dataInicio = $_GET['data_inicio'] ?? null;
             $dataFim = $_GET['data_fim'] ?? null;
@@ -145,9 +194,11 @@ class PowerBIController
 
             $sql .= " GROUP BY g.id ORDER BY g.created_at DESC";
 
+            error_log("🔵 API Garantias - Executando query SQL");
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             $garantias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("✅ API Garantias - Query executada com sucesso. " . count($garantias) . " registros encontrados");
 
             // Processar os dados para melhor estrutura
             foreach ($garantias as &$garantia) {
@@ -189,6 +240,7 @@ class PowerBIController
             }
 
             // Estatísticas gerais
+            error_log("🔵 API Garantias - Calculando estatísticas");
             $stats = [
                 'total_registros' => count($garantias),
                 'valor_total_geral' => array_sum(array_column($garantias, 'valor_total')),
@@ -202,6 +254,7 @@ class PowerBIController
                     'pecas' => array_sum(array_column($garantias, 'qtd_pecas'))
                 ]
             ];
+            error_log("✅ API Garantias - Estatísticas calculadas");
 
             echo json_encode([
                 'success' => true,
@@ -217,14 +270,27 @@ class PowerBIController
                 'generated_at' => date('Y-m-d H:i:s')
             ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
 
+        } catch (\PDOException $e) {
+            error_log("❌ Erro de Banco de Dados na API de Garantias: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'Database Error',
+                'message' => 'Erro ao consultar banco de dados: ' . $e->getMessage(),
+                'code' => $e->getCode()
+            ], JSON_UNESCAPED_UNICODE);
         } catch (\Exception $e) {
             error_log("❌ Erro na API de Garantias: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             http_response_code(500);
             echo json_encode([
                 'success' => false,
                 'error' => 'Internal Server Error',
-                'message' => $e->getMessage()
-            ]);
+                'message' => $e->getMessage(),
+                'file' => basename($e->getFile()),
+                'line' => $e->getLine()
+            ], JSON_UNESCAPED_UNICODE);
         }
     }
 
@@ -325,12 +391,11 @@ class PowerBIController
         }
 
         // MÉTODO 2: Token via header Authorization (para ferramentas que suportam)
-        $headers = getallheaders();
-        if ($headers) {
-            $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? null;
-            if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-                $token = $matches[1];
-                return $this->validarToken($token);
+        $authHeader = $this->getAuthorizationHeader();
+        if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+            $token = trim($matches[1]);
+            if ($this->validarToken($token)) {
+                return true;
             }
         }
 
@@ -340,6 +405,30 @@ class PowerBIController
         }
 
         return false;
+    }
+
+    /**
+     * Obter header Authorization de forma compatível
+     */
+    private function getAuthorizationHeader(): ?string
+    {
+        // Tentar $_SERVER['HTTP_AUTHORIZATION'] primeiro
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            return $_SERVER['HTTP_AUTHORIZATION'];
+        }
+
+        // Fallback para REDIRECT_HTTP_AUTHORIZATION (alguns servidores)
+        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+
+        // Tentar getallheaders() se disponível
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            return $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        }
+
+        return null;
     }
 
     /**
