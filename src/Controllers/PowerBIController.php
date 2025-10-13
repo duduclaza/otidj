@@ -115,9 +115,9 @@ class PowerBIController
                     g.id,
                     g.numero_ticket_interno,
                     g.fornecedor_id,
-                    f.nome_fantasia AS fornecedor_nome,
-                    f.razao_social AS fornecedor_razao_social,
-                    f.cnpj AS fornecedor_cnpj,
+                    f.nome AS fornecedor_nome,
+                    f.contato AS fornecedor_contato,
+                    f.rma AS fornecedor_rma,
                     g.origem_garantia,
                     g.numero_nf_compras,
                     g.numero_nf_remessa_simples,
@@ -319,8 +319,8 @@ class PowerBIController
         $sql = "
             SELECT 
                 f.id,
-                f.nome_fantasia,
-                f.razao_social,
+                f.nome AS fornecedor_nome,
+                f.contato AS fornecedor_contato,
                 COUNT(g.id) as total_garantias,
                 SUM(g.valor_total) as valor_total,
                 SUM(g.total_itens) as total_itens
