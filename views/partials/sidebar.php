@@ -473,12 +473,12 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         return; // Não inicializar se notificações estiverem desativadas
       }
       
-      // Criar som de notificação
-      try {
-        notificationSound = createNotificationSound();
-      } catch (e) {
-        console.log('Web Audio API não suportada');
-      }
+      // Criar som de notificação (DESABILITADO - Som removido)
+      // try {
+      //   notificationSound = createNotificationSound();
+      // } catch (e) {
+      //   console.log('Web Audio API não suportada');
+      // }
       
       loadNotifications();
       // Atualizar a cada 30 segundos
@@ -526,10 +526,10 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         counter.classList.remove('hidden');
         hasUnreadNotifications = true;
         
-        // Se há novas notificações, iniciar som
-        if (!previousCount && notificationSound) {
-          startNotificationSound();
-        }
+        // Se há novas notificações, iniciar som (DESABILITADO - Som removido)
+        // if (!previousCount && notificationSound) {
+        //   startNotificationSound();
+        // }
       } else {
         counter.classList.add('hidden');
         hasUnreadNotifications = false;
@@ -537,23 +537,24 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       }
     }
 
-    // Iniciar som de notificação contínuo
+    // Iniciar som de notificação contínuo (DESABILITADO - Som removido)
     function startNotificationSound() {
-      if (soundInterval) return; // Já está tocando
-      
-      // Tocar som imediatamente
-      if (notificationSound) {
-        notificationSound();
-      }
-      
-      // Repetir a cada 5 segundos
-      soundInterval = setInterval(() => {
-        if (hasUnreadNotifications && notificationSound) {
-          notificationSound();
-        } else {
-          stopNotificationSound();
-        }
-      }, 5000);
+      // SOM DESABILITADO - apenas notificação visual ativa
+      // if (soundInterval) return; // Já está tocando
+      // 
+      // // Tocar som imediatamente
+      // if (notificationSound) {
+      //   notificationSound();
+      // }
+      // 
+      // // Repetir a cada 5 segundos
+      // soundInterval = setInterval(() => {
+      //   if (hasUnreadNotifications && notificationSound) {
+      //     notificationSound();
+      //   } else {
+      //     stopNotificationSound();
+      //   }
+      // }, 5000);
     }
 
     // Parar som de notificação
