@@ -1050,62 +1050,172 @@ function closeImportModal() {
 }
 
 function downloadTemplate() {
-  // Create Excel template with proper 
+  console.log(' Gerando template Excel...');
+  
+  // Criar dados da planilha com instruções e exemplos
   const data = [
-    ['Modelo', 'Peso Cheio (g)', 'Peso Vazio (g)', 'Capacidade Folhas', 'Preço Toner (R$)', 'Cor', 'Tipo'],
-    ['HP CF280A', 850.5, 120.3, 2700, 89.90, 'Black', 'Original'],
-    ['Canon 045', 720.8, 110.2, 1300, 75.50, 'Yellow', 'Compativel'],
-    ['Brother TN-421', 680.9, 105.1, 1800, 65.00, 'Magenta', 'Remanufaturado']
+    // Linha de título
+    ['TEMPLATE DE IMPORTAÇÃO DE TONERS - SGQ OTI DJ'],
+    [],
+    // Instruções
+    [' INSTRUÇÕES DE PREENCHIMENTO:'],
+    ['1. Preencha os dados a partir da linha 9 (abaixo dos cabeçalhos)'],
+    ['2. CAMPOS OBRIGATÓRIOS: Modelo, Capacidade Folhas, Preço, Cor, Tipo'],
+    ['3. CAMPOS OPCIONAIS: Peso Cheio e Peso Vazio (podem ficar em branco)'],
+    ['4. Use ponto (.) para separar decimais, exemplo: 89.90'],
+    ['5. Valores de Cor: Yellow, Magenta, Cyan ou Black'],
+    ['6. Valores de Tipo: Original, Compativel ou Remanufaturado'],
+    [],
+    // Cabeçalhos
+    ['Modelo *', 'Peso Cheio (g)', 'Peso Vazio (g)', 'Capacidade Folhas *', 'Preço Toner (R$) *', 'Cor *', 'Tipo *'],
+    // Exemplos
+    ['HP CF280A', '850.50', '120.30', '2700', '89.90', 'Black', 'Original'],
+    ['Canon 045', '', '', '1300', '75.50', 'Yellow', 'Compativel'],
+    ['Brother TN-421', '680.90', '105.10', '1800', '65.00', 'Magenta', 'Remanufaturado'],
+    ['Samsung MLT-D104S', '720.00', '98.50', '1500', '55.00', 'Black', 'Original'],
+    ['Xerox 106R02773', '', '', '1000', '45.90', 'Cyan', 'Compativel']
   ];
   
-  // Create workbook
+  // Criar workbook
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(data);
   
-  // Set column widths
+  // Definir larguras das colunas
   ws['!cols'] = [
-    {wch: 15}, // Modelo
-    {wch: 15}, // Peso Cheio
-    {wch: 15}, // Peso Vazio
-    {wch: 18}, // Capacidade
-    {wch: 18}, // Preço
-    {wch: 12}, // Cor
-    {wch: 15}  // Tipo
+    {wch: 25}, // Modelo
+    {wch: 16}, // Peso Cheio
+    {wch: 16}, // Peso Vazio
+    {wch: 20}, // Capacidade
+    {wch: 20}, // Preço
+    {wch: 15}, // Cor
+    {wch: 20}  // Tipo
   ];
   
-  // Style header row
-  const headerStyle = {
-    font: { bold: true, color: { rgb: "FFFFFF" } },
-    fill: { fgColor: { rgb: "4F46E5" } },
-    alignment: { horizontal: "center" }
+  // Mesclar células do título
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } } // Mesclar título
+  ];
+  
+  // Estilizar célula do título (A1)
+  if (!ws['A1'].s) ws['A1'].s = {};
+  ws['A1'].s = {
+    font: { bold: true, sz: 14, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "1E40AF" } },
+    alignment: { horizontal: "center", vertical: "center" }
   };
   
-  // Apply header styling
-  for (let col = 0; col < 7; col++) {
-    const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
-    if (!ws[cellRef]) ws[cellRef] = {};
-    ws[cellRef].s = headerStyle;
+  // Estilizar instruções (linhas 3-8)
+  for (let row = 2; row <= 7; row++) {
+    const cellRef = XLSX.utils.encode_cell({ r: row, c: 0 });
+    if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
+    ws[cellRef].s = {
+      font: { italic: true, sz: 10, color: { rgb: "374151" } },
+      fill: { fgColor: { rgb: "F3F4F6" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
   }
   
-  // Add data validation for Cor column (F)
-  ws['!dataValidation'] = {
-    F2: { type: 'list', formula1: '"Yellow,Magenta,Cyan,Black"' },
-    F3: { type: 'list', formula1: '"Yellow,Magenta,Cyan,Black"' },
-    F4: { type: 'list', formula1: '"Yellow,Magenta,Cyan,Black"' }
-  };
+  // Estilizar cabeçalhos (linha 9)
+  for (let col = 0; col < 7; col++) {
+    const cellRef = XLSX.utils.encode_cell({ r: 9, c: col });
+    if (!ws[cellRef]) ws[cellRef] = { v: '', t: 's' };
+    ws[cellRef].s = {
+      font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "10B981" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top: { style: 'thin', color: { rgb: "000000" } },
+        bottom: { style: 'thin', color: { rgb: "000000" } },
+        left: { style: 'thin', color: { rgb: "000000" } },
+        right: { style: 'thin', color: { rgb: "000000" } }
+      }
+    };
+  }
   
-  // Add data validation for Tipo column (G)
-  ws['!dataValidation'] = {
-    ...ws['!dataValidation'],
-    G2: { type: 'list', formula1: '"Original,Compativel,Remanufaturado"' },
-    G3: { type: 'list', formula1: '"Original,Compativel,Remanufaturado"' },
-    G4: { type: 'list', formula1: '"Original,Compativel,Remanufaturado"' }
-  };
+  // Estilizar linhas de exemplo (linhas 10-14)
+  for (let row = 10; row <= 14; row++) {
+    for (let col = 0; col < 7; col++) {
+      const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+      if (!ws[cellRef]) continue;
+      ws[cellRef].s = {
+        alignment: { horizontal: "left", vertical: "center" },
+        border: {
+          top: { style: 'thin', color: { rgb: "E5E7EB" } },
+          bottom: { style: 'thin', color: { rgb: "E5E7EB" } },
+          left: { style: 'thin', color: { rgb: "E5E7EB" } },
+          right: { style: 'thin', color: { rgb: "E5E7EB" } }
+        }
+      };
+    }
+  }
   
-  XLSX.utils.book_append_sheet(wb, ws, "Template Toners");
+  // Adicionar comentários nas células de cabeçalho
+  ws['A10'].c = [{ a: "SGQPRO", t: "Campo obrigatório" }];
+  ws['D10'].c = [{ a: "SGQPRO", t: "Campo obrigatório" }];
+  ws['E10'].c = [{ a: "SGQPRO", t: "Campo obrigatório" }];
+  ws['F10'].c = [{ a: "SGQPRO", t: "Campo obrigatório - Valores: Yellow, Magenta, Cyan, Black" }];
+  ws['G10'].c = [{ a: "SGQPRO", t: "Campo obrigatório - Valores: Original, Compativel, Remanufaturado" }];
   
-  // Download file
-  XLSX.writeFile(wb, 'template_toners.xlsx');
+  // Congelar painéis (primeira linha de dados)
+  ws['!freeze'] = { xSplit: 0, ySplit: 10, topLeftCell: 'A11', activePane: 'bottomLeft' };
+  
+  // Adicionar à planilha
+  XLSX.utils.book_append_sheet(wb, ws, "Cadastro de Toners");
+  
+  // Criar aba de instruções detalhadas
+  const instrData = [
+    ['INSTRUÇÕES DETALHADAS - IMPORTAÇÃO DE TONERS'],
+    [],
+    ['CAMPOS OBRIGATÓRIOS (*)'],
+    ['Campo', 'Descrição', 'Exemplo', 'Formato'],
+    ['Modelo', 'Código ou nome do modelo do toner', 'HP CF280A', 'Texto'],
+    ['Capacidade Folhas', 'Quantidade de folhas que o toner imprime', '2700', 'Número inteiro'],
+    ['Preço Toner', 'Valor de compra do toner em reais', '89.90', 'Decimal (use ponto)'],
+    ['Cor', 'Cor do toner', 'Black', 'Yellow, Magenta, Cyan ou Black'],
+    ['Tipo', 'Tipo de toner', 'Original', 'Original, Compativel ou Remanufaturado'],
+    [],
+    ['CAMPOS OPCIONAIS'],
+    ['Campo', 'Descrição', 'Exemplo', 'Formato'],
+    ['Peso Cheio', 'Peso do toner cheio em gramas', '850.50', 'Decimal (use ponto)'],
+    ['Peso Vazio', 'Peso do cartucho vazio em gramas', '120.30', 'Decimal (use ponto)'],
+    [],
+    ['OBSERVAÇÕES IMPORTANTES:'],
+    ['• Se informar peso, AMBOS os campos (Peso Cheio e Peso Vazio) devem ser preenchidos'],
+    ['• Peso Cheio deve ser maior que Peso Vazio'],
+    ['• Use PONTO (.) para separar decimais, não vírgula'],
+    ['• Não use símbolos monetários (R$) no campo de preço'],
+    ['• A primeira linha com dados é a linha 10 (após os cabeçalhos)'],
+    ['• Linhas em branco são ignoradas automaticamente'],
+    ['• Campos calculados (Gramatura, Custo/Folha) são gerados automaticamente'],
+    [],
+    ['VALORES PERMITIDOS:'],
+    ['Cor: Yellow, Magenta, Cyan, Black'],
+    ['Tipo: Original, Compativel, Remanufaturado'],
+    [],
+    ['EXEMPLOS DE PREENCHIMENTO:'],
+    ['1. Com pesos: HP CF280A | 850.50 | 120.30 | 2700 | 89.90 | Black | Original'],
+    ['2. Sem pesos: Canon 045 | (vazio) | (vazio) | 1300 | 75.50 | Yellow | Compativel']
+  ];
+  
+  const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
+  wsInstr['!cols'] = [{wch: 20}, {wch: 50}, {wch: 20}, {wch: 30}];
+  XLSX.utils.book_append_sheet(wb, wsInstr, "Instruções");
+  
+  // Download do arquivo
+  const fileName = `template_toners_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+  
+  console.log(' Template gerado com sucesso:', fileName);
+  
+  // Feedback visual
+  const btn = event.target;
+  const originalText = btn.innerHTML;
+  btn.innerHTML = ' Template baixado!';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }, 2000);
 }
 
 function importExcel() {
