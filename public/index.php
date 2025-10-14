@@ -165,6 +165,7 @@ $router->get('/cadastro-pecas', [App\Controllers\CadastroPecasController::class,
 $router->post('/cadastro-pecas/store', [App\Controllers\CadastroPecasController::class, 'store']);
 $router->post('/cadastro-pecas/update', [App\Controllers\CadastroPecasController::class, 'update']);
 $router->post('/cadastro-pecas/delete', [App\Controllers\CadastroPecasController::class, 'delete']);
+$router->post('/cadastro-pecas/import', [App\Controllers\CadastroPecasController::class, 'import']);
 
 // Financeiro routes
 $router->get('/financeiro', [App\Controllers\FinanceiroController::class, 'index']);

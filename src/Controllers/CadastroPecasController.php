@@ -144,4 +144,94 @@ class CadastroPecasController
             echo json_encode(['success' => false, 'message' => 'Erro ao excluir: ' . $e->getMessage()]);
         }
     }
+
+    public function import(): void
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $userId = $_SESSION['user_id'];
+            
+            // Receber dados JSON do frontend
+            $pecasData = json_decode($_POST['pecas_data'] ?? '[]', true);
+            
+            if (empty($pecasData)) {
+                echo json_encode(['success' => false, 'message' => 'Nenhum dado válido encontrado']);
+                return;
+            }
+
+            $imported = 0;
+            $errors = [];
+
+            // Iniciar transação
+            $this->db->beginTransaction();
+
+            foreach ($pecasData as $index => $row) {
+                try {
+                    // Validar dados
+                    $codigoReferencia = trim($row[0] ?? '');
+                    $descricao = trim($row[1] ?? '');
+
+                    if (empty($codigoReferencia) || empty($descricao)) {
+                        $errors[] = "Linha " . ($index + 10) . ": Campos obrigatórios não preenchidos";
+                        continue;
+                    }
+
+                    // Verificar se código já existe
+                    $stmtCheck = $this->db->prepare('SELECT id FROM cadastro_pecas WHERE codigo_referencia = :codigo');
+                    $stmtCheck->execute([':codigo' => $codigoReferencia]);
+                    
+                    if ($stmtCheck->fetch()) {
+                        $errors[] = "Linha " . ($index + 10) . ": Código '$codigoReferencia' já cadastrado";
+                        continue;
+                    }
+
+                    // Inserir peça
+                    $stmt = $this->db->prepare('
+                        INSERT INTO cadastro_pecas (codigo_referencia, descricao, created_by, created_at, updated_at)
+                        VALUES (:codigo_referencia, :descricao, :created_by, NOW(), NOW())
+                    ');
+
+                    $stmt->execute([
+                        ':codigo_referencia' => $codigoReferencia,
+                        ':descricao' => $descricao,
+                        ':created_by' => $userId
+                    ]);
+
+                    $imported++;
+
+                } catch (\Exception $e) {
+                    $errors[] = "Linha " . ($index + 10) . ": " . $e->getMessage();
+                }
+            }
+
+            // Commit da transação
+            $this->db->commit();
+
+            // Preparar mensagem de resposta
+            $message = "$imported peças importadas com sucesso!";
+            if (!empty($errors)) {
+                $message .= " (" . count($errors) . " erros encontrados)";
+                error_log("Erros na importação de peças: " . implode('; ', $errors));
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => $message,
+                'imported' => $imported,
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            
+            error_log('Erro ao importar peças: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao processar importação: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

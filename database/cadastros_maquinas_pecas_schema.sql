@@ -56,8 +56,8 @@ SELECT
     1,  -- view
     1,  -- edit
     1,  -- delete
-    0,  -- import
-    0,  -- export
+    1,  -- import (habilitado para importação Excel)
+    1,  -- export
     NOW(),
     NOW()
 FROM profiles p
@@ -66,6 +66,11 @@ WHERE NOT EXISTS (
     WHERE profile_id = p.id 
     AND module = 'cadastro_pecas'
 );
+
+-- Atualizar permissões existentes para incluir import/export
+UPDATE profile_permissions 
+SET can_import = 1, can_export = 1, updated_at = NOW()
+WHERE module = 'cadastro_pecas' AND can_import = 0;
 
 -- Verificar se as tabelas foram criadas
     TABLE_NAME,
