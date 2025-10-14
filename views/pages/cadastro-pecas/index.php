@@ -262,7 +262,18 @@ document.getElementById('pecaForm').addEventListener('submit', async function(e)
 // ===== FUNÇÕES DE IMPORTAÇÃO =====
 
 function openImportModal() {
-  document.getElementById('importModal').classList.remove('hidden');
+  console.log('🔍 Tentando abrir modal de importação...');
+  const modal = document.getElementById('importModal');
+  console.log('Modal encontrado:', modal);
+  
+  if (!modal) {
+    console.error('❌ Modal não encontrado no DOM!');
+    alert('Erro: Modal de importação não foi encontrado. Por favor, recarregue a página.');
+    return;
+  }
+  
+  modal.classList.remove('hidden');
+  console.log('✅ Modal aberto com sucesso!');
 }
 
 function closeImportModal() {
@@ -497,4 +508,12 @@ function showImportError(message) {
   document.getElementById('importBtn').disabled = false;
   alert('Erro na importação: ' + message);
 }
+
+// ===== DIAGNÓSTICO DE CARREGAMENTO =====
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('🔧 [PEÇAS] Página carregada!');
+  console.log('🔧 [PEÇAS] Modal presente:', !!document.getElementById('importModal'));
+  console.log('🔧 [PEÇAS] Função openImportModal disponível:', typeof openImportModal);
+  console.log('🔧 [PEÇAS] Biblioteca XLSX disponível:', typeof XLSX !== 'undefined');
+});
 </script>

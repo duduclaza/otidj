@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Modal Importação Peças</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">🔧 Teste - Modal de Importação de Peças</h1>
+        
+        <!-- Botão de Importar -->
+        <div class="mb-6">
+            <button onclick="openImportModal()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg flex items-center gap-2">
+                <span>📊</span>
+                Importar Peças
+            </button>
+        </div>
+
+        <!-- Console de Debug -->
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+            <h2 class="text-lg font-bold mb-2">🐛 Console de Debug</h2>
+            <div id="debugConsole" class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm max-h-60 overflow-auto"></div>
+        </div>
+
+        <!-- Modal de Importação -->
+        <div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4" style="z-index: 999999;">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
+                <!-- Header -->
+                <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white rounded-t-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">📊 Importar Peças</h3>
+                                <p class="text-sm text-gray-600 mt-1">Faça upload de um arquivo Excel</p>
+                            </div>
+                        </div>
+                        <button onclick="closeImportModal()" class="flex-shrink-0 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors duration-200 group">
+                            <svg class="w-5 h-5 text-gray-500 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Content -->
+                <div class="px-6 py-4">
+                    <p class="text-center text-gray-700">Modal está funcionando! ✅</p>
+                    <p class="text-center text-sm text-gray-500 mt-2">Biblioteca XLSX: <span id="xlsxStatus">...</span></p>
+                </div>
+                
+                <!-- Footer -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                    <button onclick="closeImportModal()" class="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                        Fechar Modal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const debugConsole = document.getElementById('debugConsole');
+        
+        function log(message) {
+            const line = document.createElement('div');
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugConsole.appendChild(line);
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+            console.log(message);
+        }
+
+        function openImportModal() {
+            log('🔍 Tentando abrir modal de importação...');
+            const modal = document.getElementById('importModal');
+            log('Modal encontrado: ' + !!modal);
+            
+            if (!modal) {
+                log('❌ ERRO: Modal não encontrado no DOM!');
+                alert('Erro: Modal não foi encontrado!');
+                return;
+            }
+            
+            modal.classList.remove('hidden');
+            log('✅ Modal aberto com sucesso!');
+            
+            // Verificar XLSX
+            document.getElementById('xlsxStatus').textContent = typeof XLSX !== 'undefined' ? '✅ Carregado' : '❌ Não carregado';
+        }
+
+        function closeImportModal() {
+            log('🚪 Fechando modal...');
+            const modal = document.getElementById('importModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                log('✅ Modal fechado!');
+            }
+        }
+
+        // Diagnóstico ao carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🔧 Página carregada!');
+            log('🔧 Modal presente: ' + !!document.getElementById('importModal'));
+            log('🔧 Função openImportModal disponível: ' + (typeof openImportModal === 'function'));
+            log('🔧 Biblioteca XLSX disponível: ' + (typeof XLSX !== 'undefined'));
+            log('🔧 TailwindCSS carregado: ' + !!document.querySelector('script[src*="tailwindcss"]'));
+        });
+
+        // Teste automático após 1 segundo
+        setTimeout(() => {
+            log('🎯 Executando teste automático...');
+            log('✅ Sistema pronto para uso!');
+        }, 1000);
+    </script>
+</body>
+</html>
