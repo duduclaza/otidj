@@ -17,13 +17,15 @@
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Peso Cheio (g) *</label>
-        <input type="number" step="0.01" name="peso_cheio" placeholder="Ex: 850.50" class="w-full border rounded px-3 py-2" required onchange="calcularCampos()">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Peso Cheio (g) <span class="text-gray-500 text-xs">(opcional)</span></label>
+        <input type="number" step="0.01" name="peso_cheio" placeholder="Ex: 850.50" class="w-full border rounded px-3 py-2" onchange="calcularCampos()">
+        <p class="text-xs text-gray-500 mt-1">Se informar peso, ambos devem ser preenchidos</p>
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Peso Vazio (g) *</label>
-        <input type="number" step="0.01" name="peso_vazio" placeholder="Ex: 120.30" class="w-full border rounded px-3 py-2" required onchange="calcularCampos()">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Peso Vazio (g) <span class="text-gray-500 text-xs">(opcional)</span></label>
+        <input type="number" step="0.01" name="peso_vazio" placeholder="Ex: 120.30" class="w-full border rounded px-3 py-2" onchange="calcularCampos()">
+        <p class="text-xs text-gray-500 mt-1">Se informar peso, ambos devem ser preenchidos</p>
       </div>
       
       <div>
@@ -159,21 +161,44 @@
             </tr>
           <?php else: ?>
             <?php foreach ($toners as $t): ?>
-              <tr>
+              <?php 
+                // Verificar se o cadastro está incompleto (sem peso_cheio ou peso_vazio)
+                $cadastroIncompleto = empty($t['peso_cheio']) || empty($t['peso_vazio']);
+                $rowClass = $cadastroIncompleto ? 'bg-red-50 border-l-4 border-l-red-400' : '';
+              ?>
+              <tr class="<?= $rowClass ?>" <?= $cadastroIncompleto ? 'title="Cadastro incompleto: Peso Cheio e Peso Vazio não preenchidos"' : '' ?>>
                 <td class="px-3 py-2">
                   <span class="edit-display-modelo-<?= $t['id'] ?>"><?= e($t['modelo']) ?></span>
                   <input type="text" class="edit-input-modelo-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-full text-xs" value="<?= e($t['modelo']) ?>">
                 </td>
                 <td class="px-3 py-2">
-                  <span class="edit-display-peso_cheio-<?= $t['id'] ?>"><?= number_format($t['peso_cheio'], 2) ?>g</span>
-                  <input type="number" step="0.01" class="edit-input-peso_cheio-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs" value="<?= $t['peso_cheio'] ?>" onchange="calcularEdicao(<?= $t['id'] ?>)">
+                  <span class="edit-display-peso_cheio-<?= $t['id'] ?>">
+                    <?php if (empty($t['peso_cheio'])): ?>
+                      <span class="text-red-600 font-medium text-xs">⚠️ Não informado</span>
+                    <?php else: ?>
+                      <?= number_format($t['peso_cheio'], 2) ?>g
+                    <?php endif; ?>
+                  </span>
+                  <input type="number" step="0.01" class="edit-input-peso_cheio-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs" value="<?= $t['peso_cheio'] ?? '' ?>" onchange="calcularEdicao(<?= $t['id'] ?>)">
                 </td>
                 <td class="px-3 py-2">
-                  <span class="edit-display-peso_vazio-<?= $t['id'] ?>"><?= number_format($t['peso_vazio'], 2) ?>g</span>
-                  <input type="number" step="0.01" class="edit-input-peso_vazio-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs" value="<?= $t['peso_vazio'] ?>" onchange="calcularEdicao(<?= $t['id'] ?>)">
+                  <span class="edit-display-peso_vazio-<?= $t['id'] ?>">
+                    <?php if (empty($t['peso_vazio'])): ?>
+                      <span class="text-red-600 font-medium text-xs">⚠️ Não informado</span>
+                    <?php else: ?>
+                      <?= number_format($t['peso_vazio'], 2) ?>g
+                    <?php endif; ?>
+                  </span>
+                  <input type="number" step="0.01" class="edit-input-peso_vazio-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs" value="<?= $t['peso_vazio'] ?? '' ?>" onchange="calcularEdicao(<?= $t['id'] ?>)">
                 </td>
                 <td class="px-3 py-2">
-                  <span class="edit-display-gramatura-<?= $t['id'] ?>"><?= number_format($t['gramatura'], 2) ?>g</span>
+                  <span class="edit-display-gramatura-<?= $t['id'] ?>">
+                    <?php if (empty($t['gramatura'])): ?>
+                      <span class="text-gray-400 text-xs">-</span>
+                    <?php else: ?>
+                      <?= number_format($t['gramatura'], 2) ?>g
+                    <?php endif; ?>
+                  </span>
                   <input type="number" step="0.01" class="edit-input-gramatura-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs bg-gray-100" readonly>
                 </td>
                 <td class="px-3 py-2">
@@ -185,11 +210,23 @@
                   <input type="number" step="0.01" class="edit-input-preco_toner-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs" value="<?= $t['preco_toner'] ?>" onchange="calcularEdicao(<?= $t['id'] ?>)">
                 </td>
                 <td class="px-3 py-2">
-                  <span class="edit-display-gramatura_por_folha-<?= $t['id'] ?>"><?= number_format($t['gramatura_por_folha'], 4) ?>g</span>
+                  <span class="edit-display-gramatura_por_folha-<?= $t['id'] ?>">
+                    <?php if (empty($t['gramatura_por_folha'])): ?>
+                      <span class="text-gray-400 text-xs">-</span>
+                    <?php else: ?>
+                      <?= number_format($t['gramatura_por_folha'], 4) ?>g
+                    <?php endif; ?>
+                  </span>
                   <input type="number" step="0.0001" class="edit-input-gramatura_por_folha-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs bg-gray-100" readonly>
                 </td>
                 <td class="px-3 py-2">
-                  <span class="edit-display-custo_por_folha-<?= $t['id'] ?>">R$ <?= number_format($t['custo_por_folha'], 4, ',', '.') ?></span>
+                  <span class="edit-display-custo_por_folha-<?= $t['id'] ?>">
+                    <?php if (empty($t['custo_por_folha'])): ?>
+                      <span class="text-gray-400 text-xs">-</span>
+                    <?php else: ?>
+                      R$ <?= number_format($t['custo_por_folha'], 4, ',', '.') ?>
+                    <?php endif; ?>
+                  </span>
                   <input type="number" step="0.0001" class="edit-input-custo_por_folha-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs bg-gray-100" readonly>
                 </td>
                 <td class="px-3 py-2">

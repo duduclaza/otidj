@@ -346,20 +346,29 @@ class TonersController
     public function store(): void
     {
         $modelo = trim($_POST['modelo'] ?? '');
-        $peso_cheio = (float)($_POST['peso_cheio'] ?? 0);
-        $peso_vazio = (float)($_POST['peso_vazio'] ?? 0);
+        $peso_cheio = !empty($_POST['peso_cheio']) ? (float)$_POST['peso_cheio'] : null;
+        $peso_vazio = !empty($_POST['peso_vazio']) ? (float)$_POST['peso_vazio'] : null;
         $capacidade_folhas = (int)($_POST['capacidade_folhas'] ?? 0);
         $preco_toner = (float)($_POST['preco_toner'] ?? 0);
         $cor = $_POST['cor'] ?? '';
         $tipo = $_POST['tipo'] ?? '';
 
-        if ($modelo === '' || $peso_cheio <= 0 || $peso_vazio <= 0 || $capacidade_folhas <= 0 || $preco_toner <= 0 || $cor === '' || $tipo === '') {
-            flash('error', 'Todos os campos são obrigatórios e devem ter valores válidos.');
+        // Validar campos obrigatórios (pesos são opcionais)
+        if ($modelo === '' || $capacidade_folhas <= 0 || $preco_toner <= 0 || $cor === '' || $tipo === '') {
+            flash('error', 'Campos obrigatórios: Modelo, Capacidade de Folhas, Preço, Cor e Tipo.');
             redirect('/toners/cadastro');
             return;
         }
 
-        if ($peso_cheio <= $peso_vazio) {
+        // Se um dos pesos foi informado, ambos devem ser informados
+        if (($peso_cheio !== null && $peso_vazio === null) || ($peso_cheio === null && $peso_vazio !== null)) {
+            flash('error', 'Se informar peso, ambos Peso Cheio e Peso Vazio devem ser preenchidos.');
+            redirect('/toners/cadastro');
+            return;
+        }
+
+        // Se ambos os pesos foram informados, validar que peso cheio > peso vazio
+        if ($peso_cheio !== null && $peso_vazio !== null && $peso_cheio <= $peso_vazio) {
             flash('error', 'O peso cheio deve ser maior que o peso vazio.');
             redirect('/toners/cadastro');
             return;
@@ -393,20 +402,29 @@ class TonersController
     {
         $id = (int)($_POST['id'] ?? 0);
         $modelo = trim($_POST['modelo'] ?? '');
-        $peso_cheio = (float)($_POST['peso_cheio'] ?? 0);
-        $peso_vazio = (float)($_POST['peso_vazio'] ?? 0);
+        $peso_cheio = !empty($_POST['peso_cheio']) ? (float)$_POST['peso_cheio'] : null;
+        $peso_vazio = !empty($_POST['peso_vazio']) ? (float)$_POST['peso_vazio'] : null;
         $capacidade_folhas = (int)($_POST['capacidade_folhas'] ?? 0);
         $preco_toner = (float)($_POST['preco_toner'] ?? 0);
         $cor = $_POST['cor'] ?? '';
         $tipo = $_POST['tipo'] ?? '';
 
-        if ($id <= 0 || $modelo === '' || $peso_cheio <= 0 || $peso_vazio <= 0 || $capacidade_folhas <= 0 || $preco_toner <= 0 || $cor === '' || $tipo === '') {
-            flash('error', 'Dados inválidos.');
+        // Validar campos obrigatórios (pesos são opcionais)
+        if ($id <= 0 || $modelo === '' || $capacidade_folhas <= 0 || $preco_toner <= 0 || $cor === '' || $tipo === '') {
+            flash('error', 'Dados inválidos. Campos obrigatórios: Modelo, Capacidade de Folhas, Preço, Cor e Tipo.');
             redirect('/toners/cadastro');
             return;
         }
 
-        if ($peso_cheio <= $peso_vazio) {
+        // Se um dos pesos foi informado, ambos devem ser informados
+        if (($peso_cheio !== null && $peso_vazio === null) || ($peso_cheio === null && $peso_vazio !== null)) {
+            flash('error', 'Se informar peso, ambos Peso Cheio e Peso Vazio devem ser preenchidos.');
+            redirect('/toners/cadastro');
+            return;
+        }
+
+        // Se ambos os pesos foram informados, validar que peso cheio > peso vazio
+        if ($peso_cheio !== null && $peso_vazio !== null && $peso_cheio <= $peso_vazio) {
             flash('error', 'O peso cheio deve ser maior que o peso vazio.');
             redirect('/toners/cadastro');
             return;
