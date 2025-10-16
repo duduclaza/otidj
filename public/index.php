@@ -217,6 +217,8 @@ $router->post('/controle-descartes/update', [App\Controllers\ControleDescartesCo
 $router->post('/controle-descartes/delete', [App\Controllers\ControleDescartesController::class, 'delete']);
 $router->get('/controle-descartes/{id}', [App\Controllers\ControleDescartesController::class, 'getDescarte']);
 $router->get('/controle-descartes/anexo/{id}', [App\Controllers\ControleDescartesController::class, 'downloadAnexo']);
+$router->get('/controle-descartes/template', [App\Controllers\ControleDescartesController::class, 'downloadTemplate']);
+$router->post('/controle-descartes/importar', [App\Controllers\ControleDescartesController::class, 'importar']);
 $router->get('/controle-descartes/relatorios', [App\Controllers\ControleDescartesController::class, 'relatorios']);
 
 // Auditorias routes

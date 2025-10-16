@@ -49,6 +49,7 @@ if (!function_exists('e')) {
 // Verificar permissões
 $canEdit = hasPermission('controle_descartes', 'edit');
 $canDelete = hasPermission('controle_descartes', 'delete');
+$canImport = hasPermission('controle_descartes', 'import');
 $canExport = hasPermission('controle_descartes', 'export');
 ?>
 
@@ -67,6 +68,20 @@ $canExport = hasPermission('controle_descartes', 'export');
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Exportar
+                </button>
+                <?php endif; ?>
+                <?php if ($canImport): ?>
+                <button onclick="baixarTemplate()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Baixar Template
+                </button>
+                <button onclick="abrirModalImportacao()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    Importar Excel
                 </button>
                 <?php endif; ?>
                 <?php if ($canEdit): ?>
@@ -147,6 +162,70 @@ $canExport = hasPermission('controle_descartes', 'export');
         </div>
         <div id="no-data" class="text-center py-8 hidden">
             <p class="text-gray-500">Nenhum descarte encontrado.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Importação -->
+<div id="modal-importacao" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Importar Descartes via Excel</h3>
+                <button onclick="fecharModalImportacao()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h4 class="font-medium text-blue-900 mb-2">📋 Instruções:</h4>
+                    <ol class="list-decimal list-inside text-sm text-blue-800 space-y-1">
+                        <li>Clique em "Baixar Template" para obter o modelo Excel</li>
+                        <li>Preencha os dados seguindo o exemplo incluído</li>
+                        <li>Salve o arquivo e faça o upload abaixo</li>
+                        <li>Os dados serão validados antes da importação</li>
+                    </ol>
+                </div>
+
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                    <h4 class="font-medium text-yellow-900 mb-2">⚠️ Campos obrigatórios:</h4>
+                    <p class="text-sm text-yellow-800">Número de Série, Filial, Código do Produto, Descrição do Produto, Responsável Técnico</p>
+                </div>
+
+                <label class="block text-sm font-medium text-gray-700 mb-2">Selecione o arquivo Excel:</label>
+                <input type="file" id="arquivo-importacao" accept=".xlsx,.xls,.csv" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <small class="text-gray-500">Formatos aceitos: .xlsx, .xls, .csv</small>
+            </div>
+
+            <div id="preview-importacao" class="hidden mb-4">
+                <h4 class="font-medium text-gray-900 mb-2">Preview dos Dados:</h4>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
+                    <p id="preview-count" class="text-sm text-gray-600 mb-2"></p>
+                    <div id="preview-content" class="text-sm"></div>
+                </div>
+            </div>
+
+            <div id="progress-importacao" class="hidden mb-4">
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+                <p id="progress-text" class="text-sm text-gray-600 mt-2 text-center"></p>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="fecharModalImportacao()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md">
+                    Cancelar
+                </button>
+                <button type="button" onclick="baixarTemplate()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md">
+                    Baixar Template
+                </button>
+                <button type="button" id="btn-importar" onclick="processarImportacao()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md" disabled>
+                    Importar Dados
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -478,5 +557,135 @@ function formatarData(data) {
 function exportarDescartes() {
     // TODO: Implementar exportação
     alert('Funcionalidade de exportação será implementada em breve');
+}
+
+// ===== FUNÇÕES DE IMPORTAÇÃO =====
+
+// Abrir modal de importação
+function abrirModalImportacao() {
+    document.getElementById('modal-importacao').classList.remove('hidden');
+    document.getElementById('arquivo-importacao').value = '';
+    document.getElementById('preview-importacao').classList.add('hidden');
+    document.getElementById('progress-importacao').classList.add('hidden');
+    document.getElementById('btn-importar').disabled = true;
+}
+
+// Fechar modal de importação
+function fecharModalImportacao() {
+    document.getElementById('modal-importacao').classList.add('hidden');
+}
+
+// Baixar template Excel
+function baixarTemplate() {
+    window.location.href = '/controle-descartes/template';
+}
+
+// Event listener para arquivo selecionado
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('arquivo-importacao');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                previewArquivo(file);
+            }
+        });
+    }
+});
+
+// Preview do arquivo
+function previewArquivo(file) {
+    console.log('Preview arquivo:', file.name);
+    
+    // Validar tipo de arquivo
+    const allowedTypes = ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+                          'application/vnd.ms-excel', 
+                          'text/csv'];
+    
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls|csv)$/i)) {
+        alert('Formato de arquivo inválido. Use .xlsx, .xls ou .csv');
+        document.getElementById('arquivo-importacao').value = '';
+        return;
+    }
+    
+    // Validar tamanho (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Arquivo muito grande. Máximo 5MB permitido.');
+        document.getElementById('arquivo-importacao').value = '';
+        return;
+    }
+    
+    // Mostrar preview simples
+    document.getElementById('preview-importacao').classList.remove('hidden');
+    document.getElementById('preview-count').textContent = `Arquivo selecionado: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+    document.getElementById('preview-content').innerHTML = '<p class="text-gray-600">Clique em "Importar Dados" para processar o arquivo</p>';
+    document.getElementById('btn-importar').disabled = false;
+}
+
+// Processar importação
+function processarImportacao() {
+    const fileInput = document.getElementById('arquivo-importacao');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        alert('Selecione um arquivo para importar');
+        return;
+    }
+    
+    // Mostrar progress bar
+    document.getElementById('progress-importacao').classList.remove('hidden');
+    document.getElementById('progress-bar').style.width = '0%';
+    document.getElementById('progress-text').textContent = 'Enviando arquivo...';
+    document.getElementById('btn-importar').disabled = true;
+    
+    const formData = new FormData();
+    formData.append('arquivo', file);
+    
+    // Simular progresso
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 10;
+        if (progress <= 50) {
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+    }, 200);
+    
+    fetch('/controle-descartes/importar', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        clearInterval(progressInterval);
+        document.getElementById('progress-bar').style.width = '100%';
+        
+        if (data.success) {
+            document.getElementById('progress-text').textContent = `✅ Sucesso! ${data.imported} registros importados.`;
+            
+            if (data.errors && data.errors.length > 0) {
+                const errorMsg = `\n\nAvisos:\n${data.errors.join('\n')}`;
+                alert(`Importação concluída com ${data.imported} registros.${errorMsg}`);
+            } else {
+                alert(`Importação concluída! ${data.imported} registros importados com sucesso.`);
+            }
+            
+            setTimeout(() => {
+                fecharModalImportacao();
+                carregarDescartes();
+            }, 2000);
+        } else {
+            document.getElementById('progress-text').textContent = '❌ Erro na importação';
+            alert('Erro ao importar: ' + data.message);
+            document.getElementById('btn-importar').disabled = false;
+        }
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        console.error('Erro:', error);
+        document.getElementById('progress-text').textContent = '❌ Erro ao processar arquivo';
+        alert('Erro ao processar importação');
+        document.getElementById('btn-importar').disabled = false;
+    });
 }
 </script>

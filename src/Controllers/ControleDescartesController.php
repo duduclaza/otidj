@@ -463,4 +463,232 @@ class ControleDescartesController
             echo 'Erro interno: ' . $e->getMessage();
         }
     }
+
+    // Baixar template Excel
+    public function downloadTemplate()
+    {
+        try {
+            // Verificar permissão
+            if (!PermissionService::hasPermission($_SESSION['user_id'], 'controle_descartes', 'import')) {
+                http_response_code(403);
+                echo 'Sem permissão para baixar template';
+                return;
+            }
+
+            // Buscar filiais para o exemplo
+            $filiais = $this->getFiliais();
+            $filialExemplo = !empty($filiais) ? $filiais[0]['nome'] : 'Jundiaí';
+
+            // Criar CSV com template
+            $filename = 'template_descartes_' . date('Ymd') . '.csv';
+            
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+
+            // Abrir output como arquivo
+            $output = fopen('php://output', 'w');
+            
+            // BOM para UTF-8 (para Excel reconhecer acentos)
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Cabeçalhos (exatamente como no grid)
+            $headers = [
+                'Número de Série',
+                'Filial',
+                'Código do Produto',
+                'Descrição do Produto',
+                'Data do Descarte',
+                'Número da OS',
+                'Responsável Técnico',
+                'Observações'
+            ];
+            fputcsv($output, $headers, ';');
+
+            // Linha de exemplo
+            $exemplo = [
+                'SERIE12345',
+                $filialExemplo,
+                'PROD-001',
+                'Impressora HP LaserJet Pro M404dn',
+                date('Y-m-d'),
+                'OS-2024-001',
+                'João Silva',
+                'Equipamento com defeito irreparável na placa principal'
+            ];
+            fputcsv($output, $exemplo, ';');
+
+            fclose($output);
+            exit;
+        } catch (\Exception $e) {
+            error_log('Erro ao gerar template: ' . $e->getMessage());
+            http_response_code(500);
+            echo 'Erro ao gerar template: ' . $e->getMessage();
+        }
+    }
+
+    // Importar descartes via Excel/CSV
+    public function importar()
+    {
+        ob_clean();
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar permissão
+            if (!PermissionService::hasPermission($_SESSION['user_id'], 'controle_descartes', 'import')) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para importar descartes']);
+                return;
+            }
+
+            // Verificar se arquivo foi enviado
+            if (!isset($_FILES['arquivo']) || $_FILES['arquivo']['error'] !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Nenhum arquivo foi enviado ou erro no upload']);
+                return;
+            }
+
+            $file = $_FILES['arquivo'];
+
+            // Validar tamanho (max 5MB)
+            if ($file['size'] > 5 * 1024 * 1024) {
+                echo json_encode(['success' => false, 'message' => 'Arquivo muito grande. Máximo 5MB permitido.']);
+                return;
+            }
+
+            // Validar tipo
+            $allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            
+            if (!in_array($extension, ['csv', 'xls', 'xlsx'])) {
+                echo json_encode(['success' => false, 'message' => 'Formato de arquivo não suportado. Use CSV, XLS ou XLSX.']);
+                return;
+            }
+
+            // Ler arquivo CSV
+            $filePath = $file['tmp_name'];
+            $handle = fopen($filePath, 'r');
+            
+            if ($handle === false) {
+                echo json_encode(['success' => false, 'message' => 'Não foi possível abrir o arquivo']);
+                return;
+            }
+
+            // Pular BOM se existir
+            $bom = fread($handle, 3);
+            if ($bom !== chr(0xEF).chr(0xBB).chr(0xBF)) {
+                rewind($handle);
+            }
+
+            // Ler cabeçalhos
+            $headers = fgetcsv($handle, 0, ';');
+            if (!$headers) {
+                $headers = fgetcsv($handle, 0, ',');
+            }
+            
+            if (!$headers) {
+                fclose($handle);
+                echo json_encode(['success' => false, 'message' => 'Arquivo vazio ou formato inválido']);
+                return;
+            }
+
+            // Buscar mapa de filiais
+            $filiais = $this->getFiliais();
+            $filiaisMap = [];
+            foreach ($filiais as $filial) {
+                $filiaisMap[strtolower($filial['nome'])] = $filial['id'];
+            }
+
+            $imported = 0;
+            $errors = [];
+            $linha = 1; // Começar da linha 1 (cabeçalho)
+
+            // Processar cada linha
+            while (($data = fgetcsv($handle, 0, ';')) !== false) {
+                $linha++;
+                
+                // Tentar com vírgula se ponto e vírgula não funcionou
+                if (count($data) == 1 && strpos($data[0], ',') !== false) {
+                    $data = str_getcsv($data[0], ',');
+                }
+
+                // Pular linhas vazias
+                if (empty(array_filter($data))) {
+                    continue;
+                }
+
+                try {
+                    // Mapear dados
+                    $numeroSerie = trim($data[0] ?? '');
+                    $filialNome = trim($data[1] ?? '');
+                    $codigoProduto = trim($data[2] ?? '');
+                    $descricaoProduto = trim($data[3] ?? '');
+                    $dataDescarte = trim($data[4] ?? '');
+                    $numeroOs = trim($data[5] ?? '');
+                    $responsavelTecnico = trim($data[6] ?? '');
+                    $observacoes = trim($data[7] ?? '');
+
+                    // Validar campos obrigatórios
+                    if (empty($numeroSerie) || empty($filialNome) || empty($codigoProduto) || 
+                        empty($descricaoProduto) || empty($responsavelTecnico)) {
+                        $errors[] = "Linha $linha: Campos obrigatórios faltando";
+                        continue;
+                    }
+
+                    // Buscar ID da filial
+                    $filialId = $filiaisMap[strtolower($filialNome)] ?? null;
+                    if (!$filialId) {
+                        $errors[] = "Linha $linha: Filial '$filialNome' não encontrada";
+                        continue;
+                    }
+
+                    // Data do descarte (se vazia, usar hoje)
+                    if (empty($dataDescarte)) {
+                        $dataDescarte = date('Y-m-d');
+                    } else {
+                        // Tentar converter data
+                        $dataDescarte = date('Y-m-d', strtotime($dataDescarte));
+                    }
+
+                    // Inserir descarte
+                    $stmt = $this->db->prepare("
+                        INSERT INTO controle_descartes (
+                            numero_serie, filial_id, codigo_produto, descricao_produto, 
+                            data_descarte, numero_os, responsavel_tecnico, 
+                            observacoes, created_by
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    
+                    $stmt->execute([
+                        $numeroSerie,
+                        $filialId,
+                        $codigoProduto,
+                        $descricaoProduto,
+                        $dataDescarte,
+                        !empty($numeroOs) ? $numeroOs : null,
+                        $responsavelTecnico,
+                        !empty($observacoes) ? $observacoes : null,
+                        $_SESSION['user_id']
+                    ]);
+
+                    $imported++;
+                } catch (\Exception $e) {
+                    $errors[] = "Linha $linha: " . $e->getMessage();
+                }
+            }
+
+            fclose($handle);
+
+            // Retornar resultado
+            echo json_encode([
+                'success' => true,
+                'imported' => $imported,
+                'errors' => $errors,
+                'message' => "Importação concluída: $imported registros importados"
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Erro na importação: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao processar importação: ' . $e->getMessage()]);
+        }
+    }
 }
