@@ -20,19 +20,37 @@ class HomologacoesController
      */
     public function index()
     {
+        // TEMPORÁRIO: Página em construção
+        // TODO: Remover e descomentar código abaixo quando finalizar
+        
+        require_once __DIR__ . '/../../views/layouts/header.php';
+        echo '<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; text-align: center;">
+            <div>
+                <div style="font-size: 80px; margin-bottom: 20px;">🚧</div>
+                <h1 style="color: #64748b; font-size: 32px; margin-bottom: 10px;">Módulo Homologações</h1>
+                <p style="color: #94a3b8; font-size: 18px;">Em Construção</p>
+                <p style="color: #cbd5e1; font-size: 14px; margin-top: 20px;">Este módulo estará disponível em breve.</p>
+            </div>
+        </div>';
+        require_once __DIR__ . '/../../views/layouts/footer.php';
+        return;
+        
+        // CÓDIGO ABAIXO NÃO EXECUTA (return acima)
+        // TODO: Descomentar quando finalizar o módulo
+        
         // Verificar permissão
-        PermissionService::requirePermission($_SESSION['user_id'], 'homologacoes', 'view');
+        // PermissionService::requirePermission($_SESSION['user_id'], 'homologacoes', 'view');
 
         // Verificar se usuário pode criar homologações (Admin ou Compras)
-        $canCreate = $this->canCreateHomologacao($_SESSION['user_id']);
+        // $canCreate = $this->canCreateHomologacao($_SESSION['user_id']);
 
         // Buscar todos os cartões agrupados por status
-        $homologacoes = $this->getHomologacoesKanban();
+        // $homologacoes = $this->getHomologacoesKanban();
 
         // Buscar usuários para dropdown de responsáveis
-        $usuarios = $this->getUsuariosAtivos();
+        // $usuarios = $this->getUsuariosAtivos();
 
-        require_once __DIR__ . '/../../views/homologacoes/kanban.php';
+        // require_once __DIR__ . '/../../views/homologacoes/kanban.php';
     }
 
     /**
