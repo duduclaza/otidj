@@ -470,6 +470,57 @@ class TonersController
         redirect('/toners/cadastro');
     }
 
+    // Baixar template CSV/Excel para importação
+    public function downloadTemplate(): void
+    {
+        try {
+            // Criar CSV com template
+            $filename = 'template_toners_' . date('Ymd') . '.csv';
+            
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+
+            // Abrir output como arquivo
+            $output = fopen('php://output', 'w');
+            
+            // BOM para UTF-8 (para Excel reconhecer acentos)
+            fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            // Cabeçalhos (campos do formulário)
+            $headers = [
+                'Modelo',
+                'Peso Cheio (g)',
+                'Peso Vazio (g)',
+                'Capacidade de Folhas',
+                'Preço do Toner (R$)',
+                'Cor',
+                'Tipo'
+            ];
+            fputcsv($output, $headers, ';');
+
+            // Linha de exemplo
+            $exemplo = [
+                'HP CF280A',
+                '850.50',
+                '120.30',
+                '2700',
+                '89.90',
+                'Black',
+                'Original'
+            ];
+            fputcsv($output, $exemplo, ';');
+
+            fclose($output);
+            exit;
+        } catch (\Exception $e) {
+            error_log('Erro ao gerar template: ' . $e->getMessage());
+            http_response_code(500);
+            echo 'Erro ao gerar template: ' . $e->getMessage();
+        }
+    }
+
     public function import(): void
     {
         header('Content-Type: application/json');

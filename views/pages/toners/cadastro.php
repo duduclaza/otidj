@@ -1050,14 +1050,17 @@ function closeImportModal() {
 }
 
 function downloadTemplate() {
-  console.log(' Gerando template Excel...');
+  console.log('📥 Baixando template CSV simples...');
   
-  // Criar dados da planilha com instruções e exemplos
+  // Download direto do backend (template CSV simples)
+  window.location.href = '/toners/template';
+  return;
+  
+  // Código antigo comentado (caso queira voltar ao Excel complexo)
+  /*
   const data = [
-    // Linha de título
     ['TEMPLATE DE IMPORTAÇÃO DE TONERS - SGQ OTI DJ'],
     [],
-    // Instruções
     [' INSTRUÇÕES DE PREENCHIMENTO:'],
     ['1. Preencha os dados a partir da linha 9 (abaixo dos cabeçalhos)'],
     ['2. CAMPOS OBRIGATÓRIOS: Modelo, Capacidade Folhas, Preço, Cor, Tipo'],
@@ -1066,9 +1069,7 @@ function downloadTemplate() {
     ['5. Valores de Cor: Yellow, Magenta, Cyan ou Black'],
     ['6. Valores de Tipo: Original, Compativel ou Remanufaturado'],
     [],
-    // Cabeçalhos
     ['Modelo *', 'Peso Cheio (g)', 'Peso Vazio (g)', 'Capacidade Folhas *', 'Preço Toner (R$) *', 'Cor *', 'Tipo *'],
-    // Exemplos
     ['HP CF280A', '850.50', '120.30', '2700', '89.90', 'Black', 'Original'],
     ['Canon 045', '', '', '1300', '75.50', 'Yellow', 'Compativel'],
     ['Brother TN-421', '680.90', '105.10', '1800', '65.00', 'Magenta', 'Remanufaturado'],

@@ -114,6 +114,7 @@ $router->get('/toners/cadastro', [App\Controllers\TonersController::class, 'cada
 $router->post('/toners/cadastro', [App\Controllers\TonersController::class, 'store']);
 $router->post('/toners/update', [App\Controllers\TonersController::class, 'update']);
 $router->post('/toners/delete', [App\Controllers\TonersController::class, 'delete']);
+$router->get('/toners/template', [App\Controllers\TonersController::class, 'downloadTemplate']);
 $router->get('/toners/retornados', [App\Controllers\TonersController::class, 'retornados']);
 $router->post('/toners/retornados', [App\Controllers\TonersController::class, 'storeRetornado']);
 $router->delete('/toners/retornados/delete/{id}', [App\Controllers\TonersController::class, 'deleteRetornado']);
