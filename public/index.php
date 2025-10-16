@@ -369,6 +369,13 @@ $router->post('/fluxogramas/solicitacao/reprovar', [App\Controllers\FluxogramasC
 $router->get('/fluxogramas/visualizacao/list', [App\Controllers\FluxogramasController::class, 'listVisualizacao']);
 $router->get('/fluxogramas/logs/visualizacao', [App\Controllers\FluxogramasController::class, 'listLogs']);
 
+// ===== MÓDULO HOMOLOGAÇÕES (KANBAN) =====
+$router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);
+$router->post('/homologacoes/store', [App\Controllers\HomologacoesController::class, 'store']);
+$router->post('/homologacoes/update-status', [App\Controllers\HomologacoesController::class, 'updateStatus']);
+$router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesController::class, 'details']);
+$router->post('/homologacoes/delete', [App\Controllers\HomologacoesController::class, 'delete']);
+
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
 $router->get('/melhoria-continua/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
