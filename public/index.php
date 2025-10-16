@@ -422,10 +422,15 @@ try {
     
     // Apply middleware only for protected routes
     $isPublicAuthRoute = (
+        $currentRoute === '/' ||  // Rota raiz tem lógica própria de redirecionamento
+        $currentRoute === '/inicio' ||  // Página inicial acessível a todos os logados
         strpos($currentRoute, '/login') === 0 ||
         strpos($currentRoute, '/auth/') === 0 ||
         strpos($currentRoute, '/register') === 0 ||
-        strpos($currentRoute, '/logout') === 0
+        strpos($currentRoute, '/logout') === 0 ||
+        strpos($currentRoute, '/password-reset') === 0 ||
+        strpos($currentRoute, '/request-access') === 0 ||
+        strpos($currentRoute, '/access-request') === 0
     );
 
     if (!$isPublicAuthRoute) {
