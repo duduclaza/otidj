@@ -2190,8 +2190,7 @@ function updateTabelaFornecedores(fornecedores) {
       <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">${f.toner.comprados}</td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-medium">${f.toner.garantias}</td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-center ${getQualidadeColorClass(f.toner.qualidade)}">
-        <div class="font-semibold">${f.toner.qualidade.toFixed(2)}%</div>
-        <div class="text-xs text-gray-500 mt-1">(${f.toner.garantias} garantias)</div>
+        ${f.toner.qualidade.toFixed(2)}%
       </td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">${f.maquina.comprados}</td>
       <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600 font-medium">${f.maquina.garantias}</td>

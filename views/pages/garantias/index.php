@@ -481,6 +481,10 @@ if (!isset($_SESSION['user_id'])) {
                             Produto
                             <div class="column-resizer"></div>
                         </th>
+                        <th data-column="quantidade" class="resizable-column px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 100px; min-width: 80px;">
+                            Qtd
+                            <div class="column-resizer"></div>
+                        </th>
                         <th data-column="status" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 150px;">
                             Status
                             <div class="column-resizer"></div>
@@ -1359,7 +1363,7 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     if (dados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="16" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="17" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
         return;
     }
     
@@ -1407,6 +1411,11 @@ function renderizarTabela(dados) {
                 <div class="truncate" title="${garantia.produtos_lista || 'N/A'}">
                     ${garantia.produtos_lista || '<span class="text-gray-400">-</span>'}
                 </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
+                <span class="inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    ${parseInt(garantia.total_quantidade) || 0}
+                </span>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
                 <select onchange="updateGarantiaStatus(${garantia.id}, this.value, this)" 

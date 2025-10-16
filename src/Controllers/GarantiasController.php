@@ -231,9 +231,9 @@ class GarantiasController
             $stmt->execute();
             $garantias = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
-            // Buscar produtos dos itens para cada garantia
+            // Buscar produtos e quantidades dos itens para cada garantia
             $stmtItens = $this->db->prepare("
-                SELECT codigo_produto, nome_produto, tipo_produto, descricao
+                SELECT codigo_produto, nome_produto, tipo_produto, descricao, quantidade
                 FROM garantias_itens
                 WHERE garantia_id = ?
                 ORDER BY id
@@ -248,6 +248,13 @@ class GarantiasController
                 // Buscar produtos dos itens
                 $stmtItens->execute([$garantia['id']]);
                 $itens = $stmtItens->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Calcular total de quantidade somando todas as quantidades dos itens
+                $total_quantidade = 0;
+                foreach ($itens as $item) {
+                    $total_quantidade += (int)($item['quantidade'] ?? 0);
+                }
+                $garantia['total_quantidade'] = $total_quantidade;
                 
                 // Criar lista de produtos (máximo 3 para não ficar muito grande)
                 $produtos = [];
