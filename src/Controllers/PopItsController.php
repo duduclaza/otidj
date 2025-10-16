@@ -491,7 +491,14 @@ class PopItsController
             $titulo_info = $stmt_titulo->fetch(\PDO::FETCH_ASSOC);
             
             // Notificar administradores sobre novo registro pendente
-            error_log("TENTANDO NOTIFICAR ADMINS: Novo {$titulo_info['tipo']} - {$titulo_info['titulo']} v{$proxima_versao}");
+            error_log("========================================");
+            error_log("🔔 INICIANDO PROCESSO DE NOTIFICAÇÃO");
+            error_log("Tipo: Novo {$titulo_info['tipo']}");
+            error_log("Título: {$titulo_info['titulo']}");
+            error_log("Versão: v{$proxima_versao}");
+            error_log("Registro ID: {$registro_id}");
+            error_log("========================================");
+            
             $notificacao_enviada = $this->notificarAdministradores(
                 "📋 Novo " . $titulo_info['tipo'] . " Pendente",
                 "Um novo registro '{$titulo_info['titulo']}' v{$proxima_versao} foi criado e aguarda aprovação.",
@@ -499,7 +506,10 @@ class PopItsController
                 "pops_its_registro",
                 $registro_id
             );
-            error_log("NOTIFICAÇÃO RESULTADO: " . ($notificacao_enviada ? 'SUCESSO' : 'FALHA'));
+            
+            error_log("========================================");
+            error_log("🔔 RESULTADO FINAL DA NOTIFICAÇÃO: " . ($notificacao_enviada ? '✅ SUCESSO' : '❌ FALHA'));
+            error_log("========================================");
             
             echo json_encode(['success' => true, 'message' => "Registro criado com sucesso! Versão v{$proxima_versao} está pendente de aprovação."]);
             
@@ -1810,27 +1820,35 @@ class PopItsController
     private function notificarAdministradores($titulo, $mensagem, $tipo, $related_type = null, $related_id = null)
     {
         try {
-            error_log("=== INICIANDO NOTIFICAÇÃO PARA ADMINS COM PERMISSÃO ===");
-            error_log("TÍTULO: $titulo");
-            error_log("MENSAGEM: $mensagem");
-            error_log("TIPO: $tipo");
+            error_log("┌─────────────────────────────────────────────────────────┐");
+            error_log("│ 🔔 SISTEMA DE NOTIFICAÇÕES POPs e ITs                   │");
+            error_log("└─────────────────────────────────────────────────────────┘");
+            error_log("📋 Título: $titulo");
+            error_log("💬 Mensagem: $mensagem");
+            error_log("🏷️  Tipo: $tipo");
+            error_log("🔗 Related Type: " . ($related_type ?? 'N/A'));
+            error_log("🔗 Related ID: " . ($related_id ?? 'N/A'));
+            error_log("");
             
             // Buscar administradores com permissão específica para aprovar POPs e ITs
             $admins = [];
             
             // Verificar se coluna pode_aprovar_pops_its existe
+            error_log("🔍 Verificando se coluna pode_aprovar_pops_its existe...");
             $hasColumn = false;
             try {
                 $checkColumn = $this->db->query("SHOW COLUMNS FROM users LIKE 'pode_aprovar_pops_its'");
                 $hasColumn = $checkColumn->rowCount() > 0;
+                error_log($hasColumn ? "✅ Coluna existe!" : "❌ Coluna NÃO existe!");
             } catch (\Exception $e) {
-                error_log("Coluna pode_aprovar_pops_its não existe ainda");
+                error_log("❌ ERRO ao verificar coluna: " . $e->getMessage());
             }
             
             if ($hasColumn) {
                 // Buscar apenas admins com permissão específica
+                error_log("🔍 Buscando administradores com pode_aprovar_pops_its = 1...");
                 $stmt = $this->db->prepare("
-                    SELECT id, name, email 
+                    SELECT id, name, email, pode_aprovar_pops_its, status
                     FROM users 
                     WHERE role = 'admin' 
                     AND pode_aprovar_pops_its = 1
@@ -1839,16 +1857,25 @@ class PopItsController
                 $stmt->execute();
                 $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 error_log("✅ ADMINS COM PERMISSÃO ENCONTRADOS: " . count($admins));
+                
+                foreach ($admins as $admin) {
+                    error_log("   👤 {$admin['name']} (ID: {$admin['id']}, Email: {$admin['email']})");
+                }
             } else {
                 // Fallback: buscar todos os admins se coluna não existir
-                $stmt = $this->db->prepare("SELECT id, name, email FROM users WHERE role = 'admin' AND status = 'active'");
+                error_log("⚠️ Coluna não existe - buscando TODOS administradores ativos...");
+                $stmt = $this->db->prepare("SELECT id, name, email, status FROM users WHERE role = 'admin' AND status = 'active'");
                 $stmt->execute();
                 $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                error_log("⚠️ Coluna não existe - usando todos admins: " . count($admins));
+                error_log("⚠️ TODOS ADMINS ATIVOS: " . count($admins));
             }
             
             if (empty($admins)) {
-                error_log("❌ NENHUM ADMINISTRADOR COM PERMISSÃO ENCONTRADO!");
+                error_log("❌ PROBLEMA CRÍTICO: NENHUM ADMINISTRADOR ENCONTRADO!");
+                error_log("❌ Possíveis causas:");
+                error_log("   1. Nenhum admin com pode_aprovar_pops_its = 1");
+                error_log("   2. Todos admins estão inativos");
+                error_log("   3. Erro na consulta SQL");
                 return false;
             }
             
