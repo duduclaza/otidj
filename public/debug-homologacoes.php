@@ -1,39 +1,58 @@
 <?php
 /**
- * Diagnóstico Simples de Erro 500 - Homologações
+ * Diagnóstico COMPLETO de Erro 500 - Homologações
  */
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('log_errors', 1);
 
-echo "<h1>🔍 Diagnóstico de Homologações</h1>";
-echo "<style>body { font-family: Arial; padding: 20px; } .ok { color: green; font-weight: bold; } .erro { color: red; font-weight: bold; }</style>";
+echo "<h1>🔍 Diagnóstico COMPLETO de Homologações</h1>";
+echo "<style>
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; } 
+    .ok { color: green; font-weight: bold; } 
+    .erro { color: red; font-weight: bold; }
+    .warning { color: orange; font-weight: bold; }
+    .section { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 3px; overflow-x: auto; }
+</style>";
 
 try {
     // 1. Testar carregamento básico
-    echo "<h2>1. Carregando Sistema...</h2>";
+    echo "<div class='section'>";
+    echo "<h2>1️⃣ Carregando Sistema...</h2>";
     require_once __DIR__ . '/../vendor/autoload.php';
     echo "<p class='ok'>✅ Autoload OK</p>";
+    echo "</div>";
 
     // 2. Testar .env
+    echo "<div class='section'>";
+    echo "<h2>2️⃣ Carregando Configurações...</h2>";
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
     $dotenv->load();
     echo "<p class='ok'>✅ .env carregado</p>";
+    echo "</div>";
 
     // 3. Testar conexão banco
-    echo "<h2>2. Testando Banco de Dados...</h2>";
+    echo "<div class='section'>";
+    echo "<h2>3️⃣ Testando Banco de Dados...</h2>";
     $db = App\Config\Database::getInstance();
     echo "<p class='ok'>✅ Conexão com banco OK</p>";
+    echo "<p>Banco: " . $_ENV['DB_DATABASE'] . "</p>";
+    echo "</div>";
 
     // 4. Verificar tabelas
-    echo "<h2>3. Verificando Tabelas...</h2>";
+    echo "<div class='section'>";
+    echo "<h2>4️⃣ Verificando Tabelas...</h2>";
     $tabelas = ['homologacoes', 'homologacoes_responsaveis', 'homologacoes_historico', 'homologacoes_anexos'];
+    $tabelasOK = true;
     
     foreach ($tabelas as $tabela) {
         $stmt = $db->query("SHOW TABLES LIKE '$tabela'");
         if ($stmt->rowCount() > 0) {
             echo "<p class='ok'>✅ Tabela <b>$tabela</b> existe</p>";
         } else {
+            $tabelasOK = false;
             echo "<p class='erro'>❌ Tabela <b>$tabela</b> NÃO EXISTE</p>";
             echo "<p><strong>SOLUÇÃO:</strong> Execute o SQL em <code>database/homologacoes_kanban.sql</code></p>";
         }
@@ -78,20 +97,61 @@ try {
     }
 
     // 8. Verificar View
-    echo "<h2>7. Verificando View...</h2>";
+    echo "</div>";
+    echo "<div class='section'>";
+    echo "<h2>7️⃣ Verificando View...</h2>";
     $viewPath = __DIR__ . '/../views/homologacoes/kanban.php';
     if (file_exists($viewPath)) {
         echo "<p class='ok'>✅ View kanban.php existe</p>";
     } else {
         echo "<p class='erro'>❌ View kanban.php NÃO encontrada em: $viewPath</p>";
     }
+    echo "</div>";
+    
+    // 9. TESTE REAL - Tentar carregar a página
+    echo "<div class='section'>";
+    echo "<h2>8️⃣ TESTE REAL - Executando Controller...</h2>";
+    try {
+        if (!isset($_SESSION['user_id'])) {
+            session_start();
+            // Buscar primeiro admin
+            $stmt = $db->query("SELECT id FROM users WHERE id = 1 LIMIT 1");
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($user) {
+                $_SESSION['user_id'] = $user['id'];
+            }
+        }
+        
+        echo "<p>Tentando executar HomologacoesController->index()...</p>";
+        $controller = new App\Controllers\HomologacoesController();
+        ob_start();
+        $controller->index();
+        $output = ob_get_clean();
+        echo "<p class='ok'>✅ Controller executado SEM ERROS!</p>";
+        echo "<p class='ok'>✅ Página carregaria normalmente!</p>";
+    } catch (Exception $e) {
+        echo "<p class='erro'>❌ ERRO ao executar controller:</p>";
+        echo "<pre style='background: #ffe; padding: 10px; border: 1px solid orange;'>";
+        echo $e->getMessage() . "\n";
+        echo "Arquivo: " . $e->getFile() . "\n";
+        echo "Linha: " . $e->getLine();
+        echo "</pre>";
+    }
+    echo "</div>";
 
     echo "<hr>";
+    echo "<div class='section'>";
     echo "<h2>✅ RESUMO</h2>";
+    if ($tabelasOK) {
+        echo "<p class='ok'>✅ Todas as tabelas existem!</p>";
+    } else {
+        echo "<p class='erro'>❌ Faltam tabelas! Execute o SQL.</p>";
+    }
     echo "<p><strong>Se todas as verificações acima estão OK</strong>, o sistema deve funcionar!</p>";
     echo "<p><strong>Se há ❌ vermelhos</strong>, corrija os problemas indicados.</p>";
     echo "<hr>";
-    echo "<p><a href='/homologacoes' style='background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Testar /homologacoes</a></p>";
+    echo "<p><a href='/homologacoes' style='background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;'>🚀 Testar /homologacoes</a></p>";
+    echo "</div>";
 
 } catch (Exception $e) {
     echo "<h2 class='erro'>❌ ERRO CRÍTICO:</h2>";
