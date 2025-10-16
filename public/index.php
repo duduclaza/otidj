@@ -181,7 +181,7 @@ $router->post('/master/aprovar-pagamento', [App\Controllers\MasterController::cl
 $router->get('/master/logout', [App\Controllers\MasterController::class, 'logout']);
 
 // Other routes
-$router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']);
+// $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']); // REMOVIDO - Agora usa HomologacoesController (linha 373)
 // $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']); // REMOVIDO - Agora usa FluxogramasController (linha 326)
 $router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
 $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
