@@ -181,7 +181,7 @@ $router->post('/master/aprovar-pagamento', [App\Controllers\MasterController::cl
 $router->get('/master/logout', [App\Controllers\MasterController::class, 'logout']);
 
 // Other routes
-// $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']); // REMOVIDO - Agora usa HomologacoesController (linha 373)
+$router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']); // Em construção - igual Controle de RC
 // $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']); // REMOVIDO - Agora usa FluxogramasController (linha 326)
 $router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
 $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
@@ -369,12 +369,13 @@ $router->post('/fluxogramas/solicitacao/reprovar', [App\Controllers\FluxogramasC
 $router->get('/fluxogramas/visualizacao/list', [App\Controllers\FluxogramasController::class, 'listVisualizacao']);
 $router->get('/fluxogramas/logs/visualizacao', [App\Controllers\FluxogramasController::class, 'listLogs']);
 
-// ===== MÓDULO HOMOLOGAÇÕES (KANBAN) =====
-$router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);
-$router->post('/homologacoes/store', [App\Controllers\HomologacoesController::class, 'store']);
-$router->post('/homologacoes/update-status', [App\Controllers\HomologacoesController::class, 'updateStatus']);
-$router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesController::class, 'details']);
-$router->post('/homologacoes/delete', [App\Controllers\HomologacoesController::class, 'delete']);
+// ===== MÓDULO HOMOLOGAÇÕES (KANBAN) - COMENTADO TEMPORARIAMENTE =====
+// TODO: Descomentar quando finalizar o módulo
+// $router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);
+// $router->post('/homologacoes/store', [App\Controllers\HomologacoesController::class, 'store']);
+// $router->post('/homologacoes/update-status', [App\Controllers\HomologacoesController::class, 'updateStatus']);
+// $router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesController::class, 'details']);
+// $router->post('/homologacoes/delete', [App\Controllers\HomologacoesController::class, 'delete']);
 
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
