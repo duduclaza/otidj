@@ -12,7 +12,8 @@ class HomologacoesController
 
     public function __construct()
     {
-        $this->db = Database::getInstance();
+        // Database lazy loading - só conecta quando necessário
+        // $this->db = Database::getInstance();
     }
 
     /**
@@ -20,20 +21,65 @@ class HomologacoesController
      */
     public function index()
     {
-        // TEMPORÁRIO: Página em construção
-        // TODO: Remover e descomentar código abaixo quando finalizar
-        
-        require_once __DIR__ . '/../../views/layouts/header.php';
-        echo '<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; text-align: center;">
-            <div>
-                <div style="font-size: 80px; margin-bottom: 20px;">🚧</div>
-                <h1 style="color: #64748b; font-size: 32px; margin-bottom: 10px;">Módulo Homologações</h1>
-                <p style="color: #94a3b8; font-size: 18px;">Em Construção</p>
-                <p style="color: #cbd5e1; font-size: 14px; margin-top: 20px;">Este módulo estará disponível em breve.</p>
-            </div>
-        </div>';
-        require_once __DIR__ . '/../../views/layouts/footer.php';
-        return;
+        // TEMPORÁRIO: Página em construção - HTML standalone
+        echo '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Em Construção - Homologações</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 60px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        .icon { font-size: 100px; margin-bottom: 20px; animation: bounce 2s infinite; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        h1 { color: #1e293b; font-size: 36px; margin-bottom: 15px; }
+        p { color: #64748b; font-size: 18px; line-height: 1.6; }
+        .btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🚧</div>
+        <h1>Módulo Homologações</h1>
+        <p>Este módulo está em construção e estará disponível em breve.</p>
+        <p style="font-size: 14px; margin-top: 10px; color: #94a3b8;">
+            As tabelas foram criadas com sucesso no banco de dados.
+        </p>
+        <a href="/" class="btn">← Voltar ao Sistema</a>
+    </div>
+</body>
+</html>';
+        exit;
         
         // CÓDIGO ABAIXO NÃO EXECUTA (return acima)
         // TODO: Descomentar quando finalizar o módulo
