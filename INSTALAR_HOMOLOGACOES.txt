@@ -1,0 +1,183 @@
+╔════════════════════════════════════════════════════════════════════╗
+║          INSTALAÇÃO HOMOLOGAÇÕES - MIGRATIONS SEPARADAS            ║
+║                    SGQ OTI DJ - Versão 2.0                         ║
+╚════════════════════════════════════════════════════════════════════╝
+
+🎯 PROBLEMA RESOLVIDO:
+════════════════════════════════════════════════════════════════════
+Erro #1109 - Tabela 'profile_permissions' desconhecida
+
+✅ SOLUÇÃO: Migrations divididas em 2 partes independentes!
+
+
+📦 OPÇÃO 1: SETUP AUTOMÁTICO (1 CLIQUE)
+════════════════════════════════════════════════════════════════════
+
+Acesse no navegador:
+
+   https://djbr.sgqoti.com.br/setup_homologacoes.php
+
+✅ Executa automaticamente as 2 partes
+✅ Relatório completo
+✅ Verificação ao final
+⚠️ DELETE após uso!
+
+
+📝 OPÇÃO 2: MANUAL - phpMyAdmin (SEGURO)
+════════════════════════════════════════════════════════════════════
+
+PASSO 1 - Criar Tabelas:
+------------------------
+1. Acesse phpMyAdmin
+2. Selecione banco: u230868210_djsgqpro
+3. Clique em SQL
+4. Execute arquivo:
+
+   database/migrations/01_create_homologacoes_tables.sql
+
+5. Aguarde mensagem: "✅ SUCESSO! Todas as 4 tabelas criadas!"
+
+
+PASSO 2 - Adicionar Permissões:
+-------------------------------
+1. No mesmo phpMyAdmin
+2. Clique em SQL novamente
+3. Execute arquivo:
+
+   database/migrations/02_add_homologacoes_permissions.sql
+
+4. Aguarde mensagem: "✅ Permissões configuradas para X perfis"
+
+   ⚠️ SE aparecer "profile_permissions não existe":
+      - É NORMAL! Significa que seu sistema não usa essa tabela
+      - Configure permissões manualmente via Admin > Gerenciar Perfis
+      - Módulo funcionará normalmente
+
+
+📋 O QUE CADA ARQUIVO FAZ?
+════════════════════════════════════════════════════════════════════
+
+01_create_homologacoes_tables.sql:
+----------------------------------
+✅ Adiciona coluna users.department (se não existir)
+✅ Cria tabela: homologacoes
+✅ Cria tabela: homologacoes_responsaveis
+✅ Cria tabela: homologacoes_historico
+✅ Cria tabela: homologacoes_anexos
+✅ Cria índices e foreign keys
+
+02_add_homologacoes_permissions.sql:
+-----------------------------------
+✅ Verifica se profile_permissions existe
+✅ Verifica se profiles existe
+✅ Adiciona módulo 'homologacoes' às permissões
+✅ Configura Admin/Super Admin com acesso total
+✅ Lista permissões configuradas
+
+
+🔍 VERIFICAR INSTALAÇÃO
+════════════════════════════════════════════════════════════════════
+
+Execute no SQL:
+
+SHOW TABLES LIKE 'homologacoes%';
+
+Deve retornar 4 tabelas:
+- homologacoes
+- homologacoes_anexos
+- homologacoes_historico
+- homologacoes_responsaveis
+
+
+⚙️ CONFIGURAÇÃO PÓS-INSTALAÇÃO
+════════════════════════════════════════════════════════════════════
+
+1. CONFIGURAR DEPARTAMENTOS:
+   
+   UPDATE users SET department = 'Compras' 
+   WHERE id = 1; -- ID do usuário de Compras
+
+   UPDATE users SET department = 'Logistica' 
+   WHERE id = 2; -- ID do usuário de Logística
+
+
+2. CONFIGURAR PERMISSÕES:
+
+   Via Admin > Gerenciar Perfis > Editar perfil:
+   - Marque "Homologações" para os perfis desejados
+
+
+3. TESTAR:
+
+   Acesse: https://djbr.sgqoti.com.br/homologacoes
+
+
+🆘 TROUBLESHOOTING
+════════════════════════════════════════════════════════════════════
+
+ERRO: "Table 'homologacoes' already exists"
+→ NORMAL! Significa que já está instalado
+→ Pode ignorar
+
+ERRO: "Unknown table 'profile_permissions'"
+→ NORMAL! Seu sistema pode não usar essa tabela
+→ Configure permissões via interface administrativa
+→ Módulo funciona sem isso
+
+ERRO: "Cannot add foreign key constraint"
+→ Tabela users não existe ou está incorreta
+→ Verifique integridade do banco
+
+ERRO: "Column 'department' already exists"
+→ NORMAL! Coluna já existe
+→ Pode ignorar
+
+
+✅ CHECKLIST FINAL
+════════════════════════════════════════════════════════════════════
+
+□ Parte 1 executada (4 tabelas criadas)
+□ Parte 2 executada (permissões configuradas)
+□ Coluna users.department existe
+□ Departamentos dos usuários configurados
+□ Permissões ajustadas via Admin
+□ Acesso a /homologacoes funciona
+□ Criação de homologação funciona
+□ Movimentação no Kanban funciona
+□ Notificações por email funcionam
+□ Arquivo setup_homologacoes.php deletado
+
+
+📚 ARQUIVOS DO SISTEMA
+════════════════════════════════════════════════════════════════════
+
+Migrations:
+- 01_create_homologacoes_tables.sql      (Parte 1: DDL)
+- 02_add_homologacoes_permissions.sql    (Parte 2: DML)
+
+Setup:
+- setup_homologacoes.php                 (Automático)
+- verificar_homologacoes_setup.php       (Diagnóstico)
+
+Documentação:
+- SETUP_HOMOLOGACOES.md                  (Completo)
+- INSTALAR_HOMOLOGACOES.txt              (Este arquivo)
+
+
+🎯 RESUMO EXECUTIVO
+════════════════════════════════════════════════════════════════════
+
+RÁPIDO (1 clique):
+→ setup_homologacoes.php
+
+SEGURO (manual):
+→ Execute 01_create_homologacoes_tables.sql
+→ Execute 02_add_homologacoes_permissions.sql
+
+VERIFICAR:
+→ verificar_homologacoes_setup.php
+
+
+════════════════════════════════════════════════════════════════════
+                         PRONTO PARA USAR!
+════════════════════════════════════════════════════════════════════

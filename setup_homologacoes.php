@@ -128,64 +128,96 @@ try {
     
     echo '<div class="step success">✅ <strong>Conectado com sucesso!</strong></div>';
     
-    // Ler arquivo de migration
-    echo '<div class="step">📄 <strong>Carregando arquivo de migration...</strong></div>';
+    // Ler arquivos de migration (2 partes)
+    echo '<div class="step">📄 <strong>Carregando arquivos de migration...</strong></div>';
     
-    $migrationFile = __DIR__ . '/database/migrations/create_homologacoes_module.sql';
+    $migrationFile1 = __DIR__ . '/database/migrations/01_create_homologacoes_tables.sql';
+    $migrationFile2 = __DIR__ . '/database/migrations/02_add_homologacoes_permissions.sql';
     
-    if (!file_exists($migrationFile)) {
-        throw new Exception('Arquivo de migration não encontrado: ' . $migrationFile);
+    if (!file_exists($migrationFile1)) {
+        throw new Exception('Arquivo 01_create_homologacoes_tables.sql não encontrado');
     }
     
-    $sql = file_get_contents($migrationFile);
-    
-    if (empty($sql)) {
-        throw new Exception('Arquivo de migration está vazio');
+    if (!file_exists($migrationFile2)) {
+        throw new Exception('Arquivo 02_add_homologacoes_permissions.sql não encontrado');
     }
     
-    echo '<div class="step success">✅ <strong>Arquivo carregado!</strong> (' . strlen($sql) . ' bytes)</div>';
+    $sql1 = file_get_contents($migrationFile1);
+    $sql2 = file_get_contents($migrationFile2);
     
-    // Dividir em statements individuais
-    echo '<div class="step">⚙️ <strong>Executando migration...</strong></div>';
+    if (empty($sql1) || empty($sql2)) {
+        throw new Exception('Um dos arquivos de migration está vazio');
+    }
     
-    // Remover comentários e dividir por ponto-e-vírgula
-    $sql = preg_replace('/--.*$/m', '', $sql); // Remove comentários de linha
-    $statements = array_filter(
-        array_map('trim', explode(';', $sql)),
+    echo '<div class="step success">✅ <strong>Arquivos carregados!</strong><br>';
+    echo '- Parte 1 (Tabelas): ' . strlen($sql1) . ' bytes<br>';
+    echo '- Parte 2 (Permissões): ' . strlen($sql2) . ' bytes</div>';
+    
+    // Executar migrations em sequência
+    echo '<div class="step">⚙️ <strong>Executando migrations...</strong></div>';
+    
+    $totalExecuted = 0;
+    $allErrors = [];
+    
+    // PARTE 1: Criar Tabelas
+    echo '<div class="step info">📋 <strong>Parte 1/2:</strong> Criando tabelas...</div>';
+    
+    $sql1 = preg_replace('/--.*$/m', '', $sql1);
+    $statements1 = array_filter(
+        array_map('trim', explode(';', $sql1)),
         function($stmt) { return !empty($stmt); }
     );
     
-    $executed = 0;
-    $errors = [];
-    
-    foreach ($statements as $statement) {
+    $executed1 = 0;
+    foreach ($statements1 as $statement) {
         try {
-            // Pular statements vazios ou apenas whitespace
-            if (empty(trim($statement))) {
-                continue;
-            }
-            
+            if (empty(trim($statement))) continue;
             $pdo->exec($statement);
-            $executed++;
+            $executed1++;
         } catch (PDOException $e) {
-            // Ignorar erros de "tabela já existe" ou "coluna já existe"
             if (strpos($e->getMessage(), 'already exists') === false && 
                 strpos($e->getMessage(), 'Duplicate') === false) {
-                $errors[] = [
-                    'statement' => substr($statement, 0, 100) . '...',
-                    'error' => $e->getMessage()
-                ];
+                $allErrors[] = ['part' => '1', 'error' => $e->getMessage()];
             }
         }
     }
     
-    echo '<div class="step success">✅ <strong>Migration executada!</strong><br>';
-    echo 'Statements executados: ' . $executed . '</div>';
+    echo '<div class="step success">✅ <strong>Parte 1 concluída:</strong> ' . $executed1 . ' statements</div>';
     
-    if (!empty($errors)) {
+    // PARTE 2: Adicionar Permissões
+    echo '<div class="step info">🔒 <strong>Parte 2/2:</strong> Configurando permissões...</div>';
+    
+    $sql2 = preg_replace('/--.*$/m', '', $sql2);
+    $statements2 = array_filter(
+        array_map('trim', explode(';', $sql2)),
+        function($stmt) { return !empty($stmt); }
+    );
+    
+    $executed2 = 0;
+    foreach ($statements2 as $statement) {
+        try {
+            if (empty(trim($statement))) continue;
+            $pdo->exec($statement);
+            $executed2++;
+        } catch (PDOException $e) {
+            if (strpos($e->getMessage(), 'already exists') === false && 
+                strpos($e->getMessage(), 'Duplicate') === false && 
+                strpos($e->getMessage(), 'Unknown table') === false) {
+                $allErrors[] = ['part' => '2', 'error' => $e->getMessage()];
+            }
+        }
+    }
+    
+    echo '<div class="step success">✅ <strong>Parte 2 concluída:</strong> ' . $executed2 . ' statements</div>';
+    
+    $totalExecuted = $executed1 + $executed2;
+    
+    echo '<div class="step success">🎉 <strong>Total executado:</strong> ' . $totalExecuted . ' statements</div>';
+    
+    if (!empty($allErrors)) {
         echo '<div class="step warning">⚠️ <strong>Avisos durante a execução:</strong>';
-        foreach ($errors as $error) {
-            echo '<br><small>' . htmlspecialchars($error['error']) . '</small>';
+        foreach ($allErrors as $error) {
+            echo '<br><small>[Parte ' . $error['part'] . '] ' . htmlspecialchars($error['error']) . '</small>';
         }
         echo '</div>';
     }
