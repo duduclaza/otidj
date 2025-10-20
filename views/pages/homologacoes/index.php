@@ -1,19 +1,26 @@
 <?php // Renderizada via views/layouts/main.php; não incluir header/footer aqui ?>
 
 <style>
+/* Layout geral: faixa horizontal com scroll */
+.kanban-wrap { overflow-x: auto; }
+.kanban-row { display: flex; gap: 16px; padding-bottom: 8px; min-width: max-content; }
+
+/* Colunas com contraste mais forte */
 .kanban-column {
-    min-height: 500px;
-    background: #f8fafc;
-    border-radius: 8px;
-    padding: 12px;
+    min-height: 520px;
+    background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 100%);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08), inset 0 0 0 1px rgba(15,23,42,0.05);
+    width: 360px;
 }
 
 .kanban-card {
-    background: white;
-    border-radius: 8px;
-    padding: 16px;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 14px;
     margin-bottom: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
     cursor: pointer;
     transition: all 0.2s;
     border-left: 4px solid;
@@ -21,16 +28,16 @@
 
 .kanban-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
 }
 
 /* Cores por status */
-.status-aguardando_recebimento { border-left-color: #eab308; background: #fffbeb; }
-.status-recebido { border-left-color: #3b82f6; background: #eff6ff; }
-.status-em_analise { border-left-color: #f97316; background: #fff7ed; }
-.status-em_homologacao { border-left-color: #a855f7; background: #faf5ff; }
-.status-aprovado { border-left-color: #22c55e; background: #f0fdf4; }
-.status-reprovado { border-left-color: #ef4444; background: #fef2f2; }
+.status-aguardando_recebimento { border-left-color: #ca8a04; background: #fef9c3; }
+.status-recebido { border-left-color: #1d4ed8; background: #dbeafe; }
+.status-em_analise { border-left-color: #c2410c; background: #ffedd5; }
+.status-em_homologacao { border-left-color: #7c3aed; background: #ede9fe; }
+.status-aprovado { border-left-color: #16a34a; background: #dcfce7; }
+.status-reprovado { border-left-color: #dc2626; background: #fee2e2; }
 
 .badge-status {
     display: inline-block;
@@ -64,14 +71,17 @@
         <?php endif; ?>
     </div>
 
-    <!-- Kanban Board -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Kanban Board (horizontal scroll) -->
+    <div class="kanban-wrap">
+      <div class="kanban-row">
         <!-- Coluna: Aguardando Recebimento -->
-        <div>
-            <div class="flex items-center gap-2 mb-3 px-2">
+        <div class="kanban-col">
+            <div class="flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center gap-2">
                 <span class="text-2xl">📦</span>
-                <h3 class="font-bold text-slate-700">Aguardando Recebimento</h3>
-                <span class="bg-yellow-100 text-yellow-800 text-sm px-2 py-1 rounded-full"><?= count($homologacoes['aguardando_recebimento']) ?></span>
+                <h3 class="font-bold text-slate-800">Aguardando Recebimento</h3>
+                </div>
+                <span class="bg-yellow-600/15 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-600/20 font-semibold"><?= count($homologacoes['aguardando_recebimento']) ?></span>
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['aguardando_recebimento'] as $h): ?>
@@ -93,11 +103,13 @@
         </div>
 
         <!-- Coluna: Recebido -->
-        <div>
-            <div class="flex items-center gap-2 mb-3 px-2">
+        <div class="kanban-col">
+            <div class="flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center gap-2">
                 <span class="text-2xl">✅</span>
-                <h3 class="font-bold text-slate-700">Recebido</h3>
-                <span class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full"><?= count($homologacoes['recebido']) ?></span>
+                <h3 class="font-bold text-slate-800">Recebido</h3>
+                </div>
+                <span class="bg-blue-600/15 text-blue-800 text-xs px-2 py-1 rounded-full border border-blue-600/20 font-semibold"><?= count($homologacoes['recebido']) ?></span>
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['recebido'] as $h): ?>
@@ -117,11 +129,13 @@
         </div>
 
         <!-- Coluna: Em Análise -->
-        <div>
-            <div class="flex items-center gap-2 mb-3 px-2">
+        <div class="kanban-col">
+            <div class="flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center gap-2">
                 <span class="text-2xl">🔍</span>
-                <h3 class="font-bold text-slate-700">Em Análise</h3>
-                <span class="bg-orange-100 text-orange-800 text-sm px-2 py-1 rounded-full"><?= count($homologacoes['em_analise']) ?></span>
+                <h3 class="font-bold text-slate-800">Em Análise</h3>
+                </div>
+                <span class="bg-orange-600/15 text-orange-800 text-xs px-2 py-1 rounded-full border border-orange-600/20 font-semibold"><?= count($homologacoes['em_analise']) ?></span>
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['em_analise'] as $h): ?>
@@ -141,11 +155,13 @@
         </div>
 
         <!-- Coluna: Em Homologação -->
-        <div>
-            <div class="flex items-center gap-2 mb-3 px-2">
+        <div class="kanban-col">
+            <div class="flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center gap-2">
                 <span class="text-2xl">🧪</span>
-                <h3 class="font-bold text-slate-700">Em Homologação</h3>
-                <span class="bg-purple-100 text-purple-800 text-sm px-2 py-1 rounded-full"><?= count($homologacoes['em_homologacao']) ?></span>
+                <h3 class="font-bold text-slate-800">Em Homologação</h3>
+                </div>
+                <span class="bg-purple-600/15 text-purple-800 text-xs px-2 py-1 rounded-full border border-purple-600/20 font-semibold"><?= count($homologacoes['em_homologacao']) ?></span>
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['em_homologacao'] as $h): ?>
@@ -168,11 +184,13 @@
         </div>
 
         <!-- Coluna: Aprovado -->
-        <div>
-            <div class="flex items-center gap-2 mb-3 px-2">
+        <div class="kanban-col">
+            <div class="flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center gap-2">
                 <span class="text-2xl">✔️</span>
-                <h3 class="font-bold text-slate-700">Aprovado</h3>
-                <span class="bg-green-100 text-green-800 text-sm px-2 py-1 rounded-full"><?= count($homologacoes['aprovado']) ?></span>
+                <h3 class="font-bold text-slate-800">Aprovado</h3>
+                </div>
+                <span class="bg-green-600/15 text-green-800 text-xs px-2 py-1 rounded-full border border-green-600/20 font-semibold"><?= count($homologacoes['aprovado']) ?></span>
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['aprovado'] as $h): ?>
@@ -192,11 +210,13 @@
         </div>
 
         <!-- Coluna: Reprovado -->
-        <div>
-            <div class="flex items-center gap-2 mb-3 px-2">
+        <div class="kanban-col">
+            <div class="flex items-center justify-between mb-3 px-2">
+                <div class="flex items-center gap-2">
                 <span class="text-2xl">❌</span>
-                <h3 class="font-bold text-slate-700">Reprovado</h3>
-                <span class="bg-red-100 text-red-800 text-sm px-2 py-1 rounded-full"><?= count($homologacoes['reprovado']) ?></span>
+                <h3 class="font-bold text-slate-800">Reprovado</h3>
+                </div>
+                <span class="bg-red-600/15 text-red-800 text-xs px-2 py-1 rounded-full border border-red-600/20 font-semibold"><?= count($homologacoes['reprovado']) ?></span>
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['reprovado'] as $h): ?>
@@ -214,6 +234,7 @@
                 <?php endforeach; ?>
             </div>
         </div>
+      </div>
     </div>
 </div>
 
