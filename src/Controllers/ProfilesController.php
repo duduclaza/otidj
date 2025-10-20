@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Config\Database;
 use App\Controllers\AuthController;
 use App\Services\PermissionService;
+use App\Services\MasterUserService;
 
 class ProfilesController
 {
@@ -161,12 +162,10 @@ class ProfilesController
                 exit;
             }
             
-            // Apenas Super Administrador pode editar o perfil Administrador
-            $isSuperAdmin = PermissionService::isSuperAdmin($_SESSION['user_id']);
-            $isMasterUser = isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com';
-            
-            if ($profile['is_admin'] && !$isSuperAdmin && !$isMasterUser) {
-                echo json_encode(['success' => false, 'message' => 'Apenas o Super Administrador pode editar o perfil de Administrador']);
+            // Master User (GOD MODE) pode editar qualquer perfil
+            // Outros usuários não podem editar perfil Administrador
+            if ($profile['is_admin'] && !MasterUserService::isMasterUser()) {
+                echo json_encode(['success' => false, 'message' => 'Apenas o usuário Master pode editar o perfil de Administrador']);
                 exit;
             }
             
@@ -234,12 +233,10 @@ class ProfilesController
                 exit;
             }
             
-            // Apenas Super Administrador pode excluir o perfil Administrador
-            $isSuperAdmin = PermissionService::isSuperAdmin($_SESSION['user_id']);
-            $isMasterUser = isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com';
-            
-            if ($profile['is_admin'] && !$isSuperAdmin && !$isMasterUser) {
-                echo json_encode(['success' => false, 'message' => 'Apenas o Super Administrador pode excluir o perfil de Administrador']);
+            // Master User (GOD MODE) pode excluir qualquer perfil
+            // Outros usuários não podem excluir perfil Administrador
+            if ($profile['is_admin'] && !MasterUserService::isMasterUser()) {
+                echo json_encode(['success' => false, 'message' => 'Apenas o usuário Master pode excluir o perfil de Administrador']);
                 exit;
             }
             

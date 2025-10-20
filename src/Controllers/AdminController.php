@@ -92,6 +92,7 @@ class AdminController
                        p.name as profile_name, p.description as profile_description
                 FROM users u 
                 LEFT JOIN profiles p ON u.profile_id = p.id 
+                WHERE u.email != 'du.claza@gmail.com'
                 ORDER BY u.created_at DESC
             ");
                 $stmt->execute();

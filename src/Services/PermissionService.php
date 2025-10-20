@@ -22,6 +22,11 @@ class PermissionService
      */
     public static function hasPermission(int $userId, string $module, string $action): bool
     {
+        // Master User (GOD MODE) tem acesso total sempre
+        if (\App\Services\MasterUserService::isMasterUserId($userId)) {
+            return true;
+        }
+        
         // Super Admin users have all permissions (not customizable)
         if (self::isSuperAdmin($userId)) {
             return true;
