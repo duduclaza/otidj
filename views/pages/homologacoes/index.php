@@ -210,7 +210,7 @@
 </div>
 
 <!-- Modal: Nova Homologação -->
-<div id="modalNovaHomologacao" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target === this) closeModalNovaHomologacao()">
+<div id="modalNovaHomologacao" class="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target === this) closeModalNovaHomologacao()">
     <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-xl" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-slate-800">📋 Nova Homologação</h2>
@@ -260,7 +260,7 @@
 </div>
 
 <!-- Modal: Detalhes -->
-<div id="modalCardDetails" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target === this) closeCardDetails()">
+<div id="modalCardDetails" class="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target === this) closeCardDetails()">
     <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[85vh] overflow-y-auto shadow-xl" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-slate-800">Detalhes da Homologação</h2>
@@ -274,13 +274,30 @@
 // Variáveis globais
 const usuarios = <?= json_encode($usuarios) ?>;
 
+// Util: mover modais para o container global para sobrepor sidebar e layout
+document.addEventListener('DOMContentLoaded', () => {
+    const globalContainer = document.getElementById('global-modals-container');
+    if (globalContainer) {
+        const nova = document.getElementById('modalNovaHomologacao');
+        const detalhes = document.getElementById('modalCardDetails');
+        if (nova && nova.parentElement !== globalContainer) globalContainer.appendChild(nova);
+        if (detalhes && detalhes.parentElement !== globalContainer) globalContainer.appendChild(detalhes);
+    }
+});
+
+// Helpers de scroll-lock
+function lockBodyScroll() { document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden'; }
+function unlockBodyScroll() { document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }
+
 // Modal Nova Homologação
 function openModalNovaHomologacao() {
     document.getElementById('modalNovaHomologacao').classList.remove('hidden');
+    lockBodyScroll();
 }
 
 function closeModalNovaHomologacao() {
     document.getElementById('modalNovaHomologacao').classList.add('hidden');
+    unlockBodyScroll();
 }
 
 // Submit
@@ -306,6 +323,7 @@ document.getElementById('formNovaHomologacao').addEventListener('submit', async 
 // Detalhes
 async function openCardDetails(id) {
     document.getElementById('modalCardDetails').classList.remove('hidden');
+    lockBodyScroll();
     document.getElementById('cardDetailsContent').innerHTML = '<p class="text-center">Carregando...</p>';
     
     try {
@@ -322,6 +340,7 @@ async function openCardDetails(id) {
 
 function closeCardDetails() {
     document.getElementById('modalCardDetails').classList.add('hidden');
+    unlockBodyScroll();
 }
 
 function renderDetails(data) {
