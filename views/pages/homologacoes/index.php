@@ -1,7 +1,4 @@
-<?php
-$pageTitle = 'Homologações';
-require_once __DIR__ . '/../../layouts/header.php';
-?>
+<?php // Renderizada via views/layouts/main.php; não incluir header/footer aqui ?>
 
 <style>
 .kanban-column {
@@ -434,4 +431,4 @@ function renderDetails(data) {
 }
 </script>
 
-<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>
+<?php // Fim da view de Homologações ?>
