@@ -621,13 +621,22 @@ class HomologacoesKanbanController
                 return;
             }
 
-            // Notificar responsáveis
+            // Notificar responsáveis (sininho + email)
             foreach ($responsaveis as $userId) {
                 $this->criarNotificacao(
                     (int)$userId, 
                     $homologacaoId, 
                     "Você foi designado como responsável pela homologação #{$homologacaoId} - {$homologacao['cod_referencia']}"
                 );
+            }
+
+            // Buscar emails dos responsáveis
+            $emailsResponsaveis = [];
+            if (!empty($responsaveis)) {
+                $in  = str_repeat('?,', count($responsaveis) - 1) . '?';
+                $stmtEmails = $this->db->prepare("SELECT name, email FROM users WHERE id IN ($in) AND status = 'active'");
+                $stmtEmails->execute(array_map('intval', $responsaveis));
+                $emailsResponsaveis = $stmtEmails->fetchAll(PDO::FETCH_ASSOC);
             }
 
             // Notificar logística se solicitado
@@ -642,10 +651,25 @@ class HomologacoesKanbanController
 
                 foreach ($logisticaUsers as $user) {
                     $this->criarNotificacao(
-                        $user['id'], 
+                        (int)$user['id'], 
                         $homologacaoId, 
                         "Nova homologação aguardando recebimento: #{$homologacaoId} - {$homologacao['cod_referencia']}"
                     );
+                }
+
+                // Enviar email para logística
+                $emailsLogistica = array_values(array_filter(array_map(function($u){ return $u['email'] ?? null; }, $logisticaUsers)));
+
+                if (!empty($emailsLogistica)) {
+                    $this->enviarEmailHomologacao($emailsLogistica, $homologacao, 'logistica');
+                }
+            }
+
+            // Enviar email para responsáveis
+            if (!empty($emailsResponsaveis)) {
+                $emails = array_values(array_filter(array_map(function($r){ return $r['email'] ?? null; }, $emailsResponsaveis)));
+                if (!empty($emails)) {
+                    $this->enviarEmailHomologacao($emails, $homologacao, 'responsavel');
                 }
             }
 
@@ -675,6 +699,41 @@ class HomologacoesKanbanController
             $stmt->execute([$userId, $mensagem, $homologacaoId]);
         } catch (\Exception $e) {
             error_log("Erro ao criar notificação: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Envia email para responsáveis e/ou logística sobre a homologação
+     */
+    private function enviarEmailHomologacao(array $destinatarios, array $homologacao, string $tipo): void
+    {
+        try {
+            if (empty($destinatarios)) return;
+            $email = new EmailService();
+
+            $assunto = ($tipo === 'logistica')
+                ? "SGQ - Aguardando Recebimento: {$homologacao['cod_referencia']} (#{$homologacao['id']})"
+                : "SGQ - Nova Homologação atribuída: {$homologacao['cod_referencia']}";
+
+            $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+            $body = "<!DOCTYPE html><html><head><meta charset='UTF-8'></head><body style='font-family: Arial,sans-serif;line-height:1.6;color:#333;max-width:680px;margin:0 auto;padding:20px;'>" .
+                "<div style='background:#1e40af;color:#fff;padding:18px 24px;border-radius:10px 10px 0 0;'><h2 style='margin:0;font-size:20px;'>SGQ OTI DJ • Homologações</h2></div>" .
+                "<div style='background:#fff;border:1px solid #e5e7eb;border-top:none;padding:20px'>" .
+                "<p style='margin:0 0 12px'>Código: <strong>" . htmlspecialchars($homologacao['cod_referencia']) . "</strong></p>" .
+                "<p style='margin:0 0 12px'>Descrição: " . nl2br(htmlspecialchars($homologacao['descricao'])) . "</p>" .
+                "<p style='margin:0 0 12px'>Status: <strong>" . htmlspecialchars($homologacao['status']) . "</strong></p>" .
+                "<div style='text-align:center;margin:22px 0'>" .
+                "<a href='" . $appUrl . "/homologacoes' style='background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold'>Abrir Homologações</a>" .
+                "</div>" .
+                "<p style='font-size:12px;color:#6b7280;margin-top:24px'>Este email foi enviado automaticamente pelo SGQ OTI DJ.</p>" .
+                "</div></body></html>";
+
+            $ok = $email->send($destinatarios, $assunto, $body, strip_tags($body));
+            if (!$ok) {
+                error_log('Falha ao enviar email de homologação: ' . ($email->getLastError() ?? 'sem detalhes'));
+            }
+        } catch (\Exception $e) {
+            error_log('Erro ao enviar email de homologação: ' . $e->getMessage());
         }
     }
 }
