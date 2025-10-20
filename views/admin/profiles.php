@@ -122,6 +122,7 @@ const modules = [
   { key: 'garantias', name: 'Garantias' },
   { key: 'controle_descartes', name: 'Controle de Descartes' },
   { key: 'fmea', name: 'FMEA' },
+  { key: 'certificados', name: 'Certificados' },
   { key: 'pops_its', name: 'POPs e ITs' },
   { key: 'pops_its_cadastro_titulos', name: '→ Cadastro de Títulos' },
   { key: 'pops_its_meus_registros', name: '→ Meus Registros' },
@@ -175,7 +176,9 @@ function loadProfiles() {
   .then(result => {
     console.log('Response data:', result);
     if (result.success) {
-      displayProfiles(result.profiles);
+      // Ocultar 'Super Administrador' para quem não é Master
+      const profiles = Array.isArray(result.profiles) ? result.profiles.filter(p => !(String(p.name).toLowerCase() === 'super administrador' && !isMasterUser)) : [];
+      displayProfiles(profiles);
     } else {
       alert('Erro ao carregar perfis: ' + result.message);
     }

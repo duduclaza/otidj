@@ -36,6 +36,12 @@ class ProfilesController
                 ");
                 $stmt->execute();
                 $profiles = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                // Ocultar perfil Super Administrador para quem não é MasterUser (proteção server-side)
+                if (!\App\Services\MasterUserService::isMasterUser()) {
+                    $profiles = array_values(array_filter($profiles, function($p){
+                        return strtolower((string)($p['name'] ?? '')) !== 'super administrador';
+                    }));
+                }
                 
                 header('Content-Type: application/json');
                 echo json_encode([
