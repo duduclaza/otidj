@@ -29,6 +29,11 @@ class PermissionMiddleware
         '/homologacoes/upload-anexo' => 'homologacoes',
         '/homologacoes/anexo' => 'homologacoes',
         '/homologacoes/delete' => 'homologacoes',
+        // Certificados
+        '/certificados' => 'certificados',
+        '/certificados/store' => 'certificados',
+        '/certificados/download' => 'certificados',
+        '/certificados/delete' => 'certificados',
         '/toners/amostragens' => 'amostragens',
         '/amostragens-2' => 'amostragens_2',
         '/controle-de-descartes' => 'controle_descartes',
