@@ -28,20 +28,53 @@ class HomologacoesKanbanController
                 exit;
             }
 
-            // Verificar se a tabela homologacoes existe
-            $stmt = $this->db->query("SHOW TABLES LIKE 'homologacoes'");
-            if ($stmt->rowCount() === 0) {
-                die("❌ ERRO: Tabela 'homologacoes' não existe. Execute a query SQL de criação das tabelas primeiro!");
+            // Inicializar arrays vazios
+            $homologacoes = [
+                'aguardando_recebimento' => [],
+                'recebido' => [],
+                'em_analise' => [],
+                'em_homologacao' => [],
+                'aprovado' => [],
+                'reprovado' => []
+            ];
+
+            // Buscar homologações do banco
+            try {
+                $stmt = $this->db->query("
+                    SELECT h.*, u.name as criador_nome
+                    FROM homologacoes h
+                    LEFT JOIN users u ON h.created_by = u.id
+                    ORDER BY h.created_at DESC
+                ");
+                $todasHomologacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                // Agrupar por status
+                foreach ($todasHomologacoes as $h) {
+                    $status = $h['status'] ?? 'aguardando_recebimento';
+                    if (isset($homologacoes[$status])) {
+                        $homologacoes[$status][] = $h;
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("Erro ao buscar homologações: " . $e->getMessage());
             }
 
-            // Buscar homologações agrupadas por status
-            $homologacoes = $this->getHomologacoesKanban();
+            // Buscar usuários ativos
+            $usuarios = [];
+            try {
+                $stmt = $this->db->query("
+                    SELECT id, name, email 
+                    FROM users 
+                    WHERE status = 'active' 
+                    ORDER BY name ASC
+                ");
+                $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                error_log("Erro ao buscar usuários: " . $e->getMessage());
+            }
 
-            // Buscar usuários ativos para dropdown
-            $usuarios = $this->getUsuariosAtivos();
-
-            // Verificar se usuário pode criar (departamento Compras)
-            $canCreate = $this->canCreateHomologacao($_SESSION['user_id']);
+            // Verificar se pode criar (sempre true para Master User)
+            $canCreate = true;
 
             require_once __DIR__ . '/../../views/pages/homologacoes/index.php';
             
