@@ -146,6 +146,14 @@ const modules = [
   { key: 'email_config', name: 'Configurações de Email' }
 ];
 
+// Email do usuário logado (Master User pode editar tudo)
+const currentUserEmail = '<?= $_SESSION['user_email'] ?? '' ?>';
+const isMasterUser = currentUserEmail.toLowerCase() === 'du.claza@gmail.com';
+
+console.log('👑 Master User Detection:');
+console.log('  Email atual:', currentUserEmail);
+console.log('  É Master?', isMasterUser ? '✅ SIM - GOD MODE ATIVO!' : '❌ Não');
+
 // Load profiles on page load
 document.addEventListener('DOMContentLoaded', function() {
   loadProfiles();
@@ -241,7 +249,8 @@ function displayProfiles(profiles) {
         ? '<span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Padrão</span>'
         : '<span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">Normal</span>';
     
-    const actions = profile.is_admin == 1 
+    // Master User (GOD MODE) pode editar qualquer perfil, incluindo Administrador
+    const actions = (profile.is_admin == 1 && !isMasterUser)
       ? '<span class="text-gray-400 text-sm">Não editável</span>'
       : `
         <button onclick="editProfile(${profile.id})" class="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
