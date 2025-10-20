@@ -369,6 +369,9 @@ $router->post('/fluxogramas/solicitacao/reprovar', [App\Controllers\FluxogramasC
 $router->get('/fluxogramas/visualizacao/list', [App\Controllers\FluxogramasController::class, 'listVisualizacao']);
 $router->get('/fluxogramas/logs/visualizacao', [App\Controllers\FluxogramasController::class, 'listLogs']);
 
+// ===== TESTE DE DIAGNÓSTICO =====
+$router->get('/homologacoes/test', [App\Controllers\HomologacoesTestController::class, 'test']);
+
 // ===== MÓDULO HOMOLOGAÇÕES (KANBAN) - ATIVADO v3.0.0 =====
 $router->get('/homologacoes', [App\Controllers\HomologacoesKanbanController::class, 'index']);
 $router->post('/homologacoes/store', [App\Controllers\HomologacoesKanbanController::class, 'store']);
