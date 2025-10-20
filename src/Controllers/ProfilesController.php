@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Config\Database;
 use App\Controllers\AuthController;
+use App\Services\PermissionService;
 
 class ProfilesController
 {
@@ -160,8 +161,9 @@ class ProfilesController
                 exit;
             }
             
-            if ($profile['is_admin']) {
-                echo json_encode(['success' => false, 'message' => 'Não é possível editar o perfil de administrador']);
+            // Apenas Super Administrador pode editar o perfil Administrador
+            if ($profile['is_admin'] && !PermissionService::isSuperAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Apenas o Super Administrador pode editar o perfil de Administrador']);
                 exit;
             }
             
@@ -229,8 +231,9 @@ class ProfilesController
                 exit;
             }
             
-            if ($profile['is_admin']) {
-                echo json_encode(['success' => false, 'message' => 'Não é possível excluir o perfil de administrador']);
+            // Apenas Super Administrador pode excluir o perfil Administrador
+            if ($profile['is_admin'] && !PermissionService::isSuperAdmin($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Apenas o Super Administrador pode excluir o perfil de Administrador']);
                 exit;
             }
             
