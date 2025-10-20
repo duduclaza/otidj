@@ -21,22 +21,34 @@ class HomologacoesKanbanController
      */
     public function index()
     {
-        // Verificar permissão
-        if (!isset($_SESSION['user_id'])) {
-            header('Location: /login');
-            exit;
+        try {
+            // Verificar permissão
+            if (!isset($_SESSION['user_id'])) {
+                header('Location: /login');
+                exit;
+            }
+
+            // Verificar se a tabela homologacoes existe
+            $stmt = $this->db->query("SHOW TABLES LIKE 'homologacoes'");
+            if ($stmt->rowCount() === 0) {
+                die("❌ ERRO: Tabela 'homologacoes' não existe. Execute a query SQL de criação das tabelas primeiro!");
+            }
+
+            // Buscar homologações agrupadas por status
+            $homologacoes = $this->getHomologacoesKanban();
+
+            // Buscar usuários ativos para dropdown
+            $usuarios = $this->getUsuariosAtivos();
+
+            // Verificar se usuário pode criar (departamento Compras)
+            $canCreate = $this->canCreateHomologacao($_SESSION['user_id']);
+
+            require_once __DIR__ . '/../../views/pages/homologacoes/index.php';
+            
+        } catch (\Exception $e) {
+            error_log("Erro no módulo Homologações: " . $e->getMessage());
+            die("❌ ERRO no módulo Homologações: " . $e->getMessage() . "<br><br>Linha: " . $e->getLine() . "<br>Arquivo: " . $e->getFile());
         }
-
-        // Buscar homologações agrupadas por status
-        $homologacoes = $this->getHomologacoesKanban();
-
-        // Buscar usuários ativos para dropdown
-        $usuarios = $this->getUsuariosAtivos();
-
-        // Verificar se usuário pode criar (departamento Compras)
-        $canCreate = $this->canCreateHomologacao($_SESSION['user_id']);
-
-        require_once __DIR__ . '/../../views/pages/homologacoes/kanban.php';
     }
 
     /**
