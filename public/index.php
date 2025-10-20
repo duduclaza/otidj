@@ -369,13 +369,14 @@ $router->post('/fluxogramas/solicitacao/reprovar', [App\Controllers\FluxogramasC
 $router->get('/fluxogramas/visualizacao/list', [App\Controllers\FluxogramasController::class, 'listVisualizacao']);
 $router->get('/fluxogramas/logs/visualizacao', [App\Controllers\FluxogramasController::class, 'listLogs']);
 
-// ===== MÓDULO HOMOLOGAÇÕES (KANBAN) - COMENTADO TEMPORARIAMENTE =====
-// TODO: Descomentar quando finalizar o módulo
-// $router->get('/homologacoes', [App\Controllers\HomologacoesController::class, 'index']);
-// $router->post('/homologacoes/store', [App\Controllers\HomologacoesController::class, 'store']);
-// $router->post('/homologacoes/update-status', [App\Controllers\HomologacoesController::class, 'updateStatus']);
-// $router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesController::class, 'details']);
-// $router->post('/homologacoes/delete', [App\Controllers\HomologacoesController::class, 'delete']);
+// ===== MÓDULO HOMOLOGAÇÕES (KANBAN) - ATIVADO v3.0.0 =====
+$router->get('/homologacoes', [App\Controllers\HomologacoesKanbanController::class, 'index']);
+$router->post('/homologacoes/store', [App\Controllers\HomologacoesKanbanController::class, 'store']);
+$router->post('/homologacoes/update-status', [App\Controllers\HomologacoesKanbanController::class, 'updateStatus']);
+$router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesKanbanController::class, 'details']);
+$router->post('/homologacoes/upload-anexo', [App\Controllers\HomologacoesKanbanController::class, 'uploadAnexo']);
+$router->get('/homologacoes/anexo/{id}', [App\Controllers\HomologacoesKanbanController::class, 'downloadAnexo']);
+$router->post('/homologacoes/delete', [App\Controllers\HomologacoesKanbanController::class, 'delete']);
 
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);

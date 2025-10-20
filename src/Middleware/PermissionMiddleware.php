@@ -26,6 +26,8 @@ class PermissionMiddleware
         '/homologacoes' => 'homologacoes',
         '/homologacoes/store' => 'homologacoes',
         '/homologacoes/update-status' => 'homologacoes',
+        '/homologacoes/upload-anexo' => 'homologacoes',
+        '/homologacoes/anexo' => 'homologacoes',
         '/homologacoes/delete' => 'homologacoes',
         '/toners/amostragens' => 'amostragens',
         '/amostragens-2' => 'amostragens_2',
