@@ -210,8 +210,8 @@
 </div>
 
 <!-- Modal: Nova Homologação -->
-<div id="modalNovaHomologacao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50" onclick="if(event.target === this) closeModalNovaHomologacao()">
-    <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+<div id="modalNovaHomologacao" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target === this) closeModalNovaHomologacao()">
+    <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-xl" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-slate-800">📋 Nova Homologação</h2>
             <button onclick="closeModalNovaHomologacao()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
@@ -260,8 +260,8 @@
 </div>
 
 <!-- Modal: Detalhes -->
-<div id="modalCardDetails" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50" onclick="if(event.target === this) closeCardDetails()">
-    <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+<div id="modalCardDetails" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target === this) closeCardDetails()">
+    <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[85vh] overflow-y-auto shadow-xl" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-slate-800">Detalhes da Homologação</h2>
             <button onclick="closeCardDetails()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
