@@ -76,7 +76,10 @@ class HomologacoesKanbanController
             // Verificar se pode criar (sempre true para Master User)
             $canCreate = true;
 
-            require_once __DIR__ . '/../../views/pages/homologacoes/index.php';
+            // Renderizar via layout principal
+            $title = 'Homologações - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/homologacoes/index.php';
+            include __DIR__ . '/../../views/layouts/main.php';
             
         } catch (\Exception $e) {
             error_log("Erro no módulo Homologações: " . $e->getMessage());
