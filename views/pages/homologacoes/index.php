@@ -5,6 +5,12 @@
 .kanban-wrap { overflow-x: auto; }
 .kanban-row { display: flex; gap: 16px; padding-bottom: 8px; min-width: max-content; }
 
+/* Scrollbar superior sincronizada */
+.kanban-scroll-top { height: 14px; overflow-x: auto; overflow-y: hidden; margin-bottom: 8px; }
+.kanban-scroll-top::-webkit-scrollbar { height: 12px; }
+.kanban-scroll-top::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.5); border-radius: 6px; }
+.kanban-scroll-top::-webkit-scrollbar-track { background: rgba(148,163,184,0.2); }
+
 /* Colunas com contraste mais forte */
 .kanban-column {
     min-height: 520px;
@@ -71,8 +77,11 @@
         <?php endif; ?>
     </div>
 
+    <!-- Scrollbar superior -->
+    <div class="kanban-scroll-top" id="kanbanScrollTop"><div id="kanbanScrollTopInner" style="height:1px"></div></div>
+
     <!-- Kanban Board (horizontal scroll) -->
-    <div class="kanban-wrap">
+    <div class="kanban-wrap" id="kanbanWrap">
       <div class="kanban-row">
         <!-- Coluna: Aguardando Recebimento -->
         <div class="kanban-col">
@@ -312,6 +321,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nova && nova.parentElement !== globalContainer) globalContainer.appendChild(nova);
         if (detalhes && detalhes.parentElement !== globalContainer) globalContainer.appendChild(detalhes);
     }
+
+    // Sincronizar scrollbar superior com o container principal
+    const wrap = document.getElementById('kanbanWrap');
+    const topBar = document.getElementById('kanbanScrollTop');
+    const topInner = document.getElementById('kanbanScrollTopInner');
+    if (wrap && topBar && topInner) {
+        const syncWidths = () => { topInner.style.width = wrap.scrollWidth + 'px'; };
+        syncWidths();
+        window.addEventListener('resize', syncWidths);
+        // Sync scroll positions
+        let syncing = false;
+        wrap.addEventListener('scroll', () => {
+            if (syncing) return; syncing = true; topBar.scrollLeft = wrap.scrollLeft; syncing = false;
+        });
+        topBar.addEventListener('scroll', () => {
+            if (syncing) return; syncing = true; wrap.scrollLeft = topBar.scrollLeft; syncing = false;
+        });
+    }
 });
 
 // Helpers de scroll-lock
@@ -476,6 +503,25 @@ function renderDetails(data) {
             else { alert('❌ ' + result.message); }
         } catch (error) { alert('❌ Erro'); }
     });
+}
+
+// Excluir homologação (global)
+async function deleteHomologacao(id) {
+    try {
+        if (!confirm('Tem certeza que deseja excluir esta homologação?')) return;
+        const fd = new FormData();
+        fd.append('id', id);
+        const res = await fetch('/homologacoes/delete', { method: 'POST', body: fd });
+        const result = await res.json();
+        if (result.success) {
+            alert('✅ ' + result.message);
+            location.reload();
+        } else {
+            alert('❌ ' + (result.message || 'Erro ao excluir'));
+        }
+    } catch (e) {
+        alert('❌ Erro ao excluir');
+    }
 }
 </script>
 
