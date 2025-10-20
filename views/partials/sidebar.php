@@ -47,9 +47,10 @@ $menu = [
     'href' => '#', 
     'icon' => '📊', 
     'category' => true,
-    'modules' => ['homologacoes', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', '5w2h', 'auditorias', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc'],
+    'modules' => ['homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', '5w2h', 'auditorias', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc'],
     'submenu' => [
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
+      ['label' => 'Certificados', 'href' => '/certificados', 'icon' => '📜', 'module' => 'certificados'],
       ['label' => 'FMEA', 'href' => '/fmea', 'icon' => '📈', 'module' => 'fmea'],
       ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its_visualizacao'],
       ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
