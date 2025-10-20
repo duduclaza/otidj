@@ -162,7 +162,10 @@ class ProfilesController
             }
             
             // Apenas Super Administrador pode editar o perfil Administrador
-            if ($profile['is_admin'] && !PermissionService::isSuperAdmin($_SESSION['user_id'])) {
+            $isSuperAdmin = PermissionService::isSuperAdmin($_SESSION['user_id']);
+            $isMasterUser = isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com';
+            
+            if ($profile['is_admin'] && !$isSuperAdmin && !$isMasterUser) {
                 echo json_encode(['success' => false, 'message' => 'Apenas o Super Administrador pode editar o perfil de Administrador']);
                 exit;
             }
@@ -232,7 +235,10 @@ class ProfilesController
             }
             
             // Apenas Super Administrador pode excluir o perfil Administrador
-            if ($profile['is_admin'] && !PermissionService::isSuperAdmin($_SESSION['user_id'])) {
+            $isSuperAdmin = PermissionService::isSuperAdmin($_SESSION['user_id']);
+            $isMasterUser = isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com';
+            
+            if ($profile['is_admin'] && !$isSuperAdmin && !$isMasterUser) {
                 echo json_encode(['success' => false, 'message' => 'Apenas o Super Administrador pode excluir o perfil de Administrador']);
                 exit;
             }
