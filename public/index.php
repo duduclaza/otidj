@@ -381,6 +381,12 @@ $router->post('/homologacoes/upload-anexo', [App\Controllers\HomologacoesKanbanC
 $router->get('/homologacoes/anexo/{id}', [App\Controllers\HomologacoesKanbanController::class, 'downloadAnexo']);
 $router->post('/homologacoes/delete', [App\Controllers\HomologacoesKanbanController::class, 'delete']);
 
+// ===== MÓDULO CERTIFICADOS =====
+$router->get('/certificados', [App\Controllers\CertificadosController::class, 'index']);
+$router->post('/certificados/store', [App\Controllers\CertificadosController::class, 'store']);
+$router->get('/certificados/download/{id}', [App\Controllers\CertificadosController::class, 'download']);
+$router->post('/certificados/delete', [App\Controllers\CertificadosController::class, 'delete']);
+
 // Melhoria Contínua routes
 $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
 $router->get('/melhoria-continua/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
