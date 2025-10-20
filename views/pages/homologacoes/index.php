@@ -75,7 +75,10 @@
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['aguardando_recebimento'] as $h): ?>
-                    <div class="kanban-card status-aguardando_recebimento" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-aguardando_recebimento relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                        <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">
+                            🗑️
+                        </button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
                         <div class="flex items-center justify-between text-xs">
@@ -98,7 +101,8 @@
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['recebido'] as $h): ?>
-                    <div class="kanban-card status-recebido" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-recebido relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                        <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
                         <div class="flex items-center justify-between text-xs">
@@ -121,7 +125,8 @@
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['em_analise'] as $h): ?>
-                    <div class="kanban-card status-em_analise" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-em_analise relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                        <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
                         <div class="flex items-center justify-between text-xs">
@@ -144,7 +149,8 @@
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['em_homologacao'] as $h): ?>
-                    <div class="kanban-card status-em_homologacao" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-em_homologacao relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                        <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
                         <?php if ($h['local_homologacao']): ?>
@@ -170,7 +176,8 @@
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['aprovado'] as $h): ?>
-                    <div class="kanban-card status-aprovado" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-aprovado relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                        <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
                         <div class="flex items-center justify-between text-xs">
@@ -193,7 +200,8 @@
             </div>
             <div class="kanban-column">
                 <?php foreach ($homologacoes['reprovado'] as $h): ?>
-                    <div class="kanban-card status-reprovado" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-reprovado relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                        <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
                         <div class="flex items-center justify-between text-xs">

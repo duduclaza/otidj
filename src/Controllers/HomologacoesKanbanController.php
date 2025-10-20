@@ -88,6 +88,52 @@ class HomologacoesKanbanController
     }
 
     /**
+     * Buscar e-mails dos responsáveis de uma homologação
+     */
+    private function getResponsaveisEmails(int $homologacaoId): array
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT u.email FROM homologacoes_responsaveis hr LEFT JOIN users u ON u.id = hr.user_id WHERE hr.homologacao_id = ? AND u.status = 'active' AND u.email IS NOT NULL AND u.email <> ''");
+            $stmt->execute([$homologacaoId]);
+            return array_values(array_filter(array_map(function($r){return $r['email'] ?? null;}, $stmt->fetchAll(PDO::FETCH_ASSOC))));
+        } catch (\Exception $e) {
+            error_log('Erro ao buscar e-mails de responsáveis: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Enviar e-mail de atualização de status para responsáveis
+     */
+    private function enviarEmailStatusHomologacao(array $destinatarios, array $homologacao, string $novoStatus, string $obs = ''): void
+    {
+        try {
+            if (empty($destinatarios)) return;
+            $email = new EmailService();
+
+            $assunto = "SGQ - Homologação #{$homologacao['id']} atualizada para: " . strtoupper($novoStatus);
+            $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+            $body = "<!DOCTYPE html><html><head><meta charset='UTF-8'></head><body style='font-family: Arial,sans-serif;line-height:1.6;color:#333;max-width:680px;margin:0 auto;padding:20px;'>"
+                . "<div style='background:#6b7280;color:#fff;padding:18px 24px;border-radius:10px 10px 0 0;'><h2 style='margin:0;font-size:20px;'>SGQ OTI DJ • Atualização de Status</h2></div>"
+                . "<div style='background:#fff;border:1px solid #e5e7eb;border-top:none;padding:20px'>"
+                . "<p style='margin:0 0 8px'>Homologação: <strong>#" . htmlspecialchars((string)$homologacao['id']) . "</strong></p>"
+                . "<p style='margin:0 0 8px'>Código: <strong>" . htmlspecialchars($homologacao['cod_referencia'] ?? '') . "</strong></p>"
+                . "<p style='margin:0 0 8px'>Novo status: <strong>" . htmlspecialchars($novoStatus) . "</strong></p>"
+                . (!empty($obs) ? ("<p style='margin:10px 0 0'><em>Observação:</em> " . nl2br(htmlspecialchars($obs)) . "</p>") : "")
+                . "<div style='text-align:center;margin:22px 0'><a href='" . $appUrl . "/homologacoes' style='background:#2563eb;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold'>Abrir Homologações</a></div>"
+                . "<p style='font-size:12px;color:#6b7280;margin-top:24px'>Este email foi enviado automaticamente pelo SGQ OTI DJ.</p>"
+                . "</div></body></html>";
+
+            $ok = $email->send($destinatarios, $assunto, $body, strip_tags($body));
+            if (!$ok) {
+                error_log('Falha ao enviar email de atualização de status: ' . ($email->getLastError() ?? 'sem detalhes'));
+            }
+        } catch (\Exception $e) {
+            error_log('Erro ao enviar email de atualização de status: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Verificar se usuário pode criar homologações (departamento Compras)
      */
     private function canCreateHomologacao(int $userId): bool
@@ -384,6 +430,17 @@ class HomologacoesKanbanController
             ]);
 
             $this->db->commit();
+
+            // Buscar dados completos da homologação já com o novo status
+            $stmt = $this->db->prepare("SELECT * FROM homologacoes WHERE id = ?");
+            $stmt->execute([$homologacaoId]);
+            $homologacaoAtual = $stmt->fetch(PDO::FETCH_ASSOC) ?: ['id' => $homologacaoId, 'status' => $novoStatus];
+
+            // Enviar e-mail para TODOS os responsáveis marcados desta homologação
+            $emailsResp = $this->getResponsaveisEmails($homologacaoId);
+            if (!empty($emailsResp)) {
+                $this->enviarEmailStatusHomologacao($emailsResp, $homologacaoAtual, $novoStatus, $observacao);
+            }
 
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso']);
 
