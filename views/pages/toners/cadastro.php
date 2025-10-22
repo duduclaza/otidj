@@ -1377,13 +1377,13 @@ window.forceCloseModal = function() {
 // Instrução para o usuário
 console.log('💡 DICA: Se o modal não fechar, digite no console: forceCloseModal()');
 
-// ===== PAGINAÇÃO - NAVEGAÇÃO POR TECLADO =====
-document.addEventListener('DOMContentLoaded', function() {
-  
-  // Função de busca por coluna específica
-  window.searchToners = function() {
+// ===== BUSCA INTELIGENTE NO GRID =====
+// Definir funções globalmente ANTES do DOMContentLoaded para que oninput/onkeyup funcionem
+
+// Função de busca por coluna específica
+window.searchToners = function() {
     const input = document.getElementById('searchToners');
-    const searchColumn = document.getElementById('searchColumn').value;
+    const searchColumn = document.getElementById('searchColumn')?.value || 'all';
     let tbody = document.getElementById('tonersTbody');
     if (!tbody) {
       tbody = document.querySelector('table tbody');
@@ -1440,9 +1440,9 @@ document.addEventListener('DOMContentLoaded', function() {
       tbody.appendChild(tr);
     }
 
-    updateResultsCount(visibleCount, rows.length);
+    window.updateResultsCount(visibleCount, rows.length);
   };
-  
+
   window.updateResultsCount = function(visibleCount, totalCount) {
     const resultsCount = document.getElementById('resultsCount');
     if (resultsCount) {
@@ -1452,6 +1452,17 @@ document.addEventListener('DOMContentLoaded', function() {
       resultsCount.textContent = resultText;
     }
   };
+
+// ===== INICIALIZAÇÃO E EVENT LISTENERS =====
+document.addEventListener('DOMContentLoaded', function() {
+  // Debounce helper
+  function debounce(fn, delay = 200) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(null, args), delay);
+    };
+  }
   
   // Bind live events
   const searchInput = document.getElementById('searchToners');
