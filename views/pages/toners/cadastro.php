@@ -1366,47 +1366,45 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Função de busca por coluna específica
   window.searchToners = function() {
-    const searchText = document.getElementById('searchToners').value.toLowerCase().trim();
+    const input = document.getElementById('searchToners');
     const searchColumn = document.getElementById('searchColumn').value;
     const tbody = document.querySelector('tbody');
     const rows = tbody.querySelectorAll('tr');
     let visibleCount = 0;
-    
+
+    const raw = (input?.value || '').trim().toLowerCase();
+    const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const tokens = normalized.split(/\s+/).filter(Boolean);
+
     rows.forEach(row => {
-      // Pular linhas vazias ou de mensagem
-      if (row.cells.length < 2) {
-        return;
-      }
-      
-      // Se campo vazio, mostrar tudo
-      if (!searchText) {
+      if (row.cells.length < 2) return;
+
+      if (tokens.length === 0) {
         row.style.removeProperty('display');
         visibleCount++;
         return;
       }
-      
-      let textToSearch = '';
-      
-      // Buscar na coluna específica ou em todas
+
+      let haystack = '';
       if (searchColumn === 'all') {
-        // Buscar em todas as colunas
-        textToSearch = row.textContent.toLowerCase();
+        haystack = Array.from(row.cells).map(td => td.textContent || '').join(' ');
       } else {
-        // Buscar apenas na coluna selecionada
         const columnIndex = parseInt(searchColumn);
-        textToSearch = row.cells[columnIndex]?.textContent?.toLowerCase().trim() || '';
+        haystack = row.cells[columnIndex]?.textContent || '';
       }
-      
-      // Verificar se o texto da busca está presente
-      if (textToSearch.includes(searchText)) {
+
+      let norm = haystack.toLowerCase();
+      norm = norm.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      const match = tokens.every(tok => norm.includes(tok));
+      if (match) {
         row.style.removeProperty('display');
         visibleCount++;
       } else {
         row.style.display = 'none';
       }
     });
-    
-    // Atualizar contador
+
     updateResultsCount(visibleCount, rows.length);
   };
   
