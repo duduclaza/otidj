@@ -154,7 +154,7 @@
             <th class="px-3 py-2 text-right font-medium text-gray-700">Ações</th>
           </tr>
         </thead>
-        <tbody class="divide-y">
+        <tbody class="divide-y" id="tonersTbody">
           <?php if (empty($toners)): ?>
             <tr>
               <td colspan="12" class="px-4 py-8 text-center text-gray-500">Nenhum toner cadastrado</td>
@@ -401,6 +401,14 @@
   <!-- Script para inicialização -->
   <script>
   document.addEventListener('DOMContentLoaded', function() {
+  // Debounce helper
+  function debounce(fn, delay = 200) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(null, args), delay);
+    };
+  }
     // Inicializar tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-tooltip]'));
     tooltipTriggerList.map(function(tooltipTriggerEl) {
@@ -1368,8 +1376,8 @@ document.addEventListener('DOMContentLoaded', function() {
   window.searchToners = function() {
     const input = document.getElementById('searchToners');
     const searchColumn = document.getElementById('searchColumn').value;
-    const tbody = document.querySelector('tbody');
-    const rows = tbody.querySelectorAll('tr');
+    const tbody = document.getElementById('tonersTbody');
+    const rows = tbody ? tbody.querySelectorAll('tr') : [];
     let visibleCount = 0;
 
     const raw = (input?.value || '').trim().toLowerCase();
@@ -1418,9 +1426,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };
   
-  // Atualizar contador inicial
-  const initialRows = document.querySelectorAll('tbody tr').length;
+  // Bind live events
+  const searchInput = document.getElementById('searchToners');
+  const searchSelect = document.getElementById('searchColumn');
+  const runSearch = debounce(() => window.searchToners(), 150);
+  if (searchInput) {
+    searchInput.addEventListener('input', runSearch);
+    searchInput.addEventListener('keyup', runSearch);
+  }
+  if (searchSelect) {
+    searchSelect.addEventListener('change', () => window.searchToners());
+  }
+
+  // Primeiro cálculo do contador e estado inicial
+  const initialRows = document.querySelectorAll('#tonersTbody tr').length;
   updateResultsCount(initialRows, initialRows);
-  
+  window.searchToners();
+
 });
 </script>
