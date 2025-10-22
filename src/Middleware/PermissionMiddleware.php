@@ -85,6 +85,15 @@ class PermissionMiddleware
         '/melhoria-continua/store' => 'melhoria_continua',
         '/controle-de-rc' => 'controle_rc',
         
+        // Auditorias
+        '/auditorias' => 'auditorias',
+        '/auditorias/list' => 'auditorias',
+        '/auditorias/create' => 'auditorias',
+        '/auditorias/update' => 'auditorias',
+        '/auditorias/delete' => 'auditorias',
+        '/auditorias/relatorios' => 'auditorias',
+        '/auditorias/anexo' => 'auditorias',
+        
         // 5W2H - Planos de Ação
         '/5w2h' => '5w2h',
         '/5w2h/list' => '5w2h',

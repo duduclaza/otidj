@@ -55,7 +55,7 @@ $menu = [
       ['label' => 'POPs e ITs', 'href' => '/pops-e-its', 'icon' => '📚', 'module' => 'pops_its_visualizacao'],
       ['label' => 'Fluxogramas', 'href' => '/fluxogramas', 'icon' => '🔀', 'module' => 'fluxogramas'],
       ['label' => '5W2H', 'href' => '/5w2h', 'icon' => '📋', 'module' => '5w2h'],
-      ['label' => 'Auditorias', 'href' => '/auditorias', 'icon' => '🔍', 'module' => 'auditorias'],
+      ['label' => 'Auditorias', 'href' => '/auditorias', 'icon' => '🔍', 'module' => 'auditorias', 'admin_only' => true],
       // Melhoria Contínua (com abas internas)
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
       ['label' => 'Melhoria Contínua 2.0', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2'],
@@ -130,6 +130,12 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           // Para submenus, verificar se tem permissão para pelo menos um submenu
           $visibleSubmenus = [];
           foreach ($item['submenu'] as $sub) {
+            // Verificar se é admin_only e se o usuário é admin
+            if (isset($sub['admin_only']) && $sub['admin_only']) {
+              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+              if (!$isAdmin) continue;
+            }
+            
             if (hasPermission($sub['module'])) {
               $visibleSubmenus[] = $sub;
               if (rtrim($sub['href'], '/') === $current) {
@@ -163,6 +169,12 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
               </button>
               <ul class="submenu ml-6 mt-2 space-y-1 hidden">
                 <?php foreach ($item['submenu'] as $sub):
+                  // Verificar se é admin_only
+                  if (isset($sub['admin_only']) && $sub['admin_only']) {
+                    $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                    if (!$isAdmin) continue;
+                  }
+                  
                   // Só mostrar submenu se o usuário tiver permissão
                   if (!hasPermission($sub['module'])) continue;
                   $subActive = rtrim($sub['href'], '/') === $current;
