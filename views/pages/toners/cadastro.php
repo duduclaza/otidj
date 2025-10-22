@@ -128,6 +128,12 @@
             </svg>
           </button>
         </div>
+
+        <!-- Botão Buscar dedicado -->
+        <button type="button" id="searchActionBtn"
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300">
+          Buscar
+        </button>
       </div>
     </div>
     <div class="overflow-x-auto">
@@ -1443,11 +1449,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   if (searchSelect) {
-    searchSelect.addEventListener('change', () => window.searchToners());
+    searchSelect.addEventListener('change', () => {
+      window.searchToners();
+      if (searchInput) searchInput.focus();
+    });
   }
   const runBtn = document.getElementById('runSearchBtn');
   if (runBtn) {
     runBtn.addEventListener('click', () => window.searchToners());
+  }
+  const searchActionBtn = document.getElementById('searchActionBtn');
+  if (searchActionBtn) {
+    searchActionBtn.addEventListener('click', () => window.searchToners());
   }
 
   // Evitar submit de qualquer formulário ao pressionar Enter no campo de busca
