@@ -166,7 +166,7 @@
                 $cadastroIncompleto = empty($t['peso_cheio']) || empty($t['peso_vazio']);
                 $rowClass = $cadastroIncompleto ? 'bg-red-50 border-l-4 border-l-red-400' : '';
               ?>
-              <tr class="<?= $rowClass ?>" <?= $cadastroIncompleto ? 'title="Cadastro incompleto: Peso Cheio e Peso Vazio não preenchidos"' : '' ?>>
+              <tr class="<?= $rowClass ?>" data-toner-id="<?= $t['id'] ?>" <?= $cadastroIncompleto ? 'title="Cadastro incompleto: Peso Cheio e Peso Vazio não preenchidos"' : '' ?>>
                 <td class="px-3 py-2">
                   <span class="edit-display-modelo-<?= $t['id'] ?>"><?= e($t['modelo']) ?></span>
                   <input type="text" class="edit-input-modelo-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-full text-xs" value="<?= e($t['modelo']) ?>">
@@ -394,6 +394,26 @@
       </div>
     </div>
   </div>
+  
+  <!-- Script de Ações de Toners -->
+  <script src="/js/toners-actions.js"></script>
+  
+  <!-- Script para inicialização -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-tooltip]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Inicializar popovers
+    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.map(function(popoverTriggerEl) {
+      return new bootstrap.Popover(popoverTriggerEl);
+    });
+  });
+  </script>
 </section>
 
 <!-- Import Modal -->
