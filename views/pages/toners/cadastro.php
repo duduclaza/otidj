@@ -118,8 +118,6 @@
             id="searchToners" 
             placeholder="Digite para buscar..." 
             class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            onkeyup="searchToners()" 
-            oninput="searchToners()"
           >
           <button type="button" id="runSearchBtn" title="Buscar" onclick="window.searchToners && window.searchToners()"
                   class="absolute inset-y-0 left-0 pl-3 pr-2 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
@@ -131,8 +129,14 @@
 
         <!-- Botão Buscar dedicado -->
         <button type="button" id="searchActionBtn" onclick="window.searchToners && window.searchToners()"
-                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300">
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 transition-colors">
           Buscar
+        </button>
+        
+        <!-- Botão Limpar -->
+        <button type="button" id="clearSearchBtn" onclick="window.clearSearch && window.clearSearch()"
+                class="px-4 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 focus:ring-2 focus:ring-gray-300 transition-colors">
+          Limpar
         </button>
       </div>
     </div>
@@ -1378,30 +1382,60 @@ window.forceCloseModal = function() {
 console.log('💡 DICA: Se o modal não fechar, digite no console: forceCloseModal()');
 
 // ===== BUSCA INTELIGENTE NO GRID =====
-// Definir funções globalmente ANTES do DOMContentLoaded para que oninput/onkeyup funcionem
+// Definir funções globalmente ANTES do DOMContentLoaded
+
+// Função para limpar a busca
+window.clearSearch = function() {
+    console.log('🧽 Limpando busca...');
+    const input = document.getElementById('searchToners');
+    const select = document.getElementById('searchColumn');
+    
+    if (input) input.value = '';
+    if (select) select.value = 'all';
+    
+    window.searchToners();
+};
 
 // Função de busca por coluna específica
 window.searchToners = function() {
+    console.log('🔍 Executando busca...');
     const input = document.getElementById('searchToners');
     const searchColumn = document.getElementById('searchColumn')?.value || 'all';
+    
+    if (!input) {
+        console.error('❌ Campo de busca não encontrado!');
+        return;
+    }
+    
     let tbody = document.getElementById('tonersTbody');
     if (!tbody) {
-      tbody = document.querySelector('table tbody');
+        tbody = document.querySelector('table tbody');
+        console.warn('⚠️ Usando fallback para tbody');
     }
-    const rows = tbody ? Array.from(tbody.querySelectorAll('tr')) : [];
+    
+    if (!tbody) {
+        console.error('❌ Tbody não encontrado!');
+        return;
+    }
+    
+    const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => row.cells.length >= 2);
     let visibleCount = 0;
+    
+    console.log(`📊 Total de linhas: ${rows.length}`);
 
-    const raw = (input?.value || '').trim().toLowerCase();
+    const raw = (input.value || '').trim().toLowerCase();
     const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const tokens = normalized.split(/\s+/).filter(Boolean);
+    
+    console.log(`🔑 Termos de busca: ${tokens.length > 0 ? tokens.join(', ') : '(vazio)'} | Coluna: ${searchColumn}`);
 
     // Remover possível linha de mensagem antiga
     const emptyMsg = tbody.querySelector('.no-results-row');
     if (emptyMsg) emptyMsg.remove();
 
-    rows.forEach(row => {
-      if (row.cells.length < 2) return; // ignora linhas inválidas
+    rows.forEach((row, index) => {
 
+      // Se não há termos de busca, mostrar tudo
       if (tokens.length === 0) {
         row.style.display = '';
         visibleCount++;
@@ -1429,17 +1463,18 @@ window.searchToners = function() {
     });
 
     // Mostrar mensagem de nenhum resultado
-    if (visibleCount === 0 && rows.length > 0) {
+    if (visibleCount === 0 && rows.length > 0 && tokens.length > 0) {
       const tr = document.createElement('tr');
       tr.className = 'no-results-row';
       const td = document.createElement('td');
       td.colSpan = 12;
       td.className = 'px-4 py-6 text-center text-gray-500';
-      td.textContent = 'Nenhum resultado encontrado';
+      td.innerHTML = '<div class="flex flex-col items-center gap-2"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="font-medium">🔍 Nenhum resultado encontrado</span><span class="text-xs">Tente buscar com outros termos</span></div>';
       tr.appendChild(td);
       tbody.appendChild(tr);
     }
 
+    console.log(`✅ Busca concluída: ${visibleCount} de ${rows.length} linhas visíveis`);
     window.updateResultsCount(visibleCount, rows.length);
   };
 
