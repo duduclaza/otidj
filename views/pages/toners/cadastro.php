@@ -409,6 +409,9 @@
   <!-- Script de Ações de Toners -->
   <script src="/js/toners-actions.js"></script>
   
+  <!-- Script de Busca Inteligente -->
+  <script src="/js/toners-search.js"></script>
+  
   <!-- Script para inicialização -->
   <script>
   document.addEventListener('DOMContentLoaded', function() {
