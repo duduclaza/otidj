@@ -416,105 +416,6 @@
   </script>
 </section>
 
-<!-- Import Modal -->
-<div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4" style="z-index: 999999; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;">
-  <div class="bg-white rounded-lg shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
-    <!-- Header -->
-    <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white rounded-t-lg">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center">
-          <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mr-3">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-xl font-bold text-gray-900">📊 Importar Toners</h3>
-            <p class="text-sm text-gray-600 mt-1">Faça upload de um arquivo Excel ou CSV com os dados dos toners</p>
-          </div>
-        </div>
-        <!-- Close Button -->
-        <button onclick="console.log('X clicado!'); event.stopPropagation(); closeImportModal();" class="flex-shrink-0 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors duration-200 group">
-          <svg class="w-5 h-5 text-gray-500 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-    
-    <!-- Content -->
-    <div class="px-6 py-4 space-y-4">
-      <!-- File Input -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-3">
-          📁 Selecione o arquivo Excel ou CSV:
-        </label>
-        <div class="relative group">
-          <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" 
-                 class="w-full border-2 border-dashed border-gray-300 rounded-xl px-4 py-4 text-sm focus:ring-3 focus:ring-blue-200 focus:border-blue-400 hover:border-gray-400 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-          <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-            <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="flex items-center mt-2 text-xs text-gray-500">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          Formatos aceitos: <span class="font-medium">.xlsx, .xls, .csv</span> • Tamanho máximo: <span class="font-medium">10MB</span>
-        </div>
-      </div>
-      
-      <!-- Progress Bar (hidden by default) -->
-      <div id="progressContainer" class="hidden">
-        <div class="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-xl p-4 mb-4">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center">
-              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
-              <span class="text-sm font-semibold text-gray-700">⚡ Progresso da Importação</span>
-            </div>
-            <span id="progressText" class="text-sm font-bold text-blue-600">0%</span>
-          </div>
-          <div class="w-full bg-gray-200 rounded-full h-4 shadow-inner">
-            <div id="progressBar" class="bg-gradient-to-r from-blue-500 via-blue-600 to-green-500 h-4 rounded-full transition-all duration-500 ease-out shadow-sm" style="width: 0%"></div>
-          </div>
-          <div id="importStatus" class="text-sm text-gray-700 bg-white rounded-lg p-3 mt-3 border border-gray-200 shadow-sm">
-            Preparando importação...
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Footer -->
-    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-      <!-- Template Download -->
-      <div class="mb-3">
-        <button onclick="downloadTemplate()" 
-                class="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-blue-700 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg hover:from-blue-100 hover:to-blue-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-200 focus:ring-opacity-50 transition-all duration-200 shadow-sm hover:shadow">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          📥 Baixar Template
-        </button>
-      </div>
-      
-      <!-- Import Button -->
-      <div>
-        <button id="importBtn" onclick="importExcel()" 
-                class="w-full px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-green-600 border border-green-500 rounded-lg hover:from-green-600 hover:to-green-700 hover:border-green-600 focus:ring-2 focus:ring-green-200 focus:ring-opacity-50 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md">
-          <span class="flex items-center justify-center">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-            </svg>
-            📤 Importar Dados
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 // Cálculos automáticos no formulário
 function calcularCampos() {
@@ -555,7 +456,7 @@ function calcularEdicao(id) {
 }
 
 // Edição inline
-function editToner(id) {
+function editTonerInline(id) {
   const fields = ['modelo', 'peso_cheio', 'peso_vazio', 'gramatura', 'capacidade_folhas', 'preco_toner', 'gramatura_por_folha', 'custo_por_folha', 'cor', 'tipo'];
   fields.forEach(field => {
     document.querySelector('.edit-display-' + field + '-' + id).classList.add('hidden');
@@ -566,7 +467,7 @@ function editToner(id) {
   document.querySelector('.cancel-btn-' + id).classList.remove('hidden');
 }
 
-function cancelEditToner(id) {
+function cancelEditTonerInline(id) {
   const fields = ['modelo', 'peso_cheio', 'peso_vazio', 'gramatura', 'capacidade_folhas', 'preco_toner', 'gramatura_por_folha', 'custo_por_folha', 'cor', 'tipo'];
   fields.forEach(field => {
     document.querySelector('.edit-display-' + field + '-' + id).classList.remove('hidden');
@@ -577,16 +478,16 @@ function cancelEditToner(id) {
   document.querySelector('.cancel-btn-' + id).classList.add('hidden');
 }
 
-function saveToner(id) {
+function saveTonerInline(id) {
   const modelo = document.querySelector('.edit-input-modelo-' + id).value.trim();
-  const peso_cheio = document.querySelector('.edit-input-peso_cheio-' + id).value;
-  const peso_vazio = document.querySelector('.edit-input-peso_vazio-' + id).value;
-  const capacidade_folhas = document.querySelector('.edit-input-capacidade_folhas-' + id).value;
-  const preco_toner = document.querySelector('.edit-input-preco_toner-' + id).value;
+  const pesocheio = document.querySelector('.edit-input-peso_cheio-' + id).value;
+  const pesovazio = document.querySelector('.edit-input-peso_vazio-' + id).value;
+  const capacidade = document.querySelector('.edit-input-capacidade_folhas-' + id).value;
+  const preco = document.querySelector('.edit-input-preco_toner-' + id).value;
   const cor = document.querySelector('.edit-input-cor-' + id).value;
   const tipo = document.querySelector('.edit-input-tipo-' + id).value;
   
-  if (!modelo || !peso_cheio || !peso_vazio || !capacidade_folhas || !preco_toner || !cor || !tipo) {
+  if (!modelo || !pesocheio || !pesovazio || !capacidade || !preco || !cor || !tipo) {
     alert('Todos os campos são obrigatórios');
     return;
   }
@@ -597,10 +498,10 @@ function saveToner(id) {
   form.innerHTML = `
     <input type="hidden" name="id" value="${id}">
     <input type="hidden" name="modelo" value="${modelo}">
-    <input type="hidden" name="peso_cheio" value="${peso_cheio}">
-    <input type="hidden" name="peso_vazio" value="${peso_vazio}">
-    <input type="hidden" name="capacidade_folhas" value="${capacidade_folhas}">
-    <input type="hidden" name="preco_toner" value="${preco_toner}">
+    <input type="hidden" name="peso_cheio" value="${pesocheio}">
+    <input type="hidden" name="peso_vazio" value="${pesovazio}">
+    <input type="hidden" name="capacidade_folhas" value="${capacidade}">
+    <input type="hidden" name="preco_toner" value="${preco}">
     <input type="hidden" name="cor" value="${cor}">
     <input type="hidden" name="tipo" value="${tipo}">
   `;
@@ -608,7 +509,7 @@ function saveToner(id) {
   form.submit();
 }
 
-function deleteToner(id) {
+function deleteTonerInline(id) {
   if (!confirm('Tem certeza que deseja excluir este toner?')) return;
   
   const form = document.createElement('form');
