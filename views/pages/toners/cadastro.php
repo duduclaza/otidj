@@ -121,11 +121,12 @@
             onkeyup="searchToners()" 
             oninput="searchToners()"
           >
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button type="button" id="runSearchBtn" title="Buscar"
+                  class="absolute inset-y-0 left-0 pl-3 pr-2 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
-          </div>
+          </button>
         </div>
       </div>
     </div>
@@ -1432,11 +1433,31 @@ document.addEventListener('DOMContentLoaded', function() {
   const runSearch = debounce(() => window.searchToners(), 150);
   if (searchInput) {
     searchInput.addEventListener('input', runSearch);
-    searchInput.addEventListener('keyup', runSearch);
+    searchInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        window.searchToners();
+      } else {
+        runSearch();
+      }
+    });
   }
   if (searchSelect) {
     searchSelect.addEventListener('change', () => window.searchToners());
   }
+  const runBtn = document.getElementById('runSearchBtn');
+  if (runBtn) {
+    runBtn.addEventListener('click', () => window.searchToners());
+  }
+
+  // Evitar submit de qualquer formulário ao pressionar Enter no campo de busca
+  document.addEventListener('keydown', (e) => {
+    const active = document.activeElement;
+    if (e.key === 'Enter' && active && active.id === 'searchToners') {
+      e.preventDefault();
+      window.searchToners();
+    }
+  }, true);
 
   // Primeiro cálculo do contador e estado inicial
   const initialRows = document.querySelectorAll('#tonersTbody tr').length;
