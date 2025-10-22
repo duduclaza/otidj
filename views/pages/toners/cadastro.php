@@ -1388,18 +1388,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!tbody) {
       tbody = document.querySelector('table tbody');
     }
-    const rows = tbody ? tbody.querySelectorAll('tr') : [];
+    const rows = tbody ? Array.from(tbody.querySelectorAll('tr')) : [];
     let visibleCount = 0;
 
     const raw = (input?.value || '').trim().toLowerCase();
     const normalized = raw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const tokens = normalized.split(/\s+/).filter(Boolean);
 
+    // Remover possível linha de mensagem antiga
+    const emptyMsg = tbody.querySelector('.no-results-row');
+    if (emptyMsg) emptyMsg.remove();
+
     rows.forEach(row => {
-      if (row.cells.length < 2) return;
+      if (row.cells.length < 2) return; // ignora linhas inválidas
 
       if (tokens.length === 0) {
-        row.style.removeProperty('display');
+        row.style.display = '';
         visibleCount++;
         return;
       }
@@ -1417,12 +1421,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const match = tokens.every(tok => norm.includes(tok));
       if (match) {
-        row.style.removeProperty('display');
+        row.style.display = '';
         visibleCount++;
       } else {
         row.style.display = 'none';
       }
     });
+
+    // Mostrar mensagem de nenhum resultado
+    if (visibleCount === 0 && rows.length > 0) {
+      const tr = document.createElement('tr');
+      tr.className = 'no-results-row';
+      const td = document.createElement('td');
+      td.colSpan = 12;
+      td.className = 'px-4 py-6 text-center text-gray-500';
+      td.textContent = 'Nenhum resultado encontrado';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
 
     updateResultsCount(visibleCount, rows.length);
   };
