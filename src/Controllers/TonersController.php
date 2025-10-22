@@ -470,6 +470,40 @@ class TonersController
         redirect('/toners/cadastro');
     }
 
+    // Exclusão via AJAX (DELETE /toners/{id}) com retorno JSON
+    public function deleteAjax(): void
+    {
+        header('Content-Type: application/json');
+
+        // Obter ID da URL
+        $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+        $parts = explode('/', trim($path, '/'));
+        $id = end($parts);
+
+        if (!$id || !is_numeric($id)) {
+            echo json_encode(['success' => false, 'message' => 'ID inválido']);
+            return;
+        }
+
+        try {
+            // Verificar existência
+            $check = $this->db->prepare('SELECT id FROM toners WHERE id = :id');
+            $check->execute([':id' => $id]);
+            if (!$check->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Toner não encontrado']);
+                return;
+            }
+
+            // Excluir
+            $stmt = $this->db->prepare('DELETE FROM toners WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+
+            echo json_encode(['success' => true, 'message' => 'Toner excluído com sucesso']);
+        } catch (\PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir toner: ' . $e->getMessage()]);
+        }
+    }
+
     // Baixar template CSV/Excel para importação
     public function downloadTemplate(): void
     {
