@@ -409,8 +409,19 @@ class TonersController
         $cor = $_POST['cor'] ?? '';
         $tipo = $_POST['tipo'] ?? '';
 
+        $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                  || (isset($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false);
+
+        if ($isAjax) {
+            header('Content-Type: application/json');
+        }
+
         // Validar campos obrigatórios (pesos são opcionais)
         if ($id <= 0 || $modelo === '' || $capacidade_folhas <= 0 || $preco_toner <= 0 || $cor === '' || $tipo === '') {
+            if ($isAjax) {
+                echo json_encode(['success' => false, 'message' => 'Dados inválidos. Campos obrigatórios: Modelo, Capacidade de Folhas, Preço, Cor e Tipo.']);
+                return;
+            }
             flash('error', 'Dados inválidos. Campos obrigatórios: Modelo, Capacidade de Folhas, Preço, Cor e Tipo.');
             redirect('/toners/cadastro');
             return;
@@ -418,6 +429,10 @@ class TonersController
 
         // Se um dos pesos foi informado, ambos devem ser informados
         if (($peso_cheio !== null && $peso_vazio === null) || ($peso_cheio === null && $peso_vazio !== null)) {
+            if ($isAjax) {
+                echo json_encode(['success' => false, 'message' => 'Se informar peso, ambos Peso Cheio e Peso Vazio devem ser preenchidos.']);
+                return;
+            }
             flash('error', 'Se informar peso, ambos Peso Cheio e Peso Vazio devem ser preenchidos.');
             redirect('/toners/cadastro');
             return;
@@ -425,6 +440,10 @@ class TonersController
 
         // Se ambos os pesos foram informados, validar que peso cheio > peso vazio
         if ($peso_cheio !== null && $peso_vazio !== null && $peso_cheio <= $peso_vazio) {
+            if ($isAjax) {
+                echo json_encode(['success' => false, 'message' => 'O peso cheio deve ser maior que o peso vazio.']);
+                return;
+            }
             flash('error', 'O peso cheio deve ser maior que o peso vazio.');
             redirect('/toners/cadastro');
             return;
@@ -442,8 +461,17 @@ class TonersController
                 ':tipo' => $tipo,
                 ':id' => $id
             ]);
+
+            if ($isAjax) {
+                echo json_encode(['success' => true, 'message' => 'Toner atualizado com sucesso.']);
+                return;
+            }
             flash('success', 'Toner atualizado com sucesso.');
         } catch (\PDOException $e) {
+            if ($isAjax) {
+                echo json_encode(['success' => false, 'message' => 'Erro ao atualizar toner: ' . $e->getMessage()]);
+                return;
+            }
             flash('error', 'Erro ao atualizar toner: ' . $e->getMessage());
         }
 

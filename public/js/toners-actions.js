@@ -221,11 +221,28 @@ function saveToner(id) {
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': token || ''
+            'X-CSRF-TOKEN': token || '',
+            'Accept': 'application/json'
         },
         body: formData
     })
-    .then(response => response.json())
+    .then(async (response) => {
+        const contentType = response.headers.get('content-type') || '';
+        let data;
+        if (contentType.includes('application/json')) {
+            try { data = await response.json(); } catch (e) { data = null; }
+        } else {
+            const text = await response.text();
+            // Se não for JSON, gerar um erro mais amigável com parte do HTML retornado
+            throw new Error(text?.slice(0, 200) || 'Resposta não reconhecida do servidor');
+        }
+        if (!response.ok) {
+            // Tentar extrair mensagem do JSON
+            const msg = (data && (data.message || data.error)) || `Erro ${response.status}`;
+            throw new Error(msg);
+        }
+        return data;
+    })
     .then(data => {
         console.log('Resposta do servidor:', data);
         
@@ -260,7 +277,7 @@ function saveToner(id) {
     })
     .catch(error => {
         console.error('Erro ao salvar:', error);
-        showAlert('error', 'Erro ao conectar ao servidor. Verifique sua conexão e tente novamente.');
+        showAlert('error', error?.message || 'Erro ao conectar ao servidor. Verifique sua conexão e tente novamente.');
     })
     .finally(() => {
         // Restaurar botão de salvar
