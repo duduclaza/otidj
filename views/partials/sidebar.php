@@ -134,12 +134,18 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
             if (isset($sub['admin_only']) && $sub['admin_only']) {
               $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
               if (!$isAdmin) continue;
-            }
-            
-            if (hasPermission($sub['module'])) {
+              // Para admin_only, adicionar direto sem verificar banco
               $visibleSubmenus[] = $sub;
               if (rtrim($sub['href'], '/') === $current) {
                 $submenuActive = true;
+              }
+            } else {
+              // Para outros itens, verificar permissão no banco
+              if (hasPermission($sub['module'])) {
+                $visibleSubmenus[] = $sub;
+                if (rtrim($sub['href'], '/') === $current) {
+                  $submenuActive = true;
+                }
               }
             }
           }
@@ -173,11 +179,13 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                   if (isset($sub['admin_only']) && $sub['admin_only']) {
                     $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
                     if (!$isAdmin) continue;
+                    // Para admin_only, não precisa verificar permissão no banco
+                    $subActive = rtrim($sub['href'], '/') === $current;
+                  } else {
+                    // Só mostrar submenu se o usuário tiver permissão
+                    if (!hasPermission($sub['module'])) continue;
+                    $subActive = rtrim($sub['href'], '/') === $current;
                   }
-                  
-                  // Só mostrar submenu se o usuário tiver permissão
-                  if (!hasPermission($sub['module'])) continue;
-                  $subActive = rtrim($sub['href'], '/') === $current;
                 ?>
                   <li>
                     <a href="<?= e($sub['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $subActive?'bg-blue-500 text-white shadow-md':'text-slate-400 hover:text-white'; ?> <?php echo isset($sub['beta']) && $sub['beta'] ? 'beta-menu' : ''; ?>">
