@@ -121,7 +121,7 @@
             onkeyup="searchToners()" 
             oninput="searchToners()"
           >
-          <button type="button" id="runSearchBtn" title="Buscar"
+          <button type="button" id="runSearchBtn" title="Buscar" onclick="window.searchToners && window.searchToners()"
                   class="absolute inset-y-0 left-0 pl-3 pr-2 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -130,7 +130,7 @@
         </div>
 
         <!-- Botão Buscar dedicado -->
-        <button type="button" id="searchActionBtn"
+        <button type="button" id="searchActionBtn" onclick="window.searchToners && window.searchToners()"
                 class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300">
           Buscar
         </button>
