@@ -134,6 +134,7 @@ const modules = [
   { key: 'melhoria_continua', name: 'Melhoria Contínua' },
   { key: 'melhoria_continua_2', name: 'Melhoria Contínua 2.0 🚀' },
   { key: 'controle_rc', name: 'Controle de RC' },
+  { key: 'auditorias', name: 'Auditorias' },
   { key: 'registros_filiais', name: 'Filiais' },
   { key: 'registros_departamentos', name: 'Departamentos' },
   { key: 'registros_fornecedores', name: 'Fornecedores' },
