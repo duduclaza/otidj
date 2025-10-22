@@ -416,17 +416,18 @@
       t = setTimeout(() => fn.apply(null, args), delay);
     };
   }
-    // Inicializar tooltips
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-tooltip]'));
-    tooltipTriggerList.map(function(tooltipTriggerEl) {
-      return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Inicializar popovers
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function(popoverTriggerEl) {
-      return new bootstrap.Popover(popoverTriggerEl);
-    });
+    // Inicializar tooltips/popovers apenas se Bootstrap estiver disponível
+    if (window.bootstrap) {
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-tooltip]'));
+      tooltipTriggerList.map(function(el) {
+        return new bootstrap.Tooltip(el);
+      });
+
+      const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+      popoverTriggerList.map(function(el) {
+        return new bootstrap.Popover(el);
+      });
+    }
   });
   </script>
 </section>
@@ -1383,7 +1384,10 @@ document.addEventListener('DOMContentLoaded', function() {
   window.searchToners = function() {
     const input = document.getElementById('searchToners');
     const searchColumn = document.getElementById('searchColumn').value;
-    const tbody = document.getElementById('tonersTbody');
+    let tbody = document.getElementById('tonersTbody');
+    if (!tbody) {
+      tbody = document.querySelector('table tbody');
+    }
     const rows = tbody ? tbody.querySelectorAll('tr') : [];
     let visibleCount = 0;
 
@@ -1456,11 +1460,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   const runBtn = document.getElementById('runSearchBtn');
   if (runBtn) {
-    runBtn.addEventListener('click', () => window.searchToners());
+    runBtn.addEventListener('click', () => {
+      window.searchToners();
+    });
   }
   const searchActionBtn = document.getElementById('searchActionBtn');
   if (searchActionBtn) {
-    searchActionBtn.addEventListener('click', () => window.searchToners());
+    searchActionBtn.addEventListener('click', () => {
+      window.searchToners();
+    });
   }
 
   // Evitar submit de qualquer formulário ao pressionar Enter no campo de busca
