@@ -407,11 +407,20 @@ if (!isset($_SESSION['user_id'])) {
                     <span class="text-xs text-gray-500">Arraste as bordas das colunas para redimensionar</span>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button onclick="resetColumnWidths()" class="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded border border-blue-200 hover:bg-blue-50">
-                        Resetar Colunas
+                    <button onclick="exportarExcel()" class="text-xs text-green-600 hover:text-green-800 px-3 py-1.5 rounded border border-green-200 hover:bg-green-50 flex items-center space-x-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span>Exportar Excel</span>
                     </button>
-                    <button onclick="toggleColumnVisibility()" class="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 rounded border border-gray-200 hover:bg-gray-50">
-                        Configurar Colunas
+                    <button onclick="toggleColumnVisibility()" class="text-xs text-blue-600 hover:text-blue-800 px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-50 flex items-center space-x-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                        </svg>
+                        <span>Configurar Colunas</span>
+                    </button>
+                    <button onclick="resetColumnWidths()" class="text-xs text-gray-600 hover:text-gray-800 px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50">
+                        Resetar Larguras
                     </button>
                 </div>
             </div>
@@ -433,22 +442,53 @@ if (!isset($_SESSION['user_id'])) {
 
         <!-- Modal de Configuração de Colunas -->
         <div id="columnConfigModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Configurar Colunas</h3>
+            <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">🔧 Configurar Colunas Visíveis</h3>
+                        <p class="text-xs text-gray-500 mt-1">Selecione as colunas que deseja visualizar na tabela e exportar para Excel</p>
+                    </div>
+                    <button onclick="closeColumnConfig()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
-                <div class="p-6">
-                    <div class="space-y-3" id="columnToggles">
+                
+                <!-- Body com scroll -->
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-600">Marque as colunas que deseja exibir</span>
+                        <div class="flex space-x-2">
+                            <button onclick="selecionarTodasColunas()" class="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50">
+                                ✓ Todas
+                            </button>
+                            <button onclick="deselecionarTodasColunas()" class="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 border border-gray-200 rounded hover:bg-gray-50">
+                                ✗ Nenhuma
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3" id="columnToggles">
                         <!-- Checkboxes gerados dinamicamente -->
                     </div>
                 </div>
-                <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-                    <button onclick="closeColumnConfig()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
-                        Fechar
-                    </button>
-                    <button onclick="applyColumnConfig()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Aplicar
-                    </button>
+                
+                <!-- Footer -->
+                <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+                    <span class="text-xs text-gray-500">💡 As colunas selecionadas serão usadas na exportação Excel</span>
+                    <div class="flex space-x-3">
+                        <button onclick="closeColumnConfig()" class="px-4 py-2 text-gray-700 border border-gray-300 rounded hover:bg-gray-50">
+                            Cancelar
+                        </button>
+                        <button onclick="salvarConfigColunas()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Salvar Configuração</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -548,6 +588,13 @@ if (!isset($_SESSION['user_id'])) {
         <p class="mt-2 text-gray-600">Carregando...</p>
     </div>
 </section>
+
+<!-- Biblioteca XLSX para Exportação Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- Scripts de Configuração de Colunas e Exportação -->
+<script src="/js/garantias-column-config.js"></script>
+<script src="/js/garantias-export-excel.js"></script>
 
 <!-- Modal removido - usando apenas formulário inline -->
 
@@ -3081,88 +3128,13 @@ function resetColumnWidths() {
     showNotification('Larguras das colunas resetadas!', 'success');
 }
 
-// Configurar visibilidade das colunas
-function toggleColumnVisibility() {
-    const modal = document.getElementById('columnConfigModal');
-    const togglesContainer = document.getElementById('columnToggles');
-    
-    // Limpar container
-    togglesContainer.innerHTML = '';
-    
-    // Criar checkboxes para cada coluna
-    Object.keys(columnConfig).forEach(columnKey => {
-        const config = columnConfig[columnKey];
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between';
-        div.innerHTML = `
-            <label class="flex items-center cursor-pointer">
-                <input type="checkbox" ${config.visible ? 'checked' : ''} data-column="${columnKey}" class="mr-2">
-                <span class="text-sm text-gray-700">${config.name}</span>
-            </label>
-        `;
-        togglesContainer.appendChild(div);
-    });
-    
-    modal.classList.remove('hidden');
-}
-
-// Fechar modal de configuração
-function closeColumnConfig() {
-    document.getElementById('columnConfigModal').classList.add('hidden');
-}
-
-// Aplicar configuração de colunas
-function applyColumnConfig() {
-    const checkboxes = document.querySelectorAll('#columnToggles input[type="checkbox"]');
-    
-    checkboxes.forEach(checkbox => {
-        const columnKey = checkbox.getAttribute('data-column');
-        const isVisible = checkbox.checked;
-        
-        columnConfig[columnKey].visible = isVisible;
-        
-        // Aplicar visibilidade
-        const table = document.getElementById('garantiasTable');
-        const header = table.querySelector(`th[data-column="${columnKey}"]`);
-        const columnIndex = Array.from(header.parentElement.children).indexOf(header);
-        
-        if (isVisible) {
-            header.classList.remove('column-hidden');
-            header.classList.add('column-show');
-            
-            // Mostrar células da coluna
-            const tbody = table.querySelector('tbody');
-            const rows = tbody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const cell = row.children[columnIndex];
-                if (cell) {
-                    cell.classList.remove('column-hidden');
-                    cell.classList.add('column-show');
-                }
-            });
-        } else {
-            header.classList.add('column-hidden');
-            header.classList.remove('column-show');
-            
-            // Ocultar células da coluna
-            const tbody = table.querySelector('tbody');
-            const rows = tbody.querySelectorAll('tr');
-            rows.forEach(row => {
-                const cell = row.children[columnIndex];
-                if (cell) {
-                    cell.classList.add('column-hidden');
-                    cell.classList.remove('column-show');
-                }
-            });
-        }
-    });
-    
-    // Salvar configurações
-    saveColumnSettings();
-    closeColumnConfig();
-    
-    showNotification('Configuração de colunas aplicada!', 'success');
-}
+// ===== CONFIGURAÇÃO DE COLUNAS =====
+// Funções movidas para /js/garantias-column-config.js
+// - toggleColumnVisibility()
+// - closeColumnConfig()
+// - salvarConfigColunas()
+// - selecionarTodasColunas()
+// - deselecionarTodasColunas()
 
 // Salvar configurações das colunas
 function saveColumnSettings() {
