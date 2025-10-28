@@ -1165,19 +1165,21 @@ class PopItsController
             $this->registrarLogVisualizacao($registro_id, $user_id);
             error_log("LOG FINALIZADO para registro $registro_id");
             
-            // Verificar se é PDF ou imagem
+            // Verificar se é PDF, imagem ou PowerPoint
             $extensao = strtolower($registro['extensao']);
-            $tiposPermitidos = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp'];
+            $tiposPermitidos = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'ppt', 'pptx'];
             
             if (!in_array($extensao, $tiposPermitidos)) {
                 http_response_code(403);
-                echo "Apenas arquivos PDF e imagens podem ser visualizados por segurança";
+                echo "Tipo de arquivo não suportado para visualização";
                 return;
             }
             
             // Verificar se é imagem para criar wrapper HTML
             $tiposImagem = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'];
+            $tiposPowerPoint = ['ppt', 'pptx'];
             $isImagem = in_array($extensao, $tiposImagem);
+            $isPowerPoint = in_array($extensao, $tiposPowerPoint);
             
             if ($isImagem) {
                 // Para imagens, criar um HTML wrapper para melhor exibição
@@ -1194,6 +1196,17 @@ class PopItsController
                 $content_type = $this->getContentType($registro['extensao']);
                 
                 echo $this->gerarHtmlImagem($base64, $content_type, $registro['nome_arquivo']);
+            } else if ($isPowerPoint) {
+                // Para PowerPoint, servir com tipo correto para visualizadores online
+                $content_type = $this->getContentType($registro['extensao']);
+                header('Content-Type: ' . $content_type);
+                header('Content-Disposition: inline; filename="' . $registro['nome_arquivo'] . '"');
+                header('Content-Length: ' . $registro['tamanho_arquivo']);
+                header('Access-Control-Allow-Origin: *'); // Permitir acesso dos visualizadores online
+                header('Cache-Control: public, max-age=3600'); // Cache de 1 hora para visualizadores
+                header('X-Content-Type-Options: nosniff');
+                
+                echo $registro['arquivo'];
             } else {
                 // Para PDFs, servir diretamente
                 $content_type = $this->getContentType($registro['extensao']);
