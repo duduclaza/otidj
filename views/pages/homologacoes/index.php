@@ -190,11 +190,6 @@
                         </button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
-                        <?php if (!empty($h['departamento_nome'])): ?>
-                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
-                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
-                        </div>
-                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -221,11 +216,6 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
-                        <?php if (!empty($h['departamento_nome'])): ?>
-                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
-                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
-                        </div>
-                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -283,9 +273,6 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
-                        <?php if ($h['local_homologacao']): ?>
-                        <div class="text-xs text-slate-500 mb-1">📍 <?= e($h['local_homologacao']) ?></div>
-                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -312,11 +299,6 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
-                        <?php if (!empty($h['departamento_nome'])): ?>
-                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
-                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
-                        </div>
-                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -343,11 +325,6 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
-                        <?php if (!empty($h['departamento_nome'])): ?>
-                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
-                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
-                        </div>
-                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
