@@ -18,39 +18,39 @@
       
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Peso Cheio (g) <span class="text-gray-500 text-xs">(opcional)</span></label>
-        <input type="number" step="0.01" name="peso_cheio" placeholder="Ex: 850.50" class="w-full border rounded px-3 py-2" onchange="calcularCampos()">
+        <input type="number" step="0.01" name="peso_cheio" placeholder="Ex: 850.50" class="w-full border rounded px-3 py-2" oninput="calcularCampos()" onchange="calcularCampos()">
         <p class="text-xs text-gray-500 mt-1">Se informar peso, ambos devem ser preenchidos</p>
       </div>
       
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Peso Vazio (g) <span class="text-gray-500 text-xs">(opcional)</span></label>
-        <input type="number" step="0.01" name="peso_vazio" placeholder="Ex: 120.30" class="w-full border rounded px-3 py-2" onchange="calcularCampos()">
+        <input type="number" step="0.01" name="peso_vazio" placeholder="Ex: 120.30" class="w-full border rounded px-3 py-2" oninput="calcularCampos()" onchange="calcularCampos()">
         <p class="text-xs text-gray-500 mt-1">Se informar peso, ambos devem ser preenchidos</p>
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Gramatura (g)</label>
-        <input type="number" step="0.01" name="gramatura" placeholder="Calculado automaticamente" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+        <label class="block text-sm font-medium text-gray-700 mb-1">📊 Gramatura (g)</label>
+        <input type="number" step="0.01" name="gramatura" placeholder="Calculado automaticamente" class="w-full border rounded px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold" readonly>
       </div>
       
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Capacidade de Folhas *</label>
-        <input type="number" name="capacidade_folhas" placeholder="Ex: 2700" class="w-full border rounded px-3 py-2" required onchange="calcularCampos()">
+        <input type="number" name="capacidade_folhas" placeholder="Ex: 2700" class="w-full border rounded px-3 py-2" required oninput="calcularCampos()" onchange="calcularCampos()">
       </div>
       
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Preço do Toner (R$) *</label>
-        <input type="number" step="0.01" name="preco_toner" placeholder="Ex: 89.90" class="w-full border rounded px-3 py-2" required onchange="calcularCampos()">
+        <input type="number" step="0.01" name="preco_toner" placeholder="Ex: 89.90" class="w-full border rounded px-3 py-2" required oninput="calcularCampos()" onchange="calcularCampos()">
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Gramatura por Folha (g)</label>
-        <input type="number" step="0.0001" name="gramatura_por_folha" placeholder="Calculado automaticamente" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+        <label class="block text-sm font-medium text-gray-700 mb-1">📊 Gramatura por Folha (g)</label>
+        <input type="number" step="0.0001" name="gramatura_por_folha" placeholder="Calculado automaticamente" class="w-full border rounded px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold" readonly>
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Custo por Folha (R$)</label>
-        <input type="number" step="0.0001" name="custo_por_folha" placeholder="Calculado automaticamente" class="w-full border rounded px-3 py-2 bg-gray-100" readonly>
+        <label class="block text-sm font-medium text-gray-700 mb-1">📊 Custo por Folha (R$)</label>
+        <input type="number" step="0.0001" name="custo_por_folha" placeholder="Calculado automaticamente" class="w-full border rounded px-3 py-2 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold" readonly>
       </div>
       
       <div>
