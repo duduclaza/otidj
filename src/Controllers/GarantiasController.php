@@ -221,11 +221,13 @@ class GarantiasController
             $stmt = $this->db->prepare("
                 SELECT g.*, 
                        f.nome as fornecedor_nome,
+                       fil.nome as filial_nome,
                        COUNT(DISTINCT ga.id) as total_anexos,
                        COALESCE(g.total_itens, 0) as total_itens,
                        COALESCE(g.valor_total, 0) as valor_total
                 FROM garantias g
                 LEFT JOIN fornecedores f ON g.fornecedor_id = f.id
+                LEFT JOIN filiais fil ON g.filial_id = fil.id
                 LEFT JOIN garantias_anexos ga ON g.id = ga.garantia_id
                 GROUP BY g.id, g.total_itens, g.valor_total
                 ORDER BY g.created_at DESC

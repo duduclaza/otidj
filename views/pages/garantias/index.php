@@ -465,6 +465,10 @@ if (!isset($_SESSION['user_id'])) {
                             Fornecedor
                             <div class="column-resizer"></div>
                         </th>
+                        <th data-column="filial" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 150px; min-width: 100px;">
+                            Filial
+                            <div class="column-resizer"></div>
+                        </th>
                         <th data-column="origem" class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 120px; min-width: 100px;">
                             Origem
                             <div class="column-resizer"></div>
@@ -1375,7 +1379,7 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     if (dados.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="17" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="18" class="px-4 py-8 text-center text-gray-500">Nenhuma garantia encontrada</td></tr>';
         return;
     }
     
@@ -1397,6 +1401,11 @@ function renderizarTabela(dados) {
             <td class="px-4 py-3 text-sm text-gray-900 max-w-xs">
                 <div class="truncate" title="${garantia.fornecedor_nome || 'N/A'}">
                     ${garantia.fornecedor_nome || 'N/A'}
+                </div>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-600">
+                <div class="truncate" title="${garantia.filial_nome || ''}">
+                    ${garantia.filial_nome || '<span class="text-gray-400">-</span>'}
                 </div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
