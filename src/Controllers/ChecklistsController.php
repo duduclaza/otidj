@@ -17,7 +17,13 @@ class ChecklistsController
     // Criar checklist
     public function create()
     {
+        // SEMPRE retornar JSON, mesmo com erro
         header('Content-Type: application/json');
+        
+        // Capturar TODOS os erros
+        set_error_handler(function($severity, $message, $file, $line) {
+            throw new \ErrorException($message, 0, $severity, $file, $line);
+        });
         
         try {
             error_log("ChecklistsController::create - Iniciando");

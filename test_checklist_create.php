@@ -12,6 +12,10 @@ session_start();
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+// CARREGAR .ENV
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->safeLoad();
+
 use App\Config\Database;
 use App\Services\PermissionService;
 
