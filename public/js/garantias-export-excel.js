@@ -6,9 +6,23 @@ async function exportarExcel() {
     try {
         console.log('📊 Iniciando exportação para Excel...');
         
+        // Verificar se estamos na página correta
+        if (!window.garantias) {
+            console.warn('⚠️ Dados de garantias não disponíveis');
+            alert('⚠️ Carregue os dados antes de exportar!');
+            return;
+        }
+        
         // Verificar se XLSX está disponível
         if (typeof XLSX === 'undefined') {
             alert('❌ Biblioteca XLSX não carregada. Recarregue a página e tente novamente.');
+            return;
+        }
+        
+        // Verificar se a função carregarConfigColunas existe
+        if (typeof carregarConfigColunas !== 'function') {
+            console.error('❌ Função carregarConfigColunas não encontrada');
+            alert('❌ Erro ao carregar configuração. Recarregue a página.');
             return;
         }
         
@@ -74,7 +88,13 @@ async function exportarExcel() {
         XLSX.writeFile(wb, nomeArquivo);
         
         console.log('✅ Exportação concluída:', nomeArquivo);
-        mostrarNotificacao(`✅ Excel exportado com sucesso! (${garantias.length} registros)`, 'success');
+        
+        // Mostrar notificação se a função existir
+        if (typeof mostrarNotificacao === 'function') {
+            mostrarNotificacao(`✅ Excel exportado com sucesso! (${garantias.length} registros)`, 'success');
+        } else {
+            alert(`✅ Excel exportado com sucesso! (${garantias.length} registros)`);
+        }
         
     } catch (error) {
         console.error('❌ Erro ao exportar Excel:', error);
@@ -190,6 +210,13 @@ function prepararDadosParaExcel(garantias, colunasVisiveis) {
 
 // Carregar biblioteca XLSX se não estiver carregada
 function carregarXLSXLib() {
+    // Verificar se estamos na página de garantias
+    const garantiasTable = document.getElementById('garantiasTable');
+    if (!garantiasTable) {
+        console.log('⚠️ Página de garantias não detectada, pulando carregamento XLSX');
+        return;
+    }
+    
     if (typeof XLSX === 'undefined') {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';

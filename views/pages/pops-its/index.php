@@ -201,10 +201,10 @@ if (!isset($_SESSION['user_id'])) {
 
                             <!-- Arquivo -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo * (PNG, JPEG, PDF, PPT, PPTX - Max 10MB)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Arquivo * (PNG, JPEG, PDF: 10MB | PPT, PPTX: 50MB)</label>
                                 <input type="file" name="arquivo" required accept=".pdf,.png,.jpg,.jpeg,.ppt,.pptx" 
                                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <p class="text-xs text-gray-500 mt-1">Formatos aceitos: PDF, PNG, JPEG, PPT, PPTX</p>
+                                <p class="text-xs text-gray-500 mt-1">📄 PDF, PNG, JPEG: máx 10MB | 📊 PPT, PPTX: máx 50MB</p>
                             </div>
                         </div>
 
@@ -1009,12 +1009,12 @@ function editarRegistro(registroId) {
                 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Novo Arquivo * (PDF, PNG, JPEG, PPT, PPTX - Max 10MB)
+                        Novo Arquivo * (PDF, PNG, JPEG: 10MB | PPT, PPTX: 50MB)
                     </label>
                     <input type="file" name="arquivo" required 
                            accept=".pdf,.png,.jpg,.jpeg,.ppt,.pptx" 
                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <p class="text-xs text-gray-500 mt-1">Substitua o arquivo reprovado por uma nova versão (aceita PPT/PPTX)</p>
+                    <p class="text-xs text-gray-500 mt-1">📄 PDF/Imagens: 10MB | 📊 PowerPoint: 50MB</p>
                 </div>
                 
                 <div class="flex justify-end space-x-3">

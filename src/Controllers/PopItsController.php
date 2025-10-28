@@ -432,9 +432,17 @@ class PopItsController
                 return;
             }
             
-            // Validar tamanho (10MB)
-            if ($file['size'] > 10 * 1024 * 1024) {
-                echo json_encode(['success' => false, 'message' => 'Arquivo muito grande. Máximo 10MB']);
+            // Validar tamanho - PPT/PPTX: 50MB, Outros: 10MB
+            $isPowerPoint = in_array($file['type'], [
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            ]);
+            
+            $maxSize = $isPowerPoint ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+            $maxSizeText = $isPowerPoint ? '50MB' : '10MB';
+            
+            if ($file['size'] > $maxSize) {
+                echo json_encode(['success' => false, 'message' => "Arquivo muito grande. Máximo {$maxSizeText} para este tipo"]);
                 return;
             }
             
@@ -1765,9 +1773,17 @@ class PopItsController
                 return;
             }
             
-            // Validar tamanho (10MB)
-            if ($file['size'] > 10 * 1024 * 1024) {
-                echo json_encode(['success' => false, 'message' => 'Arquivo muito grande. Máximo 10MB']);
+            // Validar tamanho - PPT/PPTX: 50MB, Outros: 10MB
+            $isPowerPoint = in_array($file['type'], [
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            ]);
+            
+            $maxSize = $isPowerPoint ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+            $maxSizeText = $isPowerPoint ? '50MB' : '10MB';
+            
+            if ($file['size'] > $maxSize) {
+                echo json_encode(['success' => false, 'message' => "Arquivo muito grande. Máximo {$maxSizeText} para este tipo"]);
                 return;
             }
             

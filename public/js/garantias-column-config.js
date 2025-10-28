@@ -97,6 +97,11 @@ function salvarConfigColunas() {
     const colunasConfig = carregarConfigColunas();
     const checkboxes = document.querySelectorAll('#columnToggles input[type="checkbox"]');
     
+    if (!checkboxes || checkboxes.length === 0) {
+        console.warn('⚠️ Nenhum checkbox encontrado');
+        return;
+    }
+    
     // Atualizar configuração
     checkboxes.forEach(cb => {
         const colId = cb.id.replace('col-', '');
@@ -122,10 +127,18 @@ function salvarConfigColunas() {
 // Aplicar configuração na tabela
 function aplicarConfigColunas(colunasConfig) {
     const table = document.getElementById('garantiasTable');
-    if (!table) return;
+    if (!table) {
+        console.warn('⚠️ Tabela de garantias não encontrada');
+        return;
+    }
     
     const thead = table.querySelector('thead tr');
     const tbody = table.querySelector('tbody');
+    
+    if (!thead || !tbody) {
+        console.warn('⚠️ Estrutura da tabela incompleta');
+        return;
+    }
     
     // Aplicar nos cabeçalhos
     colunasConfig.forEach((col, index) => {
@@ -156,6 +169,12 @@ function aplicarConfigColunas(colunasConfig) {
 
 // Aplicar configuração salva ao carregar
 function aplicarConfigSalvaAoCarregar() {
+    const table = document.getElementById('garantiasTable');
+    if (!table) {
+        console.log('⚠️ Tabela não encontrada, pulando aplicação de configuração');
+        return;
+    }
+    
     const colunasConfig = carregarConfigColunas();
     aplicarConfigColunas(colunasConfig);
 }
@@ -190,6 +209,13 @@ function mostrarNotificacao(mensagem, tipo = 'info') {
 
 // Inicializar ao carregar a página
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se estamos na página de garantias
+    const garantiasTable = document.getElementById('garantiasTable');
+    if (!garantiasTable) {
+        console.log('⚠️ Página de garantias não detectada, pulando inicialização de colunas');
+        return;
+    }
+    
     // Aplicar configuração salva
     setTimeout(() => {
         aplicarConfigSalvaAoCarregar();

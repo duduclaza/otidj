@@ -589,9 +589,6 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 </section>
 
-<!-- Biblioteca XLSX para Exportação Excel -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
 <!-- Scripts de Configuração de Colunas e Exportação -->
 <script src="/js/garantias-column-config.js"></script>
 <script src="/js/garantias-export-excel.js"></script>
