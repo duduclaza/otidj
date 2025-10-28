@@ -336,6 +336,7 @@ $router->get('/pops-its/visualizacao/list', [App\Controllers\PopItsController::c
 $router->get('/pops-its/visualizar/{id}', [App\Controllers\PopItsController::class, 'visualizarArquivo']);
 // Aba 5: Log de Visualizações
 $router->get('/pops-its/logs/visualizacao', [App\Controllers\PopItsController::class, 'listLogsVisualizacao']);
+$router->post('/pops-its/registrar-log', [App\Controllers\PopItsController::class, 'registrarLog']);
 // Rotas de teste removidas - sistema funcionando corretamente
 $router->get('/pops-its/teste-notificacoes', [App\Controllers\PopItsController::class, 'testeNotificacoes']);
 $router->post('/pops-its/teste-notificacao-manual', [App\Controllers\PopItsController::class, 'testeNotificacaoManual']);

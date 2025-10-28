@@ -2583,4 +2583,34 @@ class PopItsController
         }
     }
 
+    // Registrar log de visualização via AJAX
+    public function registrarLog()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                return;
+            }
+            
+            $registro_id = $_POST['registro_id'] ?? null;
+            $user_id = $_SESSION['user_id'];
+            
+            if (!$registro_id) {
+                echo json_encode(['success' => false, 'message' => 'ID do registro não fornecido']);
+                return;
+            }
+            
+            // Registrar log
+            $this->registrarLogVisualizacao($registro_id, $user_id);
+            
+            echo json_encode(['success' => true, 'message' => 'Log registrado com sucesso']);
+            
+        } catch (\Exception $e) {
+            error_log("PopItsController::registrarLog - Erro: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao registrar log']);
+        }
+    }
+
 }

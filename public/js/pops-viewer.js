@@ -30,6 +30,9 @@ function visualizarArquivo(registroId, nomeArquivo, extensao) {
 
 // Modal com opções para visualizar PPT/PPTX
 function mostrarOpcoesVisualizacaoPPT(registroId, nomeArquivo, fileUrl) {
+    // Registrar log de visualização IMEDIATAMENTE quando modal abre
+    registrarLogVisualizacao(registroId);
+    
     const modal = document.createElement('div');
     modal.id = 'modalVisualizacaoPPT';
     modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-75 z-50 flex items-center justify-center p-4';
@@ -191,6 +194,32 @@ function downloadArquivoDireto(url, nomeArquivo) {
 // Função legada de download (manter compatibilidade)
 function downloadArquivo(registroId) {
     window.open(`/pops-its/arquivo/${registroId}`, '_blank');
+}
+
+// Registrar log de visualização via AJAX
+async function registrarLogVisualizacao(registroId) {
+    try {
+        console.log(`📊 Registrando log de visualização para registro ${registroId}...`);
+        
+        const formData = new FormData();
+        formData.append('registro_id', registroId);
+        
+        const response = await fetch('/pops-its/registrar-log', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            console.log('✅ Log de visualização registrado com sucesso');
+        } else {
+            console.warn('⚠️ Erro ao registrar log:', result.message);
+        }
+    } catch (error) {
+        console.error('❌ Erro ao registrar log de visualização:', error);
+        // Não bloqueia a visualização se o log falhar
+    }
 }
 
 // Fechar modal com ESC
