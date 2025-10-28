@@ -109,6 +109,11 @@
                         </button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -135,6 +140,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -161,6 +171,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -216,6 +231,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -242,6 +262,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -273,6 +298,16 @@
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Descrição <span class="text-red-500">*</span></label>
                 <textarea name="descricao" required rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">📍 Localização (Departamento) <span class="text-red-500">*</span></label>
+                <select name="departamento_id" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">-- Selecione o departamento --</option>
+                    <?php foreach ($departamentos as $dept): ?>
+                    <option value="<?= $dept['id'] ?>"><?= e($dept['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
 
             <div>

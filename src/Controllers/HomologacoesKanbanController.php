@@ -41,9 +41,18 @@ class HomologacoesKanbanController
             // Buscar homologações do banco
             try {
                 $stmt = $this->db->query("
-                    SELECT h.*, u.name as criador_nome
+                    SELECT h.*, 
+                           u.name as criador_nome,
+                           d.name as departamento_nome,
+                           GROUP_CONCAT(DISTINCT ur.name SEPARATOR ', ') as responsaveis_nomes,
+                           COUNT(DISTINCT a.id) as total_anexos
                     FROM homologacoes h
                     LEFT JOIN users u ON h.created_by = u.id
+                    LEFT JOIN departments d ON h.departamento_id = d.id
+                    LEFT JOIN homologacoes_responsaveis hr ON h.id = hr.homologacao_id
+                    LEFT JOIN users ur ON hr.user_id = ur.id
+                    LEFT JOIN homologacoes_anexos a ON h.id = a.homologacao_id
+                    GROUP BY h.id
                     ORDER BY h.created_at DESC
                 ");
                 $todasHomologacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -71,6 +80,19 @@ class HomologacoesKanbanController
                 $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             } catch (\Exception $e) {
                 error_log("Erro ao buscar usuários: " . $e->getMessage());
+            }
+
+            // Buscar departamentos
+            $departamentos = [];
+            try {
+                $stmt = $this->db->query("
+                    SELECT id, name 
+                    FROM departments 
+                    ORDER BY name ASC
+                ");
+                $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                error_log("Erro ao buscar departamentos: " . $e->getMessage());
             }
 
             // Verificar se pode criar (sempre true para Master User)
@@ -260,6 +282,7 @@ class HomologacoesKanbanController
             // Validar dados
             $codReferencia = trim($_POST['cod_referencia'] ?? '');
             $descricao = trim($_POST['descricao'] ?? '');
+            $departamentoId = !empty($_POST['departamento_id']) ? (int)$_POST['departamento_id'] : null;
             $avisarLogistica = isset($_POST['avisar_logistica']) && $_POST['avisar_logistica'] === '1';
             $responsaveis = $_POST['responsaveis'] ?? []; // Array de IDs
             $observacao = trim($_POST['observacao'] ?? '');
@@ -268,6 +291,14 @@ class HomologacoesKanbanController
                 echo json_encode([
                     'success' => false, 
                     'message' => 'Preencha o Código de Referência e Descrição'
+                ]);
+                exit;
+            }
+
+            if (empty($departamentoId)) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Selecione o Departamento (Localização)'
                 ]);
                 exit;
             }
@@ -287,16 +318,18 @@ class HomologacoesKanbanController
                 INSERT INTO homologacoes (
                     cod_referencia, 
                     descricao, 
+                    departamento_id,
                     avisar_logistica, 
                     observacao,
                     status, 
                     created_by, 
                     created_at
-                ) VALUES (?, ?, ?, ?, 'aguardando_recebimento', ?, NOW())
+                ) VALUES (?, ?, ?, ?, ?, 'aguardando_recebimento', ?, NOW())
             ");
             $stmt->execute([
                 $codReferencia,
                 $descricao,
+                $departamentoId,
                 $avisarLogistica ? 1 : 0,
                 $observacao,
                 $_SESSION['user_id']
