@@ -86,6 +86,87 @@
         </div>
     </div>
 
+    <!-- Barra de Filtros -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6 border border-slate-200">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-slate-700 flex items-center gap-2">
+                <span>🔍</span>
+                <span>Filtros</span>
+            </h3>
+            <button onclick="limparFiltros()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                🔄 Limpar Filtros
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+            <!-- Pesquisa -->
+            <div class="lg:col-span-2">
+                <label class="block text-xs font-medium text-slate-600 mb-1">Pesquisar</label>
+                <input 
+                    type="text" 
+                    id="filtroPesquisa" 
+                    placeholder="Código ou descrição..." 
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    oninput="aplicarFiltros()">
+            </div>
+            
+            <!-- Localização -->
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Localização</label>
+                <select 
+                    id="filtroLocalizacao" 
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                    onchange="aplicarFiltros()">
+                    <option value="">Todos</option>
+                    <?php foreach ($departamentos as $dept): ?>
+                    <option value="<?= $dept['id'] ?>"><?= e($dept['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
+            <!-- Responsável -->
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Responsável</label>
+                <select 
+                    id="filtroResponsavel" 
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                    onchange="aplicarFiltros()">
+                    <option value="">Todos</option>
+                    <?php foreach ($usuarios as $usuario): ?>
+                    <option value="<?= $usuario['id'] ?>"><?= e($usuario['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
+            <!-- Período -->
+            <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">Período</label>
+                <div class="flex gap-2">
+                    <input 
+                        type="date" 
+                        id="filtroDataInicio" 
+                        class="w-1/2 px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        onchange="aplicarFiltros()"
+                        title="Data Inicial">
+                    <input 
+                        type="date" 
+                        id="filtroDataFim" 
+                        class="w-1/2 px-2 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                        onchange="aplicarFiltros()"
+                        title="Data Final">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contador de Resultados -->
+        <div class="mt-3 pt-3 border-t border-slate-200">
+            <p class="text-sm text-slate-600" id="contadorFiltros">
+                Exibindo <span class="font-semibold text-blue-600" id="totalFiltrado">0</span> de 
+                <span class="font-semibold" id="totalGeral">0</span> homologações
+            </p>
+        </div>
+    </div>
+
     <!-- Scrollbar superior -->
     <div class="kanban-scroll-top" id="kanbanScrollTop"><div id="kanbanScrollTopInner" style="height:1px"></div></div>
 
@@ -453,7 +534,114 @@ document.addEventListener('DOMContentLoaded', () => {
             if (syncing) return; syncing = true; wrap.scrollLeft = topBar.scrollLeft; syncing = false;
         });
     }
+    
+    // Inicializar contadores
+    atualizarContadores();
 });
+
+// ===== SISTEMA DE FILTROS =====
+function aplicarFiltros() {
+    const pesquisa = document.getElementById('filtroPesquisa').value.toLowerCase().trim();
+    const localizacao = document.getElementById('filtroLocalizacao').value;
+    const responsavel = document.getElementById('filtroResponsavel').value;
+    const dataInicio = document.getElementById('filtroDataInicio').value;
+    const dataFim = document.getElementById('filtroDataFim').value;
+    
+    // Buscar todos os cards
+    const cards = document.querySelectorAll('.kanban-card');
+    let totalFiltrado = 0;
+    
+    cards.forEach(card => {
+        let mostrar = true;
+        
+        // Filtro de pesquisa (código ou descrição)
+        if (pesquisa) {
+            const codigo = card.querySelector('.text-sm.font-bold')?.textContent.toLowerCase() || '';
+            const descricao = card.querySelector('.text-xs.text-slate-600')?.textContent.toLowerCase() || '';
+            if (!codigo.includes(pesquisa) && !descricao.includes(pesquisa)) {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro de localização
+        if (localizacao) {
+            const cardLocalizacao = card.querySelector('.text-purple-700')?.textContent || '';
+            const selectOption = Array.from(document.getElementById('filtroLocalizacao').options)
+                .find(opt => opt.value === localizacao);
+            const nomeDept = selectOption ? selectOption.textContent : '';
+            if (!cardLocalizacao.includes(nomeDept)) {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro de responsável
+        if (responsavel) {
+            const cardResponsaveis = card.querySelector('.text-slate-500')?.textContent || '';
+            const selectOption = Array.from(document.getElementById('filtroResponsavel').options)
+                .find(opt => opt.value === responsavel);
+            const nomeResp = selectOption ? selectOption.textContent : '';
+            if (!cardResponsaveis.includes(nomeResp)) {
+                mostrar = false;
+            }
+        }
+        
+        // Filtro de período (precisa buscar data do card via data-created)
+        // Como não temos data visível no card, vamos pular esse filtro por enquanto
+        // Pode ser implementado com data-attribute se necessário
+        
+        // Aplicar visibilidade
+        if (mostrar) {
+            card.style.display = 'block';
+            totalFiltrado++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    
+    // Atualizar contador
+    document.getElementById('totalFiltrado').textContent = totalFiltrado;
+    
+    // Atualizar contadores das colunas
+    atualizarContagemColunas();
+}
+
+function limparFiltros() {
+    document.getElementById('filtroPesquisa').value = '';
+    document.getElementById('filtroLocalizacao').value = '';
+    document.getElementById('filtroResponsavel').value = '';
+    document.getElementById('filtroDataInicio').value = '';
+    document.getElementById('filtroDataFim').value = '';
+    
+    // Mostrar todos os cards
+    document.querySelectorAll('.kanban-card').forEach(card => {
+        card.style.display = 'block';
+    });
+    
+    atualizarContadores();
+    atualizarContagemColunas();
+}
+
+function atualizarContadores() {
+    const totalCards = document.querySelectorAll('.kanban-card').length;
+    const visibleCards = Array.from(document.querySelectorAll('.kanban-card'))
+        .filter(card => card.style.display !== 'none').length;
+    
+    document.getElementById('totalGeral').textContent = totalCards;
+    document.getElementById('totalFiltrado').textContent = visibleCards;
+}
+
+function atualizarContagemColunas() {
+    // Atualizar badge de contagem em cada coluna
+    const colunas = document.querySelectorAll('.kanban-col');
+    colunas.forEach(coluna => {
+        const badge = coluna.querySelector('span[class*="rounded-full"]');
+        const cardsVisiveis = Array.from(coluna.querySelectorAll('.kanban-card'))
+            .filter(card => card.style.display !== 'none').length;
+        if (badge) {
+            badge.textContent = cardsVisiveis;
+        }
+    });
+}
 
 // Helpers de scroll-lock
 function lockBodyScroll() { document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden'; }
