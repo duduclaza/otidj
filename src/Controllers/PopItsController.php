@@ -1571,8 +1571,11 @@ class PopItsController
             
             $user_id = $_SESSION['user_id'];
             
-            // Verificar se é admin
-            if (!\App\Services\PermissionService::isAdmin($user_id)) {
+            // Verificar se é admin ou super admin
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
+            
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Acesso restrito a administradores']);
                 return;
             }
