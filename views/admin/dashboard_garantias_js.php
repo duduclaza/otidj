@@ -123,14 +123,20 @@ function processarDadosGarantias(garantias) {
   // Quantidade por mês
   const porMes = {};
   garantias.forEach(g => {
-    if (!g.created_at) return;
+    if (!g.created_at) {
+      console.warn('Garantia sem created_at:', g);
+      return;
+    }
     const mes = g.created_at.substring(0, 7); // YYYY-MM
     if (!porMes[mes]) {
-      porMes[mes] = { quantidade: 0, valor: 0 };
+      porMes[mes] = { quantidade: 0, valor: 0, count: 0 };
     }
     porMes[mes].quantidade += (parseInt(g.total_quantidade) || 0);
     porMes[mes].valor += (parseFloat(g.valor_total) || 0);
+    porMes[mes].count += 1; // Contar número de garantias no mês
   });
+  
+  console.log('📅 Garantias por mês processadas:', porMes);
   
   // Quantidade por origem
   const porOrigem = {
@@ -223,7 +229,9 @@ function atualizarGraficosGarantias(dados) {
     }
     
     const meses = Object.keys(dados.porMes).sort();
-    const quantidadesMes = meses.map(m => dados.porMes[m].quantidade);
+    const quantidadesMes = meses.map(m => dados.porMes[m].count); // Usar count em vez de quantidade
+    
+    console.log('📊 Criando gráfico de mês:', { meses, quantidadesMes });
     
     garantiasCharts.mes = new Chart(ctxMes, {
       type: 'line',
@@ -413,7 +421,7 @@ function expandirGraficoGenerico(canvasId, titulo) {
   // Clonar o canvas
   const canvasClone = canvas.cloneNode(true);
   canvasClone.id = canvasId + '_expandido';
-  canvasClone.style.maxHeight = '600px';
+  canvasClone.style.maxHeight = '400px'; // Ajustado de 600px para 400px
   
   // Limpar conteúdo anterior
   const modalBody = modal.querySelector('#modalContentRetornados');
