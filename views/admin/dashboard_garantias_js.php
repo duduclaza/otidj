@@ -1,4 +1,3 @@
-<script>
 // ===== DASHBOARD GARANTIAS =====
 let garantiasCharts = {};
 
@@ -456,4 +455,3 @@ function expandirGraficoGenerico(canvasId, titulo) {
     });
   }
 }
-</script>
