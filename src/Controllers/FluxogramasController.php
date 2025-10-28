@@ -280,8 +280,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Apenas administradores podem excluir títulos']);
                 return;
             }
@@ -559,8 +560,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Apenas administradores podem aprovar registros']);
                 return;
             }
@@ -664,8 +666,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Apenas administradores podem reprovar registros']);
                 return;
             }
@@ -867,8 +870,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Acesso negado']);
                 return;
             }
@@ -984,8 +988,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Acesso negado']);
                 return;
             }
@@ -1048,8 +1053,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Apenas administradores podem aprovar solicitações']);
                 return;
             }
@@ -1127,8 +1133,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Apenas administradores podem reprovar solicitações']);
                 return;
             }
