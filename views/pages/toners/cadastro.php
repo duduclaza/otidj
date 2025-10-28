@@ -436,12 +436,9 @@
       });
     }
   });
-  </script>
-</section>
 
-<script>
-// Cálculos automáticos no formulário
-function calcularCampos() {
+  // Cálculos automáticos no formulário
+  function calcularCampos() {
   console.log('🔧 Função calcularCampos() chamada');
   
   const pesoCheioInput = document.querySelector('input[name="peso_cheio"]');
@@ -1591,3 +1588,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 </script>
+</section>
