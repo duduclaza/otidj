@@ -36,6 +36,14 @@
           🏭 Fornecedores
         </span>
       </button>
+      <button onclick="switchTab('garantias')" id="tab-garantias" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+          🛡️ Garantias
+        </span>
+      </button>
     </div>
   </div>
 
@@ -560,6 +568,8 @@
 
   </div>
   <!-- FIM CONTEÚDO ABA FORNECEDORES -->
+
+  <?php include __DIR__ . '/dashboard_garantias_tab.php'; ?>
 
 </section>
 
@@ -1733,6 +1743,13 @@ function switchTab(tabName) {
     initFornecedoresTab();
     window.fornecedores_loaded = true;
   }
+  
+  // Carregar dados da aba se for garantias
+  if (tabName === 'garantias' && !window.garantias_loaded) {
+    console.log('🛡️ Inicializando aba Garantias...');
+    initGarantiasTab();
+    window.garantias_loaded = true;
+  }
 }
 
 // ===== DASHBOARD AMOSTRAGENS 2.0 =====
@@ -2244,4 +2261,7 @@ function clearFiltersFornecedores() {
   document.getElementById('totalItensComprados').textContent = '0';
   document.getElementById('totalGarantias').textContent = '0';
 }
+
+<?php include __DIR__ . '/dashboard_garantias_js.php'; ?>
+
 </script>

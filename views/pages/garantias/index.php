@@ -453,7 +453,12 @@ if (!isset($_SESSION['user_id'])) {
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Scrollbar Superior Sincronizada -->
+        <div class="scroll-top-container" id="scrollTopGarantias">
+            <div id="scrollTopGarantiasInner" style="height: 1px;"></div>
+        </div>
+
+        <div class="overflow-x-auto" id="garantiasTableContainer">
             <table id="garantiasTable" class="min-w-full divide-y divide-gray-200 table-fixed">
                 <thead class="bg-gray-50">
                     <tr>
@@ -547,6 +552,29 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Modal removido - usando apenas formulário inline -->
 
 <style>
+/* Scrollbar superior sincronizada */
+.scroll-top-container {
+    height: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    margin-bottom: 8px;
+    border-radius: 6px;
+}
+.scroll-top-container::-webkit-scrollbar {
+    height: 12px;
+}
+.scroll-top-container::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+    border-radius: 6px;
+}
+.scroll-top-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.7);
+}
+.scroll-top-container::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 6px;
+}
+
 /* Estilos para redimensionamento de colunas */
 .resizable-column {
     position: relative;
@@ -631,6 +659,7 @@ let fornecedores = <?= json_encode($fornecedores) ?>;
 document.addEventListener('DOMContentLoaded', function() {
     carregarGarantias();
     configurarEventos();
+    inicializarScrollSincronizado();
 });
 
 // Configurar eventos
@@ -1515,6 +1544,15 @@ function renderizarTabela(dados) {
         
         tbody.appendChild(tr);
     });
+    
+    // Atualizar largura do scroll superior após renderizar
+    setTimeout(() => {
+        const scrollTopInner = document.getElementById('scrollTopGarantiasInner');
+        const table = document.getElementById('garantiasTable');
+        if (scrollTopInner && table) {
+            scrollTopInner.style.width = table.scrollWidth + 'px';
+        }
+    }, 100);
 }
 
 // Funções auxiliares
@@ -3199,4 +3237,55 @@ document.addEventListener('DOMContentLoaded', function() {
         initColumnResizing();
     }, 500);
 });
+
+// ===== SINCRONIZAÇÃO DE SCROLL SUPERIOR =====
+function inicializarScrollSincronizado() {
+    const container = document.getElementById('garantiasTableContainer');
+    const scrollTop = document.getElementById('scrollTopGarantias');
+    const scrollTopInner = document.getElementById('scrollTopGarantiasInner');
+    
+    if (!container || !scrollTop || !scrollTopInner) {
+        console.log('⚠️ Elementos de scroll não encontrados');
+        return;
+    }
+    
+    // Função para sincronizar larguras
+    const syncWidths = () => {
+        const table = document.getElementById('garantiasTable');
+        if (table) {
+            scrollTopInner.style.width = table.scrollWidth + 'px';
+        }
+    };
+    
+    // Sincronizar larguras inicialmente
+    syncWidths();
+    
+    // Sincronizar larguras quando a janela for redimensionada
+    window.addEventListener('resize', syncWidths);
+    
+    // Sincronizar larguras quando a tabela for atualizada
+    const observer = new MutationObserver(syncWidths);
+    observer.observe(container, { childList: true, subtree: true });
+    
+    // Sincronizar posições de scroll
+    let syncing = false;
+    
+    // Quando o container principal rola, atualizar o scroll superior
+    container.addEventListener('scroll', () => {
+        if (syncing) return;
+        syncing = true;
+        scrollTop.scrollLeft = container.scrollLeft;
+        syncing = false;
+    });
+    
+    // Quando o scroll superior rola, atualizar o container principal
+    scrollTop.addEventListener('scroll', () => {
+        if (syncing) return;
+        syncing = true;
+        container.scrollLeft = scrollTop.scrollLeft;
+        syncing = false;
+    });
+    
+    console.log('✅ Scroll sincronizado inicializado');
+}
 </script>
