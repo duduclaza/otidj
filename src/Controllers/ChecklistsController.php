@@ -20,20 +20,38 @@ class ChecklistsController
         header('Content-Type: application/json');
         
         try {
+            error_log("ChecklistsController::create - Iniciando");
+            
             if (!isset($_SESSION['user_id'])) {
+                error_log("ChecklistsController::create - Usuário não autenticado");
                 echo json_encode(['success' => false, 'message' => 'Não autenticado']);
                 return;
             }
 
             $user_id = $_SESSION['user_id'];
+            error_log("ChecklistsController::create - User ID: " . $user_id);
             
             // Verificar se é admin ou super admin
-            if (!PermissionService::isAdmin($user_id) && !PermissionService::isSuperAdmin($user_id)) {
+            $isAdmin = PermissionService::isAdmin($user_id);
+            $isSuperAdmin = PermissionService::isSuperAdmin($user_id);
+            error_log("ChecklistsController::create - isAdmin: " . ($isAdmin ? 'true' : 'false') . ", isSuperAdmin: " . ($isSuperAdmin ? 'true' : 'false'));
+            
+            if (!$isAdmin && !$isSuperAdmin) {
+                error_log("ChecklistsController::create - Sem permissão");
                 echo json_encode(['success' => false, 'message' => 'Sem permissão']);
                 return;
             }
 
-            $data = json_decode(file_get_contents('php://input'), true);
+            $rawData = file_get_contents('php://input');
+            error_log("ChecklistsController::create - Raw data: " . $rawData);
+            
+            $data = json_decode($rawData, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                error_log("ChecklistsController::create - JSON decode error: " . json_last_error_msg());
+                echo json_encode(['success' => false, 'message' => 'JSON inválido: ' . json_last_error_msg()]);
+                return;
+            }
             
             $titulo = trim($data['titulo'] ?? '');
             $descricao = trim($data['descricao'] ?? '');
@@ -88,8 +106,12 @@ class ChecklistsController
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log("Erro ao criar checklist: " . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao criar checklist']);
+            error_log("ChecklistsController::create - Exceção: " . $e->getMessage());
+            error_log("ChecklistsController::create - Stack trace: " . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Erro ao criar checklist: ' . $e->getMessage()
+            ]);
         }
     }
 

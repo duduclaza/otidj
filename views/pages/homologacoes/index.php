@@ -316,23 +316,16 @@
 
         <!-- Tabs -->
         <div class="flex border-b border-gray-200 mb-6">
-            <button onclick="switchChecklistTab('lista')" id="tabListaChecklists" class="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
-                Lista de Checklists
+            <button onclick="switchChecklistTab('novo')" id="tabNovoChecklist" class="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
+                ➕ Novo Checklist
             </button>
-            <button onclick="switchChecklistTab('novo')" id="tabNovoChecklist" class="px-4 py-2 border-b-2 border-transparent text-gray-600 hover:text-blue-600">
-                Novo Checklist
+            <button onclick="switchChecklistTab('lista')" id="tabListaChecklists" class="px-4 py-2 border-b-2 border-transparent text-gray-600 hover:text-blue-600">
+                📋 Lista de Checklists
             </button>
-        </div>
-
-        <!-- Tab: Lista de Checklists -->
-        <div id="checklistTabLista">
-            <div id="listaChecklists" class="space-y-3">
-                <!-- Carregado via JavaScript -->
-            </div>
         </div>
 
         <!-- Tab: Novo Checklist -->
-        <div id="checklistTabNovo" class="hidden">
+        <div id="checklistTabNovo">
             <form id="formNovoChecklist" onsubmit="salvarChecklist(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Título do Checklist *</label>
@@ -372,6 +365,13 @@
                     </button>
                 </div>
             </form>
+        </div>
+
+        <!-- Tab: Lista de Checklists -->
+        <div id="checklistTabLista" class="hidden">
+            <div id="listaChecklists" class="space-y-3">
+                <!-- Carregado via JavaScript -->
+            </div>
         </div>
     </div>
 </div>
@@ -633,8 +633,7 @@ let checklistItemCounter = 0;
 // Abrir modal de checklists
 function openModalChecklists() {
     document.getElementById('modalChecklists').classList.remove('hidden');
-    switchChecklistTab('lista');
-    carregarChecklists();
+    switchChecklistTab('novo'); // Mudar para abrir em "novo" ao invés de "lista"
     lockBodyScroll();
 }
 
