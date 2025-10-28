@@ -1459,6 +1459,16 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $registro_id = (int)$id;
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
+            
+            // Query simples
+            if ($isAdmin || $isSuperAdmin) {
+                $sql = "SELECT r.*, t.titulo, GROUP_CONCAT(rd.departamento_id) as departamentos_ids
+                        FROM fluxogramas_registros r
+                        INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
+                        LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
+                        WHERE r.id = ?
                         GROUP BY r.id";
                 $params = [$registro_id];
             } else {
