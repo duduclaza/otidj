@@ -460,6 +460,7 @@ class GarantiasController
         
         try {
             $fornecedor_id = (int)($_POST['fornecedor_id'] ?? 0);
+            $filial_id = !empty($_POST['filial_id']) ? (int)$_POST['filial_id'] : null;
             $origem_garantia = $_POST['origem_garantia'] ?? '';
             $numero_nf_compras = trim($_POST['numero_nf_compras'] ?? '');
             $numero_nf_remessa_simples = trim($_POST['numero_nf_remessa_simples'] ?? '');
@@ -502,7 +503,7 @@ class GarantiasController
             // Atualizar garantia
             $stmt = $this->db->prepare("
                 UPDATE garantias SET
-                    fornecedor_id = ?, numero_nf_compras = ?, numero_nf_remessa_simples = ?,
+                    fornecedor_id = ?, filial_id = ?, numero_nf_compras = ?, numero_nf_remessa_simples = ?,
                     numero_nf_remessa_devolucao = ?, numero_serie = ?, numero_lote = ?,
                     numero_ticket_os = ?, numero_ticket_interno = ?, usuario_notificado_id = ?,
                     origem_garantia = ?, status = ?, observacao = ?, descricao_defeito = ?,
@@ -511,7 +512,7 @@ class GarantiasController
             ");
             
             $stmt->execute([
-                $fornecedor_id, $numero_nf_compras, $numero_nf_remessa_simples,
+                $fornecedor_id, $filial_id, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
                 $numero_ticket_os, $numero_ticket_interno, $usuario_notificado_id,
                 $origem_garantia, $status, $observacao, $descricao_defeito, $id

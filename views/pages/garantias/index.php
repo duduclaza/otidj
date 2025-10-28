@@ -2090,6 +2090,7 @@ function preencherFormularioEdicao(garantia) {
     // Preencher campos básicos
     document.getElementById('garantiaId').value = garantia.id;
     document.querySelector('[name="fornecedor_id"]').value = garantia.fornecedor_id || '';
+    document.querySelector('[name="filial_id"]').value = garantia.filial_id || '';
     document.querySelector('[name="origem_garantia"]').value = garantia.origem_garantia || '';
     
     // Preencher números de NF
