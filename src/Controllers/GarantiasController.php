@@ -18,6 +18,7 @@ class GarantiasController
     {
         try {
             $fornecedores = $this->getFornecedores();
+            $filiais = $this->getFiliais();
             $usuarios = $this->getUsuarios();
             
             $title = 'Garantias - SGQ OTI DJ';
@@ -94,6 +95,7 @@ class GarantiasController
         
         try {
             $fornecedor_id = (int)($_POST['fornecedor_id'] ?? 0);
+            $filial_id = !empty($_POST['filial_id']) ? (int)$_POST['filial_id'] : null;
             $origem_garantia = $_POST['origem_garantia'] ?? '';
             $numero_nf_compras = trim($_POST['numero_nf_compras'] ?? '');
             $numero_nf_remessa_simples = trim($_POST['numero_nf_remessa_simples'] ?? '');
@@ -140,14 +142,14 @@ class GarantiasController
             // Inserir garantia
             $stmt = $this->db->prepare("
                 INSERT INTO garantias (
-                    fornecedor_id, origem_garantia, numero_nf_compras, numero_nf_remessa_simples, 
+                    fornecedor_id, filial_id, origem_garantia, numero_nf_compras, numero_nf_remessa_simples, 
                     numero_nf_remessa_devolucao, numero_serie, numero_lote, 
                     numero_ticket_os, numero_ticket_interno, usuario_notificado_id, status, observacao, descricao_defeito
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             
             $stmt->execute([
-                $fornecedor_id, $origem_garantia, $numero_nf_compras, $numero_nf_remessa_simples,
+                $fornecedor_id, $filial_id, $origem_garantia, $numero_nf_compras, $numero_nf_remessa_simples,
                 $numero_nf_remessa_devolucao, $numero_serie, $numero_lote,
                 $numero_ticket_os, $numero_ticket_interno, $usuario_notificado_id, $status, $observacao, $descricao_defeito
             ]);
@@ -904,6 +906,19 @@ class GarantiasController
         } catch (\Exception $e) {
             // Log do erro para debug
             error_log("Erro ao buscar fornecedores: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    private function getFiliais(): array
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT id, nome FROM filiais ORDER BY nome");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            // Log do erro para debug
+            error_log("Erro ao buscar filiais: " . $e->getMessage());
             return [];
         }
     }

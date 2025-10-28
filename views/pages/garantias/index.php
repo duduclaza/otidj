@@ -86,7 +86,7 @@ if (!isset($_SESSION['user_id'])) {
             <input type="hidden" name="id" id="garantiaId">
             
             <!-- Informações Básicas -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-white mb-2">Fornecedor *</label>
                     <select name="fornecedor_id" required class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
@@ -94,6 +94,18 @@ if (!isset($_SESSION['user_id'])) {
                         <?php if (isset($fornecedores)): ?>
                             <?php foreach ($fornecedores as $fornecedor): ?>
                                 <option value="<?= $fornecedor['id'] ?>"><?= htmlspecialchars($fornecedor['nome']) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-white mb-2">Filial</label>
+                    <select name="filial_id" class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Selecione uma filial</option>
+                        <?php if (isset($filiais)): ?>
+                            <?php foreach ($filiais as $filial): ?>
+                                <option value="<?= $filial['id'] ?>"><?= htmlspecialchars($filial['nome']) ?></option>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </select>
