@@ -374,14 +374,34 @@ class TonersController
             return;
         }
 
+        // Calcular campos derivados
+        $gramatura = null;
+        $gramatura_por_folha = null;
+        $custo_por_folha = null;
+
+        if ($peso_cheio !== null && $peso_vazio !== null) {
+            $gramatura = $peso_cheio - $peso_vazio;
+        }
+
+        if ($gramatura !== null && $capacidade_folhas > 0) {
+            $gramatura_por_folha = $gramatura / $capacidade_folhas;
+        }
+
+        if ($preco_toner !== null && $capacidade_folhas > 0) {
+            $custo_por_folha = $preco_toner / $capacidade_folhas;
+        }
+
         try {
-            $stmt = $this->db->prepare('INSERT INTO toners (modelo, peso_cheio, peso_vazio, capacidade_folhas, preco_toner, cor, tipo) VALUES (:modelo, :peso_cheio, :peso_vazio, :capacidade_folhas, :preco_toner, :cor, :tipo)');
+            $stmt = $this->db->prepare('INSERT INTO toners (modelo, peso_cheio, peso_vazio, gramatura, capacidade_folhas, preco_toner, gramatura_por_folha, custo_por_folha, cor, tipo) VALUES (:modelo, :peso_cheio, :peso_vazio, :gramatura, :capacidade_folhas, :preco_toner, :gramatura_por_folha, :custo_por_folha, :cor, :tipo)');
             $stmt->execute([
                 ':modelo' => $modelo,
                 ':peso_cheio' => $peso_cheio,
                 ':peso_vazio' => $peso_vazio,
+                ':gramatura' => $gramatura,
                 ':capacidade_folhas' => $capacidade_folhas,
                 ':preco_toner' => $preco_toner,
+                ':gramatura_por_folha' => $gramatura_por_folha,
+                ':custo_por_folha' => $custo_por_folha,
                 ':cor' => $cor,
                 ':tipo' => $tipo
             ]);
@@ -449,14 +469,34 @@ class TonersController
             return;
         }
 
+        // Calcular campos derivados
+        $gramatura = null;
+        $gramatura_por_folha = null;
+        $custo_por_folha = null;
+
+        if ($peso_cheio !== null && $peso_vazio !== null) {
+            $gramatura = $peso_cheio - $peso_vazio;
+        }
+
+        if ($gramatura !== null && $capacidade_folhas > 0) {
+            $gramatura_por_folha = $gramatura / $capacidade_folhas;
+        }
+
+        if ($preco_toner !== null && $capacidade_folhas > 0) {
+            $custo_por_folha = $preco_toner / $capacidade_folhas;
+        }
+
         try {
-            $stmt = $this->db->prepare('UPDATE toners SET modelo = :modelo, peso_cheio = :peso_cheio, peso_vazio = :peso_vazio, capacidade_folhas = :capacidade_folhas, preco_toner = :preco_toner, cor = :cor, tipo = :tipo WHERE id = :id');
+            $stmt = $this->db->prepare('UPDATE toners SET modelo = :modelo, peso_cheio = :peso_cheio, peso_vazio = :peso_vazio, gramatura = :gramatura, capacidade_folhas = :capacidade_folhas, preco_toner = :preco_toner, gramatura_por_folha = :gramatura_por_folha, custo_por_folha = :custo_por_folha, cor = :cor, tipo = :tipo WHERE id = :id');
             $stmt->execute([
                 ':modelo' => $modelo,
                 ':peso_cheio' => $peso_cheio,
                 ':peso_vazio' => $peso_vazio,
+                ':gramatura' => $gramatura,
                 ':capacidade_folhas' => $capacidade_folhas,
                 ':preco_toner' => $preco_toner,
+                ':gramatura_por_folha' => $gramatura_por_folha,
+                ':custo_por_folha' => $custo_por_folha,
                 ':cor' => $cor,
                 ':tipo' => $tipo,
                 ':id' => $id
@@ -695,14 +735,22 @@ class TonersController
                         continue;
                     }
 
+                    // Calcular campos derivados
+                    $gramatura = $peso_cheio - $peso_vazio;
+                    $gramatura_por_folha = $capacidade_folhas > 0 ? $gramatura / $capacidade_folhas : null;
+                    $custo_por_folha = $capacidade_folhas > 0 ? $preco_toner / $capacidade_folhas : null;
+
                     // Insert into database
-                    $stmt = $this->db->prepare('INSERT INTO toners (modelo, peso_cheio, peso_vazio, capacidade_folhas, preco_toner, cor, tipo) VALUES (:modelo, :peso_cheio, :peso_vazio, :capacidade_folhas, :preco_toner, :cor, :tipo)');
+                    $stmt = $this->db->prepare('INSERT INTO toners (modelo, peso_cheio, peso_vazio, gramatura, capacidade_folhas, preco_toner, gramatura_por_folha, custo_por_folha, cor, tipo) VALUES (:modelo, :peso_cheio, :peso_vazio, :gramatura, :capacidade_folhas, :preco_toner, :gramatura_por_folha, :custo_por_folha, :cor, :tipo)');
                     $stmt->execute([
                         ':modelo' => $modelo,
                         ':peso_cheio' => $peso_cheio,
                         ':peso_vazio' => $peso_vazio,
+                        ':gramatura' => $gramatura,
                         ':capacidade_folhas' => $capacidade_folhas,
                         ':preco_toner' => $preco_toner,
+                        ':gramatura_por_folha' => $gramatura_por_folha,
+                        ':custo_por_folha' => $custo_por_folha,
                         ':cor' => $cor,
                         ':tipo' => $tipo
                     ]);
