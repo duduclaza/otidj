@@ -379,6 +379,14 @@ $router->get('/homologacoes', [App\Controllers\HomologacoesKanbanController::cla
 $router->post('/homologacoes/store', [App\Controllers\HomologacoesKanbanController::class, 'store']);
 $router->post('/homologacoes/update-status', [App\Controllers\HomologacoesKanbanController::class, 'updateStatus']);
 $router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesKanbanController::class, 'details']);
+
+// Rotas de Checklists
+$router->post('/homologacoes/checklists/create', [App\Controllers\ChecklistsController::class, 'create']);
+$router->get('/homologacoes/checklists/list', [App\Controllers\ChecklistsController::class, 'list']);
+$router->get('/homologacoes/checklists/{id}', [App\Controllers\ChecklistsController::class, 'show']);
+$router->delete('/homologacoes/checklists/{id}', [App\Controllers\ChecklistsController::class, 'delete']);
+$router->post('/homologacoes/checklists/salvar-respostas', [App\Controllers\ChecklistsController::class, 'salvarRespostas']);
+$router->get('/homologacoes/checklists/respostas/{id}', [App\Controllers\ChecklistsController::class, 'buscarRespostas']);
 $router->post('/homologacoes/upload-anexo', [App\Controllers\HomologacoesKanbanController::class, 'uploadAnexo']);
 $router->get('/homologacoes/anexo/{id}', [App\Controllers\HomologacoesKanbanController::class, 'downloadAnexo']);
 $router->post('/homologacoes/delete', [App\Controllers\HomologacoesKanbanController::class, 'delete']);

@@ -467,6 +467,13 @@ async function openCardDetails(id) {
         
         if (result.success) {
             renderDetails(result);
+            
+            // Se status for "em_homologacao", carregar checklists no dropdown
+            if (result.homologacao.status === 'em_homologacao') {
+                setTimeout(() => {
+                    carregarChecklistsNoCard(id);
+                }, 100);
+            }
         }
     } catch (error) {
         document.getElementById('cardDetailsContent').innerHTML = '<p class="text-center text-red-500">Erro</p>';
@@ -503,6 +510,22 @@ function renderDetails(data) {
                 <h3 class="font-bold mb-2">👤 Responsáveis</h3>
                 ${data.responsaveis.map(r => `<div class="bg-blue-50 px-3 py-2 rounded mb-2">${r.name} - ${r.email}</div>`).join('')}
             </div>
+            
+            ${h.status === 'em_homologacao' ? `
+            <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
+                <h3 class="font-bold mb-3 text-purple-800">📋 Checklist de Homologação</h3>
+                <div id="checklistSection${h.id}">
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium mb-2">Selecionar Checklist</label>
+                        <select id="selectChecklist${h.id}" onchange="carregarItensChecklist(${h.id}, this.value)" 
+                                class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            <option value="">-- Escolha um checklist --</option>
+                        </select>
+                    </div>
+                    <div id="itensChecklist${h.id}"></div>
+                </div>
+            </div>
+            ` : ''}
             
             <div class="bg-yellow-50 p-4 rounded-lg">
                 <h3 class="font-bold mb-3">🔄 Atualizar Status</h3>
@@ -834,6 +857,196 @@ async function excluirChecklist(id) {
     } catch (error) {
         console.error('Erro:', error);
         alert('❌ Erro ao excluir checklist');
+    }
+}
+
+// ===== CHECKLIST NO CARD ===== 
+
+// Carregar checklists disponíveis no dropdown do card
+async function carregarChecklistsNoCard(homologacaoId) {
+    try {
+        const response = await fetch('/homologacoes/checklists/list');
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const select = document.getElementById(`selectChecklist${homologacaoId}`);
+            if (select) {
+                result.data.forEach(checklist => {
+                    const option = document.createElement('option');
+                    option.value = checklist.id;
+                    option.textContent = checklist.titulo;
+                    select.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar checklists:', error);
+    }
+}
+
+// Carregar itens do checklist selecionado
+async function carregarItensChecklist(homologacaoId, checklistId) {
+    if (!checklistId) {
+        document.getElementById(`itensChecklist${homologacaoId}`).innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/homologacoes/checklists/${checklistId}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const checklist = result.data;
+            renderizarItensChecklist(homologacaoId, checklistId, checklist.itens);
+        }
+    } catch (error) {
+        console.error('Erro ao carregar itens:', error);
+    }
+}
+
+// Renderizar itens do checklist
+function renderizarItensChecklist(homologacaoId, checklistId, itens) {
+    const container = document.getElementById(`itensChecklist${homologacaoId}`);
+    
+    const html = `
+        <div class="space-y-3 mt-4">
+            <h4 class="font-semibold text-sm text-purple-800 border-b pb-2">Preencha os itens abaixo:</h4>
+            ${itens.map(item => renderizarItem(homologacaoId, checklistId, item)).join('')}
+            <button onclick="salvarRespostasChecklist(${homologacaoId}, ${checklistId})" 
+                    class="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 mt-4">
+                💾 Salvar Checklist
+            </button>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Renderizar um item baseado no tipo
+function renderizarItem(homologacaoId, checklistId, item) {
+    const inputId = `item_${homologacaoId}_${item.id}`;
+    
+    switch (item.tipo_resposta) {
+        case 'checkbox':
+            return `
+                <div class="flex items-center gap-2 p-3 bg-white rounded-lg border">
+                    <input type="checkbox" id="${inputId}" class="w-4 h-4 text-purple-600">
+                    <label for="${inputId}" class="text-sm flex-1">${item.titulo}</label>
+                </div>
+            `;
+        
+        case 'sim_nao':
+            return `
+                <div class="p-3 bg-white rounded-lg border">
+                    <label class="text-sm font-medium mb-2 block">${item.titulo}</label>
+                    <div class="flex gap-3">
+                        <label class="flex items-center gap-2">
+                            <input type="radio" name="${inputId}" value="sim" class="text-purple-600">
+                            <span class="text-sm">✓ Sim</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input type="radio" name="${inputId}" value="nao" class="text-purple-600">
+                            <span class="text-sm">✗ Não</span>
+                        </label>
+                    </div>
+                </div>
+            `;
+        
+        case 'texto':
+            return `
+                <div class="p-3 bg-white rounded-lg border">
+                    <label for="${inputId}" class="text-sm font-medium mb-2 block">${item.titulo}</label>
+                    <textarea id="${inputId}" rows="2" 
+                              class="w-full px-3 py-2 border rounded-lg text-sm"
+                              placeholder="Digite sua resposta..."></textarea>
+                </div>
+            `;
+        
+        case 'numero':
+            return `
+                <div class="p-3 bg-white rounded-lg border">
+                    <label for="${inputId}" class="text-sm font-medium mb-2 block">${item.titulo}</label>
+                    <input type="number" id="${inputId}" 
+                           class="w-full px-3 py-2 border rounded-lg text-sm"
+                           placeholder="Digite um número...">
+                </div>
+            `;
+        
+        default:
+            return '';
+    }
+}
+
+// Salvar respostas do checklist
+async function salvarRespostasChecklist(homologacaoId, checklistId) {
+    try {
+        // Buscar checklist para pegar os itens
+        const responseChecklist = await fetch(`/homologacoes/checklists/${checklistId}`);
+        const resultChecklist = await responseChecklist.json();
+        
+        if (!resultChecklist.success) {
+            alert('Erro ao buscar checklist');
+            return;
+        }
+        
+        const itens = resultChecklist.data.itens;
+        const respostas = [];
+        
+        // Coletar respostas
+        itens.forEach(item => {
+            const inputId = `item_${homologacaoId}_${item.id}`;
+            let resposta = '';
+            let concluido = false;
+            
+            switch (item.tipo_resposta) {
+                case 'checkbox':
+                    const checkbox = document.getElementById(inputId);
+                    concluido = checkbox?.checked || false;
+                    resposta = concluido ? 'checked' : 'unchecked';
+                    break;
+                
+                case 'sim_nao':
+                    const radio = document.querySelector(`input[name="${inputId}"]:checked`);
+                    resposta = radio?.value || '';
+                    concluido = !!resposta;
+                    break;
+                
+                case 'texto':
+                case 'numero':
+                    const input = document.getElementById(inputId);
+                    resposta = input?.value || '';
+                    concluido = !!resposta;
+                    break;
+            }
+            
+            respostas.push({
+                item_id: item.id,
+                resposta: resposta,
+                concluido: concluido
+            });
+        });
+        
+        // Salvar via API
+        const response = await fetch('/homologacoes/checklists/salvar-respostas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                homologacao_id: homologacaoId,
+                checklist_id: checklistId,
+                respostas: respostas
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Checklist salvo com sucesso!');
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao salvar checklist');
     }
 }
 </script>
