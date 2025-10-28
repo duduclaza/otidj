@@ -122,12 +122,34 @@ function processarDadosGarantias(garantias) {
   
   // Quantidade por mês
   const porMes = {};
-  garantias.forEach(g => {
+  console.log('🔍 Processando garantias para gráfico por mês. Total:', garantias.length);
+  
+  garantias.forEach((g, index) => {
     if (!g.created_at) {
-      console.warn('Garantia sem created_at:', g);
+      console.warn('⚠️ Garantia sem created_at:', g);
       return;
     }
-    const mes = g.created_at.substring(0, 7); // YYYY-MM
+    
+    // Extrair data - pode estar em formato ISO ou YYYY-MM-DD HH:mm:ss
+    let dataStr = g.created_at;
+    let mes;
+    
+    // Verificar se é uma data válida
+    if (dataStr.includes('T')) {
+      // Formato ISO: 2025-10-27T14:30:00.000Z
+      mes = dataStr.substring(0, 7);
+    } else if (dataStr.length >= 7) {
+      // Formato MySQL: 2025-10-27 14:30:00
+      mes = dataStr.substring(0, 7);
+    } else {
+      console.warn('⚠️ Formato de data inválido:', dataStr);
+      return;
+    }
+    
+    if (index < 3) {
+      console.log(`📋 Garantia ${index + 1}: created_at="${g.created_at}" → mês="${mes}"`);
+    }
+    
     if (!porMes[mes]) {
       porMes[mes] = { quantidade: 0, valor: 0, count: 0 };
     }
@@ -137,6 +159,7 @@ function processarDadosGarantias(garantias) {
   });
   
   console.log('📅 Garantias por mês processadas:', porMes);
+  console.log('📊 Total de meses com dados:', Object.keys(porMes).length);
   
   // Quantidade por origem
   const porOrigem = {
@@ -231,7 +254,20 @@ function atualizarGraficosGarantias(dados) {
     const meses = Object.keys(dados.porMes).sort();
     const quantidadesMes = meses.map(m => dados.porMes[m].count); // Usar count em vez de quantidade
     
-    console.log('📊 Criando gráfico de mês:', { meses, quantidadesMes });
+    console.log('📊 Criando gráfico de mês:', { 
+      totalMeses: meses.length,
+      meses: meses, 
+      quantidades: quantidadesMes,
+      dados: dados.porMes
+    });
+    
+    // Se não houver dados, mostrar mensagem
+    if (meses.length === 0) {
+      console.warn('⚠️ Nenhum dado para gráfico de garantias por mês');
+      ctxMes.getContext('2d').font = '14px Arial';
+      ctxMes.getContext('2d').fillText('Sem dados disponíveis', 10, 50);
+      return;
+    }
     
     garantiasCharts.mes = new Chart(ctxMes, {
       type: 'line',
@@ -241,24 +277,41 @@ function atualizarGraficosGarantias(dados) {
           return `${mes}/${ano}`;
         }),
         datasets: [{
-          label: 'Quantidade',
+          label: 'Garantias',
           data: quantidadesMes,
           backgroundColor: 'rgba(34, 197, 94, 0.2)',
           borderColor: 'rgba(34, 197, 94, 1)',
           borderWidth: 3,
           fill: true,
-          tension: 0.4
+          tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: 'rgba(34, 197, 94, 1)',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
         plugins: {
-          legend: { display: false },
+          legend: { 
+            display: true,
+            position: 'top'
+          },
           tooltip: {
             callbacks: {
+              title: function(context) {
+                return 'Mês: ' + context[0].label;
+              },
               label: function(context) {
-                return 'Quantidade: ' + context.parsed.y.toLocaleString('pt-BR');
+                const mes = meses[context.dataIndex];
+                const dadosMes = dados.porMes[mes];
+                return [
+                  'Garantias: ' + dadosMes.count,
+                  'Quantidade Total: ' + dadosMes.quantidade.toLocaleString('pt-BR'),
+                  'Valor: R$ ' + dadosMes.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+                ];
               }
             }
           }
@@ -267,14 +320,19 @@ function atualizarGraficosGarantias(dados) {
           y: {
             beginAtZero: true,
             ticks: {
+              stepSize: 1,
               callback: function(value) {
-                return value.toLocaleString('pt-BR');
+                if (Number.isInteger(value)) {
+                  return value;
+                }
               }
             }
           }
         }
       }
     });
+    
+    console.log('✅ Gráfico de garantias por mês criado com sucesso');
   }
   
   // Gráfico 3: Valor por Mês
