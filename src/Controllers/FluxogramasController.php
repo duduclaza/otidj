@@ -28,16 +28,17 @@ class FluxogramasController
 
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
             // Verificar permissões específicas para cada aba
             // Usando módulo genérico 'fluxogramas' para simplificar
-            $hasFluxogramasPermission = $isAdmin || \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas', 'view');
+            $hasFluxogramasPermission = $isAdmin || $isSuperAdmin || \App\Services\PermissionService::hasPermission($user_id, 'fluxogramas', 'view');
             
             $canViewCadastroTitulos = $hasFluxogramasPermission;
             $canViewMeusRegistros = $hasFluxogramasPermission;
-            $canViewPendenteAprovacao = $isAdmin; // Apenas admin pode ver pendente aprovação
+            $canViewPendenteAprovacao = $isAdmin || $isSuperAdmin; // Admin ou Super Admin podem ver pendente aprovação
             $canViewVisualizacao = $hasFluxogramasPermission;
-            $canViewLogsVisualizacao = $isAdmin; // Apenas admin pode ver logs
+            $canViewLogsVisualizacao = $isAdmin || $isSuperAdmin; // Admin ou Super Admin podem ver logs
             
             // Carregar departamentos para o formulário
             $departamentos = $this->getDepartamentos();
@@ -111,9 +112,10 @@ class FluxogramasController
             }
             
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
-            error_log("É Admin: " . ($isAdmin ? 'SIM' : 'NÃO'));
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
+            error_log("É Admin: " . ($isAdmin ? 'SIM' : 'NÃO') . " | É Super Admin: " . ($isSuperAdmin ? 'SIM' : 'NÃO'));
             
-            if (!$isAdmin && !\App\Services\PermissionService::hasPermission($user_id, 'fluxogramas', 'edit')) {
+            if (!$isAdmin && !$isSuperAdmin && !\App\Services\PermissionService::hasPermission($user_id, 'fluxogramas', 'edit')) {
                 error_log("ERRO: Sem permissão");
                 echo json_encode(['success' => false, 'message' => 'Sem permissão para criar títulos']);
                 return;
@@ -1202,7 +1204,8 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
-            error_log("User ID: " . $user_id . " | É Admin: " . ($isAdmin ? 'SIM' : 'NÃO'));
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
+            error_log("User ID: " . $user_id . " | É Admin: " . ($isAdmin ? 'SIM' : 'NÃO') . " | É Super Admin: " . ($isSuperAdmin ? 'SIM' : 'NÃO'));
             
             // Verificar se tabelas existem
             $stmt = $this->db->query("SHOW TABLES LIKE 'fluxogramas_registros'");
@@ -1219,7 +1222,7 @@ class FluxogramasController
             $count = $stmt->fetch(PDO::FETCH_ASSOC);
             error_log("Total de registros APROVADOS no banco: " . $count['total']);
             
-            if ($isAdmin) {
+            if ($isAdmin || $isSuperAdmin) {
                 // ADMIN VÊ TUDO - não precisa verificar departamento
                 error_log("Executando query para ADMIN");
                 
@@ -1378,8 +1381,8 @@ class FluxogramasController
             // Verificar permissões de visualização
             $tem_acesso = false;
             
-            if ($isAdmin) {
-                $tem_acesso = true; // Admin vê tudo
+            if ($isAdmin || $isSuperAdmin) {
+                $tem_acesso = true; // Admin ou Super Admin vê tudo
             } elseif ($registro['publico'] == 1) {
                 $tem_acesso = true; // Público todos veem
             } elseif ($registro['criado_por'] == $user_id) {
@@ -1456,21 +1459,6 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $registro_id = (int)$id;
-            
-            if ($registro_id <= 0) {
-                die(json_encode(['success' => false, 'message' => 'ID inválido']));
-            }
-            
-            // Verificar se é admin
-            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
-            
-            // Query simples
-            if ($isAdmin) {
-                $sql = "SELECT r.*, t.titulo, GROUP_CONCAT(rd.departamento_id) as departamentos_ids
-                        FROM fluxogramas_registros r
-                        INNER JOIN fluxogramas_titulos t ON r.titulo_id = t.id
-                        LEFT JOIN fluxogramas_registros_departamentos rd ON r.id = rd.registro_id
-                        WHERE r.id = ?
                         GROUP BY r.id";
                 $params = [$registro_id];
             } else {
@@ -1585,8 +1573,9 @@ class FluxogramasController
             
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
-            if (!$isAdmin) {
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Acesso negado']);
                 return;
             }
