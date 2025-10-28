@@ -418,10 +418,17 @@ class PopItsController
             $file = $_FILES['arquivo'];
             
             // Validar tipo de arquivo
-            $allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+            $allowedTypes = [
+                'application/pdf',
+                'image/png',
+                'image/jpeg',
+                'image/jpg',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            ];
             
             if (!in_array($file['type'], $allowedTypes)) {
-                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PDF, PNG ou JPEG']);
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PDF, PNG, JPEG ou PPT/PPTX']);
                 return;
             }
             
@@ -1343,6 +1350,8 @@ class PopItsController
             'png' => 'image/png',
             'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
             'gif' => 'image/gif',
             'webp' => 'image/webp',
             'bmp' => 'image/bmp',
@@ -1743,9 +1752,16 @@ class PopItsController
             $file = $_FILES['arquivo'];
             
             // Validar tipo de arquivo
-            $allowedTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+            $allowedTypes = [
+                'application/pdf',
+                'image/png',
+                'image/jpeg',
+                'image/jpg',
+                'application/vnd.ms-powerpoint',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            ];
             if (!in_array($file['type'], $allowedTypes)) {
-                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PDF, PNG ou JPEG']);
+                echo json_encode(['success' => false, 'message' => 'Tipo de arquivo não permitido. Use PDF, PNG, JPEG ou PPT/PPTX']);
                 return;
             }
             
