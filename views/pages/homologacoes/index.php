@@ -607,16 +607,18 @@ function limparFiltros() {
 function mostrarCampoDepartamento(homologacaoId) {
     const selectStatus = document.getElementById(`selectNovoStatus_${homologacaoId}`);
     const campoDept = document.getElementById(`campoDepartamento_${homologacaoId}`);
+    const selectDept = document.getElementById(`selectDepartamento_${homologacaoId}`);
     
-    if (selectStatus && campoDept) {
+    if (selectStatus && campoDept && selectDept) {
         const novoStatus = selectStatus.value;
         // Mostrar apenas se o novo status for "em_analise"
         if (novoStatus === 'em_analise') {
             campoDept.style.display = 'block';
-            campoDept.querySelector('select').required = true;
+            selectDept.required = true;
         } else {
             campoDept.style.display = 'none';
-            campoDept.querySelector('select').required = false;
+            selectDept.required = false;
+            selectDept.value = ''; // Limpar seleção quando ocultar
         }
     }
 }
@@ -831,7 +833,7 @@ function renderDetails(data) {
                         </div>
                         <div id="campoDepartamento_${h.id}" style="display: none;">
                             <label class="block text-sm font-medium mb-1">📍 Localização (Departamento) *</label>
-                            <select name="departamento_id" class="w-full px-3 py-2 border rounded-lg">
+                            <select name="departamento_id" id="selectDepartamento_${h.id}" class="w-full px-3 py-2 border rounded-lg">
                                 <option value="">-- Selecione --</option>
                                 <?php foreach ($departamentos as $dept): ?>
                                 <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>

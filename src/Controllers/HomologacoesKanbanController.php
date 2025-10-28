@@ -383,7 +383,6 @@ class HomologacoesKanbanController
         try {
             $homologacaoId = (int)($_POST['homologacao_id'] ?? 0);
             $novoStatus = $_POST['status'] ?? '';
-            $departamentoId = !empty($_POST['departamento_id']) ? (int)$_POST['departamento_id'] : null;
             $localHomologacao = trim($_POST['local_homologacao'] ?? '');
             $dataInicioHomologacao = trim($_POST['data_inicio_homologacao'] ?? '');
             $alertaFinalizacao = trim($_POST['alerta_finalizacao'] ?? '');
@@ -392,6 +391,12 @@ class HomologacoesKanbanController
             if (!$homologacaoId || !$novoStatus) {
                 echo json_encode(['success' => false, 'message' => 'Dados inválidos']);
                 exit;
+            }
+
+            // Pegar departamento_id apenas se for fornecido
+            $departamentoId = null;
+            if (isset($_POST['departamento_id']) && $_POST['departamento_id'] !== '') {
+                $departamentoId = (int)$_POST['departamento_id'];
             }
 
             // Se mudar para "em_analise", departamento é obrigatório
