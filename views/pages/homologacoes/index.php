@@ -485,6 +485,41 @@ function closeCardDetails() {
     unlockBodyScroll();
 }
 
+// Função para retornar apenas próximos status (sem permitir voltar)
+function getProximosStatus(statusAtual) {
+    const fluxoStatus = {
+        'aguardando_recebimento': [
+            { value: 'recebido', label: 'Recebido' },
+            { value: 'reprovado', label: 'Reprovado' }
+        ],
+        'recebido': [
+            { value: 'em_analise', label: 'Em Análise' },
+            { value: 'reprovado', label: 'Reprovado' }
+        ],
+        'em_analise': [
+            { value: 'em_homologacao', label: 'Em Homologação' },
+            { value: 'aprovado', label: 'Aprovado' },
+            { value: 'reprovado', label: 'Reprovado' }
+        ],
+        'em_homologacao': [
+            { value: 'aprovado', label: 'Aprovado' },
+            { value: 'reprovado', label: 'Reprovado' }
+        ],
+        'aprovado': [],  // Status final
+        'reprovado': []  // Status final
+    };
+    
+    const proximos = fluxoStatus[statusAtual] || [];
+    
+    if (proximos.length === 0) {
+        return '<option value="">✅ Status Final - Não pode ser alterado</option>';
+    }
+    
+    return proximos.map(s => 
+        `<option value="${s.value}">${s.label}</option>`
+    ).join('');
+}
+
 function renderDetails(data) {
     const h = data.homologacao;
     const statusLabels = {
@@ -527,19 +562,38 @@ function renderDetails(data) {
             </div>
             ` : ''}
             
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-3">📎 Anexar Evidências</h3>
+                <form id="formUploadAnexo" class="space-y-3">
+                    <input type="hidden" name="homologacao_id" value="${h.id}">
+                    <input type="file" name="anexo" required class="w-full px-3 py-2 border rounded-lg">
+                    <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Enviar Anexo</button>
+                </form>
+                ${data.anexos.length > 0 ? `
+                    <div class="mt-3 space-y-2">
+                        ${data.anexos.map(a => `
+                            <div class="flex justify-between bg-white px-3 py-2 rounded">
+                                <span class="text-sm">${a.nome_arquivo}</span>
+                                <a href="/homologacoes/anexo/${a.id}" target="_blank" class="text-blue-600 text-sm">Download</a>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+            
             <div class="bg-yellow-50 p-4 rounded-lg">
                 <h3 class="font-bold mb-3">🔄 Atualizar Status</h3>
+                <div class="mb-3 p-3 bg-blue-100 rounded-lg">
+                    <span class="text-sm font-medium">Status Atual:</span>
+                    <span class="ml-2 badge-status badge-${h.status}">${statusLabels[h.status]}</span>
+                </div>
                 <form id="formUpdateStatus" class="space-y-3">
                     <input type="hidden" name="homologacao_id" value="${h.id}">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium mb-1">Novo Status</label>
+                            <label class="block text-sm font-medium mb-1">Avançar para Status</label>
                             <select name="status" required class="w-full px-3 py-2 border rounded-lg">
-                                <option value="recebido">Recebido</option>
-                                <option value="em_analise">Em Análise</option>
-                                <option value="em_homologacao">Em Homologação</option>
-                                <option value="aprovado">Aprovado</option>
-                                <option value="reprovado">Reprovado</option>
+                                ${getProximosStatus(h.status)}
                             </select>
                         </div>
                         <div>
@@ -556,27 +610,8 @@ function renderDetails(data) {
                         </div>
                     </div>
                     <textarea name="observacao" rows="2" placeholder="Observação" class="w-full px-3 py-2 border rounded-lg"></textarea>
-                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Atualizar</button>
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Atualizar Status</button>
                 </form>
-            </div>
-            
-            <div class="bg-green-50 p-4 rounded-lg">
-                <h3 class="font-bold mb-3">📎 Anexar Evidências</h3>
-                <form id="formUploadAnexo" class="space-y-3">
-                    <input type="hidden" name="homologacao_id" value="${h.id}">
-                    <input type="file" name="anexo" required class="w-full px-3 py-2 border rounded-lg">
-                    <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Enviar</button>
-                </form>
-                ${data.anexos.length > 0 ? `
-                    <div class="mt-3 space-y-2">
-                        ${data.anexos.map(a => `
-                            <div class="flex justify-between bg-white px-3 py-2 rounded">
-                                <span class="text-sm">${a.nome_arquivo}</span>
-                                <a href="/homologacoes/anexo/${a.id}" target="_blank" class="text-blue-600 text-sm">Download</a>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
             </div>
         </div>
     `;
