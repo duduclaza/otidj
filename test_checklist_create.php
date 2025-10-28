@@ -50,7 +50,7 @@ try {
     
     // Verificar conexão com banco
     echo "3️⃣ Verificando conexão com banco...\n";
-    $db = Database::getInstance()->getConnection();
+    $db = Database::getInstance();
     echo "✅ Conexão estabelecida!\n\n";
     
     // Verificar tabelas
