@@ -546,19 +546,29 @@ function renderDetails(data) {
                 ${data.responsaveis.map(r => `<div class="bg-blue-50 px-3 py-2 rounded mb-2">${r.name} - ${r.email}</div>`).join('')}
             </div>
             
-            ${h.status === 'em_homologacao' ? `
+            ${h.status === 'em_homologacao' || h.checklist_id ? `
             <div class="bg-purple-50 p-4 rounded-lg border-2 border-purple-200">
                 <h3 class="font-bold mb-3 text-purple-800">📋 Checklist de Homologação</h3>
-                <div id="checklistSection${h.id}">
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium mb-2">Selecionar Checklist</label>
-                        <select id="selectChecklist${h.id}" onchange="carregarItensChecklist(${h.id}, this.value)" 
-                                class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500">
-                            <option value="">-- Escolha um checklist --</option>
-                        </select>
+                
+                ${h.status === 'em_homologacao' ? `
+                    <!-- MODO EDIÇÃO: Pode selecionar e preencher -->
+                    <div id="checklistSection${h.id}">
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-2">Selecionar Checklist</label>
+                            <select id="selectChecklist${h.id}" onchange="carregarItensChecklist(${h.id}, this.value)" 
+                                    class="w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                                <option value="">-- Escolha um checklist --</option>
+                            </select>
+                        </div>
+                        <div id="itensChecklist${h.id}"></div>
                     </div>
-                    <div id="itensChecklist${h.id}"></div>
-                </div>
+                ` : h.checklist_id ? `
+                    <!-- MODO VISUALIZAÇÃO: Apenas consulta do que foi preenchido -->
+                    <div class="bg-blue-50 p-3 rounded-lg mb-3">
+                        <span class="text-sm font-medium">✅ Checklist já preenchido</span>
+                    </div>
+                    <div id="checklistRespostas${h.id}"></div>
+                ` : ''}
             </div>
             ` : ''}
             
@@ -617,6 +627,16 @@ function renderDetails(data) {
     `;
     
     document.getElementById('cardDetailsContent').innerHTML = html;
+    
+    // Se tem checklist_id e não está em homologação, carregar respostas
+    if (h.checklist_id && h.status !== 'em_homologacao') {
+        carregarRespostasChecklist(h.id, h.checklist_id);
+    }
+    
+    // Se está em homologação, carregar dropdown de checklists
+    if (h.status === 'em_homologacao') {
+        carregarChecklistsDropdown(h.id);
+    }
     
     // Event listeners
     document.getElementById('formUpdateStatus').addEventListener('submit', async function(e) {
@@ -918,6 +938,28 @@ async function carregarChecklistsNoCard(homologacaoId) {
     }
 }
 
+// Carregar checklists disponíveis no dropdown
+async function carregarChecklistsDropdown(homologacaoId) {
+    try {
+        const response = await fetch('/homologacoes/checklists/list');
+        const result = await response.json();
+        
+        if (result.success) {
+            const select = document.getElementById(`selectChecklist${homologacaoId}`);
+            if (select) {
+                result.data.forEach(checklist => {
+                    const option = document.createElement('option');
+                    option.value = checklist.id;
+                    option.textContent = `${checklist.titulo} (${checklist.total_itens} itens)`;
+                    select.appendChild(option);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao carregar checklists:', error);
+    }
+}
+
 // Carregar itens do checklist selecionado
 async function carregarItensChecklist(homologacaoId, checklistId) {
     if (!checklistId) {
@@ -1081,6 +1123,81 @@ async function salvarRespostasChecklist(homologacaoId, checklistId) {
     } catch (error) {
         console.error('Erro:', error);
         alert('❌ Erro ao salvar checklist');
+    }
+}
+
+// Carregar e exibir respostas salvas do checklist (modo visualização)
+async function carregarRespostasChecklist(homologacaoId, checklistId) {
+    try {
+        // Buscar informações do checklist
+        const responseChecklist = await fetch(`/homologacoes/checklists/${checklistId}`);
+        const resultChecklist = await responseChecklist.json();
+        
+        if (!resultChecklist.success) {
+            console.error('Erro ao buscar checklist');
+            return;
+        }
+        
+        const checklist = resultChecklist.data;
+        const container = document.getElementById(`checklistRespostas${homologacaoId}`);
+        
+        // Buscar respostas salvas
+        const responseRespostas = await fetch(`/homologacoes/${homologacaoId}/checklist-respostas`);
+        const resultRespostas = await responseRespostas.json();
+        
+        const respostas = resultRespostas.success ? resultRespostas.data : [];
+        
+        // Criar mapa de respostas por item_id
+        const respostasMap = {};
+        respostas.forEach(r => {
+            respostasMap[r.item_id] = r;
+        });
+        
+        // Renderizar respostas
+        let html = `
+            <div class="bg-white p-4 rounded-lg border border-purple-200">
+                <h4 class="font-semibold text-purple-800 mb-3">${checklist.titulo}</h4>
+                ${checklist.descricao ? `<p class="text-sm text-gray-600 mb-4">${checklist.descricao}</p>` : ''}
+                
+                <div class="space-y-3">
+                    ${checklist.itens.map(item => {
+                        const resposta = respostasMap[item.id];
+                        const respostaTexto = resposta ? resposta.resposta : '-';
+                        const concluido = resposta?.concluido;
+                        
+                        let respostaFormatada = respostaTexto;
+                        if (item.tipo_resposta === 'checkbox') {
+                            respostaFormatada = respostaTexto === 'checked' ? '✅ Sim' : '❌ Não';
+                        } else if (item.tipo_resposta === 'sim_nao') {
+                            respostaFormatada = respostaTexto === 'sim' ? '✅ Sim' : respostaTexto === 'nao' ? '❌ Não' : '-';
+                        }
+                        
+                        return `
+                            <div class="flex items-start justify-between p-3 bg-gray-50 rounded">
+                                <div class="flex-1">
+                                    <div class="font-medium text-sm">${item.titulo}</div>
+                                    <div class="text-xs text-gray-500 mt-1">Tipo: ${
+                                        item.tipo_resposta === 'checkbox' ? 'Checkbox' :
+                                        item.tipo_resposta === 'sim_nao' ? 'Sim/Não' :
+                                        item.tipo_resposta === 'texto' ? 'Texto' : 'Número'
+                                    }</div>
+                                </div>
+                                <div class="ml-4 text-right">
+                                    <div class="font-semibold ${concluido ? 'text-green-600' : 'text-gray-500'}">
+                                        ${respostaFormatada}
+                                    </div>
+                                    ${concluido ? '<div class="text-xs text-green-600 mt-1">✓ Concluído</div>' : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Erro ao carregar respostas:', error);
     }
 }
 </script>
