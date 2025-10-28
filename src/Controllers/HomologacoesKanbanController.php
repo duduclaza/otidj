@@ -43,7 +43,7 @@ class HomologacoesKanbanController
                 $stmt = $this->db->query("
                     SELECT h.*, 
                            u.name as criador_nome,
-                           d.name as departamento_nome,
+                           d.nome as departamento_nome,
                            GROUP_CONCAT(DISTINCT ur.name SEPARATOR ', ') as responsaveis_nomes,
                            COUNT(DISTINCT a.id) as total_anexos
                     FROM homologacoes h
@@ -86,9 +86,9 @@ class HomologacoesKanbanController
             $departamentos = [];
             try {
                 $stmt = $this->db->query("
-                    SELECT id, name 
+                    SELECT id, nome 
                     FROM departments 
-                    ORDER BY name ASC
+                    ORDER BY nome ASC
                 ");
                 $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             } catch (\Exception $e) {
