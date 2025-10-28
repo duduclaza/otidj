@@ -273,6 +273,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -299,6 +304,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -325,6 +335,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['departamento_nome'])): ?>
+                        <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
+                            <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -356,16 +371,6 @@
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Descrição <span class="text-red-500">*</span></label>
                 <textarea name="descricao" required rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">📍 Localização (Departamento) <span class="text-red-500">*</span></label>
-                <select name="departamento_id" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <option value="">-- Selecione o departamento --</option>
-                    <?php foreach ($departamentos as $dept): ?>
-                    <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>
-                    <?php endforeach; ?>
-                </select>
             </div>
 
             <div>
@@ -598,6 +603,24 @@ function limparFiltros() {
     atualizarContagemColunas();
 }
 
+// Mostrar campo de departamento quando seleciona "Em Análise"
+function mostrarCampoDepartamento(homologacaoId) {
+    const selectStatus = document.getElementById(`selectNovoStatus_${homologacaoId}`);
+    const campoDept = document.getElementById(`campoDepartamento_${homologacaoId}`);
+    
+    if (selectStatus && campoDept) {
+        const novoStatus = selectStatus.value;
+        // Mostrar apenas se o novo status for "em_analise"
+        if (novoStatus === 'em_analise') {
+            campoDept.style.display = 'block';
+            campoDept.querySelector('select').required = true;
+        } else {
+            campoDept.style.display = 'none';
+            campoDept.querySelector('select').required = false;
+        }
+    }
+}
+
 function atualizarContadores() {
     const totalCards = document.querySelectorAll('.kanban-card').length;
     const visibleCards = Array.from(document.querySelectorAll('.kanban-card'))
@@ -802,8 +825,17 @@ function renderDetails(data) {
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-sm font-medium mb-1">Avançar para Status</label>
-                            <select name="status" required class="w-full px-3 py-2 border rounded-lg">
+                            <select name="status" id="selectNovoStatus_${h.id}" required class="w-full px-3 py-2 border rounded-lg" onchange="mostrarCampoDepartamento(${h.id})">
                                 ${getProximosStatus(h.status)}
+                            </select>
+                        </div>
+                        <div id="campoDepartamento_${h.id}" style="display: none;">
+                            <label class="block text-sm font-medium mb-1">📍 Localização (Departamento) *</label>
+                            <select name="departamento_id" class="w-full px-3 py-2 border rounded-lg">
+                                <option value="">-- Selecione --</option>
+                                <?php foreach ($departamentos as $dept): ?>
+                                <option value="<?= $dept['id'] ?>"><?= e($dept['nome']) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div>

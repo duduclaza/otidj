@@ -282,7 +282,6 @@ class HomologacoesKanbanController
             // Validar dados
             $codReferencia = trim($_POST['cod_referencia'] ?? '');
             $descricao = trim($_POST['descricao'] ?? '');
-            $departamentoId = !empty($_POST['departamento_id']) ? (int)$_POST['departamento_id'] : null;
             $avisarLogistica = isset($_POST['avisar_logistica']) && $_POST['avisar_logistica'] === '1';
             $responsaveis = $_POST['responsaveis'] ?? []; // Array de IDs
             $observacao = trim($_POST['observacao'] ?? '');
@@ -291,14 +290,6 @@ class HomologacoesKanbanController
                 echo json_encode([
                     'success' => false, 
                     'message' => 'Preencha o Código de Referência e Descrição'
-                ]);
-                exit;
-            }
-
-            if (empty($departamentoId)) {
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Selecione o Departamento (Localização)'
                 ]);
                 exit;
             }
@@ -318,18 +309,16 @@ class HomologacoesKanbanController
                 INSERT INTO homologacoes (
                     cod_referencia, 
                     descricao, 
-                    departamento_id,
                     avisar_logistica, 
                     observacao,
                     status, 
                     created_by, 
                     created_at
-                ) VALUES (?, ?, ?, ?, ?, 'aguardando_recebimento', ?, NOW())
+                ) VALUES (?, ?, ?, ?, 'aguardando_recebimento', ?, NOW())
             ");
             $stmt->execute([
                 $codReferencia,
                 $descricao,
-                $departamentoId,
                 $avisarLogistica ? 1 : 0,
                 $observacao,
                 $_SESSION['user_id']
@@ -394,6 +383,7 @@ class HomologacoesKanbanController
         try {
             $homologacaoId = (int)($_POST['homologacao_id'] ?? 0);
             $novoStatus = $_POST['status'] ?? '';
+            $departamentoId = !empty($_POST['departamento_id']) ? (int)$_POST['departamento_id'] : null;
             $localHomologacao = trim($_POST['local_homologacao'] ?? '');
             $dataInicioHomologacao = trim($_POST['data_inicio_homologacao'] ?? '');
             $alertaFinalizacao = trim($_POST['alerta_finalizacao'] ?? '');
@@ -401,6 +391,12 @@ class HomologacoesKanbanController
 
             if (!$homologacaoId || !$novoStatus) {
                 echo json_encode(['success' => false, 'message' => 'Dados inválidos']);
+                exit;
+            }
+
+            // Se mudar para "em_analise", departamento é obrigatório
+            if ($novoStatus === 'em_analise' && empty($departamentoId)) {
+                echo json_encode(['success' => false, 'message' => 'Selecione o Departamento (Localização) para status Em Análise']);
                 exit;
             }
 
@@ -419,6 +415,11 @@ class HomologacoesKanbanController
             // Preparar update dinâmico
             $updates = ["status = ?", "updated_at = NOW()"];
             $params = [$novoStatus];
+
+            if (!empty($departamentoId)) {
+                $updates[] = "departamento_id = ?";
+                $params[] = $departamentoId;
+            }
 
             if (!empty($localHomologacao)) {
                 $updates[] = "local_homologacao = ?";
