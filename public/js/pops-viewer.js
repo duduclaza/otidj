@@ -200,24 +200,33 @@ function downloadArquivo(registroId) {
 async function registrarLogVisualizacao(registroId) {
     try {
         console.log(`📊 Registrando log de visualização para registro ${registroId}...`);
+        console.log(`🔗 Endpoint: /pops-its/registrar-log`);
         
         const formData = new FormData();
         formData.append('registro_id', registroId);
+        
+        console.log(`📤 Enviando: registro_id=${registroId}`);
         
         const response = await fetch('/pops-its/registrar-log', {
             method: 'POST',
             body: formData
         });
         
+        console.log(`📡 Status da resposta: ${response.status} ${response.statusText}`);
+        
         const result = await response.json();
+        console.log(`📊 Resposta completa:`, result);
         
         if (result.success) {
-            console.log('✅ Log de visualização registrado com sucesso');
+            console.log('✅ Log de visualização registrado com sucesso!');
+            console.log('💡 Verifique a aba "Log de Visualizações" para confirmar');
         } else {
-            console.warn('⚠️ Erro ao registrar log:', result.message);
+            console.warn('⚠️ Falha ao registrar log:', result.message);
+            console.warn('📋 Detalhes:', result);
         }
     } catch (error) {
         console.error('❌ Erro ao registrar log de visualização:', error);
+        console.error('📋 Stack:', error.stack);
         // Não bloqueia a visualização se o log falhar
     }
 }

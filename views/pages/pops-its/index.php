@@ -1676,8 +1676,19 @@ async function loadLogsVisualizacao() {
         if (dataInicio) params.append('data_inicio', dataInicio);
         if (dataFim) params.append('data_fim', dataFim);
         
-        const response = await fetch(`/pops-its/logs/visualizacao?${params}`);
+        const url = `/pops-its/logs/visualizacao?${params}`;
+        console.log('📡 Buscando logs de:', url);
+        
+        const response = await fetch(url);
         const result = await response.json();
+        
+        console.log('📊 Resposta do servidor:', result);
+        console.log('✅ Success:', result.success);
+        console.log('📋 Total de logs:', result.data?.length || 0);
+        
+        if (result.data && result.data.length > 0) {
+            console.log('📝 Primeiros 3 logs:', result.data.slice(0, 3));
+        }
         
         const tbody = document.getElementById('listaLogs');
         
