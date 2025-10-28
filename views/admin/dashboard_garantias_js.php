@@ -536,15 +536,27 @@ function expandirGraficoGenerico(canvasId, titulo) {
   // Recriar o gráfico no canvas expandido
   setTimeout(() => {
     const ctx = canvasClone.getContext('2d');
-    new Chart(ctx, {
+    
+    // Clonar opções do gráfico original
+    const expandedOptions = JSON.parse(JSON.stringify(chartOriginal.config.options));
+    expandedOptions.maintainAspectRatio = false;
+    expandedOptions.responsive = true;
+    
+    // Para gráficos de pizza/doughnut, ajustar tamanho
+    if (chartOriginal.config.type === 'pie' || chartOriginal.config.type === 'doughnut') {
+      expandedOptions.aspectRatio = 1.5; // Proporção mais adequada
+    }
+    
+    const expandedChart = new Chart(ctx, {
       type: chartOriginal.config.type,
       data: chartOriginal.config.data,
-      options: {
-        ...chartOriginal.config.options,
-        maintainAspectRatio: false,
-        responsive: true
-      }
+      options: expandedOptions
     });
-    console.log('✅ Gráfico expandido criado com sucesso');
+    
+    console.log('✅ Gráfico expandido criado:', {
+      tipo: chartOriginal.config.type,
+      labels: chartOriginal.config.data.labels?.length || 0,
+      datasets: chartOriginal.config.data.datasets?.length || 0
+    });
   }, 100);
 }
