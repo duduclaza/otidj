@@ -23,28 +23,26 @@ async function initGarantiasTab() {
 // Carregar fornecedores no filtro
 async function carregarFornecedoresGarantias() {
   try {
-    const response = await fetch('/garantias/list');
+    console.log('📡 Buscando fornecedores...');
+    const response = await fetch('/garantias/fornecedores');
     const result = await response.json();
     
-    if (result.success && result.garantias) {
-      const fornecedores = [...new Set(result.garantias
-        .filter(g => g.fornecedor_nome)
-        .map(g => ({ id: g.fornecedor_id, nome: g.fornecedor_nome }))
-      )];
-      
+    console.log('✅ Fornecedores recebidos:', result);
+    
+    if (result.success && result.data) {
       const select = document.getElementById('filtroFornecedorGarantias');
       select.innerHTML = '<option value="">Todos os Fornecedores</option>';
       
-      const uniqueFornecedores = fornecedores.filter((f, index, self) => 
-        index === self.findIndex((t) => t.id === f.id)
-      );
-      
-      uniqueFornecedores.forEach(fornecedor => {
+      result.data.forEach(fornecedor => {
         const option = document.createElement('option');
         option.value = fornecedor.id;
         option.textContent = fornecedor.nome;
         select.appendChild(option);
       });
+      
+      console.log(`✅ ${result.data.length} fornecedores carregados no filtro`);
+    } else {
+      console.warn('⚠️ Nenhum fornecedor encontrado');
     }
   } catch (error) {
     console.error('❌ Erro ao carregar fornecedores:', error);
@@ -63,9 +61,11 @@ async function loadDashboardGarantias() {
     const response = await fetch('/garantias/list');
     const result = await response.json();
     
-    if (result.success && result.garantias) {
+    console.log('✅ Resposta do servidor:', result);
+    
+    if (result.success && result.data) {
       // Filtrar dados
-      let garantias = result.garantias;
+      let garantias = result.data;
       
       if (fornecedor) {
         garantias = garantias.filter(g => g.fornecedor_id == fornecedor);
