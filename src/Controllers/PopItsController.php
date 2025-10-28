@@ -20,13 +20,14 @@ class PopItsController
             // Verificar permissões para cada aba
             $user_id = $_SESSION['user_id'];
             $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
             
             // Verificar permissões específicas para cada aba
             $canViewCadastroTitulos = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_cadastro_titulos', 'view');
             $canViewMeusRegistros = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_meus_registros', 'view');
-            $canViewPendenteAprovacao = $isAdmin; // Apenas admin pode ver pendente aprovação
+            $canViewPendenteAprovacao = $isAdmin || $isSuperAdmin || \App\Services\PermissionService::hasPermission($user_id, 'pops_its_pendente_aprovacao', 'view');
             $canViewVisualizacao = \App\Services\PermissionService::hasPermission($user_id, 'pops_its_visualizacao', 'view');
-            $canViewLogsVisualizacao = $isAdmin; // Apenas admin pode ver logs
+            $canViewLogsVisualizacao = $isAdmin || $isSuperAdmin; // Admin ou super admin podem ver logs
             
             // Carregar departamentos para o formulário
             $departamentos = $this->getDepartamentos();
