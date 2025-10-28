@@ -274,6 +274,15 @@ class ChecklistsController
                 ]);
             }
 
+            // IMPORTANTE: Atualizar checklist_id na tabela homologacoes
+            // Isso garante que o checklist apareça mesmo após mudar de status
+            $stmtUpdate = $this->db->prepare("
+                UPDATE homologacoes 
+                SET checklist_id = ? 
+                WHERE id = ?
+            ");
+            $stmtUpdate->execute([$checklist_id, $homologacao_id]);
+
             $this->db->commit();
 
             echo json_encode(['success' => true, 'message' => 'Respostas salvas com sucesso']);
