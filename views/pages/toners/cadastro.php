@@ -442,20 +442,59 @@
 <script>
 // Cálculos automáticos no formulário
 function calcularCampos() {
-  const pesocheio = parseFloat(document.querySelector('input[name="peso_cheio"]').value) || 0;
-  const pesovazio = parseFloat(document.querySelector('input[name="peso_vazio"]').value) || 0;
-  const capacidade = parseInt(document.querySelector('input[name="capacidade_folhas"]').value) || 0;
-  const preco = parseFloat(document.querySelector('input[name="preco_toner"]').value) || 0;
+  console.log('🔧 Função calcularCampos() chamada');
   
-  const gramatura = pesocheio - pesovazio;
-  document.querySelector('input[name="gramatura"]').value = gramatura.toFixed(2);
+  const pesoCheioInput = document.querySelector('input[name="peso_cheio"]');
+  const pesoVazioInput = document.querySelector('input[name="peso_vazio"]');
+  const capacidadeInput = document.querySelector('input[name="capacidade_folhas"]');
+  const precoInput = document.querySelector('input[name="preco_toner"]');
+  const gramaturaInput = document.querySelector('input[name="gramatura"]');
+  const gramaturaFolhaInput = document.querySelector('input[name="gramatura_por_folha"]');
+  const custoFolhaInput = document.querySelector('input[name="custo_por_folha"]');
   
-  if (capacidade > 0) {
-    const gramaturaFolha = gramatura / capacidade;
-    document.querySelector('input[name="gramatura_por_folha"]').value = gramaturaFolha.toFixed(4);
+  // Verificar se todos os elementos foram encontrados
+  if (!pesoCheioInput || !pesoVazioInput || !capacidadeInput || !precoInput || 
+      !gramaturaInput || !gramaturaFolhaInput || !custoFolhaInput) {
+    console.error('❌ Erro: Elementos não encontrados');
+    return;
+  }
+  
+  const pesoCheio = parseFloat(pesoCheioInput.value) || 0;
+  const pesoVazio = parseFloat(pesoVazioInput.value) || 0;
+  const capacidade = parseInt(capacidadeInput.value) || 0;
+  const preco = parseFloat(precoInput.value) || 0;
+  
+  console.log('📊 Valores:', { pesoCheio, pesoVazio, capacidade, preco });
+  
+  // Calcular gramatura
+  if (pesoCheio > 0 && pesoVazio > 0) {
+    const gramatura = pesoCheio - pesoVazio;
+    gramaturaInput.value = gramatura.toFixed(2);
+    gramaturaInput.style.color = '#059669'; // Verde
+    console.log('✅ Gramatura:', gramatura.toFixed(2));
     
+    // Calcular gramatura por folha
+    if (capacidade > 0) {
+      const gramaturaFolha = gramatura / capacidade;
+      gramaturaFolhaInput.value = gramaturaFolha.toFixed(4);
+      gramaturaFolhaInput.style.color = '#059669'; // Verde
+      console.log('✅ Gram/Folha:', gramaturaFolha.toFixed(4));
+    } else {
+      gramaturaFolhaInput.value = '';
+    }
+  } else {
+    gramaturaInput.value = '';
+    gramaturaFolhaInput.value = '';
+  }
+  
+  // Calcular custo por folha
+  if (preco > 0 && capacidade > 0) {
     const custoFolha = preco / capacidade;
-    document.querySelector('input[name="custo_por_folha"]').value = custoFolha.toFixed(4);
+    custoFolhaInput.value = custoFolha.toFixed(4);
+    custoFolhaInput.style.color = '#059669'; // Verde
+    console.log('✅ Custo/Folha:', custoFolha.toFixed(4));
+  } else {
+    custoFolhaInput.value = '';
   }
 }
 
