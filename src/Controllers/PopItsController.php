@@ -265,7 +265,10 @@ class PopItsController
             }
             
             $user_id = $_SESSION['user_id'];
-            if (!\App\Services\PermissionService::isAdmin($user_id)) {
+            $isAdmin = \App\Services\PermissionService::isAdmin($user_id);
+            $isSuperAdmin = \App\Services\PermissionService::isSuperAdmin($user_id);
+            
+            if (!$isAdmin && !$isSuperAdmin) {
                 echo json_encode(['success' => false, 'message' => 'Apenas administradores podem excluir títulos']);
                 return;
             }
