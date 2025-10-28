@@ -48,7 +48,7 @@ class HomologacoesKanbanController
                            COUNT(DISTINCT a.id) as total_anexos
                     FROM homologacoes h
                     LEFT JOIN users u ON h.created_by = u.id
-                    LEFT JOIN departments d ON h.departamento_id = d.id
+                    LEFT JOIN departamentos d ON h.departamento_id = d.id
                     LEFT JOIN homologacoes_responsaveis hr ON h.id = hr.homologacao_id
                     LEFT JOIN users ur ON hr.user_id = ur.id
                     LEFT JOIN homologacoes_anexos a ON h.id = a.homologacao_id
@@ -87,7 +87,7 @@ class HomologacoesKanbanController
             try {
                 $stmt = $this->db->query("
                     SELECT id, nome 
-                    FROM departments 
+                    FROM departamentos 
                     ORDER BY nome ASC
                 ");
                 $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
