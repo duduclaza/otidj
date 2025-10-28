@@ -270,7 +270,7 @@ function atualizarGraficosGarantias(dados) {
     }
     
     garantiasCharts.mes = new Chart(ctxMes, {
-      type: 'line',
+      type: 'bar',
       data: {
         labels: meses.map(m => {
           const [ano, mes] = m.split('-');
@@ -279,16 +279,11 @@ function atualizarGraficosGarantias(dados) {
         datasets: [{
           label: 'Garantias',
           data: quantidadesMes,
-          backgroundColor: 'rgba(34, 197, 94, 0.2)',
+          backgroundColor: 'rgba(34, 197, 94, 0.8)',
           borderColor: 'rgba(34, 197, 94, 1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          pointBackgroundColor: 'rgba(34, 197, 94, 1)',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2
+          borderWidth: 2,
+          borderRadius: 6,
+          barPercentage: 0.7
         }]
       },
       options: {
@@ -471,15 +466,40 @@ function expandirGraficoGarantiasOrigem() {
 
 // Função genérica para expandir gráfico
 function expandirGraficoGenerico(canvasId, titulo) {
+  console.log('🔍 Expandindo gráfico:', canvasId);
+  
   const modal = document.getElementById('modalExpandidoRetornados');
   const canvas = document.getElementById(canvasId);
   
-  if (!modal || !canvas) return;
+  if (!modal) {
+    console.error('❌ Modal não encontrado');
+    return;
+  }
   
-  // Clonar o canvas
-  const canvasClone = canvas.cloneNode(true);
-  canvasClone.id = canvasId + '_expandido';
-  canvasClone.style.maxHeight = '400px'; // Ajustado de 600px para 400px
+  if (!canvas) {
+    console.error('❌ Canvas não encontrado:', canvasId);
+    return;
+  }
+  
+  // Descobrir qual gráfico é (mapeamento)
+  const chartKeyMap = {
+    'garantiasFornecedorChart': 'fornecedor',
+    'garantiasMesChart': 'mes',
+    'garantiasValorChart': 'valor',
+    'garantiasOrigemChart': 'origem'
+  };
+  
+  const chartKey = chartKeyMap[canvasId];
+  console.log('📊 Chave do gráfico:', chartKey);
+  console.log('📊 Gráficos disponíveis:', Object.keys(garantiasCharts));
+  
+  const chartOriginal = garantiasCharts[chartKey];
+  
+  if (!chartOriginal) {
+    console.error('❌ Gráfico original não encontrado para:', chartKey);
+    console.log('Disponíveis:', garantiasCharts);
+    return;
+  }
   
   // Limpar conteúdo anterior
   const modalBody = modal.querySelector('#modalContentRetornados');
@@ -497,6 +517,12 @@ function expandirGraficoGenerico(canvasId, titulo) {
   }
   tituloEl.textContent = '🛡️ ' + titulo;
   
+  // Criar novo canvas
+  const canvasClone = document.createElement('canvas');
+  canvasClone.id = canvasId + '_expandido';
+  canvasClone.style.maxHeight = '400px';
+  canvasClone.style.width = '100%';
+  
   // Adicionar canvas
   modalBody.appendChild(canvasClone);
   
@@ -508,16 +534,17 @@ function expandirGraficoGenerico(canvasId, titulo) {
   }, 10);
   
   // Recriar o gráfico no canvas expandido
-  const chartOriginal = garantiasCharts[canvasId.replace('Chart', '').replace('garantias', '').toLowerCase()];
-  if (chartOriginal) {
+  setTimeout(() => {
     const ctx = canvasClone.getContext('2d');
     new Chart(ctx, {
       type: chartOriginal.config.type,
       data: chartOriginal.config.data,
       options: {
         ...chartOriginal.config.options,
-        maintainAspectRatio: false
+        maintainAspectRatio: false,
+        responsive: true
       }
     });
-  }
+    console.log('✅ Gráfico expandido criado com sucesso');
+  }, 100);
 }
