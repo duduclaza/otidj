@@ -69,12 +69,21 @@
             <h1 class="text-3xl font-bold text-slate-800">Homologações</h1>
             <p class="text-slate-600 mt-1">Gestão de homologações de produtos</p>
         </div>
-        <?php if ($canCreate): ?>
-        <button onclick="openModalNovaHomologacao()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
-            <span>➕</span>
-            <span>Nova Homologação</span>
-        </button>
-        <?php endif; ?>
+        <div class="flex gap-3">
+            <?php if ($canCreate): ?>
+            <button onclick="openModalNovaHomologacao()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                <span>➕</span>
+                <span>Nova Homologação</span>
+            </button>
+            <?php endif; ?>
+            
+            <?php if ($isAdmin || $isSuperAdmin): ?>
+            <button onclick="openModalChecklists()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                <span>📋</span>
+                <span>Cadastros de Checklist</span>
+            </button>
+            <?php endif; ?>
+        </div>
     </div>
 
     <!-- Scrollbar superior -->
@@ -294,6 +303,76 @@
                 <button type="button" onclick="closeModalNovaHomologacao()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300">Cancelar</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal: Cadastros de Checklist -->
+<div id="modalChecklists" class="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target === this) closeModalChecklists()">
+    <div class="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800">📋 Gerenciar Checklists</h2>
+            <button onclick="closeModalChecklists()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button onclick="switchChecklistTab('lista')" id="tabListaChecklists" class="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
+                Lista de Checklists
+            </button>
+            <button onclick="switchChecklistTab('novo')" id="tabNovoChecklist" class="px-4 py-2 border-b-2 border-transparent text-gray-600 hover:text-blue-600">
+                Novo Checklist
+            </button>
+        </div>
+
+        <!-- Tab: Lista de Checklists -->
+        <div id="checklistTabLista">
+            <div id="listaChecklists" class="space-y-3">
+                <!-- Carregado via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Tab: Novo Checklist -->
+        <div id="checklistTabNovo" class="hidden">
+            <form id="formNovoChecklist" onsubmit="salvarChecklist(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Título do Checklist *</label>
+                    <input type="text" id="checklistTitulo" required 
+                           class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                           placeholder="Ex: Checklist de Homologação de Toners">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Descrição (opcional)</label>
+                    <textarea id="checklistDescricao" rows="2" 
+                              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder="Descrição do checklist..."></textarea>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-slate-700">Itens do Checklist *</label>
+                        <button type="button" onclick="adicionarItemChecklist()" 
+                                class="text-sm px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                            + Adicionar Item
+                        </button>
+                    </div>
+                    
+                    <div id="checklistItens" class="space-y-2">
+                        <!-- Itens adicionados dinamicamente -->
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t">
+                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        💾 Salvar Checklist
+                    </button>
+                    <button type="button" onclick="cancelarNovoChecklist()" 
+                            class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -521,6 +600,240 @@ async function deleteHomologacao(id) {
         }
     } catch (e) {
         alert('❌ Erro ao excluir');
+    }
+}
+
+// ===== FUNÇÕES DE CHECKLIST =====
+
+let checklistItemCounter = 0;
+
+// Abrir modal de checklists
+function openModalChecklists() {
+    document.getElementById('modalChecklists').classList.remove('hidden');
+    switchChecklistTab('lista');
+    carregarChecklists();
+    lockBodyScroll();
+}
+
+// Fechar modal de checklists
+function closeModalChecklists() {
+    document.getElementById('modalChecklists').classList.add('hidden');
+    unlockBodyScroll();
+}
+
+// Trocar entre abas
+function switchChecklistTab(tab) {
+    const tabLista = document.getElementById('tabListaChecklists');
+    const tabNovo = document.getElementById('tabNovoChecklist');
+    const contentLista = document.getElementById('checklistTabLista');
+    const contentNovo = document.getElementById('checklistTabNovo');
+    
+    if (tab === 'lista') {
+        tabLista.classList.add('border-blue-600', 'text-blue-600', 'font-medium');
+        tabLista.classList.remove('border-transparent', 'text-gray-600');
+        tabNovo.classList.remove('border-blue-600', 'text-blue-600', 'font-medium');
+        tabNovo.classList.add('border-transparent', 'text-gray-600');
+        contentLista.classList.remove('hidden');
+        contentNovo.classList.add('hidden');
+    } else {
+        tabNovo.classList.add('border-blue-600', 'text-blue-600', 'font-medium');
+        tabNovo.classList.remove('border-transparent', 'text-gray-600');
+        tabLista.classList.remove('border-blue-600', 'text-blue-600', 'font-medium');
+        tabLista.classList.add('border-transparent', 'text-gray-600');
+        contentNovo.classList.remove('hidden');
+        contentLista.classList.add('hidden');
+        
+        // Adicionar primeiro item automaticamente
+        if (document.getElementById('checklistItens').children.length === 0) {
+            adicionarItemChecklist();
+        }
+    }
+}
+
+// Adicionar item ao checklist
+function adicionarItemChecklist() {
+    const container = document.getElementById('checklistItens');
+    const index = checklistItemCounter++;
+    
+    const itemHtml = `
+        <div class="flex gap-2 items-start p-3 bg-gray-50 rounded-lg" id="checklistItem${index}">
+            <div class="flex-1">
+                <input type="text" 
+                       id="checklistItemTitulo${index}" 
+                       required
+                       placeholder="Descrição do item (ex: Verificar qualidade de impressão)"
+                       class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="w-32">
+                <select id="checklistItemTipo${index}" 
+                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                    <option value="checkbox">✓ Checkbox</option>
+                    <option value="sim_nao">Sim/Não</option>
+                    <option value="texto">Texto</option>
+                    <option value="numero">Número</option>
+                </select>
+            </div>
+            <button type="button" onclick="removerItemChecklist(${index})" 
+                    class="px-2 py-2 text-red-600 hover:bg-red-50 rounded">
+                🗑️
+            </button>
+        </div>
+    `;
+    
+    container.insertAdjacentHTML('beforeend', itemHtml);
+}
+
+// Remover item do checklist
+function removerItemChecklist(index) {
+    const item = document.getElementById(`checklistItem${index}`);
+    if (item) {
+        item.remove();
+    }
+}
+
+// Salvar checklist
+async function salvarChecklist(event) {
+    event.preventDefault();
+    
+    const titulo = document.getElementById('checklistTitulo').value;
+    const descricao = document.getElementById('checklistDescricao').value;
+    
+    // Coletar itens
+    const itens = [];
+    const container = document.getElementById('checklistItens');
+    const itemDivs = container.querySelectorAll('[id^="checklistItem"]');
+    
+    if (itemDivs.length === 0) {
+        alert('⚠️ Adicione pelo menos um item ao checklist!');
+        return;
+    }
+    
+    itemDivs.forEach((div, ordem) => {
+        const index = div.id.replace('checklistItem', '');
+        const tituloItem = document.getElementById(`checklistItemTitulo${index}`)?.value;
+        const tipo = document.getElementById(`checklistItemTipo${index}`)?.value;
+        
+        if (tituloItem) {
+            itens.push({
+                titulo: tituloItem,
+                tipo_resposta: tipo,
+                ordem: ordem
+            });
+        }
+    });
+    
+    try {
+        const response = await fetch('/homologacoes/checklists/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, descricao, itens })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Checklist criado com sucesso!');
+            cancelarNovoChecklist();
+            switchChecklistTab('lista');
+            carregarChecklists();
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao salvar checklist');
+    }
+}
+
+// Cancelar novo checklist
+function cancelarNovoChecklist() {
+    document.getElementById('formNovoChecklist').reset();
+    document.getElementById('checklistItens').innerHTML = '';
+    checklistItemCounter = 0;
+}
+
+// Carregar lista de checklists
+async function carregarChecklists() {
+    try {
+        const response = await fetch('/homologacoes/checklists/list');
+        const result = await response.json();
+        
+        const container = document.getElementById('listaChecklists');
+        
+        if (result.success && result.data.length > 0) {
+            container.innerHTML = result.data.map(checklist => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-lg text-gray-900">${checklist.titulo}</h3>
+                            ${checklist.descricao ? `<p class="text-sm text-gray-600 mt-1">${checklist.descricao}</p>` : ''}
+                            <p class="text-xs text-gray-500 mt-2">
+                                ${checklist.total_itens} itens • 
+                                Criado em ${new Date(checklist.criado_em).toLocaleDateString('pt-BR')}
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="visualizarChecklist(${checklist.id})" 
+                                    class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                                👁️ Ver
+                            </button>
+                            <button onclick="excluirChecklist(${checklist.id})" 
+                                    class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <p class="text-lg mb-2">📋 Nenhum checklist cadastrado</p>
+                    <p class="text-sm">Clique em "Novo Checklist" para criar o primeiro</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        document.getElementById('listaChecklists').innerHTML = '<p class="text-center text-red-500">Erro ao carregar checklists</p>';
+    }
+}
+
+// Visualizar detalhes do checklist
+async function visualizarChecklist(id) {
+    try {
+        const response = await fetch(`/homologacoes/checklists/${id}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const checklist = result.data;
+            alert(`📋 ${checklist.titulo}\n\nItens:\n${checklist.itens.map((item, i) => `${i+1}. ${item.titulo} (${item.tipo_resposta})`).join('\n')}`);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+}
+
+// Excluir checklist
+async function excluirChecklist(id) {
+    if (!confirm('⚠️ Deseja realmente excluir este checklist?')) return;
+    
+    try {
+        const response = await fetch(`/homologacoes/checklists/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Checklist excluído!');
+            carregarChecklists();
+        } else {
+            alert('❌ ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao excluir checklist');
     }
 }
 </script>
