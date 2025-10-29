@@ -184,7 +184,17 @@ $router->get('/master/logout', [App\Controllers\MasterController::class, 'logout
 // Other routes
 // $router->get('/homologacoes', [App\Controllers\PageController::class, 'homologacoes']); // REMOVIDO - Agora usa HomologacoesKanbanController (linha 373)
 // $router->get('/fluxogramas', [App\Controllers\PageController::class, 'fluxogramas']); // REMOVIDO - Agora usa FluxogramasController (linha 326)
-$router->get('/controle-de-rc', [App\Controllers\PageController::class, 'controleDeRc']);
+
+// Controle de RC routes
+$router->get('/controle-de-rc', [App\Controllers\ControleRcController::class, 'index']);
+$router->get('/controle-rc/list', [App\Controllers\ControleRcController::class, 'list']);
+$router->post('/controle-rc/create', [App\Controllers\ControleRcController::class, 'create']);
+$router->post('/controle-rc/update', [App\Controllers\ControleRcController::class, 'update']);
+$router->post('/controle-rc/delete', [App\Controllers\ControleRcController::class, 'delete']);
+$router->get('/controle-rc/{id}', [App\Controllers\ControleRcController::class, 'show']);
+$router->get('/controle-rc/{id}/print', [App\Controllers\ControleRcController::class, 'print']);
+$router->post('/controle-rc/export', [App\Controllers\ControleRcController::class, 'exportReport']);
+$router->get('/controle-rc/evidencia/{id}', [App\Controllers\ControleRcController::class, 'downloadEvidencia']);
 $router->get('/toners/amostragens', [App\Controllers\AmostragemController::class, 'index']);
 // Amostragens actions
 $router->post('/toners/amostragens', [App\Controllers\AmostragemController::class, 'store']);

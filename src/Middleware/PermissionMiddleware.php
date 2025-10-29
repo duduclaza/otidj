@@ -83,7 +83,15 @@ class PermissionMiddleware
         '/melhoria-continua/departamentos' => 'melhoria_continua',
         '/melhoria-continua/usuarios' => 'melhoria_continua',
         '/melhoria-continua/store' => 'melhoria_continua',
+        
+        // Controle de RC
         '/controle-de-rc' => 'controle_rc',
+        '/controle-rc/list' => 'controle_rc',
+        '/controle-rc/create' => 'controle_rc',
+        '/controle-rc/update' => 'controle_rc',
+        '/controle-rc/delete' => 'controle_rc',
+        '/controle-rc/export' => 'controle_rc',
+        '/controle-rc/evidencia' => 'controle_rc',
         
         // Auditorias
         '/auditorias' => 'auditorias',
