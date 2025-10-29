@@ -242,6 +242,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['aprovado_por_nome'])): ?>
+                        <div class="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
+                            <span>🟢</span><span>Aprovado por: <?= e($h['aprovado_por_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <?php if (!empty($h['departamento_nome'])): ?>
                         <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
                             <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
@@ -273,6 +278,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['aprovado_por_nome'])): ?>
+                        <div class="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
+                            <span>🟢</span><span>Aprovado por: <?= e($h['aprovado_por_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <?php if (!empty($h['departamento_nome'])): ?>
                         <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
                             <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
@@ -304,6 +314,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['aprovado_por_nome'])): ?>
+                        <div class="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
+                            <span>🟢</span><span>Aprovado por: <?= e($h['aprovado_por_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <?php if (!empty($h['departamento_nome'])): ?>
                         <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
                             <span>📍</span><span><?= e($h['departamento_nome']) ?></span>
@@ -335,6 +350,11 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <?php if (!empty($h['reprovado_por_nome'])): ?>
+                        <div class="text-xs text-red-700 font-medium mb-2 flex items-center gap-1">
+                            <span>🔴</span><span>Reprovado por: <?= e($h['reprovado_por_nome']) ?></span>
+                        </div>
+                        <?php endif; ?>
                         <?php if (!empty($h['departamento_nome'])): ?>
                         <div class="text-xs text-purple-700 font-medium mb-2 flex items-center gap-1">
                             <span>📍</span><span><?= e($h['departamento_nome']) ?></span>

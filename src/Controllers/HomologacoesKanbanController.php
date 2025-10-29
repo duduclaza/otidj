@@ -45,7 +45,23 @@ class HomologacoesKanbanController
                            u.name as criador_nome,
                            d.nome as departamento_nome,
                            GROUP_CONCAT(DISTINCT ur.name SEPARATOR ', ') as responsaveis_nomes,
-                           COUNT(DISTINCT a.id) as total_anexos
+                           COUNT(DISTINCT a.id) as total_anexos,
+                           (
+                               SELECT uap.name
+                               FROM homologacoes_historico hh2
+                               LEFT JOIN users uap ON uap.id = hh2.usuario_id
+                               WHERE hh2.homologacao_id = h.id AND hh2.status_novo = 'aprovado'
+                               ORDER BY hh2.created_at DESC
+                               LIMIT 1
+                           ) AS aprovado_por_nome,
+                           (
+                               SELECT urej.name
+                               FROM homologacoes_historico hh3
+                               LEFT JOIN users urej ON urej.id = hh3.usuario_id
+                               WHERE hh3.homologacao_id = h.id AND hh3.status_novo = 'reprovado'
+                               ORDER BY hh3.created_at DESC
+                               LIMIT 1
+                           ) AS reprovado_por_nome
                     FROM homologacoes h
                     LEFT JOIN users u ON h.created_by = u.id
                     LEFT JOIN departamentos d ON h.departamento_id = d.id
