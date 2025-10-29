@@ -31,10 +31,20 @@ class ControleRcController
             exit;
         }
 
-        // Buscar fornecedores para o dropdown
-        $fornecedores = $this->getFornecedores();
+        try {
+            // Buscar fornecedores para o dropdown
+            $fornecedores = $this->getFornecedores();
 
-        require_once __DIR__ . '/../../views/layouts/app.php';
+            // Configurar view
+            $title = 'Controle de RC - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/controle-rc/index.php';
+            include __DIR__ . '/../../views/layouts/main.php';
+        } catch (\Exception $e) {
+            error_log('Erro no ControleRcController::index(): ' . $e->getMessage());
+            http_response_code(500);
+            echo 'Erro interno do servidor';
+            exit;
+        }
     }
 
     /**
@@ -352,9 +362,10 @@ class ControleRcController
 
             $registro['evidencias'] = $evidencias;
 
-            require_once __DIR__ . '/../../views/pages/controle-rc/print.php';
+            include __DIR__ . '/../../views/pages/controle-rc/print.php';
         } catch (\Exception $e) {
-            echo 'Erro: ' . $e->getMessage();
+            error_log('Erro no ControleRcController::print(): ' . $e->getMessage());
+            echo 'Erro ao gerar relatório: ' . $e->getMessage();
         }
     }
 
