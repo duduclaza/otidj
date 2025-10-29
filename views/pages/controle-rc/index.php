@@ -1,23 +1,10 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de RC - SGQ OTI DJ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-50">
-    
-    <?php require_once __DIR__ . '/../../partials/sidebar.php'; ?>
-    
-    <div class="ml-0 lg:ml-64 p-6">
-        <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
-                📋 Controle de RC
-            </h1>
-            <p class="text-gray-600 mt-1">Registro e controle de reclamações</p>
-        </div>
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-2">
+        📋 Controle de RC
+    </h1>
+    <p class="text-gray-600 mt-1">Registro e controle de reclamações</p>
+</div>
 
         <!-- Formulário Inline (Tema Escuro) -->
         <div class="bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
@@ -216,7 +203,6 @@
                 </table>
             </div>
         </div>
-    </div>
 
     <script>
         // Carregar data de hoje por padrão
@@ -544,5 +530,3 @@
             searchColumn.addEventListener('change', () => window.searchRC());
         });
     </script>
-</body>
-</html>

@@ -116,6 +116,29 @@ DESCRIBE controle_rc;
 
 ---
 
+### ❌ Erro HTTP 500 ao acessar
+
+**Causa:** Erro no código PHP (controller ou view)
+
+**Solução:**
+
+**1. Execute o script de verificação:**
+```
+https://djbr.sgqoti.com.br/verificar_controle_rc.php
+```
+
+**2. Verifique logs de erro PHP:**
+- Hostinger: Painel → Advanced → Error Log
+- Local: `tail -f /var/log/php_errors.log`
+
+**3. Problemas comuns:**
+- Controller não encontrado
+- View não encontrada
+- Erro de sintaxe PHP
+- Tabela do banco não existe
+
+---
+
 ### ❌ Erro 403 ao acessar
 
 **Solução:**
