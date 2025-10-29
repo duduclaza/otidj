@@ -440,10 +440,15 @@
   // Calculos automaticos no formulario
   window.calcularCampos = function() {
   try {
-    const pesoCheio = parseFloat(document.querySelector('input[name="peso_cheio"]').value) || 0;
-    const pesoVazio = parseFloat(document.querySelector('input[name="peso_vazio"]').value) || 0;
-    const capacidade = parseInt(document.querySelector('input[name="capacidade_folhas"]').value) || 0;
-    const preco = parseFloat(document.querySelector('input[name="preco_toner"]').value) || 0;
+    const toNum = (v) => {
+      const s = (v ?? '').toString().replace(',', '.');
+      const n = parseFloat(s);
+      return isNaN(n) ? 0 : n;
+    };
+    const pesoCheio = toNum(document.querySelector('input[name="peso_cheio"]').value);
+    const pesoVazio = toNum(document.querySelector('input[name="peso_vazio"]').value);
+    const capacidade = parseInt((document.querySelector('input[name="capacidade_folhas"]').value || '0').replace(/\D/g, '')) || 0;
+    const preco = toNum(document.querySelector('input[name="preco_toner"]').value);
     
     const gramaturaInput = document.querySelector('input[name="gramatura"]');
     const gramaturaFolhaInput = document.querySelector('input[name="gramatura_por_folha"]');
@@ -480,10 +485,15 @@
 
 // Cálculos na edição
 function calcularEdicao(id) {
-  const pesocheio = parseFloat(document.querySelector('.edit-input-peso_cheio-' + id).value) || 0;
-  const pesovazio = parseFloat(document.querySelector('.edit-input-peso_vazio-' + id).value) || 0;
-  const capacidade = parseInt(document.querySelector('.edit-input-capacidade_folhas-' + id).value) || 0;
-  const preco = parseFloat(document.querySelector('.edit-input-preco_toner-' + id).value) || 0;
+  const toNum = (v) => {
+    const s = (v ?? '').toString().replace(',', '.');
+    const n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+  };
+  const pesocheio = toNum(document.querySelector('.edit-input-peso_cheio-' + id).value);
+  const pesovazio = toNum(document.querySelector('.edit-input-peso_vazio-' + id).value);
+  const capacidade = parseInt((document.querySelector('.edit-input-capacidade_folhas-' + id).value || '0').replace(/\D/g, '')) || 0;
+  const preco = toNum(document.querySelector('.edit-input-preco_toner-' + id).value);
   
   const gramatura = pesocheio - pesovazio;
   document.querySelector('.edit-input-gramatura-' + id).value = gramatura.toFixed(2);
@@ -491,7 +501,6 @@ function calcularEdicao(id) {
   if (capacidade > 0) {
     const gramaturaFolha = gramatura / capacidade;
     document.querySelector('.edit-input-gramatura_por_folha-' + id).value = gramaturaFolha.toFixed(4);
-    
     const custoFolha = preco / capacidade;
     document.querySelector('.edit-input-custo_por_folha-' + id).value = custoFolha.toFixed(4);
   }

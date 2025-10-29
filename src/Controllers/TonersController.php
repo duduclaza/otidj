@@ -404,6 +404,28 @@ class TonersController
                 ':tipo' => $tipo
             ]);
             
+            // Fallback: se as colunas NÃO forem generated, atualizar computados aqui
+            try {
+                $newId = (int)$this->db->lastInsertId();
+                if ($newId > 0) {
+                    $upd = $this->db->prepare('UPDATE toners 
+                        SET gramatura = (CASE WHEN :peso_cheio_ins IS NOT NULL AND :peso_vazio_ins IS NOT NULL THEN :peso_cheio_ins - :peso_vazio_ins ELSE gramatura END),
+                            gramatura_por_folha = (CASE WHEN :cap_ins > 0 AND :peso_cheio_ins IS NOT NULL AND :peso_vazio_ins IS NOT NULL THEN (:peso_cheio_ins - :peso_vazio_ins) / :cap_ins ELSE gramatura_por_folha END),
+                            custo_por_folha = (CASE WHEN :cap_ins2 > 0 AND :preco_ins IS NOT NULL THEN :preco_ins / :cap_ins2 ELSE custo_por_folha END)
+                        WHERE id = :id');
+                    $upd->execute([
+                        ':peso_cheio_ins' => $peso_cheio,
+                        ':peso_vazio_ins' => $peso_vazio,
+                        ':cap_ins' => $capacidade_folhas,
+                        ':cap_ins2' => $capacidade_folhas,
+                        ':preco_ins' => $preco_toner,
+                        ':id' => $newId
+                    ]);
+                }
+            } catch (\PDOException $ie) {
+                // Ignorar: provavelmente as colunas são generated
+            }
+            
             // Update existing retornados records that have this model as "não cadastrado"
             $updateStmt = $this->db->prepare('UPDATE retornados SET modelo_cadastrado = 1 WHERE modelo = :modelo AND modelo_cadastrado = 0');
             $updateStmt->execute([':modelo' => $modelo]);
@@ -497,6 +519,25 @@ class TonersController
                 ':tipo' => $tipo,
                 ':id' => $id
             ]);
+
+            // Fallback: atualizar campos computados caso não sejam generated
+            try {
+                $upd = $this->db->prepare('UPDATE toners 
+                    SET gramatura = (CASE WHEN :peso_cheio_up IS NOT NULL AND :peso_vazio_up IS NOT NULL THEN :peso_cheio_up - :peso_vazio_up ELSE gramatura END),
+                        gramatura_por_folha = (CASE WHEN :cap_up > 0 AND :peso_cheio_up IS NOT NULL AND :peso_vazio_up IS NOT NULL THEN (:peso_cheio_up - :peso_vazio_up) / :cap_up ELSE gramatura_por_folha END),
+                        custo_por_folha = (CASE WHEN :cap_up2 > 0 AND :preco_up IS NOT NULL THEN :preco_up / :cap_up2 ELSE custo_por_folha END)
+                    WHERE id = :id_up');
+                $upd->execute([
+                    ':peso_cheio_up' => $peso_cheio,
+                    ':peso_vazio_up' => $peso_vazio,
+                    ':cap_up' => $capacidade_folhas,
+                    ':cap_up2' => $capacidade_folhas,
+                    ':preco_up' => $preco_toner,
+                    ':id_up' => $id
+                ]);
+            } catch (\PDOException $ie) {
+                // Ignorar: provavelmente as colunas são generated
+            }
 
             if ($isAjax) {
                 echo json_encode(['success' => true, 'message' => 'Toner atualizado com sucesso.']);
