@@ -204,10 +204,20 @@
                 </td>
                 <td class="px-3 py-2">
                   <span class="edit-display-gramatura-<?= $t['id'] ?>">
-                    <?php if (empty($t['gramatura'])): ?>
+                    <?php 
+                      $g_calc = null;
+                      if (!empty($t['peso_cheio']) && !empty($t['peso_vazio'])) {
+                        $g_calc = (float)$t['peso_cheio'] - (float)$t['peso_vazio'];
+                      }
+                      $g_value = $t['gramatura'] ?? null;
+                      if ($g_value === null || $g_value === '' ) {
+                        $g_value = $g_calc;
+                      }
+                    ?>
+                    <?php if ($g_value === null || $g_value === '' ): ?>
                       <span class="text-gray-400 text-xs">-</span>
                     <?php else: ?>
-                      <?= number_format($t['gramatura'], 2) ?>g
+                      <?= number_format((float)$g_value, 2) ?>g
                     <?php endif; ?>
                   </span>
                   <input type="number" step="0.01" class="edit-input-gramatura-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs bg-gray-100" readonly>
@@ -222,10 +232,17 @@
                 </td>
                 <td class="px-3 py-2">
                   <span class="edit-display-gramatura_por_folha-<?= $t['id'] ?>">
-                    <?php if (empty($t['gramatura_por_folha'])): ?>
+                    <?php 
+                      $gpf_value = $t['gramatura_por_folha'] ?? null;
+                      if (($gpf_value === null || $gpf_value === '') && !empty($g_value) && !empty($t['capacidade_folhas'])) {
+                        $cap = (int)$t['capacidade_folhas'];
+                        if ($cap > 0) { $gpf_value = ((float)$g_value) / $cap; }
+                      }
+                    ?>
+                    <?php if ($gpf_value === null || $gpf_value === '' ): ?>
                       <span class="text-gray-400 text-xs">-</span>
                     <?php else: ?>
-                      <?= number_format($t['gramatura_por_folha'], 4) ?>g
+                      <?= number_format((float)$gpf_value, 4) ?>g
                     <?php endif; ?>
                   </span>
                   <input type="number" step="0.0001" class="edit-input-gramatura_por_folha-<?= $t['id'] ?> border rounded px-2 py-1 hidden w-20 text-xs bg-gray-100" readonly>
