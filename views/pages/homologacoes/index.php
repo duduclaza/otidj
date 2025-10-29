@@ -872,6 +872,27 @@ function renderDetails(data) {
         carregarChecklistsDropdown(h.id);
     }
     
+    // Garantir exibição do campo de Departamento quando necessário
+    // 1) Se o status atual já é em_analise, mostrar campo e pré-selecionar o departamento
+    try {
+        const campoDept = document.getElementById(`campoDepartamento_${h.id}`);
+        const selectDept = document.getElementById(`selectDepartamento_${h.id}`);
+        if (h.status === 'em_analise' && campoDept && selectDept) {
+            campoDept.style.display = 'block';
+            selectDept.required = true;
+            if (h.departamento_id) {
+                selectDept.value = String(h.departamento_id);
+            }
+        }
+        // 2) Sincronizar visibilidade com o status escolhido no select de novo status (onchange também cuida)
+        const selectStatus = document.getElementById(`selectNovoStatus_${h.id}`);
+        if (selectStatus) {
+            mostrarCampoDepartamento(h.id);
+        }
+    } catch (e) {
+        // noop
+    }
+    
     // Event listeners
     document.getElementById('formUpdateStatus').addEventListener('submit', async function(e) {
         e.preventDefault();
