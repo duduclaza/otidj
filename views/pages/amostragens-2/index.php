@@ -130,6 +130,12 @@ $toners = $toners ?? [];
           <p class="text-xs text-gray-400 mt-1">💡 Status será "Pendente" automaticamente se não houver resultados de testes</p>
         </div>
 
+        <!-- Observação -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-200 mb-1">Observação <span class="text-gray-400 text-xs">(Opcional)</span></label>
+          <textarea name="observacoes" rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-200 focus:ring-2 focus:ring-blue-500" placeholder="Informações adicionais sobre a amostragem..."></textarea>
+        </div>
+
         <!-- Evidências (Fotos) -->
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-200 mb-1">Evidências (Fotos - Máx 5 arquivos de 10MB cada)</label>
@@ -667,6 +673,9 @@ async function editarAmostragem(id) {
     
     // Status
     document.querySelector('select[name="status_final"]').value = amostra.status_final || 'Pendente';
+    
+    // Observações
+    document.querySelector('textarea[name="observacoes"]').value = amostra.observacoes || '';
     
     // Mostrar anexo NF existente se houver
     if (amostra.anexo_nf_nome) {

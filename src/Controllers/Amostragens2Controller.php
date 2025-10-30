@@ -229,6 +229,7 @@ class Amostragens2Controller
             
             $fornecedorId = (int)($_POST['fornecedor_id'] ?? 0);
             $responsaveis = $_POST['responsaveis'] ?? [];
+            $observacoes = trim($_POST['observacoes'] ?? '');
             
             // Status automático: se campos de teste vazios, sempre "Pendente"
             if ($quantidadeTestada === null || $quantidadeAprovada === null || $quantidadeReprovada === null) {
@@ -278,12 +279,12 @@ class Amostragens2Controller
                     user_id, filial_id, numero_nf, anexo_nf, anexo_nf_nome, anexo_nf_tipo, anexo_nf_tamanho,
                     tipo_produto, produto_id, codigo_produto, nome_produto,
                     quantidade_recebida, quantidade_testada, quantidade_aprovada, quantidade_reprovada,
-                    fornecedor_id, responsaveis, status_final, created_at
+                    fornecedor_id, responsaveis, status_final, observacoes, created_at
                 ) VALUES (
                     :user_id, :filial_id, :numero_nf, :anexo_nf, :anexo_nf_nome, :anexo_nf_tipo, :anexo_nf_tamanho,
                     :tipo_produto, :produto_id, :codigo_produto, :nome_produto,
                     :quantidade_recebida, :quantidade_testada, :quantidade_aprovada, :quantidade_reprovada,
-                    :fornecedor_id, :responsaveis, :status_final, NOW()
+                    :fornecedor_id, :responsaveis, :status_final, :observacoes, NOW()
                 )
             ');
 
@@ -305,7 +306,8 @@ class Amostragens2Controller
                 ':quantidade_reprovada' => $quantidadeReprovada,
                 ':fornecedor_id' => $fornecedorId,
                 ':responsaveis' => $responsaveisStr,
-                ':status_final' => $statusFinal
+                ':status_final' => $statusFinal,
+                ':observacoes' => $observacoes
             ]);
 
             $amostragemId = $this->db->lastInsertId();
