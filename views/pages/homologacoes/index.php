@@ -508,6 +508,7 @@
 <script>
 // Variáveis globais
 const usuarios = <?= json_encode($usuarios) ?>;
+const isUserAdmin = <?= json_encode($isAdmin || $isSuperAdmin) ?>;
 
 // Util: mover modais para o container global para sobrepor sidebar e layout
 document.addEventListener('DOMContentLoaded', () => {
@@ -730,8 +731,35 @@ function closeCardDetails() {
     unlockBodyScroll();
 }
 
-// Função para retornar apenas próximos status (sem permitir voltar)
+// Função para retornar próximos status (admins podem voltar)
 function getProximosStatus(statusAtual) {
+    const todosStatus = [
+        { value: 'aguardando_recebimento', label: 'Aguardando Recebimento' },
+        { value: 'recebido', label: 'Recebido' },
+        { value: 'em_analise', label: 'Em Análise' },
+        { value: 'em_homologacao', label: 'Em Homologação' },
+        { value: 'aprovado', label: 'Aprovado' },
+        { value: 'reprovado', label: 'Reprovado' }
+    ];
+    
+    // Se for admin, permitir mover para qualquer status (exceto o atual)
+    if (isUserAdmin) {
+        const opcoes = todosStatus
+            .filter(s => s.value !== statusAtual)
+            .map(s => {
+                const isBack = getStatusOrder(s.value) < getStatusOrder(statusAtual);
+                const arrow = isBack ? '⬅️ ' : '➡️ ';
+                return `<option value="${s.value}">${arrow}${s.label}</option>`;
+            });
+        
+        if (opcoes.length === 0) {
+            return '<option value="">Nenhuma alteração disponível</option>';
+        }
+        
+        return opcoes.join('');
+    }
+    
+    // Fluxo normal (apenas avançar) para usuários não-admin
     const fluxoStatus = {
         'aguardando_recebimento': [
             { value: 'recebido', label: 'Recebido' },
@@ -761,8 +789,21 @@ function getProximosStatus(statusAtual) {
     }
     
     return proximos.map(s => 
-        `<option value="${s.value}">${s.label}</option>`
+        `<option value="${s.value}">➡️ ${s.label}</option>`
     ).join('');
+}
+
+// Função auxiliar para determinar a ordem dos status
+function getStatusOrder(status) {
+    const ordem = {
+        'aguardando_recebimento': 1,
+        'recebido': 2,
+        'em_analise': 3,
+        'em_homologacao': 4,
+        'aprovado': 5,
+        'reprovado': 5
+    };
+    return ordem[status] || 0;
 }
 
 function renderDetails(data) {
@@ -846,7 +887,7 @@ function renderDetails(data) {
                     <input type="hidden" name="homologacao_id" value="${h.id}">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium mb-1">Avançar para Status</label>
+                            <label class="block text-sm font-medium mb-1">${isUserAdmin ? 'Mover para Status' : 'Avançar para Status'}</label>
                             <select name="status" id="selectNovoStatus_${h.id}" required class="w-full px-3 py-2 border rounded-lg" onchange="mostrarCampoDepartamento(${h.id})">
                                 ${getProximosStatus(h.status)}
                             </select>
