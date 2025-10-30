@@ -651,19 +651,23 @@ function generatePrintHTML(m) {
         }
         .field { 
           margin-bottom: 15px; 
-          padding: 10px;
+          padding: 15px;
           background: #f9fafb;
           border-radius: 6px;
+          border-left: 4px solid #2563eb;
         }
         .field strong { 
           display: block; 
           color: #1e40af; 
-          margin-bottom: 5px; 
+          margin-bottom: 8px; 
           font-size: 14px;
+          font-weight: 600;
         }
         .field-value {
           color: #374151;
           font-size: 15px;
+          line-height: 1.8;
+          white-space: pre-wrap;
         }
         @media print { 
           .no-print { display: none; }
@@ -701,33 +705,76 @@ function generatePrintHTML(m) {
       </div>
       
       <div class="section">
-        <div class="section-title">📝 TÍTULO E DESCRIÇÃO</div>
-        <div class="field"><strong>Título:</strong> ${m.titulo}</div>
-        <div class="field"><strong>Descrição:</strong> ${m.resultado_esperado}</div>
-      </div>
-      
-      <div class="section">
-        <div class="section-title">🎯 METODOLOGIA 5W2H</div>
-        <div class="grid">
-          <div class="field"><strong>O que será feito?</strong> ${m.o_que}</div>
-          <div class="field"><strong>Como será feito?</strong> ${m.como}</div>
-          <div class="field"><strong>Onde será feito?</strong> ${m.onde}</div>
-          <div class="field"><strong>Por que será feito?</strong> ${m.porque}</div>
-          <div class="field"><strong>Quando será feito?</strong> ${m.quando}</div>
-          <div class="field"><strong>Quanto custa?</strong> ${m.quanto_custa ? 'R$ ' + m.quanto_custa : 'N/A'}</div>
+        <div class="section-title">📝 TÍTULO</div>
+        <div class="section-content">
+          <div class="field"><strong>Título da Melhoria:</strong><div class="field-value">${m.titulo}</div></div>
         </div>
       </div>
       
       <div class="section">
-        <div class="section-title">👥 RESPONSÁVEIS E IDEALIZADOR</div>
-        <div class="field"><strong>Idealizador:</strong> ${m.idealizador}</div>
-        <div class="field"><strong>Responsáveis:</strong> ${m.responsaveis_nomes || 'Nenhum'}</div>
+        <div class="section-title">📄 DESCRIÇÃO DA MELHORIA</div>
+        <div class="section-content">
+          <div class="field"><div class="field-value">${m.descricao || 'Não informada'}</div></div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">🎯 RESULTADO ESPERADO</div>
+        <div class="section-content">
+          <div class="field"><div class="field-value">${m.resultado_esperado || 'Não informado'}</div></div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">📊 METODOLOGIA 5W2H</div>
+        <div class="section-content">
+          <div class="field">
+            <strong>❓ O QUE será feito?</strong>
+            <div class="field-value">${m.o_que || 'Não informado'}</div>
+          </div>
+          <div class="field">
+            <strong>🔧 COMO será feito?</strong>
+            <div class="field-value">${m.como || 'Não informado'}</div>
+          </div>
+          <div class="field">
+            <strong>📍 ONDE será feito?</strong>
+            <div class="field-value">${m.onde || 'Não informado'}</div>
+          </div>
+          <div class="field">
+            <strong>💡 POR QUE será feito?</strong>
+            <div class="field-value">${m.porque || 'Não informado'}</div>
+          </div>
+          <div class="field">
+            <strong>📅 QUANDO será feito?</strong>
+            <div class="field-value">${m.quando ? new Date(m.quando).toLocaleDateString('pt-BR') : 'Não informado'}</div>
+          </div>
+          <div class="field">
+            <strong>💰 QUANTO custa?</strong>
+            <div class="field-value">${m.quanto_custa ? 'R$ ' + parseFloat(m.quanto_custa).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : 'Não informado'}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">👤 IDEALIZADOR DA IDEIA</div>
+        <div class="section-content">
+          <div class="field"><strong>Nome do Idealizador:</strong><div class="field-value">${m.idealizador || 'Não informado'}</div></div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">👥 RESPONSÁVEIS PELA IMPLEMENTAÇÃO</div>
+        <div class="section-content">
+          <div class="field"><div class="field-value">${m.responsaveis_nomes || 'Nenhum responsável atribuído'}</div></div>
+        </div>
       </div>
       
       ${m.observacao ? `
       <div class="section">
-        <div class="section-title">📌 OBSERVAÇÕES</div>
-        <p>${m.observacao}</p>
+        <div class="section-title">📌 OBSERVAÇÕES ADICIONAIS</div>
+        <div class="section-content">
+          <div class="field"><div class="field-value">${m.observacao}</div></div>
+        </div>
       </div>
       ` : ''}
       
