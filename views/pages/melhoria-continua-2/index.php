@@ -242,10 +242,6 @@ $userId = $_SESSION['user_id'];
             </td>
             <?php endif; ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-              <button onclick="viewMelhoria(<?= $melhoria['id'] ?>); return false;" class="text-blue-600 hover:text-blue-900" title="Ver detalhes">
-                👁️ Ver
-              </button>
-              
               <button onclick="printMelhoria(<?= $melhoria['id'] ?>)" class="text-gray-600 hover:text-gray-900" title="Imprimir">
                 🖨️ Imprimir
               </button>
@@ -485,13 +481,6 @@ async function updatePontuacaoInline(id, pontuacao) {
   } catch (error) {
     alert('❌ Erro ao atualizar pontuação');
   }
-}
-
-// Ver Detalhes da Melhoria - Abre em nova página
-function viewMelhoria(id) {
-  console.log('Abrindo detalhes da melhoria ID:', id);
-  // Abre em nova aba
-  window.open(`/melhoria-continua-2/${id}/view`, '_blank', 'width=1200,height=900');
 }
 
 // Gerar HTML dos Detalhes
