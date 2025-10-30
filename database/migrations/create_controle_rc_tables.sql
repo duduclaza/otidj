@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `controle_rc` (
     `origem` ENUM('Telefone', 'E-mail', 'Presencial', 'Formulário', 'Contrato', 'Auditoria', 'Outros') NOT NULL,
     `cliente_nome` VARCHAR(255) NOT NULL,
     `categoria` ENUM('Técnica', 'Atendimento', 'Logística', 'Contrato', 'Faturamento', 'Qualidade', 'Prazos', 'Produto', 'Outros') NOT NULL,
+    `detalhamento` TEXT NULL COMMENT 'Detalhamento adicional do registro de RC',
     `numero_serie` VARCHAR(100) NULL,
     `fornecedor_id` INT UNSIGNED NULL,
     `testes_realizados` TEXT NULL,

@@ -122,9 +122,9 @@ class ControleRcController
             $stmt = $this->db->prepare("
                 INSERT INTO controle_rc (
                     numero_registro, data_abertura, origem, cliente_nome, categoria,
-                    numero_serie, fornecedor_id, testes_realizados, acoes_realizadas,
+                    detalhamento, numero_serie, fornecedor_id, testes_realizados, acoes_realizadas,
                     conclusao, usuario_id, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
             ");
 
             $stmt->execute([
@@ -133,6 +133,7 @@ class ControleRcController
                 $_POST['origem'],
                 $_POST['cliente_nome'],
                 $_POST['categoria'],
+                $_POST['detalhamento'] ?? null,
                 $_POST['numero_serie'] ?? null,
                 !empty($_POST['fornecedor_id']) ? $_POST['fornecedor_id'] : null,
                 $_POST['testes_realizados'] ?? null,
@@ -190,6 +191,7 @@ class ControleRcController
                     origem = ?,
                     cliente_nome = ?,
                     categoria = ?,
+                    detalhamento = ?,
                     numero_serie = ?,
                     fornecedor_id = ?,
                     testes_realizados = ?,
@@ -204,6 +206,7 @@ class ControleRcController
                 $_POST['origem'],
                 $_POST['cliente_nome'],
                 $_POST['categoria'],
+                $_POST['detalhamento'] ?? null,
                 $_POST['numero_serie'] ?? null,
                 !empty($_POST['fornecedor_id']) ? $_POST['fornecedor_id'] : null,
                 $_POST['testes_realizados'] ?? null,

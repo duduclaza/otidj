@@ -286,6 +286,13 @@
                 </div>
             </div>
 
+            <?php if (!empty($registro['detalhamento'])): ?>
+            <div class="info-item">
+                <label>Detalhamento</label>
+                <div class="value"><?= nl2br(htmlspecialchars($registro['detalhamento'])) ?></div>
+            </div>
+            <?php endif; ?>
+
             <div class="info-item info-full">
                 <label>Cliente / Empresa</label>
                 <div class="value"><?= htmlspecialchars($registro['cliente_nome']) ?></div>

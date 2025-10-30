@@ -68,6 +68,14 @@
                         </select>
                     </div>
 
+                    <!-- Detalhamento -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Detalhamento</label>
+                        <textarea name="detalhamento" id="detalhamento" rows="2"
+                                  class="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Detalhamento adicional..."></textarea>
+                    </div>
+
                     <!-- Número de Série -->
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-2">Número de Série/Identificação</label>
@@ -327,6 +335,7 @@
                     document.getElementById('origem').value = reg.origem;
                     document.getElementById('cliente_nome').value = reg.cliente_nome;
                     document.getElementById('categoria').value = reg.categoria;
+                    document.getElementById('detalhamento').value = reg.detalhamento || '';
                     document.getElementById('numero_serie').value = reg.numero_serie || '';
                     document.getElementById('fornecedor_id').value = reg.fornecedor_id || '';
                     document.getElementById('testes_realizados').value = reg.testes_realizados || '';
