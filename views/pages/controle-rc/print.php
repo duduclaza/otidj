@@ -293,6 +293,13 @@
             </div>
             <?php endif; ?>
 
+            <?php if (!empty($registro['qual_produto'])): ?>
+            <div class="info-item">
+                <label>Qual Produto</label>
+                <div class="value"><?= htmlspecialchars($registro['qual_produto']) ?></div>
+            </div>
+            <?php endif; ?>
+
             <div class="info-item info-full">
                 <label>Cliente / Empresa</label>
                 <div class="value"><?= htmlspecialchars($registro['cliente_nome']) ?></div>
