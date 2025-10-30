@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS homologacoes (
     local_homologacao VARCHAR(255),
     data_inicio_homologacao DATE,
     alerta_finalizacao DATE,
+    teste_cliente TEXT COMMENT 'Observações sobre teste realizado no cliente',
     created_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

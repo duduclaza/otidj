@@ -402,6 +402,7 @@ class HomologacoesKanbanController
             $localHomologacao = trim($_POST['local_homologacao'] ?? '');
             $dataInicioHomologacao = trim($_POST['data_inicio_homologacao'] ?? '');
             $alertaFinalizacao = trim($_POST['alerta_finalizacao'] ?? '');
+            $testeCliente = trim($_POST['teste_cliente'] ?? '');
             $observacao = trim($_POST['observacao'] ?? '');
 
             if (!$homologacaoId || !$novoStatus) {
@@ -455,6 +456,11 @@ class HomologacoesKanbanController
             if (!empty($alertaFinalizacao)) {
                 $updates[] = "alerta_finalizacao = ?";
                 $params[] = $alertaFinalizacao;
+            }
+
+            if (!empty($testeCliente)) {
+                $updates[] = "teste_cliente = ?";
+                $params[] = $testeCliente;
             }
 
             $params[] = $homologacaoId;
