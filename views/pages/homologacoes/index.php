@@ -913,10 +913,12 @@ function renderDetails(data) {
                             <label class="block text-sm font-medium mb-1">Alerta</label>
                             <input type="date" name="alerta_finalizacao" class="w-full px-3 py-2 border rounded-lg">
                         </div>
+                        ${['em_analise', 'em_homologacao', 'aprovado', 'reprovado'].includes(h.status) ? `
                         <div>
                             <label class="block text-sm font-medium mb-1">Teste no cliente:</label>
                             <textarea name="teste_cliente" rows="2" class="w-full px-3 py-2 border rounded-lg" placeholder="Descreva o teste realizado no cliente"></textarea>
                         </div>
+                        ` : ''}
                     </div>
                     <textarea name="observacao" rows="2" placeholder="Observação" class="w-full px-3 py-2 border rounded-lg"></textarea>
                     <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Atualizar Status</button>
