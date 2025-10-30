@@ -351,18 +351,32 @@ const departamentos = <?= json_encode($departamentos ?? []) ?>;
                                 <h3 class="text-lg font-medium text-gray-900">Registros Aprovados</h3>
                                 <p class="mt-1 text-sm text-gray-500">Visualize e acesse os registros aprovados</p>
                             </div>
-                            <!-- Busca Inteligente -->
-                            <div class="relative">
-                                <input 
-                                    type="text" 
-                                    id="buscaVisualizacao"
-                                    placeholder="🔍 Buscar por título, versão ou autor..."
-                                    class="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                    onkeyup="filtrarVisualizacao()"
+                            <div class="flex items-center gap-4">
+                                <!-- Filtro por Departamento -->
+                                <select 
+                                    id="filtroDepartamentoVisualizacao"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    onchange="filtrarVisualizacao()"
                                 >
-                                <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
+                                    <option value="">📁 Todos os Departamentos</option>
+                                    <?php foreach ($departamentos as $dept): ?>
+                                        <option value="<?= htmlspecialchars($dept['nome']) ?>"><?= htmlspecialchars($dept['nome']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                
+                                <!-- Busca Inteligente -->
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        id="buscaVisualizacao"
+                                        placeholder="🔍 Buscar por título, versão ou autor..."
+                                        class="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        onkeyup="filtrarVisualizacao()"
+                                    >
+                                    <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2502,6 +2516,8 @@ function filtrarTitulosCadastro() {
 function filtrarVisualizacao() {
     const input = document.getElementById('buscaVisualizacao');
     const filter = input.value.toUpperCase();
+    const selectDept = document.getElementById('filtroDepartamentoVisualizacao');
+    const deptFilter = selectDept ? selectDept.value.toUpperCase() : '';
     const table = document.getElementById('listaVisualizacao');
     const tr = table.getElementsByTagName('tr');
 
@@ -2509,15 +2525,23 @@ function filtrarVisualizacao() {
         const tdTitulo = tr[i].getElementsByTagName('td')[0];  // Título
         const tdVersao = tr[i].getElementsByTagName('td')[1];  // Versão
         const tdAutor = tr[i].getElementsByTagName('td')[2];   // Autor
+        const tdVisibilidade = tr[i].getElementsByTagName('td')[4]; // Visibilidade (inclui departamentos)
         
         if (tdTitulo || tdVersao || tdAutor) {
             const txtTitulo = tdTitulo ? tdTitulo.textContent || tdTitulo.innerText : '';
             const txtVersao = tdVersao ? tdVersao.textContent || tdVersao.innerText : '';
             const txtAutor = tdAutor ? tdAutor.textContent || tdAutor.innerText : '';
+            const txtVisibilidade = tdVisibilidade ? tdVisibilidade.textContent || tdVisibilidade.innerText : '';
             
+            // Filtro de busca por texto
             const txtValue = txtTitulo + ' ' + txtVersao + ' ' + txtAutor;
+            const matchesSearch = !filter || txtValue.toUpperCase().indexOf(filter) > -1;
             
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            // Filtro por departamento
+            const matchesDept = !deptFilter || txtVisibilidade.toUpperCase().indexOf(deptFilter) > -1;
+            
+            // Mostrar apenas se passar em ambos os filtros
+            if (matchesSearch && matchesDept) {
                 tr[i].style.display = '';
             } else {
                 tr[i].style.display = 'none';
