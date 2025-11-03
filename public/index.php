@@ -256,6 +256,9 @@ $router->get('/5w2h/anexos/{id}', [App\Controllers\Planos5W2HController::class, 
 $router->get('/5w2h/anexo/{id}', [App\Controllers\Planos5W2HController::class, 'downloadAnexo']);
 $router->get('/5w2h/relatorios', [App\Controllers\Planos5W2HController::class, 'relatorios']);
 
+// Não Conformidades routes
+$router->get('/nao-conformidades', [App\Controllers\NaoConformidadesController::class, 'index']);
+
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);

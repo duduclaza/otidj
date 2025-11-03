@@ -102,6 +102,9 @@ class PermissionMiddleware
         '/auditorias/relatorios' => 'auditorias',
         '/auditorias/anexo' => 'auditorias',
         
+        // Não Conformidades
+        '/nao-conformidades' => 'nao_conformidades',
+        
         // 5W2H - Planos de Ação
         '/5w2h' => '5w2h',
         '/5w2h/list' => '5w2h',
