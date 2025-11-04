@@ -1633,6 +1633,155 @@ class EmailService
         </html>";
     }
     
+    /**
+     * Send RC novo notification para administradores
+     */
+    public function sendRcNovoNotification(array $emails, string $numeroRegistro, array $rcData): bool
+    {
+        if (empty($emails)) {
+            return false;
+        }
+
+        $subject = "SGQ - Novo RC Cadastrado 📋 {$numeroRegistro}";
+        $body = $this->buildRcNovoEmailTemplate($numeroRegistro, $rcData);
+        
+        $altBody = "SGQ OTI DJ - Controle de RC\n\n";
+        $altBody .= "Novo RC Cadastrado: {$numeroRegistro}\n\n";
+        $altBody .= "Data: " . date('d/m/Y', strtotime($rcData['data_abertura'])) . "\n";
+        $altBody .= "Origem: {$rcData['origem']}\n";
+        $altBody .= "Cliente: {$rcData['cliente_nome']}\n";
+        $altBody .= "Categoria: {$rcData['categoria']}\n\n";
+        $altBody .= "Acesse o sistema para mais detalhes.\n";
+        $altBody .= "Link: " . ($_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br') . "/controle-de-rc";
+        
+        return $this->send($emails, $subject, $body, $altBody);
+    }
+
+    private function buildRcNovoEmailTemplate(string $numeroRegistro, array $rcData): string
+    {
+        $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Novo RC Cadastrado</title>
+        </head>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;'>
+            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                <h1 style='color: white; margin: 0; font-size: 28px;'>📋 Novo RC Cadastrado!</h1>
+                <p style='color: #f0f0f0; margin: 5px 0 0 0;'>SGQ OTI DJ - Controle de RC</p>
+            </div>
+            
+            <div style='background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none;'>
+                <div style='background: #EBF8FF; border-left: 4px solid #3B82F6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; font-size: 16px; color: #1E40AF;'>
+                        <strong>🔔 Um novo Registro de Controle (RC) foi cadastrado no sistema!</strong>
+                    </p>
+                </div>
+                
+                <h2 style='color: #333; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>{$numeroRegistro}</h2>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>📅 Data de Abertura:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>" . date('d/m/Y', strtotime($rcData['data_abertura'])) . "</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>📍 Origem:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$rcData['origem']}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>👤 Cliente/Empresa:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$rcData['cliente_nome']}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>📂 Categoria:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$rcData['categoria']}</td>
+                        </tr>";
+        
+        if (!empty($rcData['qual_produto'])) {
+            $return .= "
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>📦 Produto:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$rcData['qual_produto']}</td>
+                        </tr>";
+        }
+        
+        if (!empty($rcData['numero_serie'])) {
+            $return .= "
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>🔢 Nº Série:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$rcData['numero_serie']}</td>
+                        </tr>";
+        }
+        
+        if (!empty($rcData['fornecedor_nome'])) {
+            $return .= "
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>🏢 Fornecedor:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$rcData['fornecedor_nome']}</td>
+                        </tr>";
+        }
+        
+        $return .= "
+                        <tr>
+                            <td style='padding: 10px 0; color: #666; font-size: 14px;'><strong>👨‍💼 Cadastrado por:</strong></td>
+                            <td style='padding: 10px 0; color: #333; font-size: 14px;'>{$rcData['usuario_nome']}</td>
+                        </tr>
+                    </table>
+                </div>";
+        
+        if (!empty($rcData['detalhamento'])) {
+            $return .= "
+                <div style='background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;'>
+                    <p style='margin: 0; color: #92400E; font-size: 14px;'>
+                        <strong>📝 Detalhamento:</strong><br>
+                        " . nl2br(htmlspecialchars($rcData['detalhamento'])) . "
+                    </p>
+                </div>";
+        }
+        
+        $return .= "
+                <div style='background: #DBEAFE; border: 2px solid #3B82F6; border-radius: 10px; padding: 25px; margin: 25px 0;'>
+                    <h3 style='color: #1E40AF; margin: 0 0 15px 0; font-size: 18px;'>🔍 Ações Necessárias:</h3>
+                    <ul style='color: #1E40AF; margin: 0; padding-left: 20px; font-size: 14px;'>
+                        <li style='margin: 8px 0;'>Acesse o sistema SGQ OTI DJ</li>
+                        <li style='margin: 8px 0;'>Navegue até <strong>Gestão da Qualidade → Controle de RC</strong></li>
+                        <li style='margin: 8px 0;'>Revise os detalhes do registro</li>
+                        <li style='margin: 8px 0;'>Acompanhe o status e evidências</li>
+                    </ul>
+                </div>
+
+                <div style='text-align: center; margin: 30px 0;'>
+                    <a href='{$appUrl}/controle-de-rc' style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>
+                        👁️ Acessar Controle de RC
+                    </a>
+                </div>
+                
+                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #666; font-size: 14px;'>
+                        <strong>Nota:</strong> Você recebeu este email porque está configurado como administrador do sistema. 
+                        Esta é uma notificação automática para manter você informado sobre novos registros de RC.
+                    </p>
+                </div>
+            </div>
+            
+            <div style='background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0; border-top: none;'>
+                <p style='margin: 0; color: #666; font-size: 12px;'>
+                    © " . date('Y') . " SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                    Este email foi enviado automaticamente, não responda.
+                </p>
+            </div>
+        </body>
+        </html>";
+        
+        return $return;
+    }
+    
     public function testConnection(): array
     {
         try {

@@ -150,6 +150,9 @@ class ControleRcController
                 $this->uploadEvidencias($rcId, $_FILES['evidencias']);
             }
 
+            // Enviar notificações para administradores
+            $this->notificarAdministradoresNovoRC($numeroRegistro, $_POST, $_SESSION['user_name'] ?? 'Usuário');
+
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
@@ -545,6 +548,95 @@ class ControleRcController
                     $fileSize
                 ]);
             }
+        }
+    }
+
+    /**
+     * Notificar administradores sobre novo RC
+     */
+    private function notificarAdministradoresNovoRC($numeroRegistro, $rcData, $usuarioNome)
+    {
+        try {
+            error_log("======================================");
+            error_log("🔔 NOTIFICAÇÃO NOVO RC: {$numeroRegistro}");
+            error_log("======================================");
+            
+            // Buscar administradores e super administradores ativos
+            $stmt = $this->db->prepare("
+                SELECT id, name, email, role 
+                FROM users 
+                WHERE role IN ('admin', 'super_admin') 
+                AND status = 'active' 
+                AND email IS NOT NULL 
+                AND email != ''
+                ORDER BY name
+            ");
+            $stmt->execute();
+            $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            error_log("👥 Administradores encontrados: " . count($admins));
+            
+            if (empty($admins)) {
+                error_log("⚠️ Nenhum administrador encontrado para notificação");
+                return false;
+            }
+            
+            // Buscar nome do fornecedor se houver
+            $fornecedorNome = null;
+            if (!empty($rcData['fornecedor_id'])) {
+                $stmtFornecedor = $this->db->prepare("SELECT nome FROM fornecedores WHERE id = ?");
+                $stmtFornecedor->execute([$rcData['fornecedor_id']]);
+                $fornecedor = $stmtFornecedor->fetch(\PDO::FETCH_ASSOC);
+                $fornecedorNome = $fornecedor['nome'] ?? null;
+            }
+            
+            // Coletar emails
+            $emails = [];
+            foreach ($admins as $admin) {
+                if (!empty($admin['email'])) {
+                    $emails[] = $admin['email'];
+                    error_log("   📧 {$admin['name']} ({$admin['email']}) - {$admin['role']}");
+                }
+            }
+            
+            if (empty($emails)) {
+                error_log("⚠️ Nenhum email válido encontrado");
+                return false;
+            }
+            
+            // Preparar dados do RC para o email
+            $rcDataForEmail = [
+                'data_abertura' => $rcData['data_abertura'],
+                'origem' => $rcData['origem'],
+                'cliente_nome' => $rcData['cliente_nome'],
+                'categoria' => $rcData['categoria'],
+                'detalhamento' => $rcData['detalhamento'] ?? null,
+                'qual_produto' => $rcData['qual_produto'] ?? null,
+                'numero_serie' => $rcData['numero_serie'] ?? null,
+                'fornecedor_nome' => $fornecedorNome,
+                'usuario_nome' => $usuarioNome
+            ];
+            
+            // Enviar email
+            error_log("📧 Enviando email para " . count($emails) . " administrador(es)...");
+            
+            $emailService = new \App\Services\EmailService();
+            $resultado = $emailService->sendRcNovoNotification($emails, $numeroRegistro, $rcDataForEmail);
+            
+            if ($resultado) {
+                error_log("✅ Emails enviados com sucesso!");
+            } else {
+                error_log("❌ Falha ao enviar emails: " . $emailService->getLastError());
+            }
+            
+            error_log("======================================");
+            
+            return $resultado;
+            
+        } catch (\Exception $e) {
+            error_log("❌ ERRO ao notificar administradores: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            return false;
         }
     }
 
