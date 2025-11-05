@@ -359,9 +359,9 @@ class ControleRcController
                 exit;
             }
 
-            // Buscar evidências
+            // Buscar evidências com arquivo_blob para exibir imagens
             $stmt = $this->db->prepare("
-                SELECT nome_arquivo 
+                SELECT nome_arquivo, tipo_arquivo, arquivo_blob 
                 FROM controle_rc_evidencias 
                 WHERE rc_id = ?
                 ORDER BY created_at

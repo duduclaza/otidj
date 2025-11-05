@@ -238,6 +238,50 @@
             color: #9ca3af;
             font-style: italic;
         }
+
+        /* Estilos para imagens */
+        .image-container {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f9fafb;
+            page-break-inside: avoid;
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: block;
+            margin: 0 auto;
+        }
+
+        .image-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media print {
+            .image-container {
+                page-break-inside: avoid;
+            }
+            
+            .images-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
@@ -393,6 +437,27 @@
         <p style="margin-top: 15px; font-size: 12px; color: #6b7280;">
             <strong>Total de evidências:</strong> <?= count($registro['evidencias']) ?>
         </p>
+        
+        <!-- Exibir imagens dos anexos -->
+        <div style="margin-top: 30px;">
+            <h3 style="font-size: 16px; color: #1e40af; margin-bottom: 20px; font-weight: 600;">🖼️ Visualização das Imagens:</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                <?php foreach ($registro['evidencias'] as $evidencia): ?>
+                    <?php if (!empty($evidencia['arquivo_blob']) && strpos($evidencia['tipo_arquivo'], 'image/') === 0): ?>
+                        <div style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px; background: #f9fafb; page-break-inside: avoid;">
+                            <p style="font-size: 12px; font-weight: 600; color: #4b5563; margin-bottom: 8px; text-align: center;">
+                                📷 <?= htmlspecialchars($evidencia['nome_arquivo']) ?>
+                            </p>
+                            <div style="text-align: center;">
+                                <img src="data:<?= htmlspecialchars($evidencia['tipo_arquivo']) ?>;base64,<?= base64_encode($evidencia['arquivo_blob']) ?>" 
+                                     alt="<?= htmlspecialchars($evidencia['nome_arquivo']) ?>" 
+                                     style="max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
     </div>
     <?php endif; ?>
 
