@@ -57,9 +57,8 @@ $menu = [
       // ['label' => '5W2H', 'href' => '/5w2h', 'icon' => '📋', 'module' => '5w2h'], // REMOVIDO conforme solicitação
       ['label' => 'Auditorias', 'href' => '/auditorias', 'icon' => '🔍', 'module' => 'auditorias', 'admin_only' => true],
       ['label' => 'Não Conformidades', 'href' => '/nao-conformidades', 'icon' => '⚠️', 'module' => 'nao_conformidades'],
-      // Melhoria Contínua (com abas internas)
-      ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua', 'icon' => '⚙️', 'module' => 'melhoria_continua'],
-      ['label' => 'Melhoria Contínua 2.0', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2'],
+      // Melhoria Contínua
+      ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
     ]
   ],

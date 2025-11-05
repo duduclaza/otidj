@@ -276,14 +276,14 @@ $router->post('/admin/profiles/update', [App\Controllers\ProfilesController::cla
 $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::class, 'delete']);
 $router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesController::class, 'getPermissions']);
 
-// Melhoria Continua routes
-$router->get('/melhoria-continua/solicitacoes', [App\Controllers\MelhoriaContinuaController::class, 'index']);
-$router->get('/melhoria-continua/solicitacoes/create', [App\Controllers\MelhoriaContinuaController::class, 'create']);
-$router->post('/melhoria-continua/solicitacoes/store', [App\Controllers\MelhoriaContinuaController::class, 'store']);
-$router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
-$router->get('/melhoria-continua/solicitacoes/{id}/details', [App\Controllers\MelhoriaContinuaController::class, 'details']);
-$router->get('/melhoria-continua/solicitacoes/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
-$router->post('/melhoria-continua/solicitacoes/update-status', [App\Controllers\MelhoriaContinuaController::class, 'updateStatus']);
+// Melhoria Continua routes - DESABILITADO (usar Melhoria Contínua 2.0)
+// $router->get('/melhoria-continua/solicitacoes', [App\Controllers\MelhoriaContinuaController::class, 'index']);
+// $router->get('/melhoria-continua/solicitacoes/create', [App\Controllers\MelhoriaContinuaController::class, 'create']);
+// $router->post('/melhoria-continua/solicitacoes/store', [App\Controllers\MelhoriaContinuaController::class, 'store']);
+// $router->get('/melhoria-continua/solicitacoes/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
+// $router->get('/melhoria-continua/solicitacoes/{id}/details', [App\Controllers\MelhoriaContinuaController::class, 'details']);
+// $router->get('/melhoria-continua/solicitacoes/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
+// $router->post('/melhoria-continua/solicitacoes/update-status', [App\Controllers\MelhoriaContinuaController::class, 'updateStatus']);
 
 // API routes
 $router->get('/api/users', [App\Controllers\UsersController::class, 'getUsers']);
@@ -410,20 +410,20 @@ $router->post('/certificados/store', [App\Controllers\CertificadosController::cl
 $router->get('/certificados/download/{id}', [App\Controllers\CertificadosController::class, 'download']);
 $router->post('/certificados/delete', [App\Controllers\CertificadosController::class, 'delete']);
 
-// Melhoria Contínua routes
-$router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
-$router->get('/melhoria-continua/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
-$router->get('/melhoria-continua/departamentos', [App\Controllers\MelhoriaContinuaController::class, 'getDepartamentos']);
-$router->get('/melhoria-continua/usuarios', [App\Controllers\MelhoriaContinuaController::class, 'getUsuarios']);
-$router->post('/melhoria-continua/store', [App\Controllers\MelhoriaContinuaController::class, 'store']);
-$router->post('/melhoria-continua/{id}/status', [App\Controllers\MelhoriaContinuaController::class, 'updateStatus']);
-$router->post('/melhoria-continua/{id}/pontuacao', [App\Controllers\MelhoriaContinuaController::class, 'updatePontuacao']);
-$router->post('/melhoria-continua/{id}/observacao', [App\Controllers\MelhoriaContinuaController::class, 'updateObservacao']);
-$router->post('/melhoria-continua/{id}/resultado', [App\Controllers\MelhoriaContinuaController::class, 'updateResultado']);
-$router->delete('/melhoria-continua/{id}/delete', [App\Controllers\MelhoriaContinuaController::class, 'delete']);
-$router->get('/melhoria-continua/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
-$router->get('/melhoria-continua/{id}/anexos', [App\Controllers\MelhoriaContinuaController::class, 'getAnexos']);
-$router->get('/melhoria-continua/anexo/{anexoId}', [App\Controllers\MelhoriaContinuaController::class, 'downloadAnexo']);
+// Melhoria Contínua routes - DESABILITADO (usar Melhoria Contínua 2.0)
+// $router->get('/melhoria-continua', [App\Controllers\MelhoriaContinuaController::class, 'index']);
+// $router->get('/melhoria-continua/list', [App\Controllers\MelhoriaContinuaController::class, 'list']);
+// $router->get('/melhoria-continua/departamentos', [App\Controllers\MelhoriaContinuaController::class, 'getDepartamentos']);
+// $router->get('/melhoria-continua/usuarios', [App\Controllers\MelhoriaContinuaController::class, 'getUsuarios']);
+// $router->post('/melhoria-continua/store', [App\Controllers\MelhoriaContinuaController::class, 'store']);
+// $router->post('/melhoria-continua/{id}/status', [App\Controllers\MelhoriaContinuaController::class, 'updateStatus']);
+// $router->post('/melhoria-continua/{id}/pontuacao', [App\Controllers\MelhoriaContinuaController::class, 'updatePontuacao']);
+// $router->post('/melhoria-continua/{id}/observacao', [App\Controllers\MelhoriaContinuaController::class, 'updateObservacao']);
+// $router->post('/melhoria-continua/{id}/resultado', [App\Controllers\MelhoriaContinuaController::class, 'updateResultado']);
+// $router->delete('/melhoria-continua/{id}/delete', [App\Controllers\MelhoriaContinuaController::class, 'delete']);
+// $router->get('/melhoria-continua/{id}/print', [App\Controllers\MelhoriaContinuaController::class, 'print']);
+// $router->get('/melhoria-continua/{id}/anexos', [App\Controllers\MelhoriaContinuaController::class, 'getAnexos']);
+// $router->get('/melhoria-continua/anexo/{anexoId}', [App\Controllers\MelhoriaContinuaController::class, 'downloadAnexo']);
 
 // Registros routes
 $router->get('/registros/filiais', [App\Controllers\RegistrosController::class, 'filiais']);

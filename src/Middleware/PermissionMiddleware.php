@@ -77,12 +77,12 @@ class PermissionMiddleware
         '/fluxogramas/visualizar' => 'fluxogramas',
         '/fluxogramas/titulo/delete' => 'fluxogramas',
         
-        // Melhoria Contínua
-        '/melhoria-continua' => 'melhoria_continua',
-        '/melhoria-continua/list' => 'melhoria_continua',
-        '/melhoria-continua/departamentos' => 'melhoria_continua',
-        '/melhoria-continua/usuarios' => 'melhoria_continua',
-        '/melhoria-continua/store' => 'melhoria_continua',
+        // Melhoria Contínua - DESABILITADO (usar Melhoria Contínua 2.0)
+        // '/melhoria-continua' => 'melhoria_continua',
+        // '/melhoria-continua/list' => 'melhoria_continua',
+        // '/melhoria-continua/departamentos' => 'melhoria_continua',
+        // '/melhoria-continua/usuarios' => 'melhoria_continua',
+        // '/melhoria-continua/store' => 'melhoria_continua',
         
         // Controle de RC
         '/controle-de-rc' => 'controle_rc',
