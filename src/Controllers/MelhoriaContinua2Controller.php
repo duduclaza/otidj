@@ -352,7 +352,7 @@ class MelhoriaContinua2Controller
                 $pontuacao = !empty($_POST['pontuacao']) ? (int)$_POST['pontuacao'] : null;
             }
 
-            $statusValidos = ['Pendente análise', 'Em andamento', 'Concluída', 'Recusada', 'Pendente Adaptação'];
+            $statusValidos = ['Pendente análise', 'Enviado para Aprovação', 'Em andamento', 'Concluída', 'Recusada', 'Pendente Adaptação'];
             if (!in_array($status, $statusValidos)) {
                 echo json_encode(['success' => false, 'message' => 'Status inválido']);
                 return;
@@ -536,6 +536,7 @@ class MelhoriaContinua2Controller
             // Mapear ícones por status
             $statusIcons = [
                 'Pendente análise' => '⏳',
+                'Enviado para Aprovação' => '📤',
                 'Em andamento' => '🔄',
                 'Concluída' => '✅',
                 'Recusada' => '❌',
@@ -548,6 +549,7 @@ class MelhoriaContinua2Controller
                 'Concluída' => 'success',
                 'Recusada' => 'error',
                 'Em andamento' => 'info',
+                'Enviado para Aprovação' => 'info',
                 default => 'warning'
             };
             

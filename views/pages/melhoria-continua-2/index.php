@@ -210,6 +210,7 @@ $userId = $_SESSION['user_id'];
               <?php if ($isAdmin): ?>
                 <select onchange="updateStatusInline(<?= $melhoria['id'] ?>, this.value)" class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?> border-0 cursor-pointer">
                   <option value="Pendente análise" <?= $melhoria['status'] === 'Pendente análise' ? 'selected' : '' ?>>Pendente análise</option>
+                  <option value="Enviado para Aprovação" <?= $melhoria['status'] === 'Enviado para Aprovação' ? 'selected' : '' ?>>Enviado para Aprovação</option>
                   <option value="Em andamento" <?= $melhoria['status'] === 'Em andamento' ? 'selected' : '' ?>>Em andamento</option>
                   <option value="Concluída" <?= $melhoria['status'] === 'Concluída' ? 'selected' : '' ?>>Concluída</option>
                   <option value="Recusada" <?= $melhoria['status'] === 'Recusada' ? 'selected' : '' ?>>Recusada</option>
@@ -301,6 +302,11 @@ $userId = $_SESSION['user_id'];
 .status-pendente-análise { 
   background: #fef3c7; 
   color: #92400e; 
+}
+
+.status-enviado-para-aprovação { 
+  background: #e0e7ff; 
+  color: #3730a3; 
 }
 
 .status-em-andamento { 
