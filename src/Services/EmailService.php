@@ -478,6 +478,8 @@ class EmailService
     {
         $subjects = [
             'Pendente análise' => 'SGQ - Melhoria Aguardando Análise',
+            'Enviado para Aprovação' => 'SGQ - Melhoria Enviada para Aprovação 📤',
+            'Em andamento' => 'SGQ - Melhoria em Andamento',
             'Em análise' => 'SGQ - Melhoria em Análise',
             'Aprovada' => 'SGQ - Melhoria Aprovada! 🎉',
             'Em implementação' => 'SGQ - Melhoria em Implementação',
@@ -508,6 +510,8 @@ class EmailService
     {
         $messages = [
             'Pendente análise' => 'Sua melhoria foi registrada e está aguardando análise da equipe.',
+            'Enviado para Aprovação' => 'Sua melhoria foi enviada para aprovação da gerência. Em breve você receberá um retorno.',
+            'Em andamento' => 'Sua melhoria foi aprovada e está em processo de implementação.',
             'Em análise' => 'Sua melhoria está sendo analisada pela equipe técnica.',
             'Aprovada' => 'Parabéns! Sua melhoria foi aprovada e será implementada.',
             'Em implementação' => 'Sua melhoria aprovada está sendo implementada.',
@@ -524,6 +528,8 @@ class EmailService
         $appUrl = $_ENV['APP_URL'] ?? 'https://djbr.sgqoti.com.br';
         $statusColors = [
             'Pendente análise' => '#6B7280',
+            'Enviado para Aprovação' => '#4F46E5',
+            'Em andamento' => '#3B82F6',
             'Em análise' => '#3B82F6',
             'Aprovada' => '#10B981',
             'Em implementação' => '#F59E0B',
