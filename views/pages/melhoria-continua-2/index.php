@@ -168,7 +168,13 @@ $userId = $_SESSION['user_id'];
 
   <!-- Tabela de Melhorias -->
   <div class="bg-white border rounded-lg overflow-hidden">
-    <div class="overflow-x-auto">
+    <!-- Barra de rolagem superior -->
+    <div id="scrollTop" class="overflow-x-auto border-b" style="height: 20px;">
+      <div id="scrollTopContent" style="height: 1px;"></div>
+    </div>
+    
+    <!-- Tabela principal -->
+    <div id="scrollBottom" class="overflow-x-auto">
       <table class="min-w-full text-sm">
         <thead class="bg-gray-50">
           <tr>
@@ -401,6 +407,33 @@ document.addEventListener('DOMContentLoaded', function() {
       closeMelhoriaModal();
     }
   });
+  
+  // Sincronizar barras de rolagem (topo e tabela)
+  const scrollTop = document.getElementById('scrollTop');
+  const scrollBottom = document.getElementById('scrollBottom');
+  const scrollTopContent = document.getElementById('scrollTopContent');
+  const table = document.querySelector('#scrollBottom table');
+  
+  if (scrollTop && scrollBottom && scrollTopContent && table) {
+    // Ajustar largura do conteúdo da barra superior para corresponder à largura da tabela
+    function adjustScrollTopWidth() {
+      scrollTopContent.style.width = table.offsetWidth + 'px';
+    }
+    
+    // Ajustar ao carregar e ao redimensionar
+    adjustScrollTopWidth();
+    window.addEventListener('resize', adjustScrollTopWidth);
+    
+    // Sincronizar scroll de cima para baixo
+    scrollTop.addEventListener('scroll', function() {
+      scrollBottom.scrollLeft = scrollTop.scrollLeft;
+    });
+    
+    // Sincronizar scroll de baixo para cima
+    scrollBottom.addEventListener('scroll', function() {
+      scrollTop.scrollLeft = scrollBottom.scrollLeft;
+    });
+  }
 });
 
 // Submit do formulário
