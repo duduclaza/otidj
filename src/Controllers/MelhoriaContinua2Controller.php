@@ -64,17 +64,17 @@ class MelhoriaContinua2Controller
             $stmt->execute([':user_id' => $userId, ':user_id2' => $userId]);
         }
 
-        $melhorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $melhorias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         // Buscar usuários para dropdown de responsáveis
         $stmt = $this->db->prepare('SELECT id, name FROM users WHERE status = "active" ORDER BY name');
         $stmt->execute();
-        $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $usuarios = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         // Buscar departamentos
         $stmt = $this->db->prepare('SELECT id, nome FROM departamentos ORDER BY nome');
         $stmt->execute();
-        $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $departamentos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             $title = 'Melhoria Contínua 2.0 - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/melhoria-continua-2/index.php';
@@ -198,7 +198,7 @@ class MelhoriaContinua2Controller
             // Verificar se o usuário pode editar esta melhoria
             $stmt = $this->db->prepare('SELECT criado_por, status FROM melhoria_continua_2 WHERE id = :id');
             $stmt->execute([':id' => $id]);
-            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$melhoria) {
                 echo json_encode(['success' => false, 'message' => 'Melhoria não encontrada']);
@@ -233,7 +233,7 @@ class MelhoriaContinua2Controller
             // 1. Buscar anexos antigos do banco
             $stmt = $this->db->prepare('SELECT anexos FROM melhoria_continua_2 WHERE id = :id');
             $stmt->execute([':id' => $id]);
-            $melhoriaAnexos = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoriaAnexos = $stmt->fetch(\PDO::FETCH_ASSOC);
             $anexos_antigos = !empty($melhoriaAnexos['anexos']) ? json_decode($melhoriaAnexos['anexos'], true) : [];
             
             // 2. Pegar anexos atuais (já filtrados pelo frontend - removidos os deletados)
@@ -396,7 +396,7 @@ class MelhoriaContinua2Controller
                 WHERE id = :id
             ');
             $stmt->execute([':id' => $id]);
-            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if ($melhoria) {
                 // Enviar notificações sobre mudança de status
@@ -427,7 +427,7 @@ class MelhoriaContinua2Controller
             // Verificar se pode excluir
             $stmt = $this->db->prepare('SELECT criado_por, status, anexos FROM melhoria_continua_2 WHERE id = :id');
             $stmt->execute([':id' => $id]);
-            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$melhoria) {
                 echo json_encode(['success' => false, 'message' => 'Melhoria não encontrada']);
@@ -601,7 +601,7 @@ class MelhoriaContinua2Controller
             // 1. Notificar ADMINS sobre nova melhoria
             $stmt = $this->db->prepare('SELECT id FROM users WHERE role = "admin" AND status = "active" AND id != ?');
             $stmt->execute([$criadorId]);
-            $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
             foreach ($admins as $admin) {
                 $stmt = $this->db->prepare('
@@ -711,7 +711,7 @@ class MelhoriaContinua2Controller
                 GROUP BY m.id
             ');
             $stmt->execute([':id' => $id]);
-            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$melhoria) {
                 echo json_encode(['success' => false, 'message' => 'Melhoria não encontrada']);
@@ -746,7 +746,7 @@ class MelhoriaContinua2Controller
                 GROUP BY m.id
             ');
             $stmt->execute([':id' => $id]);
-            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$melhoria) {
                 echo "Melhoria não encontrada";
@@ -819,7 +819,7 @@ class MelhoriaContinua2Controller
                 ORDER BY m.created_at DESC
             ");
             $stmt->execute($params);
-            $melhorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $melhorias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
             if (empty($melhorias)) {
                 echo json_encode(['success' => false, 'message' => 'Nenhum registro encontrado']);
@@ -936,7 +936,7 @@ class MelhoriaContinua2Controller
                 WHERE m.id = :id
             ');
             $stmt->execute([':id' => $melhoriaId]);
-            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$melhoria) {
                 error_log("❌ Melhoria #{$melhoriaId}: Não encontrada");
@@ -954,7 +954,7 @@ class MelhoriaContinua2Controller
                 $placeholders = str_repeat('?,', count($responsaveisIds) - 1) . '?';
                 $stmt = $this->db->prepare("SELECT name, email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");
                 $stmt->execute($responsaveisIds);
-                $responsaveis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $responsaveis = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 
                 error_log("Responsáveis encontrados: " . count($responsaveis));
                 foreach ($responsaveis as $resp) {
@@ -1011,7 +1011,7 @@ class MelhoriaContinua2Controller
                 WHERE m.id = :id
             ');
             $stmt->execute([':id' => $melhoriaId]);
-            $melhoria = $stmt->fetch(PDO::FETCH_ASSOC);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
 
             if (!$melhoria) {
                 error_log("❌ Melhoria #{$melhoriaId}: Não encontrada");
@@ -1034,7 +1034,7 @@ class MelhoriaContinua2Controller
                     WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''
                 ");
                 $stmt->execute($responsaveisIds);
-                $responsaveis = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $responsaveis = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                 
                 error_log("Responsáveis encontrados: " . count($responsaveis));
                 foreach ($responsaveis as $resp) {
