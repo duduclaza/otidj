@@ -352,11 +352,29 @@ class MelhoriaContinua2Controller
                 $pontuacao = !empty($_POST['pontuacao']) ? (int)$_POST['pontuacao'] : null;
             }
 
+            // DEBUG: Log detalhado do status recebido
+            error_log("=== DEBUG UPDATE STATUS ===");
+            error_log("ID: $id");
+            error_log("Status recebido: '$status'");
+            error_log("Status length: " . strlen($status));
+            error_log("Status encoding: " . mb_detect_encoding($status, 'UTF-8, ISO-8859-1', true));
+            error_log("Status hex: " . bin2hex($status));
+            
             $statusValidos = ['Pendente análise', 'Enviado para Aprovação', 'Em andamento', 'Concluída', 'Recusada', 'Pendente Adaptação'];
-            if (!in_array($status, $statusValidos)) {
-                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+            
+            // DEBUG: Comparar com cada status válido
+            foreach ($statusValidos as $sv) {
+                $match = ($status === $sv) ? 'MATCH' : 'NO MATCH';
+                error_log("Comparando com '$sv': $match");
+            }
+            
+            if (!in_array($status, $statusValidos, true)) {
+                error_log("❌ Status inválido detectado!");
+                echo json_encode(['success' => false, 'message' => 'Status inválido: ' . $status]);
                 return;
             }
+            
+            error_log("✅ Status válido confirmado!");
 
             $stmt = $this->db->prepare('
                 UPDATE melhoria_continua_2 SET 
@@ -374,7 +392,9 @@ class MelhoriaContinua2Controller
                 $params[':pontuacao'] = $pontuacao;
             }
             
+            error_log("Executando UPDATE com params: " . json_encode($params));
             $stmt->execute($params);
+            error_log("✅ UPDATE executado com sucesso!");
 
             // Enviar email automático para responsáveis sempre que o status mudar
             try {
@@ -399,19 +419,27 @@ class MelhoriaContinua2Controller
             $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if ($melhoria) {
-                // Enviar notificações sobre mudança de status
-                $this->notificarMudancaStatus($id, $melhoria['titulo'], $status, $melhoria['criado_por'], $melhoria['responsaveis']);
+                // Enviar notificações sobre mudança de status (não crítico)
+                try {
+                    error_log("Iniciando notificarMudancaStatus...");
+                    $this->notificarMudancaStatus($id, $melhoria['titulo'], $status, $melhoria['criado_por'], $melhoria['responsaveis']);
+                    error_log("✅ notificarMudancaStatus concluído");
+                } catch (\Exception $e) {
+                    error_log("⚠️ Erro em notificarMudancaStatus (não crítico): " . $e->getMessage());
+                }
             }
 
             echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso!']);
             exit;
 
         } catch (\PDOException $e) {
-            error_log('Erro PDO ao atualizar status: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao acessar banco de dados']);
+            error_log('❌ Erro PDO ao atualizar status: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            // Retornar mensagem real do erro para debug
+            echo json_encode(['success' => false, 'message' => 'Erro PDO: ' . $e->getMessage()]);
             exit;
         } catch (\Exception $e) {
-            error_log('Erro ao atualizar status: ' . $e->getMessage());
+            error_log('❌ Erro geral ao atualizar status: ' . $e->getMessage());
             error_log('Stack trace: ' . $e->getTraceAsString());
             echo json_encode(['success' => false, 'message' => 'Erro: ' . $e->getMessage()]);
             exit;
