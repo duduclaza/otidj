@@ -152,6 +152,70 @@
         </div>
       </div>
 
+      <!-- Dashboard Tabs Permissions Section -->
+      <div class="mt-6">
+        <h4 class="text-md font-semibold text-gray-900 mb-4">📊 Permissões de Abas do Dashboard</h4>
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+          <p class="text-sm text-gray-600 mb-4">Controle quais abas do Dashboard este perfil pode visualizar</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">📦</span>
+                <span class="font-medium text-gray-900">Retornados</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="dashboard_tabs[retornados]" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🧪</span>
+                <span class="font-medium text-gray-900">Amostragens 2.0</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="dashboard_tabs[amostragens]" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🏭</span>
+                <span class="font-medium text-gray-900">Fornecedores</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="dashboard_tabs[fornecedores]" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🛡️</span>
+                <span class="font-medium text-gray-900">Garantias</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="dashboard_tabs[garantias]" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            
+            <div class="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🚀</span>
+                <span class="font-medium text-gray-900">Melhorias Contínuas</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" name="dashboard_tabs[melhorias]" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
         <button type="button" onclick="cancelProfileForm()" class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
           Cancelar
