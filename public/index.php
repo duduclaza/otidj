@@ -2,6 +2,11 @@
 // Sistema SGQ OTI DJ - Versão Corrigida
 session_start();
 
+// DEBUG TEMPORÁRIO - REMOVER DEPOIS
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+
 // No-cache headers
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
