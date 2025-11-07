@@ -278,23 +278,58 @@ function construirUrlPaginacao($pagina) {
     
     <!-- Tabela principal -->
     <div id="scrollBottom" class="overflow-x-auto">
-      <table class="min-w-full text-sm">
+      <table id="melhoriaTable" class="min-w-full text-sm" style="table-layout: fixed;">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Departamento</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resultado Esperado</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Idealizador</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Criado por</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsáveis</th>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Prevista</th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="data" style="width: 120px; min-width: 80px; position: relative;">
+              Data
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="departamento" style="width: 150px; min-width: 100px; position: relative;">
+              Departamento
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="titulo" style="width: 200px; min-width: 120px; position: relative;">
+              Título
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="descricao" style="width: 250px; min-width: 150px; position: relative;">
+              Descrição
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="resultado" style="width: 250px; min-width: 150px; position: relative;">
+              Resultado Esperado
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="status" style="width: 180px; min-width: 120px; position: relative;">
+              Status
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="idealizador" style="width: 150px; min-width: 100px; position: relative;">
+              Idealizador
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="criador" style="width: 150px; min-width: 100px; position: relative;">
+              Criado por
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="responsaveis" style="width: 180px; min-width: 120px; position: relative;">
+              Responsáveis
+              <div class="resize-handle"></div>
+            </th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="data_prevista" style="width: 130px; min-width: 100px; position: relative;">
+              Data Prevista
+              <div class="resize-handle"></div>
+            </th>
             <?php if ($isAdmin): ?>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pontuação</th>
+            <th class="resizable-column px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-column="pontuacao" style="width: 120px; min-width: 80px; position: relative;">
+              Pontuação
+              <div class="resize-handle"></div>
+            </th>
             <?php endif; ?>
-            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 200px; min-width: 180px;">
+              Ações
+            </th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -465,6 +500,44 @@ function construirUrlPaginacao($pagina) {
 
 <style>
 
+/* Colunas Redimensionáveis */
+.resizable-column {
+  position: relative;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 10px;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 10;
+}
+
+.resize-handle:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-right: 2px solid #3b82f6;
+}
+
+.resize-handle:active {
+  background: rgba(59, 130, 246, 0.2);
+  border-right: 2px solid #2563eb;
+}
+
+.resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
 /* Badge BETA */
 .beta-badge {
   background: linear-gradient(45deg, #ff6b6b, #feca57);
@@ -530,6 +603,139 @@ function alterarPorPagina(porPagina) {
   urlParams.set('pagina', '1'); // Resetar para primeira página
   window.location.href = '/melhoria-continua-2?' + urlParams.toString();
 }
+
+// Sistema de Redimensionamento de Colunas
+(function() {
+  const STORAGE_KEY = 'melhoria_continua_column_widths';
+  
+  let currentColumn = null;
+  let startX = 0;
+  let startWidth = 0;
+  
+  // Carregar larguras salvas
+  function loadColumnWidths() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const widths = JSON.parse(saved);
+        Object.keys(widths).forEach(columnName => {
+          const th = document.querySelector(`th[data-column="${columnName}"]`);
+          if (th) {
+            th.style.width = widths[columnName] + 'px';
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Erro ao carregar larguras das colunas:', e);
+    }
+  }
+  
+  // Salvar larguras
+  function saveColumnWidths() {
+    try {
+      const columns = document.querySelectorAll('.resizable-column');
+      const widths = {};
+      columns.forEach(col => {
+        const columnName = col.getAttribute('data-column');
+        if (columnName) {
+          widths[columnName] = col.offsetWidth;
+        }
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
+    } catch (e) {
+      console.error('Erro ao salvar larguras das colunas:', e);
+    }
+  }
+  
+  // Iniciar redimensionamento
+  function onMouseDown(e) {
+    if (!e.target.classList.contains('resize-handle')) return;
+    
+    currentColumn = e.target.parentElement;
+    startX = e.pageX;
+    startWidth = currentColumn.offsetWidth;
+    
+    document.body.classList.add('resizing');
+    
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    
+    e.preventDefault();
+  }
+  
+  // Durante o redimensionamento
+  function onMouseMove(e) {
+    if (!currentColumn) return;
+    
+    const diff = e.pageX - startX;
+    const newWidth = startWidth + diff;
+    const minWidth = parseInt(currentColumn.style.minWidth) || 80;
+    
+    if (newWidth >= minWidth) {
+      currentColumn.style.width = newWidth + 'px';
+      
+      // Atualizar largura da barra de scroll superior
+      updateScrollBarWidth();
+    }
+    
+    e.preventDefault();
+  }
+  
+  // Finalizar redimensionamento
+  function onMouseUp(e) {
+    if (currentColumn) {
+      saveColumnWidths();
+      currentColumn = null;
+    }
+    
+    document.body.classList.remove('resizing');
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+  
+  // Atualizar largura da barra de scroll superior
+  function updateScrollBarWidth() {
+    const table = document.getElementById('melhoriaTable');
+    const scrollTopContent = document.getElementById('scrollTopContent');
+    if (table && scrollTopContent) {
+      scrollTopContent.style.width = table.offsetWidth + 'px';
+    }
+  }
+  
+  // Sincronizar scroll horizontal
+  function syncScroll() {
+    const scrollTop = document.getElementById('scrollTop');
+    const scrollBottom = document.getElementById('scrollBottom');
+    
+    if (scrollTop && scrollBottom) {
+      scrollTop.addEventListener('scroll', function() {
+        scrollBottom.scrollLeft = this.scrollLeft;
+      });
+      
+      scrollBottom.addEventListener('scroll', function() {
+        scrollTop.scrollLeft = this.scrollLeft;
+      });
+    }
+  }
+  
+  // Inicializar quando o DOM estiver pronto
+  document.addEventListener('DOMContentLoaded', function() {
+    // Carregar larguras salvas
+    loadColumnWidths();
+    
+    // Atualizar largura do scroll
+    updateScrollBarWidth();
+    
+    // Sincronizar scroll
+    syncScroll();
+    
+    // Adicionar event listeners aos handles
+    document.addEventListener('mousedown', onMouseDown);
+  });
+  
+  // Atualizar após resize da janela
+  window.addEventListener('resize', updateScrollBarWidth);
+})();
 
 // Funções do Formulário Inline
 function openMelhoriaModal() {
