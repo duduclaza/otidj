@@ -19,10 +19,16 @@ class AdminController
      */
     public function dashboard()
     {
-        // Verificar se tem permissão de dashboard (não precisa ser admin)
-        if (!\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+        // Verificar se é admin ou super_admin (role fixo, sem banco de permissões)
+        $userRole = $_SESSION['user_role'] ?? '';
+        $allowedRoles = ['admin', 'super_admin'];
+        
+        if (!in_array($userRole, $allowedRoles)) {
             http_response_code(403);
-            echo "<h1>Acesso Negado</h1><p>Você não tem permissão para acessar o dashboard.</p>";
+            echo "<h1>⛔ Acesso Negado</h1>";
+            echo "<p>O dashboard é exclusivo para Administradores e Super Administradores.</p>";
+            echo "<p>Seu perfil atual: <strong>" . htmlspecialchars($userRole) . "</strong></p>";
+            echo "<p><a href='/inicio' style='color: #3B82F6;'>← Voltar para Início</a></p>";
             return;
         }
         
@@ -425,65 +431,6 @@ class AdminController
         return $password;
     }
 
-    /**
-     * Get melhorias dashboard data
-     */
-    public function getMelhoriasData()
-    {
-        header('Content-Type: application/json');
-        header('Content-Type: application/json; charset=utf-8');
-        
-        try {
-            // Verificar se PHPMailer está disponível
-            if (!class_exists('\PHPMailer\PHPMailer\PHPMailer')) {
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'PHPMailer não está instalado'
-                ]);
-                exit;
-            }
-            
-            // Verificar configurações
-            $config = [
-                'MAIL_HOST' => $_ENV['MAIL_HOST'] ?? null,
-                'MAIL_USERNAME' => $_ENV['MAIL_USERNAME'] ?? null,
-                'MAIL_PASSWORD' => $_ENV['MAIL_PASSWORD'] ?? null,
-                'MAIL_PORT' => $_ENV['MAIL_PORT'] ?? null,
-            ];
-            
-            $missing = [];
-            foreach ($config as $key => $value) {
-                if (empty($value)) {
-                    $missing[] = $key;
-                }
-            }
-            
-            if (!empty($missing)) {
-                echo json_encode([
-                    'success' => false, 
-                    'message' => 'Configurações ausentes: ' . implode(', ', $missing)
-                ]);
-                exit;
-            }
-            
-            echo json_encode([
-                'success' => true, 
-                'message' => 'PHPMailer instalado e configurações OK',
-                'config' => [
-                    'host' => $config['MAIL_HOST'],
-                    'port' => $config['MAIL_PORT'],
-                    'username' => $config['MAIL_USERNAME']
-                ]
-            ]);
-            
-        } catch (\Exception $e) {
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Erro: ' . $e->getMessage()
-            ]);
-        }
-        exit;
-    }
     
     /**
      * Send clean JSON response
