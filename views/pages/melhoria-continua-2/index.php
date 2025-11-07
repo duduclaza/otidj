@@ -31,10 +31,21 @@ function construirUrlPaginacao($pagina) {
 
   <!-- Filtros -->
   <div class="bg-white border rounded-lg p-4">
-    <form method="GET" action="/melhoria-continua-2" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form method="GET" action="/melhoria-continua-2" class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
         <input type="text" name="search" value="<?= $_GET['search'] ?? '' ?>" placeholder="Título, descrição..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
+        <select name="departamento_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <option value="">Todos</option>
+          <?php foreach ($departamentos as $dept): ?>
+            <option value="<?= $dept['id'] ?>" <?= ($_GET['departamento_id'] ?? '') == $dept['id'] ? 'selected' : '' ?>>
+              <?= e($dept['nome']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>

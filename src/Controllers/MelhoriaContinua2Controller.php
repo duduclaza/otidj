@@ -67,6 +67,12 @@ class MelhoriaContinua2Controller
                 $params[':data_fim'] = $_GET['data_fim'];
             }
 
+            // Filtro por departamento
+            if (!empty($_GET['departamento_id'])) {
+                $where[] = "m.departamento_id = :departamento_id";
+                $params[':departamento_id'] = $_GET['departamento_id'];
+            }
+
         // Buscar melhorias baseado nas regras de visibilidade
         if ($isAdmin) {
             // Construir WHERE clause
