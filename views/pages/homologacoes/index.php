@@ -965,7 +965,6 @@ function renderDetails(data) {
             </div>
             
             <div class="bg-yellow-50 p-4 rounded-lg">
-                <h3 class="font-bold mb-3"> Atualizar Status</h3>
                 <div class="flex items-center mb-3">
                     <span class="text-sm font-medium">Status Atual:</span>
                     <span class="ml-2 badge-status badge-${h.status}">${statusLabels[h.status]}</span>
