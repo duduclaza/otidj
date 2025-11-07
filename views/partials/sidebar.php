@@ -28,7 +28,7 @@ $menu = [
   [
     'label' => 'Gestão da Qualidade', 
     'href' => '#', 
-    'icon' => '📊', 
+    'icon' => '📋', 
     'category' => true,
     'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'garantias', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc'],
     'submenu' => [
