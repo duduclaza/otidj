@@ -2305,18 +2305,28 @@ class AdminController
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             $data['pontuacaoMedia'] = round($result['media'] ?? 0, 2);
 
-            // 5. Totais
+            // 5. Totais e contagem individual por status
             $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2");
             $data['totais']['total'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
 
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Concluída'");
-            $data['totais']['concluidas'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+            // Contagem individual de cada status
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Pendente análise'");
+            $data['totais']['pendente_analise'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Enviado para Aprovação'");
+            $data['totais']['enviado_aprovacao'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
 
             $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Em andamento'");
             $data['totais']['em_andamento'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
 
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status IN ('Pendente análise', 'Enviado para Aprovação', 'Pendente Adaptação')");
-            $data['totais']['pendentes'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Concluída'");
+            $data['totais']['concluida'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Recusada'");
+            $data['totais']['recusada'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Pendente Adaptação'");
+            $data['totais']['pendente_adaptacao'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
 
             echo json_encode($data);
 

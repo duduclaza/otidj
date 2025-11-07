@@ -582,59 +582,91 @@
   <!-- CONTEÚDO ABA MELHORIAS -->
   <div id="content-melhorias" class="tab-content space-y-6">
     
-    <!-- Cards de Totais -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- Cards de Status (baseados nos status reais do grid) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       
-      <!-- Card Total -->
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
-        <div class="flex items-center justify-between mb-4">
-          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
+      <!-- Card: Pendente Análise -->
+      <div class="bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg shadow-lg p-5 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-3xl">⏳</span>
+          <div class="text-right">
+            <p id="status-pendente-analise" class="text-3xl font-bold">0</p>
           </div>
         </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Total de Melhorias</h3>
-        <p id="melhorias-total" class="text-4xl font-bold">0</p>
+        <h3 class="text-sm font-medium text-white text-opacity-90">Pendente Análise</h3>
+        <div class="mt-2 h-1 bg-white bg-opacity-20 rounded-full">
+          <div id="bar-pendente-analise" class="h-1 bg-white rounded-full" style="width: 0%"></div>
+        </div>
       </div>
 
-      <!-- Card Concluídas -->
-      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
-        <div class="flex items-center justify-between mb-4">
-          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
+      <!-- Card: Enviado para Aprovação -->
+      <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-lg p-5 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-3xl">📤</span>
+          <div class="text-right">
+            <p id="status-enviado-aprovacao" class="text-3xl font-bold">0</p>
           </div>
         </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Concluídas</h3>
-        <p id="melhorias-concluidas" class="text-4xl font-bold">0</p>
+        <h3 class="text-sm font-medium text-white text-opacity-90">Enviado para Aprovação</h3>
+        <div class="mt-2 h-1 bg-white bg-opacity-20 rounded-full">
+          <div id="bar-enviado-aprovacao" class="h-1 bg-white rounded-full" style="width: 0%"></div>
+        </div>
       </div>
 
-      <!-- Card Em Andamento -->
-      <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
-        <div class="flex items-center justify-between mb-4">
-          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
+      <!-- Card: Em Andamento -->
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-5 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-3xl">🔄</span>
+          <div class="text-right">
+            <p id="status-em-andamento" class="text-3xl font-bold">0</p>
           </div>
         </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Em Andamento</h3>
-        <p id="melhorias-andamento" class="text-4xl font-bold">0</p>
+        <h3 class="text-sm font-medium text-white text-opacity-90">Em Andamento</h3>
+        <div class="mt-2 h-1 bg-white bg-opacity-20 rounded-full">
+          <div id="bar-em-andamento" class="h-1 bg-white rounded-full" style="width: 0%"></div>
+        </div>
       </div>
 
-      <!-- Card Pendentes -->
-      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
-        <div class="flex items-center justify-between mb-4">
-          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
+      <!-- Card: Concluída -->
+      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-5 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-3xl">✅</span>
+          <div class="text-right">
+            <p id="status-concluida" class="text-3xl font-bold">0</p>
           </div>
         </div>
-        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Pendentes</h3>
-        <p id="melhorias-pendentes" class="text-4xl font-bold">0</p>
+        <h3 class="text-sm font-medium text-white text-opacity-90">Concluída</h3>
+        <div class="mt-2 h-1 bg-white bg-opacity-20 rounded-full">
+          <div id="bar-concluida" class="h-1 bg-white rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Card: Recusada -->
+      <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-lg shadow-lg p-5 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-3xl">❌</span>
+          <div class="text-right">
+            <p id="status-recusada" class="text-3xl font-bold">0</p>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90">Recusada</h3>
+        <div class="mt-2 h-1 bg-white bg-opacity-20 rounded-full">
+          <div id="bar-recusada" class="h-1 bg-white rounded-full" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Card: Pendente Adaptação -->
+      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-5 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-3xl">📝</span>
+          <div class="text-right">
+            <p id="status-pendente-adaptacao" class="text-3xl font-bold">0</p>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90">Pendente Adaptação</h3>
+        <div class="mt-2 h-1 bg-white bg-opacity-20 rounded-full">
+          <div id="bar-pendente-adaptacao" class="h-1 bg-white rounded-full" style="width: 0%"></div>
+        </div>
       </div>
 
     </div>
@@ -2411,11 +2443,41 @@ async function loadMelhoriasData() {
       return;
     }
 
-    // Atualizar cards de totais
-    document.getElementById('melhorias-total').textContent = data.totais.total.toLocaleString('pt-BR');
-    document.getElementById('melhorias-concluidas').textContent = data.totais.concluidas.toLocaleString('pt-BR');
-    document.getElementById('melhorias-andamento').textContent = data.totais.em_andamento.toLocaleString('pt-BR');
-    document.getElementById('melhorias-pendentes').textContent = data.totais.pendentes.toLocaleString('pt-BR');
+    // Criar mapa de status para acesso rápido
+    const statusMap = {};
+    data.statusDistribution.forEach(item => {
+      statusMap[item.status] = parseInt(item.total);
+    });
+
+    const total = data.totais.total || 1; // Evitar divisão por zero
+
+    // Atualizar cards de status com dados reais
+    const statusCards = {
+      'Pendente análise': { id: 'pendente-analise', value: statusMap['Pendente análise'] || 0 },
+      'Enviado para Aprovação': { id: 'enviado-aprovacao', value: statusMap['Enviado para Aprovação'] || 0 },
+      'Em andamento': { id: 'em-andamento', value: statusMap['Em andamento'] || 0 },
+      'Concluída': { id: 'concluida', value: statusMap['Concluída'] || 0 },
+      'Recusada': { id: 'recusada', value: statusMap['Recusada'] || 0 },
+      'Pendente Adaptação': { id: 'pendente-adaptacao', value: statusMap['Pendente Adaptação'] || 0 }
+    };
+
+    // Atualizar cada card
+    Object.keys(statusCards).forEach(statusName => {
+      const card = statusCards[statusName];
+      const valueEl = document.getElementById(`status-${card.id}`);
+      const barEl = document.getElementById(`bar-${card.id}`);
+      
+      if (valueEl) {
+        valueEl.textContent = card.value.toLocaleString('pt-BR');
+      }
+      
+      if (barEl && total > 0) {
+        const percentage = (card.value / total) * 100;
+        barEl.style.width = `${percentage}%`;
+      }
+    });
+
+    // Atualizar pontuação média
     document.getElementById('melhorias-pontuacao-media').textContent = data.pontuacaoMedia.toFixed(1);
 
     // Renderizar gráficos
