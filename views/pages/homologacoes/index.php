@@ -27,14 +27,63 @@
     padding: 14px;
     margin-bottom: 12px;
     box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
-    cursor: pointer;
+    cursor: grab;
     transition: all 0.2s;
     border-left: 4px solid;
+    position: relative;
 }
 
 .kanban-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+}
+
+.kanban-card.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    transform: rotate(2deg);
+}
+
+.kanban-column.drag-over {
+    background: linear-gradient(180deg, #e0e7ff 0%, #e0f2fe 100%);
+    border: 2px dashed #3b82f6;
+}
+
+/* Botões de navegação entre etapas */
+.card-nav-buttons {
+    display: flex;
+    gap: 4px;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.card-nav-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-nav-btn:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
+    transform: scale(1.1);
+}
+
+.card-nav-btn:active {
+    transform: scale(0.95);
+}
+
+.card-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* Cores por status */
@@ -182,19 +231,37 @@
                 </div>
                 <span class="bg-yellow-600/15 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-600/20 font-semibold"><?= count($homologacoes['aguardando_recebimento']) ?></span>
             </div>
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="aguardando_recebimento">
                 <?php foreach ($homologacoes['aguardando_recebimento'] as $h): ?>
-                    <div class="kanban-card status-aguardando_recebimento relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-aguardando_recebimento relative" 
+                         data-id="<?= $h['id'] ?>" 
+                         data-status="aguardando_recebimento"
+                         draggable="true"
+                         onclick="openCardDetails(<?= $h['id'] ?>)">
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">
                             🗑️
                         </button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
-                        <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center justify-between text-xs mb-6">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
                             <span class="text-slate-500">📎 <?= $h['total_anexos'] ?></span>
                             <?php endif; ?>
+                        </div>
+                        <!-- Botões de Navegação -->
+                        <div class="card-nav-buttons">
+                            <button type="button" class="card-nav-btn" 
+                                    onclick="event.stopPropagation(); moverParaEtapaAnterior(<?= $h['id'] ?>, 'aguardando_recebimento')"
+                                    title="Retornar para etapa anterior"
+                                    disabled>
+                                ⬅️
+                            </button>
+                            <button type="button" class="card-nav-btn" 
+                                    onclick="event.stopPropagation(); moverParaProximaEtapa(<?= $h['id'] ?>, 'aguardando_recebimento')"
+                                    title="Enviar para próxima etapa">
+                                ➡️
+                            </button>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -210,9 +277,13 @@
                 </div>
                 <span class="bg-blue-600/15 text-blue-800 text-xs px-2 py-1 rounded-full border border-blue-600/20 font-semibold"><?= count($homologacoes['recebido']) ?></span>
             </div>
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="recebido">
                 <?php foreach ($homologacoes['recebido'] as $h): ?>
-                    <div class="kanban-card status-recebido relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-recebido relative" 
+                         data-id="<?= $h['id'] ?>" 
+                         data-status="recebido"
+                         draggable="true"
+                         onclick="openCardDetails(<?= $h['id'] ?>)">
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
@@ -236,9 +307,13 @@
                 </div>
                 <span class="bg-orange-600/15 text-orange-800 text-xs px-2 py-1 rounded-full border border-orange-600/20 font-semibold"><?= count($homologacoes['em_analise']) ?></span>
             </div>
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="em_analise">
                 <?php foreach ($homologacoes['em_analise'] as $h): ?>
-                    <div class="kanban-card status-em_analise relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-em_analise relative" 
+                         data-id="<?= $h['id'] ?>" 
+                         data-status="em_analise"
+                         draggable="true"
+                         onclick="openCardDetails(<?= $h['id'] ?>)">
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
@@ -272,9 +347,13 @@
                 </div>
                 <span class="bg-purple-600/15 text-purple-800 text-xs px-2 py-1 rounded-full border border-purple-600/20 font-semibold"><?= count($homologacoes['em_homologacao']) ?></span>
             </div>
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="em_homologacao">
                 <?php foreach ($homologacoes['em_homologacao'] as $h): ?>
-                    <div class="kanban-card status-em_homologacao relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-em_homologacao relative" 
+                         data-id="<?= $h['id'] ?>" 
+                         data-status="em_homologacao"
+                         draggable="true"
+                         onclick="openCardDetails(<?= $h['id'] ?>)">
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
@@ -308,9 +387,13 @@
                 </div>
                 <span class="bg-green-600/15 text-green-800 text-xs px-2 py-1 rounded-full border border-green-600/20 font-semibold"><?= count($homologacoes['aprovado']) ?></span>
             </div>
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="aprovado">
                 <?php foreach ($homologacoes['aprovado'] as $h): ?>
-                    <div class="kanban-card status-aprovado relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-aprovado relative" 
+                         data-id="<?= $h['id'] ?>" 
+                         data-status="aprovado"
+                         draggable="true"
+                         onclick="openCardDetails(<?= $h['id'] ?>)">
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
@@ -344,9 +427,13 @@
                 </div>
                 <span class="bg-red-600/15 text-red-800 text-xs px-2 py-1 rounded-full border border-red-600/20 font-semibold"><?= count($homologacoes['reprovado']) ?></span>
             </div>
-            <div class="kanban-column">
+            <div class="kanban-column" data-status="reprovado">
                 <?php foreach ($homologacoes['reprovado'] as $h): ?>
-                    <div class="kanban-card status-reprovado relative" onclick="openCardDetails(<?= $h['id'] ?>)">
+                    <div class="kanban-card status-reprovado relative" 
+                         data-id="<?= $h['id'] ?>" 
+                         data-status="reprovado"
+                         draggable="true"
+                         onclick="openCardDetails(<?= $h['id'] ?>)">
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
@@ -1522,6 +1609,238 @@ async function carregarRespostasChecklist(homologacaoId, checklistId) {
         console.error('Erro ao carregar respostas:', error);
     }
 }
+
+// ==================== NAVEGAÇÃO ENTRE ETAPAS ====================
+
+// Mapeamento de status e ordem
+const statusFlow = [
+    'aguardando_recebimento',
+    'recebido',
+    'em_analise',
+    'em_homologacao',
+    'aprovado',
+    'reprovado'
+];
+
+const statusNames = {
+    'aguardando_recebimento': 'Aguardando Recebimento',
+    'recebido': 'Recebido',
+    'em_analise': 'Em Análise',
+    'em_homologacao': 'Em Homologação',
+    'aprovado': 'Aprovado',
+    'reprovado': 'Reprovado'
+};
+
+// Mover para próxima etapa
+async function moverParaProximaEtapa(homologacaoId, statusAtual) {
+    const currentIndex = statusFlow.indexOf(statusAtual);
+    if (currentIndex === -1 || currentIndex >= statusFlow.length - 1) {
+        alert('❌ Não há próxima etapa disponível');
+        return;
+    }
+    
+    const proximoStatus = statusFlow[currentIndex + 1];
+    await mudarStatus(homologacaoId, proximoStatus, '➡️');
+}
+
+// Mover para etapa anterior
+async function moverParaEtapaAnterior(homologacaoId, statusAtual) {
+    const currentIndex = statusFlow.indexOf(statusAtual);
+    if (currentIndex <= 0) {
+        alert('❌ Não há etapa anterior disponível');
+        return;
+    }
+    
+    const statusAnterior = statusFlow[currentIndex - 1];
+    await mudarStatus(homologacaoId, statusAnterior, '⬅️');
+}
+
+// Função para mudar status
+async function mudarStatus(homologacaoId, novoStatus, direcao) {
+    const confirmar = confirm(`${direcao} Deseja mover para "${statusNames[novoStatus]}"?`);
+    if (!confirmar) return;
+    
+    try {
+        const response = await fetch(`/homologacoes/${homologacaoId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: novoStatus })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Status atualizado com sucesso!');
+            location.reload();
+        } else {
+            alert('❌ ' + (result.message || 'Erro ao atualizar status'));
+        }
+    } catch (error) {
+        console.error('Erro ao mudar status:', error);
+        alert('❌ Erro ao atualizar status');
+    }
+}
+
+// ==================== DRAG & DROP ====================
+
+let draggedCard = null;
+
+// Inicializar drag & drop após o carregamento da página
+document.addEventListener('DOMContentLoaded', function() {
+    inicializarDragAndDrop();
+    adicionarBotoesNavegacao();
+});
+
+function inicializarDragAndDrop() {
+    // Selecionar todos os cards
+    const cards = document.querySelectorAll('.kanban-card');
+    const columns = document.querySelectorAll('.kanban-column');
+    
+    // Adicionar eventos de drag aos cards
+    cards.forEach(card => {
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragend', handleDragEnd);
+    });
+    
+    // Adicionar eventos de drop às colunas
+    columns.forEach(column => {
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('dragleave', handleDragLeave);
+        column.addEventListener('drop', handleDrop);
+    });
+}
+
+function handleDragStart(e) {
+    draggedCard = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    
+    // Remover highlight de todas as colunas
+    document.querySelectorAll('.kanban-column').forEach(col => {
+        col.classList.remove('drag-over');
+    });
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) {
+        e.preventDefault();
+    }
+    
+    e.dataTransfer.dropEffect = 'move';
+    this.classList.add('drag-over');
+    
+    return false;
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+    
+    this.classList.remove('drag-over');
+    
+    if (draggedCard !== this) {
+        const novoStatus = this.getAttribute('data-status');
+        const homologacaoId = draggedCard.getAttribute('data-id');
+        const statusAtual = draggedCard.getAttribute('data-status');
+        
+        if (novoStatus && homologacaoId && novoStatus !== statusAtual) {
+            // Confirmar mudança
+            const confirmar = confirm(`Mover para "${statusNames[novoStatus]}"?`);
+            if (confirmar) {
+                atualizarStatusViaApi(homologacaoId, novoStatus);
+            }
+        }
+    }
+    
+    return false;
+}
+
+async function atualizarStatusViaApi(homologacaoId, novoStatus) {
+    try {
+        const response = await fetch(`/homologacoes/${homologacaoId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: novoStatus })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ Status atualizado com sucesso!');
+            location.reload();
+        } else {
+            alert('❌ ' + (result.message || 'Erro ao atualizar status'));
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar status:', error);
+        alert('❌ Erro ao atualizar status');
+    }
+}
+
+// Adicionar botões de navegação dinamicamente a todos os cards
+function adicionarBotoesNavegacao() {
+    const cards = document.querySelectorAll('.kanban-card');
+    
+    cards.forEach(card => {
+        // Verificar se já tem botões
+        if (card.querySelector('.card-nav-buttons')) {
+            return;
+        }
+        
+        const homologacaoId = card.getAttribute('data-id');
+        const statusAtual = card.getAttribute('data-status');
+        const currentIndex = statusFlow.indexOf(statusAtual);
+        
+        // Criar container de botões
+        const navButtons = document.createElement('div');
+        navButtons.className = 'card-nav-buttons';
+        
+        // Botão voltar
+        const btnAnterior = document.createElement('button');
+        btnAnterior.type = 'button';
+        btnAnterior.className = 'card-nav-btn';
+        btnAnterior.innerHTML = '⬅️';
+        btnAnterior.title = 'Retornar para etapa anterior';
+        btnAnterior.disabled = currentIndex <= 0;
+        btnAnterior.onclick = (e) => {
+            e.stopPropagation();
+            moverParaEtapaAnterior(homologacaoId, statusAtual);
+        };
+        
+        // Botão avançar
+        const btnProximo = document.createElement('button');
+        btnProximo.type = 'button';
+        btnProximo.className = 'card-nav-btn';
+        btnProximo.innerHTML = '➡️';
+        btnProximo.title = 'Enviar para próxima etapa';
+        btnProximo.disabled = currentIndex >= statusFlow.length - 1;
+        btnProximo.onclick = (e) => {
+            e.stopPropagation();
+            moverParaProximaEtapa(homologacaoId, statusAtual);
+        };
+        
+        navButtons.appendChild(btnAnterior);
+        navButtons.appendChild(btnProximo);
+        card.appendChild(navButtons);
+        
+        // Adicionar margem inferior no conteúdo para os botões
+        const lastInfo = card.querySelector('.flex.items-center.justify-between.text-xs');
+        if (lastInfo) {
+            lastInfo.classList.add('mb-6');
+        }
+    });
+}
+
 </script>
 
 <?php // Fim da view de Homologações ?>
