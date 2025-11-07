@@ -39,12 +39,16 @@ class AdminController
             // Get totais acumulados dos gráficos
             $totaisAcumulados = $this->getTotaisAcumuladosGraficos();
             
+            // Buscar permissões de abas do dashboard
+            $dashboardTabs = $this->getDashboardTabPermissions();
+            
             $title = 'Painel Administrativo - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/admin/dashboard.php';
             include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Exception $e) {
             $error = 'Erro ao carregar dashboard: ' . $e->getMessage();
             $totaisAcumulados = ['retornados_total' => 0, 'destinos_total' => 0, 'valor_recuperado' => 0];
+            $dashboardTabs = ['retornados' => true, 'amostragens' => true, 'fornecedores' => true, 'garantias' => true, 'melhorias' => true];
             $title = 'Erro - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/admin/dashboard.php';
             include __DIR__ . '/../../views/layouts/main.php';
@@ -2340,4 +2344,65 @@ class AdminController
         exit;
     }
     
-}
+    /**
+     * Buscar permissões de abas do dashboard para o perfil do usuário
+     */
+    private function getDashboardTabPermissions()
+    {
+        $tabs = [
+            'retornados' => true,
+            'amostragens' => true,
+            'fornecedores' => true,
+            'garantias' => true,
+            'melhorias' => true
+        ];
+        
+        try {
+            // Buscar profile_id do usuário
+            $userId = $_SESSION['user_id'];
+            $stmt = $this->db->prepare("SELECT profile_id FROM users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$user || !$user['profile_id']) {
+                // Sem perfil, libera tudo (admin)
+                return $tabs;
+            }
+            
+            $profileId = $user['profile_id'];
+            
+            // Verificar se a tabela de permissões existe
+            $tableExists = $this->db->query("SHOW TABLES LIKE 'dashboard_tab_permissions'")->rowCount() > 0;
+            
+            if (!$tableExists) {
+                // Tabela não existe ainda, libera tudo
+                return $tabs;
+            }
+            
+            // Buscar permissões específicas do perfil
+            $stmt = $this->db->prepare("
+                SELECT tab_name, can_view 
+                FROM dashboard_tab_permissions 
+                WHERE profile_id = ?
+            ");
+            $stmt->execute([$profileId]);
+            $permissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            if (empty($permissions)) {
+                // Sem permissões configuradas, libera tudo
+                return $tabs;
+            }
+            
+            // Aplicar permissões
+            foreach ($permissions as $perm) {
+                $tabs[$perm['tab_name']] = (bool)$perm['can_view'];
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao buscar permissões de abas do dashboard: " . $e->getMessage());
+            // Em caso de erro, libera tudo
+        }
+        
+        return $tabs;
+    }
+}    

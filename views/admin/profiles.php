@@ -1,3 +1,70 @@
+<style>
+/* Toggle Switch Moderno */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #3b82f6;
+}
+
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.toggle-switch:hover .toggle-slider {
+  background-color: #94a3b8;
+}
+
+.toggle-switch input:checked:hover + .toggle-slider {
+  background-color: #2563eb;
+}
+
+/* Animação suave */
+.toggle-slider,
+.toggle-slider:before {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>
+
 <?php if (isset($error)): ?>
   <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
     <?= e($error) ?>
@@ -199,38 +266,33 @@ function generatePermissionsGrid() {
       <div class="grid grid-cols-6 gap-2 py-3 border-b border-gray-200 items-center min-w-max">
         <div class="font-medium text-gray-900 text-sm pr-2">${module.name}</div>
         <div class="text-center">
-          <label class="inline-flex items-center justify-center">
-            <input type="checkbox" 
-                   name="permissions[${module.key}][view]" 
-                   class="form-checkbox h-4 w-4 text-blue-600 rounded">
+          <label class="toggle-switch">
+            <input type="checkbox" name="permissions[${module.key}][view]">
+            <span class="toggle-slider"></span>
           </label>
         </div>
         <div class="text-center">
-          <label class="inline-flex items-center justify-center">
-            <input type="checkbox" 
-                   name="permissions[${module.key}][edit]" 
-                   class="form-checkbox h-4 w-4 text-blue-600 rounded">
+          <label class="toggle-switch">
+            <input type="checkbox" name="permissions[${module.key}][edit]">
+            <span class="toggle-slider"></span>
           </label>
         </div>
         <div class="text-center">
-          <label class="inline-flex items-center justify-center">
-            <input type="checkbox" 
-                   name="permissions[${module.key}][delete]" 
-                   class="form-checkbox h-4 w-4 text-blue-600 rounded">
+          <label class="toggle-switch">
+            <input type="checkbox" name="permissions[${module.key}][delete]">
+            <span class="toggle-slider"></span>
           </label>
         </div>
         <div class="text-center">
-          <label class="inline-flex items-center justify-center">
-            <input type="checkbox" 
-                   name="permissions[${module.key}][import]" 
-                   class="form-checkbox h-4 w-4 text-blue-600 rounded">
+          <label class="toggle-switch">
+            <input type="checkbox" name="permissions[${module.key}][import]">
+            <span class="toggle-slider"></span>
           </label>
         </div>
         <div class="text-center">
-          <label class="inline-flex items-center justify-center">
-            <input type="checkbox" 
-                   name="permissions[${module.key}][export]" 
-                   class="form-checkbox h-4 w-4 text-blue-600 rounded">
+          <label class="toggle-switch">
+            <input type="checkbox" name="permissions[${module.key}][export]">
+            <span class="toggle-slider"></span>
           </label>
         </div>
       </div>
