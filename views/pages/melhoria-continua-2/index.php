@@ -242,10 +242,10 @@ $userId = $_SESSION['user_id'];
             </td>
             <?php if ($isAdmin): ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <input type="number" min="0" max="10" value="<?= $melhoria['pontuacao'] ?? '' ?>" 
+              <input type="number" min="0" max="3" step="1" value="<?= $melhoria['pontuacao'] ?? '' ?>" 
                      onchange="updatePontuacaoInline(<?= $melhoria['id'] ?>, this.value)"
                      class="w-16 border border-gray-300 rounded px-2 py-1 text-center"
-                     placeholder="0-10">
+                     placeholder="0-3">
             </td>
             <?php endif; ?>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -499,8 +499,8 @@ async function updateStatusInline(id, status) {
 
 // Atualizar Pontuação Inline (Admin)
 async function updatePontuacaoInline(id, pontuacao) {
-  if (pontuacao < 0 || pontuacao > 10) {
-    alert('❌ Pontuação deve estar entre 0 e 10');
+  if (pontuacao < 0 || pontuacao > 3) {
+    alert('❌ Pontuação deve estar entre 0 e 3');
     return;
   }
   
@@ -531,7 +531,7 @@ function generateDetailHTML(m) {
         <div><strong>🏢 Departamento:</strong> ${m.departamento_nome || 'N/A'}</div>
         <div><strong>👤 Criado por:</strong> ${m.criador_nome}</div>
         <div><strong>📊 Status:</strong> <span class="status-badge status-${m.status.toLowerCase().replace(/ /g, '-')}">${m.status}</span></div>
-        ${m.pontuacao ? `<div><strong>⭐ Pontuação:</strong> ${m.pontuacao}/10</div>` : ''}
+        ${m.pontuacao ? `<div><strong>⭐ Pontuação:</strong> ${m.pontuacao}/3</div>` : ''}
       </div>
       
       <div class="border-t pt-4">
@@ -739,7 +739,7 @@ function generatePrintHTML(m) {
           <div class="field"><strong>Departamento:</strong> ${m.departamento_nome || 'N/A'}</div>
           <div class="field"><strong>Criado por:</strong> ${m.criador_nome}</div>
           <div class="field"><strong>Status:</strong> ${m.status}</div>
-          ${m.pontuacao ? `<div class="field"><strong>Pontuação:</strong> ${m.pontuacao}/10 ⭐</div>` : ''}
+          ${m.pontuacao ? `<div class="field"><strong>Pontuação:</strong> ${m.pontuacao}/3 ⭐</div>` : ''}
         </div>
       </div>
       

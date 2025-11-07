@@ -78,7 +78,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     <?php if (!empty($melhoria['pontuacao'])): ?>
                     <div class="bg-yellow-50 p-4 rounded-lg">
                         <p class="text-xs text-yellow-600 font-semibold mb-1">⭐ PONTUAÇÃO</p>
-                        <p class="text-sm font-medium"><?= $melhoria['pontuacao'] ?>/10</p>
+                        <p class="text-sm font-medium"><?= $melhoria['pontuacao'] ?>/3</p>
                     </div>
                     <?php endif; ?>
                 </div>

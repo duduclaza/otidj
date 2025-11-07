@@ -716,7 +716,7 @@
         <div>
           <h3 class="text-lg font-medium text-white text-opacity-90 mb-2">⭐ Pontuação Média das Melhorias</h3>
           <p id="melhorias-pontuacao-media" class="text-5xl font-bold">0.0</p>
-          <p class="text-sm text-white text-opacity-80 mt-2">Escala de 0 a 10</p>
+          <p class="text-sm text-white text-opacity-80 mt-2">Escala de 0 a 3</p>
         </div>
         <div class="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
           <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
