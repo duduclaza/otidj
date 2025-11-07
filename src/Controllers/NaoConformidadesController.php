@@ -36,36 +36,57 @@ class NaoConformidadesController
         $userId = $_SESSION['user_id'];
         $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
 
-        // Buscar todas as NCs
-        $stmt = $this->db->prepare("
-            SELECT 
-                nc.*,
-                uc.name as criador_nome,
-                ur.name as responsavel_nome,
-                ur.email as responsavel_email,
-                ua.name as acao_nome,
-                us.name as solucao_nome,
-                COUNT(DISTINCT a.id) as total_anexos
-            FROM nao_conformidades nc
-            LEFT JOIN users uc ON nc.usuario_criador_id = uc.id
-            LEFT JOIN users ur ON nc.usuario_responsavel_id = ur.id
-            LEFT JOIN users ua ON nc.usuario_acao_id = ua.id
-            LEFT JOIN users us ON nc.usuario_solucao_id = us.id
-            LEFT JOIN nao_conformidades_anexos a ON nc.id = a.nc_id
-            GROUP BY nc.id
-            ORDER BY nc.created_at DESC
-        ");
-        $stmt->execute();
-        $todasNcs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Inicializar arrays vazios
+        $todasNcs = [];
+        $pendentes = [];
+        $emAndamento = [];
+        $solucionadas = [];
+        $usuarios = [];
 
-        // Separar por status
-        $pendentes = array_filter($todasNcs, fn($nc) => $nc['status'] === 'pendente');
-        $emAndamento = array_filter($todasNcs, fn($nc) => $nc['status'] === 'em_andamento');
-        $solucionadas = array_filter($todasNcs, fn($nc) => $nc['status'] === 'solucionada');
+        try {
+            // Buscar todas as NCs
+            $stmt = $this->db->prepare("
+                SELECT 
+                    nc.*,
+                    uc.name as criador_nome,
+                    ur.name as responsavel_nome,
+                    ur.email as responsavel_email,
+                    ua.name as acao_nome,
+                    us.name as solucao_nome,
+                    COUNT(DISTINCT a.id) as total_anexos
+                FROM nao_conformidades nc
+                LEFT JOIN users uc ON nc.usuario_criador_id = uc.id
+                LEFT JOIN users ur ON nc.usuario_responsavel_id = ur.id
+                LEFT JOIN users ua ON nc.usuario_acao_id = ua.id
+                LEFT JOIN users us ON nc.usuario_solucao_id = us.id
+                LEFT JOIN nao_conformidades_anexos a ON nc.id = a.nc_id
+                GROUP BY nc.id
+                ORDER BY nc.created_at DESC
+            ");
+            $stmt->execute();
+            $todasNcs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Buscar todos os usuários para o combo
-        $stmt = $this->db->query("SELECT id, name, email FROM users WHERE active = 1 ORDER BY name");
-        $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Separar por status
+            if (!empty($todasNcs)) {
+                $pendentes = array_filter($todasNcs, function($nc) { 
+                    return $nc['status'] === 'pendente'; 
+                });
+                $emAndamento = array_filter($todasNcs, function($nc) { 
+                    return $nc['status'] === 'em_andamento'; 
+                });
+                $solucionadas = array_filter($todasNcs, function($nc) { 
+                    return $nc['status'] === 'solucionada'; 
+                });
+            }
+
+            // Buscar todos os usuários para o combo
+            $stmt = $this->db->query("SELECT id, name, email FROM users WHERE active = 1 ORDER BY name");
+            $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (\Exception $e) {
+            error_log("Erro ao carregar NCs: " . $e->getMessage());
+            // Continua com arrays vazios
+        }
 
         // Usar o layout padrão
         $title = 'Não Conformidades - SGQ OTI DJ';
