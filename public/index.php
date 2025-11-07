@@ -392,6 +392,7 @@ $router->get('/homologacoes/test', [App\Controllers\HomologacoesTestController::
 $router->get('/homologacoes', [App\Controllers\HomologacoesKanbanController::class, 'index']);
 $router->post('/homologacoes/store', [App\Controllers\HomologacoesKanbanController::class, 'store']);
 $router->post('/homologacoes/update-status', [App\Controllers\HomologacoesKanbanController::class, 'updateStatus']);
+$router->post('/homologacoes/{id}/status', [App\Controllers\HomologacoesKanbanController::class, 'updateStatusById']);
 $router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesKanbanController::class, 'details']);
 
 // Rotas de Checklists

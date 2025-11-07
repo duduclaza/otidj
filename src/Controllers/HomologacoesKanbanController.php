@@ -516,6 +516,89 @@ class HomologacoesKanbanController
     }
 
     /**
+     * Atualizar status da homologação via ID (usado pelas setas e drag & drop)
+     */
+    public function updateStatusById($id)
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $homologacaoId = (int)$id;
+            
+            // Ler JSON do body
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
+            
+            $novoStatus = $data['status'] ?? '';
+
+            if (!$homologacaoId || !$novoStatus) {
+                echo json_encode(['success' => false, 'message' => 'Dados inválidos']);
+                exit;
+            }
+
+            // Validar status
+            $statusValidos = ['aguardando_recebimento', 'recebido', 'em_analise', 'em_homologacao', 'aprovado', 'reprovado'];
+            if (!in_array($novoStatus, $statusValidos)) {
+                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+                exit;
+            }
+
+            // Buscar homologação
+            $stmt = $this->db->prepare("SELECT status FROM homologacoes WHERE id = ?");
+            $stmt->execute([$homologacaoId]);
+            $homologacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$homologacao) {
+                echo json_encode(['success' => false, 'message' => 'Homologação não encontrada']);
+                exit;
+            }
+
+            $statusAnterior = $homologacao['status'];
+
+            $this->db->beginTransaction();
+
+            // Atualizar status
+            $stmt = $this->db->prepare("
+                UPDATE homologacoes 
+                SET status = ?, updated_at = NOW() 
+                WHERE id = ?
+            ");
+            $stmt->execute([$novoStatus, $homologacaoId]);
+
+            // Registrar no histórico
+            $stmt = $this->db->prepare("
+                INSERT INTO homologacoes_historico 
+                (homologacao_id, status_anterior, status_novo, usuario_id, observacao, created_at)
+                VALUES (?, ?, ?, ?, ?, NOW())
+            ");
+            $stmt->execute([
+                $homologacaoId,
+                $statusAnterior,
+                $novoStatus,
+                $_SESSION['user_id'],
+                'Status alterado via navegação rápida'
+            ]);
+
+            $this->db->commit();
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Status atualizado com sucesso',
+                'status_anterior' => $statusAnterior,
+                'status_novo' => $novoStatus
+            ]);
+
+        } catch (\Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log("Erro ao atualizar status: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar status: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
      * Buscar detalhes de uma homologação para exibição no card
      */
     public function details($id)
