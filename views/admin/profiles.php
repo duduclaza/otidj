@@ -5,6 +5,7 @@
   display: inline-block;
   width: 48px;
   height: 24px;
+  vertical-align: middle;
 }
 
 .toggle-switch input {
@@ -62,6 +63,18 @@
 .toggle-slider,
 .toggle-slider:before {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Centralizar toggles nas células */
+#permissionsGrid > div {
+  align-items: center !important;
+}
+
+#permissionsGrid > div > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
 }
 </style>
 
