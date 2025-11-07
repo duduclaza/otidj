@@ -113,6 +113,31 @@ class Amostragens2Controller
 
             $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
+            // PAGINAÇÃO
+            $porPagina = isset($_GET['por_pagina']) && in_array($_GET['por_pagina'], [10, 50, 100]) 
+                ? (int)$_GET['por_pagina'] 
+                : 10; // Padrão: 10 registros por página
+            
+            $paginaAtual = isset($_GET['pagina']) && is_numeric($_GET['pagina']) && $_GET['pagina'] > 0 
+                ? (int)$_GET['pagina'] 
+                : 1;
+            
+            $offset = ($paginaAtual - 1) * $porPagina;
+
+            // Contar total de registros
+            $stmtCount = $this->db->prepare("
+                SELECT COUNT(*) as total
+                FROM amostragens_2 a
+                LEFT JOIN users u ON a.user_id = u.id
+                LEFT JOIN fornecedores forn ON a.fornecedor_id = forn.id
+                LEFT JOIN users aprovador ON a.aprovado_por = aprovador.id
+                $whereClause
+            ");
+            $stmtCount->execute($params);
+            $totalRegistros = (int)$stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+            $totalPaginas = ceil($totalRegistros / $porPagina);
+
+            // Buscar registros paginados
             $stmt = $this->db->prepare("
                 SELECT a.*, 
                        u.name as usuario_nome,
@@ -127,9 +152,29 @@ class Amostragens2Controller
                 LEFT JOIN users aprovador ON a.aprovado_por = aprovador.id
                 $whereClause
                 ORDER BY a.created_at DESC
+                LIMIT :limit OFFSET :offset
             ");
-            $stmt->execute($params);
+            
+            // Bind dos parâmetros de filtro
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            
+            // Bind dos parâmetros de paginação
+            $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            
+            $stmt->execute();
             $amostragens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Dados de paginação
+            $paginacao = [
+                'total_registros' => $totalRegistros,
+                'total_paginas' => $totalPaginas,
+                'pagina_atual' => $paginaAtual,
+                'por_pagina' => $porPagina,
+                'offset' => $offset
+            ];
 
             // Buscar dados para dropdowns
             $stmt = $this->db->prepare('SELECT id, name FROM users WHERE status = "active" ORDER BY name');

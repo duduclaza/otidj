@@ -5,6 +5,15 @@ $usuarios = $usuarios ?? [];
 $filiais = $filiais ?? [];
 $fornecedores = $fornecedores ?? [];
 $toners = $toners ?? [];
+
+/**
+ * Função para construir URL de paginação mantendo os filtros
+ */
+function construirUrlPaginacao($pagina) {
+    $params = $_GET;
+    $params['pagina'] = $pagina;
+    return '/amostragens-2?' . http_build_query($params);
+}
 ?>
 
 <section class="mb-8">
@@ -240,6 +249,89 @@ $toners = $toners ?? [];
     </form>
   </div>
 
+  <!-- Controles de Paginação -->
+  <?php if (isset($paginacao)): ?>
+  <div class="bg-white border rounded-lg p-4 mb-4">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <!-- Seletor de registros por página -->
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-gray-700">Mostrar:</label>
+        <select onchange="alterarPorPagina(this.value)" 
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+          <option value="10" <?= $paginacao['por_pagina'] == 10 ? 'selected' : '' ?>>10</option>
+          <option value="50" <?= $paginacao['por_pagina'] == 50 ? 'selected' : '' ?>>50</option>
+          <option value="100" <?= $paginacao['por_pagina'] == 100 ? 'selected' : '' ?>>100</option>
+        </select>
+        <span class="text-sm text-gray-600">registros por página</span>
+      </div>
+
+      <!-- Informação de registros -->
+      <div class="text-sm text-gray-700">
+        Mostrando 
+        <span class="font-semibold"><?= $paginacao['offset'] + 1 ?></span>
+        até 
+        <span class="font-semibold"><?= min($paginacao['offset'] + $paginacao['por_pagina'], $paginacao['total_registros']) ?></span>
+        de 
+        <span class="font-semibold"><?= $paginacao['total_registros'] ?></span>
+        registros
+      </div>
+
+      <!-- Navegação de páginas -->
+      <?php if ($paginacao['total_paginas'] > 1): ?>
+      <div class="flex items-center gap-1">
+        <!-- Botão Primeira -->
+        <?php if ($paginacao['pagina_atual'] > 1): ?>
+          <a href="<?= construirUrlPaginacao(1) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            « Primeira
+          </a>
+        <?php endif; ?>
+
+        <!-- Botão Anterior -->
+        <?php if ($paginacao['pagina_atual'] > 1): ?>
+          <a href="<?= construirUrlPaginacao($paginacao['pagina_atual'] - 1) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            ‹ Anterior
+          </a>
+        <?php endif; ?>
+
+        <!-- Números de página -->
+        <?php
+        $inicio = max(1, $paginacao['pagina_atual'] - 2);
+        $fim = min($paginacao['total_paginas'], $paginacao['pagina_atual'] + 2);
+        
+        for ($i = $inicio; $i <= $fim; $i++):
+        ?>
+          <a href="<?= construirUrlPaginacao($i) ?>" 
+             class="px-3 py-2 border rounded-lg text-sm font-medium transition-colors
+                    <?= $i == $paginacao['pagina_atual'] 
+                        ? 'bg-blue-600 text-white border-blue-600' 
+                        : 'border-gray-300 text-gray-700 hover:bg-gray-50' ?>">
+            <?= $i ?>
+          </a>
+        <?php endfor; ?>
+
+        <!-- Botão Próxima -->
+        <?php if ($paginacao['pagina_atual'] < $paginacao['total_paginas']): ?>
+          <a href="<?= construirUrlPaginacao($paginacao['pagina_atual'] + 1) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            Próxima ›
+          </a>
+        <?php endif; ?>
+
+        <!-- Botão Última -->
+        <?php if ($paginacao['pagina_atual'] < $paginacao['total_paginas']): ?>
+          <a href="<?= construirUrlPaginacao($paginacao['total_paginas']) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            Última »
+          </a>
+        <?php endif; ?>
+      </div>
+      <?php endif; ?>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <!-- Grid de Amostragens -->
   <div class="bg-white border rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
@@ -368,10 +460,93 @@ $toners = $toners ?? [];
             </td>
           </tr>
           <?php endforeach; ?>
+          
+          <?php if (empty($amostragens)): ?>
+          <tr>
+            <td colspan="16" class="px-6 py-8 text-center text-gray-500">
+              <div class="flex flex-col items-center">
+                <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p class="text-lg font-semibold mb-2">Nenhuma amostragem encontrada</p>
+                <p class="text-sm">Tente ajustar os filtros ou crie uma nova amostragem</p>
+              </div>
+            </td>
+          </tr>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>
   </div>
+
+  <!-- Controles de Paginação (Rodapé) -->
+  <?php if (isset($paginacao) && $paginacao['total_paginas'] > 1): ?>
+  <div class="bg-white border rounded-lg p-4 mt-4">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <!-- Informação de registros -->
+      <div class="text-sm text-gray-700">
+        Mostrando 
+        <span class="font-semibold"><?= $paginacao['offset'] + 1 ?></span>
+        até 
+        <span class="font-semibold"><?= min($paginacao['offset'] + $paginacao['por_pagina'], $paginacao['total_registros']) ?></span>
+        de 
+        <span class="font-semibold"><?= $paginacao['total_registros'] ?></span>
+        registros
+      </div>
+
+      <!-- Navegação de páginas -->
+      <div class="flex items-center gap-1">
+        <!-- Botão Primeira -->
+        <?php if ($paginacao['pagina_atual'] > 1): ?>
+          <a href="<?= construirUrlPaginacao(1) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            « Primeira
+          </a>
+        <?php endif; ?>
+
+        <!-- Botão Anterior -->
+        <?php if ($paginacao['pagina_atual'] > 1): ?>
+          <a href="<?= construirUrlPaginacao($paginacao['pagina_atual'] - 1) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            ‹ Anterior
+          </a>
+        <?php endif; ?>
+
+        <!-- Números de página -->
+        <?php
+        $inicio = max(1, $paginacao['pagina_atual'] - 2);
+        $fim = min($paginacao['total_paginas'], $paginacao['pagina_atual'] + 2);
+        
+        for ($i = $inicio; $i <= $fim; $i++):
+        ?>
+          <a href="<?= construirUrlPaginacao($i) ?>" 
+             class="px-3 py-2 border rounded-lg text-sm font-medium transition-colors
+                    <?= $i == $paginacao['pagina_atual'] 
+                        ? 'bg-blue-600 text-white border-blue-600' 
+                        : 'border-gray-300 text-gray-700 hover:bg-gray-50' ?>">
+            <?= $i ?>
+          </a>
+        <?php endfor; ?>
+
+        <!-- Botão Próxima -->
+        <?php if ($paginacao['pagina_atual'] < $paginacao['total_paginas']): ?>
+          <a href="<?= construirUrlPaginacao($paginacao['pagina_atual'] + 1) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            Próxima ›
+          </a>
+        <?php endif; ?>
+
+        <!-- Botão Última -->
+        <?php if ($paginacao['pagina_atual'] < $paginacao['total_paginas']): ?>
+          <a href="<?= construirUrlPaginacao($paginacao['total_paginas']) ?>" 
+             class="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            Última »
+          </a>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+  <?php endif; ?>
 </section>
 
 <!-- Modal de Loading para Downloads -->
@@ -804,6 +979,14 @@ async function excluirAmostragem(id) {
   } catch (error) {
     alert('Erro ao excluir amostragem');
   }
+}
+
+// Alterar quantidade de registros por página
+function alterarPorPagina(porPagina) {
+  const urlParams = new URLSearchParams(window.location.search);
+  urlParams.set('por_pagina', porPagina);
+  urlParams.set('pagina', '1'); // Resetar para primeira página
+  window.location.href = '/amostragens-2?' + urlParams.toString();
 }
 
 // Exportar para Excel

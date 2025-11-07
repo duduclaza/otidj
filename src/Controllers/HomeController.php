@@ -20,11 +20,34 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.6.1';
-        $lastUpdate = '08/10/2025';
+        $systemVersion = '2.6.2';
+        $lastUpdate = '07/11/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.6.2',
+                'date' => '07/11/2025',
+                'type' => 'Melhoria',
+                'title' => 'Paginação Completa em Amostragens 2.0',
+                'description' => 'Implementado sistema de paginação no grid de Amostragens 2.0 com seletor de registros por página',
+                'items' => [
+                    'Seletor de registros por página: 10, 50 ou 100 amostragens',
+                    'Navegação completa: Primeira, Anterior, números de página, Próxima, Última',
+                    'Contador de registros: "Mostrando X até Y de Z registros"',
+                    'Paginação mantém todos os filtros ativos ao navegar',
+                    'Controles de paginação acima e abaixo da tabela',
+                    'Interface responsiva para desktop e mobile',
+                    'Página atual destacada em azul',
+                    'Exibição de 5 números de página por vez',
+                    'Mensagem amigável quando não há registros',
+                    'Performance otimizada: carrega apenas registros da página atual',
+                    'Query COUNT para total de registros',
+                    'LIMIT e OFFSET para paginação no SQL',
+                    'Função JavaScript para alterar quantidade por página',
+                    'Padrão de 10 registros por página'
+                ]
+            ],
             [
                 'version' => '2.6.1',
                 'date' => '08/10/2025',
