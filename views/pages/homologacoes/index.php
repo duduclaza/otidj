@@ -965,16 +965,21 @@ function renderDetails(data) {
             </div>
             
             <div class="bg-yellow-50 p-4 rounded-lg">
-                <h3 class="font-bold mb-3">🔄 Atualizar Status</h3>
-                <div class="mb-3 p-3 bg-blue-100 rounded-lg">
+                <h3 class="font-bold mb-3"> Atualizar Status</h3>
+                <div class="flex items-center mb-3">
                     <span class="text-sm font-medium">Status Atual:</span>
                     <span class="ml-2 badge-status badge-${h.status}">${statusLabels[h.status]}</span>
                 </div>
-                <form id="formUpdateStatus" class="space-y-3">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                    <p class="text-sm text-blue-800">
+                        <strong>💡 Dica:</strong> Use as setas nos cards ou arraste para mudar o status rapidamente!
+                    </p>
+                </div>
+                <form id="formUpdateStatus" class="space-y-3" style="display: none;">
                     <input type="hidden" name="homologacao_id" value="${h.id}">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-sm font-medium mb-1">${isUserAdmin ? 'Mover para Status' : 'Avançar para Status'}</label>
+                            <label class="block text-sm font-medium mb-1">${isUserAdmin ? 'Mover para Status' : 'Avanar para Status'}</label>
                             <select name="status" id="selectNovoStatus_${h.id}" required class="w-full px-3 py-2 border rounded-lg" onchange="mostrarCampoDepartamento(${h.id})">
                                 ${getProximosStatus(h.status)}
                             </select>
