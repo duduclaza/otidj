@@ -34,9 +34,29 @@ class MelhoriaContinua2Controller
             $userId = $_SESSION['user_id'];
             $isAdmin = $_SESSION['user_role'] === 'admin';
 
+            // PAGINAÇÃO
+            $porPagina = isset($_GET['por_pagina']) && in_array($_GET['por_pagina'], [10, 50, 100]) 
+                ? (int)$_GET['por_pagina'] 
+                : 10; // Padrão: 10 registros por página
+            
+            $paginaAtual = isset($_GET['pagina']) && is_numeric($_GET['pagina']) && $_GET['pagina'] > 0 
+                ? (int)$_GET['pagina'] 
+                : 1;
+            
+            $offset = ($paginaAtual - 1) * $porPagina;
+
         // Buscar melhorias baseado nas regras de visibilidade
         if ($isAdmin) {
-            // Admin vê todas as melhorias
+            // Admin vê todas as melhorias - COUNT
+            $stmtCount = $this->db->prepare('
+                SELECT COUNT(DISTINCT m.id) as total
+                FROM melhoria_continua_2 m
+            ');
+            $stmtCount->execute();
+            $totalRegistros = (int)$stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+            $totalPaginas = ceil($totalRegistros / $porPagina);
+
+            // Admin vê todas as melhorias - PAGINADO
             $stmt = $this->db->prepare('
                 SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
                        GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
@@ -46,10 +66,23 @@ class MelhoriaContinua2Controller
                 LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
                 GROUP BY m.id
                 ORDER BY m.created_at DESC
+                LIMIT :limit OFFSET :offset
             ');
+            $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
         } else {
-            // Usuário comum vê apenas suas melhorias e aquelas onde é responsável
+            // Usuário comum - COUNT
+            $stmtCount = $this->db->prepare('
+                SELECT COUNT(DISTINCT m.id) as total
+                FROM melhoria_continua_2 m
+                WHERE m.criado_por = :user_id OR FIND_IN_SET(:user_id2, m.responsaveis)
+            ');
+            $stmtCount->execute([':user_id' => $userId, ':user_id2' => $userId]);
+            $totalRegistros = (int)$stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
+            $totalPaginas = ceil($totalRegistros / $porPagina);
+
+            // Usuário comum vê apenas suas melhorias e aquelas onde é responsável - PAGINADO
             $stmt = $this->db->prepare('
                 SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
                        GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
@@ -60,11 +93,25 @@ class MelhoriaContinua2Controller
                 WHERE m.criado_por = :user_id OR FIND_IN_SET(:user_id2, m.responsaveis)
                 GROUP BY m.id
                 ORDER BY m.created_at DESC
+                LIMIT :limit OFFSET :offset
             ');
-            $stmt->execute([':user_id' => $userId, ':user_id2' => $userId]);
+            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->bindValue(':user_id2', $userId, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
         }
 
         $melhorias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // Dados de paginação
+        $paginacao = [
+            'total_registros' => $totalRegistros,
+            'total_paginas' => $totalPaginas,
+            'pagina_atual' => $paginaAtual,
+            'por_pagina' => $porPagina,
+            'offset' => $offset
+        ];
 
         // Buscar usuários para dropdown de responsáveis
         $stmt = $this->db->prepare('SELECT id, name FROM users WHERE status = "active" ORDER BY name');

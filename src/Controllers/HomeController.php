@@ -20,11 +20,32 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.6.2';
+        $systemVersion = '2.6.3';
         $lastUpdate = '07/11/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.6.3',
+                'date' => '07/11/2025',
+                'type' => 'Melhoria',
+                'title' => 'Paginação em Melhoria Contínua 2.0',
+                'description' => 'Sistema de paginação completo implementado no módulo Melhoria Contínua 2.0 com seletor de registros',
+                'items' => [
+                    'Seletor de registros por página: 10, 50 ou 100 melhorias',
+                    'Navegação completa com botões Primeira, Anterior, Próxima e Última',
+                    'Contador de registros exibindo intervalo atual',
+                    'Paginação diferenciada para Admin (vê todas) e Usuário (vê apenas suas melhorias)',
+                    'Queries COUNT otimizadas com DISTINCT para contagem precisa',
+                    'LIMIT e OFFSET com bindValue PDO::PARAM_INT',
+                    'Controles de paginação acima e abaixo da tabela',
+                    'Mensagem amigável quando não há melhorias',
+                    'Função JavaScript alterarPorPagina() integrada',
+                    'Performance otimizada: carrega apenas registros da página atual',
+                    'Interface consistente com Amostragens 2.0',
+                    'Responsivo para desktop e mobile'
+                ]
+            ],
             [
                 'version' => '2.6.2',
                 'date' => '07/11/2025',
