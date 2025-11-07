@@ -45,58 +45,102 @@ class MelhoriaContinua2Controller
             
             $offset = ($paginaAtual - 1) * $porPagina;
 
+            // FILTROS
+            $where = [];
+            $params = [];
+
+            // Filtro de busca por título ou descrição
+            if (!empty($_GET['search'])) {
+                $where[] = "(m.titulo LIKE :search OR m.descricao LIKE :search)";
+                $params[':search'] = '%' . $_GET['search'] . '%';
+            }
+
+            // Filtro de data inicial
+            if (!empty($_GET['data_inicio'])) {
+                $where[] = "DATE(m.created_at) >= :data_inicio";
+                $params[':data_inicio'] = $_GET['data_inicio'];
+            }
+
+            // Filtro de data final
+            if (!empty($_GET['data_fim'])) {
+                $where[] = "DATE(m.created_at) <= :data_fim";
+                $params[':data_fim'] = $_GET['data_fim'];
+            }
+
         // Buscar melhorias baseado nas regras de visibilidade
         if ($isAdmin) {
+            // Construir WHERE clause
+            $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
             // Admin vê todas as melhorias - COUNT
-            $stmtCount = $this->db->prepare('
+            $stmtCount = $this->db->prepare("
                 SELECT COUNT(DISTINCT m.id) as total
                 FROM melhoria_continua_2 m
-            ');
+                $whereClause
+            ");
+            foreach ($params as $key => $value) {
+                $stmtCount->bindValue($key, $value);
+            }
             $stmtCount->execute();
             $totalRegistros = (int)$stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
             $totalPaginas = ceil($totalRegistros / $porPagina);
 
             // Admin vê todas as melhorias - PAGINADO
-            $stmt = $this->db->prepare('
+            $stmt = $this->db->prepare("
                 SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
-                       GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
+                       GROUP_CONCAT(ur.name SEPARATOR ', ') as responsaveis_nomes
                 FROM melhoria_continua_2 m
                 LEFT JOIN users u ON m.criado_por = u.id
                 LEFT JOIN departamentos d ON m.departamento_id = d.id
                 LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
+                $whereClause
                 GROUP BY m.id
                 ORDER BY m.created_at DESC
                 LIMIT :limit OFFSET :offset
-            ');
+            ");
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
             $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
         } else {
+            // Adicionar filtro de permissão de usuário
+            $where[] = "(m.criado_por = :user_id OR FIND_IN_SET(:user_id2, m.responsaveis))";
+            $params[':user_id'] = $userId;
+            $params[':user_id2'] = $userId;
+
+            $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
             // Usuário comum - COUNT
-            $stmtCount = $this->db->prepare('
+            $stmtCount = $this->db->prepare("
                 SELECT COUNT(DISTINCT m.id) as total
                 FROM melhoria_continua_2 m
-                WHERE m.criado_por = :user_id OR FIND_IN_SET(:user_id2, m.responsaveis)
-            ');
-            $stmtCount->execute([':user_id' => $userId, ':user_id2' => $userId]);
+                $whereClause
+            ");
+            foreach ($params as $key => $value) {
+                $stmtCount->bindValue($key, $value);
+            }
+            $stmtCount->execute();
             $totalRegistros = (int)$stmtCount->fetch(PDO::FETCH_ASSOC)['total'];
             $totalPaginas = ceil($totalRegistros / $porPagina);
 
             // Usuário comum vê apenas suas melhorias e aquelas onde é responsável - PAGINADO
-            $stmt = $this->db->prepare('
+            $stmt = $this->db->prepare("
                 SELECT m.*, u.name as criador_nome, d.nome as departamento_nome,
-                       GROUP_CONCAT(ur.name SEPARATOR ", ") as responsaveis_nomes
+                       GROUP_CONCAT(ur.name SEPARATOR ', ') as responsaveis_nomes
                 FROM melhoria_continua_2 m
                 LEFT JOIN users u ON m.criado_por = u.id
                 LEFT JOIN departamentos d ON m.departamento_id = d.id
                 LEFT JOIN users ur ON FIND_IN_SET(ur.id, m.responsaveis)
-                WHERE m.criado_por = :user_id OR FIND_IN_SET(:user_id2, m.responsaveis)
+                $whereClause
                 GROUP BY m.id
                 ORDER BY m.created_at DESC
                 LIMIT :limit OFFSET :offset
-            ');
-            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            $stmt->bindValue(':user_id2', $userId, PDO::PARAM_INT);
+            ");
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
             $stmt->bindValue(':limit', $porPagina, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();

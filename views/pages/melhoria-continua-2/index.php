@@ -31,31 +31,31 @@ function construirUrlPaginacao($pagina) {
 
   <!-- Filtros -->
   <div class="bg-white border rounded-lg p-4">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <form method="GET" action="/melhoria-continua-2" class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-        <input type="text" id="searchInput" placeholder="Título, descrição..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <input type="text" name="search" value="<?= $_GET['search'] ?? '' ?>" placeholder="Título, descrição..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
-        <input type="date" id="dateFrom" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <input type="date" name="data_inicio" value="<?= $_GET['data_inicio'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
-        <input type="date" id="dateTo" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
       <div class="flex items-end gap-1.5">
-        <button onclick="filterData()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
           Filtrar
         </button>
-        <button onclick="clearFilters()" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
+        <a href="/melhoria-continua-2" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap text-center">
           Limpar
-        </button>
-        <button onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
+        </a>
+        <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
           📊 Exportar
         </button>
       </div>
-    </div>
+    </form>
   </div>
 
   <!-- Formulário Inline -->
@@ -561,24 +561,6 @@ function limparFormulario() {
   const submitButton = document.getElementById('submitButton');
   submitButton.innerHTML = '💾 Salvar Melhoria';
   submitButton.className = 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors';
-}
-
-// Funções de Filtro
-function filterData() {
-  const search = document.getElementById('searchInput').value;
-  const dateFrom = document.getElementById('dateFrom').value;
-  const dateTo = document.getElementById('dateTo').value;
-  
-  // Implementar filtro aqui
-  console.log('Filtrar:', { search, dateFrom, dateTo });
-}
-
-function clearFilters() {
-  document.getElementById('searchInput').value = '';
-  document.getElementById('dateFrom').value = '';
-  document.getElementById('dateTo').value = '';
-  // Recarregar dados
-  window.location.reload();
 }
 
 // Configurar eventos
