@@ -608,6 +608,7 @@ function alterarPorPagina(porPagina) {
 (function() {
   const STORAGE_KEY = 'melhoria_continua_column_widths';
   
+  let isResizing = false;
   let currentColumn = null;
   let startX = 0;
   let startWidth = 0;
@@ -642,55 +643,76 @@ function alterarPorPagina(porPagina) {
         }
       });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(widths));
+      console.log('Larguras salvas:', widths);
     } catch (e) {
       console.error('Erro ao salvar larguras das colunas:', e);
     }
   }
   
   // Iniciar redimensionamento
-  function onMouseDown(e) {
-    if (!e.target.classList.contains('resize-handle')) return;
+  function startResize(e) {
+    // Encontrar o handle clicado
+    let handle = e.target;
+    if (!handle.classList.contains('resize-handle')) return;
     
-    currentColumn = e.target.parentElement;
+    // Pegar a coluna pai do handle
+    currentColumn = handle.closest('th.resizable-column');
+    if (!currentColumn) return;
+    
+    isResizing = true;
     startX = e.pageX;
     startWidth = currentColumn.offsetWidth;
     
     document.body.classList.add('resizing');
+    document.body.style.cursor = 'col-resize';
     
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    console.log('Iniciando resize da coluna:', currentColumn.getAttribute('data-column'), 'Largura atual:', startWidth);
     
     e.preventDefault();
+    e.stopPropagation();
   }
   
   // Durante o redimensionamento
-  function onMouseMove(e) {
-    if (!currentColumn) return;
+  function doResize(e) {
+    if (!isResizing || !currentColumn) return;
     
     const diff = e.pageX - startX;
-    const newWidth = startWidth + diff;
-    const minWidth = parseInt(currentColumn.style.minWidth) || 80;
+    let newWidth = startWidth + diff;
     
-    if (newWidth >= minWidth) {
-      currentColumn.style.width = newWidth + 'px';
-      
-      // Atualizar largura da barra de scroll superior
-      updateScrollBarWidth();
+    // Pegar largura mínima do estilo inline
+    const minWidthStr = currentColumn.style.minWidth;
+    const minWidth = minWidthStr ? parseInt(minWidthStr) : 80;
+    
+    // Garantir que não fique menor que o mínimo
+    if (newWidth < minWidth) {
+      newWidth = minWidth;
     }
+    
+    // Aplicar nova largura
+    currentColumn.style.width = newWidth + 'px';
+    
+    // Atualizar scroll
+    updateScrollBarWidth();
+    
+    console.log('Redimensionando:', newWidth + 'px');
     
     e.preventDefault();
   }
   
   // Finalizar redimensionamento
-  function onMouseUp(e) {
+  function stopResize(e) {
+    if (!isResizing) return;
+    
+    console.log('Finalizando resize');
+    
+    isResizing = false;
+    document.body.classList.remove('resizing');
+    document.body.style.cursor = '';
+    
     if (currentColumn) {
       saveColumnWidths();
       currentColumn = null;
     }
-    
-    document.body.classList.remove('resizing');
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
   }
   
   // Atualizar largura da barra de scroll superior
@@ -720,17 +742,23 @@ function alterarPorPagina(porPagina) {
   
   // Inicializar quando o DOM estiver pronto
   document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando sistema de redimensionamento de colunas');
+    
     // Carregar larguras salvas
     loadColumnWidths();
     
     // Atualizar largura do scroll
-    updateScrollBarWidth();
+    setTimeout(updateScrollBarWidth, 100);
     
     // Sincronizar scroll
     syncScroll();
     
-    // Adicionar event listeners aos handles
-    document.addEventListener('mousedown', onMouseDown);
+    // Adicionar event listeners
+    document.addEventListener('mousedown', startResize);
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+    
+    console.log('Sistema de redimensionamento pronto');
   });
   
   // Atualizar após resize da janela
