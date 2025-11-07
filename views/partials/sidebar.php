@@ -30,7 +30,7 @@ $menu = [
     'href' => '#', 
     'icon' => '📋', 
     'category' => true,
-    'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'garantias', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc'],
+    'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'garantias', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc', 'nps'],
     'submenu' => [
       // Itens vindos de Operacionais
       ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '💧🩸', 'module' => 'toners_cadastro'],
@@ -50,6 +50,7 @@ $menu = [
       ['label' => 'Não Conformidades', 'href' => '/nao-conformidades', 'icon' => '⚠️', 'module' => 'nao_conformidades'],
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
+      ['label' => 'NPS', 'href' => '/nps', 'icon' => '📊', 'module' => 'nps'],
     ]
   ],
   [

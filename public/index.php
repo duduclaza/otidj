@@ -265,6 +265,9 @@ $router->post('/nao-conformidades/registrar-acao/{id}', [App\Controllers\NaoConf
 $router->post('/nao-conformidades/marcar-solucionada/{id}', [App\Controllers\NaoConformidadesController::class, 'marcarSolucionada']);
 $router->get('/nao-conformidades/anexo/{id}', [App\Controllers\NaoConformidadesController::class, 'downloadAnexo']);
 
+// NPS routes
+$router->get('/nps', [App\Controllers\NpsController::class, 'index']);
+
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);
