@@ -100,6 +100,7 @@ $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
 $router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);
 $router->get('/admin/dashboard/amostragens-data', [App\Controllers\AdminController::class, 'getAmostragemsDashboardData']);
 $router->get('/admin/dashboard/fornecedores-data', [App\Controllers\AdminController::class, 'fornecedoresData']);
+$router->get('/admin/dashboard/melhorias-data', [App\Controllers\AdminController::class, 'getMelhoriasData']);
 $router->get('/admin/users', [App\Controllers\AdminController::class, 'users']);
 $router->get('/admin/invitations', [App\Controllers\AdminController::class, 'invitations']);
 $router->post('/admin/users/create', [App\Controllers\AdminController::class, 'createUser']);

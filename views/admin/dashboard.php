@@ -44,6 +44,14 @@
           🛡️ Garantias
         </span>
       </button>
+      <button onclick="switchTab('melhorias')" id="tab-melhorias" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          🚀 Melhorias
+        </span>
+      </button>
     </div>
   </div>
 
@@ -570,6 +578,124 @@
   <!-- FIM CONTEÚDO ABA FORNECEDORES -->
 
   <?php include __DIR__ . '/dashboard_garantias_tab.php'; ?>
+
+  <!-- CONTEÚDO ABA MELHORIAS -->
+  <div id="content-melhorias" class="tab-content space-y-6">
+    
+    <!-- Cards de Totais -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      
+      <!-- Card Total -->
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Total de Melhorias</h3>
+        <p id="melhorias-total" class="text-4xl font-bold">0</p>
+      </div>
+
+      <!-- Card Concluídas -->
+      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Concluídas</h3>
+        <p id="melhorias-concluidas" class="text-4xl font-bold">0</p>
+      </div>
+
+      <!-- Card Em Andamento -->
+      <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Em Andamento</h3>
+        <p id="melhorias-andamento" class="text-4xl font-bold">0</p>
+      </div>
+
+      <!-- Card Pendentes -->
+      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Pendentes</h3>
+        <p id="melhorias-pendentes" class="text-4xl font-bold">0</p>
+      </div>
+
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Gráfico: Melhorias por Status -->
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+          </svg>
+          📊 Distribuição por Status
+        </h3>
+        <canvas id="chartMelhoriasStatus" height="300"></canvas>
+      </div>
+
+      <!-- Gráfico: Melhorias por Mês -->
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+          </svg>
+          📈 Melhorias por Mês (Últimos 12 Meses)
+        </h3>
+        <canvas id="chartMelhoriasMes" height="300"></canvas>
+      </div>
+
+    </div>
+
+    <!-- Gráfico: Top 10 Departamentos -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+        </svg>
+        🏢 Top 10 Departamentos
+      </h3>
+      <canvas id="chartMelhoriasDepartamentos" height="120"></canvas>
+    </div>
+
+    <!-- Card Pontuação Média -->
+    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg shadow-lg p-8 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-medium text-white text-opacity-90 mb-2">⭐ Pontuação Média das Melhorias</h3>
+          <p id="melhorias-pontuacao-media" class="text-5xl font-bold">0.0</p>
+          <p class="text-sm text-white text-opacity-80 mt-2">Escala de 0 a 10</p>
+        </div>
+        <div class="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+          <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- FIM CONTEÚDO ABA MELHORIAS -->
 
 </section>
 
@@ -1750,6 +1876,13 @@ function switchTab(tabName) {
     initGarantiasTab();
     window.garantias_loaded = true;
   }
+  
+  // Carregar dados da aba se for melhorias
+  if (tabName === 'melhorias' && !window.melhorias_loaded) {
+    console.log('🚀 Inicializando aba Melhorias...');
+    loadMelhoriasData();
+    window.melhorias_loaded = true;
+  }
 }
 
 // ===== DASHBOARD AMOSTRAGENS 2.0 =====
@@ -2260,6 +2393,209 @@ function clearFiltersFornecedores() {
   document.getElementById('totalFornecedores').textContent = '0';
   document.getElementById('totalItensComprados').textContent = '0';
   document.getElementById('totalGarantias').textContent = '0';
+}
+
+// ==================== ABA MELHORIAS ====================
+
+let chartMelhoriasStatus = null;
+let chartMelhoriasMes = null;
+let chartMelhoriasDepartamentos = null;
+
+async function loadMelhoriasData() {
+  try {
+    const response = await fetch('/admin/dashboard/melhorias-data');
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error('Erro ao carregar dados de melhorias:', data.message);
+      return;
+    }
+
+    // Atualizar cards de totais
+    document.getElementById('melhorias-total').textContent = data.totais.total.toLocaleString('pt-BR');
+    document.getElementById('melhorias-concluidas').textContent = data.totais.concluidas.toLocaleString('pt-BR');
+    document.getElementById('melhorias-andamento').textContent = data.totais.em_andamento.toLocaleString('pt-BR');
+    document.getElementById('melhorias-pendentes').textContent = data.totais.pendentes.toLocaleString('pt-BR');
+    document.getElementById('melhorias-pontuacao-media').textContent = data.pontuacaoMedia.toFixed(1);
+
+    // Renderizar gráficos
+    renderChartMelhoriasStatus(data.statusDistribution);
+    renderChartMelhoriasMes(data.melhoriasPorMes);
+    renderChartMelhoriasDepartamentos(data.melhoriasPorDepartamento);
+
+  } catch (error) {
+    console.error('Erro ao carregar dados de melhorias:', error);
+  }
+}
+
+function renderChartMelhoriasStatus(statusData) {
+  const ctx = document.getElementById('chartMelhoriasStatus');
+  if (!ctx) return;
+
+  if (chartMelhoriasStatus) {
+    chartMelhoriasStatus.destroy();
+  }
+
+  const labels = statusData.map(item => item.status);
+  const values = statusData.map(item => parseInt(item.total));
+  
+  const statusColors = {
+    'Pendente análise': '#6B7280',
+    'Enviado para Aprovação': '#4F46E5',
+    'Em andamento': '#3B82F6',
+    'Concluída': '#10B981',
+    'Recusada': '#EF4444',
+    'Pendente Adaptação': '#8B5CF6'
+  };
+
+  const backgroundColors = labels.map(label => statusColors[label] || '#6B7280');
+
+  chartMelhoriasStatus = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: backgroundColors,
+        borderWidth: 2,
+        borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 15,
+            font: {
+              size: 12
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.parsed || 0;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = ((value / total) * 100).toFixed(1);
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderChartMelhoriasMes(mesData) {
+  const ctx = document.getElementById('chartMelhoriasMes');
+  if (!ctx) return;
+
+  if (chartMelhoriasMes) {
+    chartMelhoriasMes.destroy();
+  }
+
+  // Converter formato de data YYYY-MM para mês/ano
+  const labels = mesData.map(item => {
+    const [ano, mes] = item.mes.split('-');
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return `${meses[parseInt(mes) - 1]}/${ano}`;
+  });
+  const values = mesData.map(item => parseInt(item.total));
+
+  chartMelhoriasMes = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Melhorias',
+        data: values,
+        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `Melhorias: ${context.parsed.y}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderChartMelhoriasDepartamentos(deptData) {
+  const ctx = document.getElementById('chartMelhoriasDepartamentos');
+  if (!ctx) return;
+
+  if (chartMelhoriasDepartamentos) {
+    chartMelhoriasDepartamentos.destroy();
+  }
+
+  const labels = deptData.map(item => item.departamento || 'Sem Departamento');
+  const values = deptData.map(item => parseInt(item.total));
+
+  chartMelhoriasDepartamentos = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Melhorias',
+        data: values,
+        backgroundColor: 'rgba(139, 92, 246, 0.8)',
+        borderColor: 'rgba(139, 92, 246, 1)',
+        borderWidth: 2,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `Melhorias: ${context.parsed.x}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
 }
 
 <?php include __DIR__ . '/dashboard_garantias_js.php'; ?>

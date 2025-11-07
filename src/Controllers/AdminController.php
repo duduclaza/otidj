@@ -424,12 +424,13 @@ class AdminController
         
         return $password;
     }
-    
+
     /**
-     * Test email configuration
+     * Get melhorias dashboard data
      */
-    public function testEmail()
+    public function getMelhoriasData()
     {
+        header('Content-Type: application/json');
         header('Content-Type: application/json; charset=utf-8');
         
         try {
@@ -2290,6 +2291,96 @@ class AdminController
                 'message' => 'Erro ao carregar dados: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Get melhorias dashboard data - dados reais do módulo Melhoria Contínua 2.0
+     */
+    public function getMelhoriasData()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $data = [
+                'success' => true,
+                'statusDistribution' => [],
+                'melhoriasPorMes' => [],
+                'melhoriasPorDepartamento' => [],
+                'pontuacaoMedia' => 0,
+                'totais' => [
+                    'total' => 0,
+                    'concluidas' => 0,
+                    'em_andamento' => 0,
+                    'pendentes' => 0
+                ]
+            ];
+
+            // 1. Distribuição por Status
+            $stmt = $this->db->query("
+                SELECT status, COUNT(*) as total
+                FROM melhoria_continua_2
+                GROUP BY status
+                ORDER BY total DESC
+            ");
+            $data['statusDistribution'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // 2. Melhorias por Mês (últimos 12 meses)
+            $stmt = $this->db->query("
+                SELECT 
+                    DATE_FORMAT(created_at, '%Y-%m') as mes,
+                    COUNT(*) as total
+                FROM melhoria_continua_2
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+                ORDER BY mes ASC
+            ");
+            $data['melhoriasPorMes'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // 3. Melhorias por Departamento (Top 10)
+            $stmt = $this->db->query("
+                SELECT 
+                    d.nome as departamento,
+                    COUNT(m.id) as total
+                FROM melhoria_continua_2 m
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                GROUP BY d.nome
+                ORDER BY total DESC
+                LIMIT 10
+            ");
+            $data['melhoriasPorDepartamento'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // 4. Pontuação Média
+            $stmt = $this->db->query("
+                SELECT AVG(pontuacao) as media
+                FROM melhoria_continua_2
+                WHERE pontuacao IS NOT NULL AND pontuacao > 0
+            ");
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $data['pontuacaoMedia'] = round($result['media'] ?? 0, 2);
+
+            // 5. Totais
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2");
+            $data['totais']['total'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Concluída'");
+            $data['totais']['concluidas'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Em andamento'");
+            $data['totais']['em_andamento'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status IN ('Pendente análise', 'Enviado para Aprovação', 'Pendente Adaptação')");
+            $data['totais']['pendentes'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+
+            echo json_encode($data);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao buscar dados de melhorias: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao buscar dados: ' . $e->getMessage()
+            ]);
+        }
+        exit;
     }
     
 }
