@@ -259,6 +259,11 @@ $router->get('/5w2h/relatorios', [App\Controllers\Planos5W2HController::class, '
 
 // Não Conformidades routes
 $router->get('/nao-conformidades', [App\Controllers\NaoConformidadesController::class, 'index']);
+$router->post('/nao-conformidades/criar', [App\Controllers\NaoConformidadesController::class, 'criar']);
+$router->get('/nao-conformidades/detalhes/{id}', [App\Controllers\NaoConformidadesController::class, 'detalhes']);
+$router->post('/nao-conformidades/registrar-acao/{id}', [App\Controllers\NaoConformidadesController::class, 'registrarAcao']);
+$router->post('/nao-conformidades/marcar-solucionada/{id}', [App\Controllers\NaoConformidadesController::class, 'marcarSolucionada']);
+$router->get('/nao-conformidades/anexo/{id}', [App\Controllers\NaoConformidadesController::class, 'downloadAnexo']);
 
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
