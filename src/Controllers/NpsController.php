@@ -4,6 +4,26 @@ namespace App\Controllers;
 
 class NpsController
 {
+    private $storageDir;
+    private $respostasDir;
+    
+    public function __construct()
+    {
+        $this->storageDir = __DIR__ . '/../../storage/formularios';
+        $this->respostasDir = __DIR__ . '/../../storage/formularios/respostas';
+        
+        // Criar diretórios se não existirem
+        if (!is_dir($this->storageDir)) {
+            mkdir($this->storageDir, 0755, true);
+        }
+        if (!is_dir($this->respostasDir)) {
+            mkdir($this->respostasDir, 0755, true);
+        }
+    }
+    
+    /**
+     * Página principal - Lista de formulários
+     */
     public function index()
     {
         // Verificar autenticação
@@ -12,9 +32,466 @@ class NpsController
             exit;
         }
 
-        // Usar o layout padrão com a página em construção
-        $title = 'NPS (Net Promoter Score) - SGQ OTI DJ';
+        $title = 'Formulários NPS - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/pages/nps/index.php';
         include __DIR__ . '/../../views/layouts/main.php';
+    }
+    
+    /**
+     * Listar formulários do usuário (AJAX)
+     */
+    public function listar()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                exit;
+            }
+            
+            $formularios = [];
+            $files = glob($this->storageDir . '/formulario_*.json');
+            
+            foreach ($files as $file) {
+                $data = json_decode(file_get_contents($file), true);
+                
+                // Filtrar apenas formulários do usuário ou se for admin
+                if ($data['criado_por'] == $userId || ($_SESSION['user_role'] ?? '') === 'admin') {
+                    // Contar respostas
+                    $totalRespostas = $this->contarRespostas($data['id']);
+                    
+                    $formularios[] = [
+                        'id' => $data['id'],
+                        'titulo' => $data['titulo'],
+                        'descricao' => $data['descricao'],
+                        'ativo' => $data['ativo'],
+                        'total_respostas' => $totalRespostas,
+                        'criado_em' => $data['criado_em'],
+                        'criado_por_nome' => $data['criado_por_nome'],
+                        'link_publico' => $_ENV['APP_URL'] . '/nps/responder/' . $data['id']
+                    ];
+                }
+            }
+            
+            // Ordenar por data de criação (mais recente primeiro)
+            usort($formularios, function($a, $b) {
+                return strtotime($b['criado_em']) - strtotime($a['criado_em']);
+            });
+            
+            echo json_encode(['success' => true, 'formularios' => $formularios]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao listar formulários: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar formulários']);
+        }
+        exit;
+    }
+    
+    /**
+     * Criar novo formulário
+     */
+    public function criar()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            $userName = $_SESSION['user_name'] ?? 'Usuário';
+            
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                exit;
+            }
+            
+            // Receber dados do formulário
+            $titulo = trim($_POST['titulo'] ?? '');
+            $descricao = trim($_POST['descricao'] ?? '');
+            $perguntas = json_decode($_POST['perguntas'] ?? '[]', true);
+            
+            // Validações
+            if (empty($titulo)) {
+                echo json_encode(['success' => false, 'message' => 'Título é obrigatório']);
+                exit;
+            }
+            
+            if (empty($perguntas) || !is_array($perguntas)) {
+                echo json_encode(['success' => false, 'message' => 'Adicione pelo menos uma pergunta']);
+                exit;
+            }
+            
+            // Gerar ID único
+            $formularioId = 'form_' . time() . '_' . uniqid();
+            
+            // Dados do formulário
+            $formulario = [
+                'id' => $formularioId,
+                'titulo' => $titulo,
+                'descricao' => $descricao,
+                'perguntas' => $perguntas,
+                'ativo' => true,
+                'criado_por' => $userId,
+                'criado_por_nome' => $userName,
+                'criado_em' => date('Y-m-d H:i:s'),
+                'atualizado_em' => date('Y-m-d H:i:s')
+            ];
+            
+            // Salvar em arquivo JSON
+            $filename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+            file_put_contents($filename, json_encode($formulario, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Formulário criado com sucesso!',
+                'formulario_id' => $formularioId,
+                'link_publico' => $_ENV['APP_URL'] . '/nps/responder/' . $formularioId
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao criar formulário: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao criar formulário']);
+        }
+        exit;
+    }
+    
+    /**
+     * Editar formulário existente
+     */
+    public function editar()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            $formularioId = $_POST['formulario_id'] ?? '';
+            
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                exit;
+            }
+            
+            // Carregar formulário
+            $filename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+            if (!file_exists($filename)) {
+                echo json_encode(['success' => false, 'message' => 'Formulário não encontrado']);
+                exit;
+            }
+            
+            $formulario = json_decode(file_get_contents($filename), true);
+            
+            // Verificar permissão
+            if ($formulario['criado_por'] != $userId && ($_SESSION['user_role'] ?? '') !== 'admin') {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para editar este formulário']);
+                exit;
+            }
+            
+            // Atualizar dados
+            $formulario['titulo'] = trim($_POST['titulo'] ?? $formulario['titulo']);
+            $formulario['descricao'] = trim($_POST['descricao'] ?? $formulario['descricao']);
+            $formulario['perguntas'] = json_decode($_POST['perguntas'] ?? '[]', true) ?: $formulario['perguntas'];
+            $formulario['atualizado_em'] = date('Y-m-d H:i:s');
+            
+            // Salvar
+            file_put_contents($filename, json_encode($formulario, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            
+            echo json_encode(['success' => true, 'message' => 'Formulário atualizado com sucesso!']);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao editar formulário: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar formulário']);
+        }
+        exit;
+    }
+    
+    /**
+     * Ativar/Desativar formulário
+     */
+    public function toggleStatus()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            $formularioId = $_POST['formulario_id'] ?? '';
+            
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                exit;
+            }
+            
+            $filename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+            if (!file_exists($filename)) {
+                echo json_encode(['success' => false, 'message' => 'Formulário não encontrado']);
+                exit;
+            }
+            
+            $formulario = json_decode(file_get_contents($filename), true);
+            
+            // Verificar permissão
+            if ($formulario['criado_por'] != $userId && ($_SESSION['user_role'] ?? '') !== 'admin') {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão']);
+                exit;
+            }
+            
+            // Toggle status
+            $formulario['ativo'] = !$formulario['ativo'];
+            $formulario['atualizado_em'] = date('Y-m-d H:i:s');
+            
+            file_put_contents($filename, json_encode($formulario, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Status atualizado!',
+                'ativo' => $formulario['ativo']
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao alterar status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao alterar status']);
+        }
+        exit;
+    }
+    
+    /**
+     * Excluir formulário
+     */
+    public function excluir()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            $formularioId = $_POST['formulario_id'] ?? '';
+            
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                exit;
+            }
+            
+            $filename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+            if (!file_exists($filename)) {
+                echo json_encode(['success' => false, 'message' => 'Formulário não encontrado']);
+                exit;
+            }
+            
+            $formulario = json_decode(file_get_contents($filename), true);
+            
+            // Verificar permissão
+            if ($formulario['criado_por'] != $userId && ($_SESSION['user_role'] ?? '') !== 'admin') {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão']);
+                exit;
+            }
+            
+            // Verificar se tem respostas
+            $totalRespostas = $this->contarRespostas($formularioId);
+            if ($totalRespostas > 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => "Não é possível excluir! Este formulário já possui $totalRespostas resposta(s)."
+                ]);
+                exit;
+            }
+            
+            // Excluir arquivo
+            unlink($filename);
+            
+            echo json_encode(['success' => true, 'message' => 'Formulário excluído com sucesso!']);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao excluir formulário: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir formulário']);
+        }
+        exit;
+    }
+    
+    /**
+     * Página pública de resposta (SEM LOGIN)
+     */
+    public function responder($formularioId)
+    {
+        $filename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+        
+        if (!file_exists($filename)) {
+            echo '<!DOCTYPE html><html><body><h1>Formulário não encontrado</h1></body></html>';
+            exit;
+        }
+        
+        $formulario = json_decode(file_get_contents($filename), true);
+        
+        // Verificar se está ativo
+        if (!$formulario['ativo']) {
+            echo '<!DOCTYPE html><html><body><h1>Este formulário não está mais disponível</h1></body></html>';
+            exit;
+        }
+        
+        // Carregar view pública (sem layout do sistema)
+        include __DIR__ . '/../../views/pages/nps/responder.php';
+    }
+    
+    /**
+     * Salvar resposta pública (SEM LOGIN)
+     */
+    public function salvarResposta()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $formularioId = $_POST['formulario_id'] ?? '';
+            $respostas = json_decode($_POST['respostas'] ?? '[]', true);
+            $nome = trim($_POST['nome'] ?? 'Anônimo');
+            $email = trim($_POST['email'] ?? '');
+            
+            if (empty($formularioId) || empty($respostas)) {
+                echo json_encode(['success' => false, 'message' => 'Dados incompletos']);
+                exit;
+            }
+            
+            // Verificar se formulário existe e está ativo
+            $formFilename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+            if (!file_exists($formFilename)) {
+                echo json_encode(['success' => false, 'message' => 'Formulário não encontrado']);
+                exit;
+            }
+            
+            $formulario = json_decode(file_get_contents($formFilename), true);
+            if (!$formulario['ativo']) {
+                echo json_encode(['success' => false, 'message' => 'Formulário não está mais disponível']);
+                exit;
+            }
+            
+            // Gerar ID único para a resposta
+            $respostaId = 'resp_' . time() . '_' . uniqid();
+            
+            // Dados da resposta
+            $resposta = [
+                'id' => $respostaId,
+                'formulario_id' => $formularioId,
+                'formulario_titulo' => $formulario['titulo'],
+                'nome' => $nome,
+                'email' => $email,
+                'respostas' => $respostas,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                'respondido_em' => date('Y-m-d H:i:s')
+            ];
+            
+            // Salvar resposta
+            $respostaFilename = $this->respostasDir . '/resposta_' . $respostaId . '.json';
+            file_put_contents($respostaFilename, json_encode($resposta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Obrigado por responder! Sua opinião é muito importante para nós.'
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao salvar resposta: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao enviar resposta']);
+        }
+        exit;
+    }
+    
+    /**
+     * Ver respostas de um formulário
+     */
+    public function verRespostas($formularioId)
+    {
+        // Verificar autenticação
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+        
+        $userId = $_SESSION['user_id'];
+        
+        // Verificar se formulário existe e se usuário tem permissão
+        $formFilename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+        if (!file_exists($formFilename)) {
+            echo 'Formulário não encontrado';
+            exit;
+        }
+        
+        $formulario = json_decode(file_get_contents($formFilename), true);
+        
+        if ($formulario['criado_por'] != $userId && ($_SESSION['user_role'] ?? '') !== 'admin') {
+            echo 'Sem permissão para ver as respostas';
+            exit;
+        }
+        
+        // Carregar todas as respostas deste formulário
+        $respostas = [];
+        $files = glob($this->respostasDir . '/resposta_*.json');
+        
+        foreach ($files as $file) {
+            $data = json_decode(file_get_contents($file), true);
+            if ($data['formulario_id'] === $formularioId) {
+                $respostas[] = $data;
+            }
+        }
+        
+        // Ordenar por data (mais recente primeiro)
+        usort($respostas, function($a, $b) {
+            return strtotime($b['respondido_em']) - strtotime($a['respondido_em']);
+        });
+        
+        $title = 'Respostas: ' . $formulario['titulo'] . ' - SGQ OTI DJ';
+        $viewFile = __DIR__ . '/../../views/pages/nps/respostas.php';
+        include __DIR__ . '/../../views/layouts/main.php';
+    }
+    
+    /**
+     * Contar respostas de um formulário
+     */
+    private function contarRespostas($formularioId)
+    {
+        $count = 0;
+        $files = glob($this->respostasDir . '/resposta_*.json');
+        
+        foreach ($files as $file) {
+            $data = json_decode(file_get_contents($file), true);
+            if ($data['formulario_id'] === $formularioId) {
+                $count++;
+            }
+        }
+        
+        return $count;
+    }
+    
+    /**
+     * Obter detalhes de um formulário (AJAX)
+     */
+    public function detalhes($formularioId)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                exit;
+            }
+            
+            $filename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+            if (!file_exists($filename)) {
+                echo json_encode(['success' => false, 'message' => 'Formulário não encontrado']);
+                exit;
+            }
+            
+            $formulario = json_decode(file_get_contents($filename), true);
+            
+            // Verificar permissão
+            if ($formulario['criado_por'] != $userId && ($_SESSION['user_role'] ?? '') !== 'admin') {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão']);
+                exit;
+            }
+            
+            echo json_encode(['success' => true, 'formulario' => $formulario]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao carregar detalhes: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar dados']);
+        }
+        exit;
     }
 }

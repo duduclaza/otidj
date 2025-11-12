@@ -267,6 +267,16 @@ $router->get('/nao-conformidades/anexo/{id}', [App\Controllers\NaoConformidadesC
 
 // NPS routes
 $router->get('/nps', [App\Controllers\NpsController::class, 'index']);
+$router->get('/nps/listar', [App\Controllers\NpsController::class, 'listar']);
+$router->post('/nps/criar', [App\Controllers\NpsController::class, 'criar']);
+$router->post('/nps/editar', [App\Controllers\NpsController::class, 'editar']);
+$router->post('/nps/toggle-status', [App\Controllers\NpsController::class, 'toggleStatus']);
+$router->post('/nps/excluir', [App\Controllers\NpsController::class, 'excluir']);
+$router->get('/nps/{id}/detalhes', [App\Controllers\NpsController::class, 'detalhes']);
+$router->get('/nps/{id}/respostas', [App\Controllers\NpsController::class, 'verRespostas']);
+// Rotas públicas (SEM autenticação)
+$router->get('/nps/responder/{id}', [App\Controllers\NpsController::class, 'responder']);
+$router->post('/nps/salvar-resposta', [App\Controllers\NpsController::class, 'salvarResposta']);
 
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);

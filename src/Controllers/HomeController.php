@@ -20,11 +20,36 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.6.4';
+        $systemVersion = '2.7.0';
         $lastUpdate = '12/11/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.7.0',
+                'date' => '12/11/2025',
+                'type' => 'Melhoria',
+                'title' => 'Sistema Completo de Formulários NPS Personalizados',
+                'description' => 'Criação de formulários personalizados com link público para resposta sem login',
+                'items' => [
+                    'Criação de formulários personalizados com título e descrição',
+                    'Suporte a 4 tipos de pergunta: Texto, Número (0-10), Múltipla Escolha, Sim/Não',
+                    'Link público gerado automaticamente para cada formulário',
+                    'Respostas sem necessidade de login no sistema',
+                    'Armazenamento em arquivos JSON (pasta storage/formularios/)',
+                    'Gerenciamento completo: criar, editar, ativar/desativar, excluir',
+                    'Proteção: formulários com respostas NÃO podem ser excluídos',
+                    'Visualização de todas as respostas recebidas',
+                    'Cálculo automático de NPS Score (Promotores, Neutros, Detratores)',
+                    'Estatísticas em tempo real com gráficos visuais',
+                    'Coleta de dados do respondente: nome, email, IP, User-Agent',
+                    'Copiar link público com um clique',
+                    'Interface responsiva para desktop e mobile',
+                    'Múltiplos formulários por usuário',
+                    'Admin visualiza todos os formulários do sistema',
+                    'Documentação completa em SISTEMA_NPS_README.md'
+                ]
+            ],
             [
                 'version' => '2.6.4',
                 'date' => '12/11/2025',

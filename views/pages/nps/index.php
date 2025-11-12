@@ -1,125 +1,388 @@
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-    <div class="max-w-2xl w-full">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-gradient-to-r from-green-500 via-teal-500 to-cyan-500 p-8 text-center">
-                <div class="text-6xl mb-4 animate-bounce">🚧</div>
-                <h1 class="text-4xl font-bold text-white mb-2">Em Construção</h1>
-                <p class="text-green-100 text-lg">Módulo NPS (Net Promoter Score)</p>
-            </div>
+<section class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-semibold text-gray-900">📊 Formulários NPS</h1>
+    <button onclick="abrirModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      <span>Novo Formulário</span>
+    </button>
+  </div>
 
-            <div class="p-8">
-                <div class="text-center mb-8">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">
-                        Em breve! 🎯
-                    </h2>
-                    <p class="text-gray-600 leading-relaxed">
-                        O módulo de <strong>NPS (Net Promoter Score)</strong> está sendo desenvolvido 
-                        para medir a satisfação e lealdade dos clientes através de pesquisas 
-                        e análises de feedback.
-                    </p>
-                </div>
-
-                <div class="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <span class="text-2xl mr-2">✨</span>
-                        Funcionalidades Planejadas
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Envio de pesquisas NPS</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Cálculo automático de score</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Dashboard de métricas</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Segmentação por cliente</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Análise de tendências</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Relatórios de feedback</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Categorias (Promotores, Neutros, Detratores)</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <span class="text-green-500 text-xl">✓</span>
-                            <span class="text-gray-700">Histórico de pesquisas</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                        <span class="text-2xl mr-2">📊</span>
-                        Status do Desenvolvimento
-                    </h3>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="flex justify-between text-sm text-gray-600 mb-1">
-                                <span>Progresso Geral</span>
-                                <span class="font-semibold">Em Planejamento</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-green-500 to-cyan-500 h-2 rounded-full animate-pulse" style="width: 25%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-3">
-                        <strong>Previsão:</strong> Módulo em fase inicial de planejamento
-                    </p>
-                </div>
-
-                <div class="bg-cyan-50 border-l-4 border-cyan-400 p-4 rounded mb-6">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <span class="text-2xl">💡</span>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-cyan-700 mb-2">
-                                <strong>O que é NPS?</strong>
-                            </p>
-                            <p class="text-sm text-cyan-600">
-                                Net Promoter Score é uma métrica que varia de -100 a +100, 
-                                medindo a probabilidade de seus clientes recomendarem sua empresa. 
-                                É calculado através de uma pergunta simples: "De 0 a 10, quanto você 
-                                recomendaria nossa empresa?"
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <span class="text-2xl">⚠️</span>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-yellow-700">
-                                <strong>Aguarde:</strong> Este módulo será implementado em breve com todas as funcionalidades para medir e melhorar a satisfação dos seus clientes.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-6 text-center">
-                    <a href="/inicio" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg hover:from-green-700 hover:to-teal-700 transition-colors">
-                        <span class="mr-2">🏠</span>
-                        Voltar para o Início
-                    </a>
-                </div>
-            </div>
-        </div>
+  <!-- Grid de Formulários -->
+  <div id="formulariosGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Carregando... -->
+    <div class="col-span-full text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600">Carregando formulários...</p>
     </div>
+  </div>
+</section>
+
+<!-- Modal Criar/Editar Formulário -->
+<div id="modalFormulario" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <h3 id="modalTitulo" class="text-xl font-semibold text-gray-900">Novo Formulário</h3>
+        <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <form id="formularioForm" class="space-y-6">
+        <input type="hidden" id="formulario_id">
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Título do Formulário *</label>
+          <input type="text" id="titulo" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: Pesquisa de Satisfação - Cliente">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+          <textarea id="descricao" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Breve descrição sobre o formulário"></textarea>
+        </div>
+        
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <label class="block text-sm font-medium text-gray-700">Perguntas *</label>
+            <button type="button" onclick="adicionarPergunta()" class="text-sm text-blue-600 hover:text-blue-700 flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Adicionar Pergunta
+            </button>
+          </div>
+          
+          <div id="perguntasContainer" class="space-y-4">
+            <!-- Perguntas serão adicionadas aqui -->
+          </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <button type="button" onclick="fecharModal()" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+            Cancelar
+          </button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Salvar Formulário
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
+
+<script>
+let perguntas = [];
+let editandoFormularioId = null;
+
+// Carregar formulários ao abrir a página
+document.addEventListener('DOMContentLoaded', function() {
+  carregarFormularios();
+});
+
+// Carregar lista de formulários
+function carregarFormularios() {
+  fetch('/nps/listar', {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      renderFormularios(data.formularios);
+    } else {
+      alert('Erro ao carregar formulários');
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById('formulariosGrid').innerHTML = '<div class="col-span-full text-center py-12 text-red-600">Erro ao carregar formulários</div>';
+  });
+}
+
+// Renderizar grid de formulários
+function renderFormularios(formularios) {
+  const grid = document.getElementById('formulariosGrid');
+  
+  if (formularios.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full text-center py-12">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <p class="text-gray-600 mb-4">Nenhum formulário criado ainda</p>
+        <button onclick="abrirModal()" class="text-blue-600 hover:text-blue-700 font-medium">
+          Criar seu primeiro formulário
+        </button>
+      </div>
+    `;
+    return;
+  }
+  
+  grid.innerHTML = formularios.map(f => `
+    <div class="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
+      <div class="p-6">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">${escapeHtml(f.titulo)}</h3>
+          <span class="px-2 py-1 text-xs rounded-full ${f.ativo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+            ${f.ativo ? '✓ Ativo' : '✗ Inativo'}
+          </span>
+        </div>
+        
+        ${f.descricao ? `<p class="text-sm text-gray-600 mb-4">${escapeHtml(f.descricao)}</p>` : ''}
+        
+        <div class="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+          <span>📝 ${f.total_respostas} respostas</span>
+          <span>📅 ${formatarData(f.criado_em)}</span>
+        </div>
+        
+        <div class="mb-4">
+          <label class="text-xs text-gray-500 mb-1 block">Link Público:</label>
+          <div class="flex items-center space-x-2">
+            <input type="text" value="${f.link_publico}" readonly class="flex-1 text-xs px-2 py-1 border border-gray-300 rounded bg-gray-50" id="link-${f.id}">
+            <button onclick="copiarLink('${f.id}')" class="text-blue-600 hover:text-blue-700" title="Copiar link">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+          <button onclick="verRespostas('${f.id}')" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+            Ver Respostas
+          </button>
+          <div class="flex items-center space-x-2">
+            <button onclick="toggleStatus('${f.id}')" class="p-2 text-gray-600 hover:text-gray-800" title="${f.ativo ? 'Desativar' : 'Ativar'}">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+            </button>
+            <button onclick="editarFormulario('${f.id}')" class="p-2 text-blue-600 hover:text-blue-700" title="Editar">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
+            <button onclick="excluirFormulario('${f.id}', ${f.total_respostas})" class="p-2 text-red-600 hover:text-red-700" title="Excluir">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Abrir modal para criar
+function abrirModal() {
+  editandoFormularioId = null;
+  document.getElementById('modalTitulo').textContent = 'Novo Formulário';
+  document.getElementById('formularioForm').reset();
+  document.getElementById('formulario_id').value = '';
+  perguntas = [];
+  document.getElementById('perguntasContainer').innerHTML = '';
+  adicionarPergunta(); // Adicionar primeira pergunta automaticamente
+  document.getElementById('modalFormulario').classList.remove('hidden');
+}
+
+// Fechar modal
+function fecharModal() {
+  document.getElementById('modalFormulario').classList.add('hidden');
+}
+
+// Adicionar pergunta
+function adicionarPergunta() {
+  const index = perguntas.length;
+  perguntas.push({ texto: '', tipo: 'texto' });
+  
+  const container = document.getElementById('perguntasContainer');
+  const div = document.createElement('div');
+  div.className = 'border border-gray-300 rounded-lg p-4 bg-gray-50';
+  div.innerHTML = `
+    <div class="flex justify-between items-center mb-3">
+      <span class="text-sm font-medium text-gray-700">Pergunta ${index + 1}</span>
+      <button type="button" onclick="removerPergunta(${index})" class="text-red-600 hover:text-red-700 text-sm">
+        Remover
+      </button>
+    </div>
+    <input type="text" id="pergunta_${index}" placeholder="Digite a pergunta" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-500" required>
+    <select id="tipo_${index}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
+      <option value="texto">Resposta de Texto</option>
+      <option value="numero">Resposta Numérica (0-10)</option>
+      <option value="multipla">Múltipla Escolha</option>
+      <option value="sim_nao">Sim/Não</option>
+    </select>
+  `;
+  container.appendChild(div);
+}
+
+// Remover pergunta
+function removerPergunta(index) {
+  perguntas.splice(index, 1);
+  document.getElementById('perguntasContainer').children[index].remove();
+  // Renumerar perguntas
+  Array.from(document.getElementById('perguntasContainer').children).forEach((el, i) => {
+    el.querySelector('.text-sm').textContent = `Pergunta ${i + 1}`;
+  });
+}
+
+// Submeter formulário
+document.getElementById('formularioForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const titulo = document.getElementById('titulo').value.trim();
+  const descricao = document.getElementById('descricao').value.trim();
+  const formularioId = document.getElementById('formulario_id').value;
+  
+  // Coletar perguntas
+  const perguntasData = [];
+  Array.from(document.getElementById('perguntasContainer').children).forEach((el, i) => {
+    const texto = document.getElementById(`pergunta_${i}`).value.trim();
+    const tipo = document.getElementById(`tipo_${i}`).value;
+    if (texto) {
+      perguntasData.push({ texto, tipo });
+    }
+  });
+  
+  if (perguntasData.length === 0) {
+    alert('Adicione pelo menos uma pergunta');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('titulo', titulo);
+  formData.append('descricao', descricao);
+  formData.append('perguntas', JSON.stringify(perguntasData));
+  if (formularioId) {
+    formData.append('formulario_id', formularioId);
+  }
+  
+  const url = formularioId ? '/nps/editar' : '/nps/criar';
+  
+  fetch(url, {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      if (data.link_publico) {
+        alert('Link público: ' + data.link_publico);
+      }
+      fecharModal();
+      carregarFormularios();
+    } else {
+      alert('Erro: ' + data.message);
+    }
+  })
+  .catch(err => alert('Erro de conexão'));
+});
+
+// Editar formulário
+function editarFormulario(id) {
+  fetch(`/nps/${id}/detalhes`)
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      const f = data.formulario;
+      editandoFormularioId = id;
+      document.getElementById('modalTitulo').textContent = 'Editar Formulário';
+      document.getElementById('formulario_id').value = id;
+      document.getElementById('titulo').value = f.titulo;
+      document.getElementById('descricao').value = f.descricao || '';
+      
+      // Carregar perguntas
+      perguntas = f.perguntas;
+      document.getElementById('perguntasContainer').innerHTML = '';
+      f.perguntas.forEach((p, i) => {
+        adicionarPergunta();
+        document.getElementById(`pergunta_${i}`).value = p.texto;
+        document.getElementById(`tipo_${i}`).value = p.tipo;
+      });
+      
+      document.getElementById('modalFormulario').classList.remove('hidden');
+    }
+  });
+}
+
+// Toggle status
+function toggleStatus(id) {
+  if (!confirm('Alterar status deste formulário?')) return;
+  
+  const formData = new FormData();
+  formData.append('formulario_id', id);
+  
+  fetch('/nps/toggle-status', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      carregarFormularios();
+    } else {
+      alert('Erro: ' + data.message);
+    }
+  });
+}
+
+// Excluir formulário
+function excluirFormulario(id, totalRespostas) {
+  if (totalRespostas > 0) {
+    alert('Não é possível excluir! Este formulário possui ' + totalRespostas + ' resposta(s).');
+    return;
+  }
+  
+  if (!confirm('Tem certeza que deseja excluir este formulário?')) return;
+  
+  const formData = new FormData();
+  formData.append('formulario_id', id);
+  
+  fetch('/nps/excluir', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      carregarFormularios();
+    } else {
+      alert('Erro: ' + data.message);
+    }
+  });
+}
+
+// Ver respostas
+function verRespostas(id) {
+  window.location.href = `/nps/${id}/respostas`;
+}
+
+// Copiar link
+function copiarLink(id) {
+  const input = document.getElementById('link-' + id);
+  input.select();
+  document.execCommand('copy');
+  alert('Link copiado para a área de transferência!');
+}
+
+// Helpers
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatarData(dataStr) {
+  const data = new Date(dataStr);
+  return data.toLocaleDateString('pt-BR');
+}
+</script>
