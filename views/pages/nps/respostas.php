@@ -112,13 +112,22 @@
                 <p class="text-xs text-gray-600 mt-1 ml-7 truncate"><?= e($resposta['email']) ?></p>
               <?php endif; ?>
             </div>
-            <div class="text-right ml-2 flex-shrink-0">
-              <span class="text-xs font-medium text-gray-700 block">
-                <?= date('d/m/Y', strtotime($resposta['respondido_em'])) ?>
-              </span>
-              <p class="text-xs text-gray-500">
-                <?= date('H:i', strtotime($resposta['respondido_em'])) ?>
-              </p>
+            <div class="flex items-center space-x-2 ml-2 flex-shrink-0">
+              <div class="text-right">
+                <span class="text-xs font-medium text-gray-700 block">
+                  <?= date('d/m/Y', strtotime($resposta['respondido_em'])) ?>
+                </span>
+                <p class="text-xs text-gray-500">
+                  <?= date('H:i', strtotime($resposta['respondido_em'])) ?>
+                </p>
+              </div>
+              <?php if ($podeExcluir): ?>
+                <button onclick="excluirResposta('<?= e($resposta['id']) ?>')" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Excluir resposta">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              <?php endif; ?>
             </div>
           </div>
           
@@ -362,4 +371,32 @@ function alternarVisualizacao(tipo) {
 document.getElementById('filtroBusca').addEventListener('input', aplicarFiltros);
 document.getElementById('filtroDataInicio').addEventListener('change', aplicarFiltros);
 document.getElementById('filtroDataFim').addEventListener('change', aplicarFiltros);
+
+// Excluir resposta (apenas admin/super_admin)
+function excluirResposta(respostaId) {
+  if (!confirm('Tem certeza que deseja excluir esta resposta? Esta ação não pode ser desfeita!')) {
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('resposta_id', respostaId);
+  
+  fetch('/nps/excluir-resposta', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      location.reload(); // Recarregar a página para atualizar a lista
+    } else {
+      alert('Erro: ' + data.message);
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert('Erro de conexão');
+  });
+}
 </script>

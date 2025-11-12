@@ -435,6 +435,10 @@ class NpsController
             return strtotime($b['respondido_em']) - strtotime($a['respondido_em']);
         });
         
+        // Verificar se é admin ou super_admin para permitir exclusão
+        $userRole = $_SESSION['user_role'] ?? '';
+        $podeExcluir = in_array($userRole, ['admin', 'super_admin']);
+        
         $title = 'Respostas: ' . $formulario['titulo'] . ' - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/pages/nps/respostas.php';
         include __DIR__ . '/../../views/layouts/main.php';
@@ -491,6 +495,47 @@ class NpsController
         } catch (\Exception $e) {
             error_log('Erro ao carregar detalhes: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao carregar dados']);
+        }
+        exit;
+    }
+    
+    /**
+     * Excluir resposta (apenas admin/super_admin)
+     */
+    public function excluirResposta()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar se é admin ou super_admin
+            $userRole = $_SESSION['user_role'] ?? '';
+            if (!in_array($userRole, ['admin', 'super_admin'])) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão para excluir respostas']);
+                exit;
+            }
+            
+            $respostaId = $_POST['resposta_id'] ?? '';
+            
+            if (empty($respostaId)) {
+                echo json_encode(['success' => false, 'message' => 'ID da resposta não informado']);
+                exit;
+            }
+            
+            // Verificar se resposta existe
+            $filename = $this->respostasDir . '/resposta_' . $respostaId . '.json';
+            if (!file_exists($filename)) {
+                echo json_encode(['success' => false, 'message' => 'Resposta não encontrada']);
+                exit;
+            }
+            
+            // Excluir arquivo
+            unlink($filename);
+            
+            echo json_encode(['success' => true, 'message' => 'Resposta excluída com sucesso!']);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao excluir resposta: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir resposta']);
         }
         exit;
     }
