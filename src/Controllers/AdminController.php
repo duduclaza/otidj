@@ -19,15 +19,18 @@ class AdminController
      */
     public function dashboard()
     {
-        // Verificar se é admin ou super_admin (role fixo, sem banco de permissões)
-        $userRole = $_SESSION['user_role'] ?? '';
-        $allowedRoles = ['admin', 'super_admin'];
+        // Verificar se usuário está autenticado
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
         
-        if (!in_array($userRole, $allowedRoles)) {
+        // Verificar permissão de dashboard usando sistema de permissões
+        if (!\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
             http_response_code(403);
             echo "<h1>⛔ Acesso Negado</h1>";
-            echo "<p>O dashboard é exclusivo para Administradores e Super Administradores.</p>";
-            echo "<p>Seu perfil atual: <strong>" . htmlspecialchars($userRole) . "</strong></p>";
+            echo "<p>Você não tem permissão para acessar o Dashboard.</p>";
+            echo "<p>Entre em contato com o administrador para solicitar acesso.</p>";
             echo "<p><a href='/inicio' style='color: #3B82F6;'>← Voltar para Início</a></p>";
             return;
         }
