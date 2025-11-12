@@ -492,7 +492,9 @@ try {
         strpos($currentRoute, '/logout') === 0 ||
         strpos($currentRoute, '/password-reset') === 0 ||
         strpos($currentRoute, '/request-access') === 0 ||
-        strpos($currentRoute, '/access-request') === 0
+        strpos($currentRoute, '/access-request') === 0 ||
+        strpos($currentRoute, '/nps/responder/') === 0 ||  // Formulário público NPS
+        strpos($currentRoute, '/nps/salvar-resposta') === 0  // Salvar resposta pública NPS
     );
 
     if (!$isPublicAuthRoute) {
