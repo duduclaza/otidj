@@ -1,0 +1,229 @@
+<section class="space-y-6">
+  <!-- Cabeçalho -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">📊 Dashboard NPS</h1>
+      <p class="text-sm text-gray-600 mt-1">Visão geral e análise de todas as respostas</p>
+    </div>
+    <a href="/nps" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <span>Formulários</span>
+    </a>
+  </div>
+
+  <!-- Cards de Estatísticas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Card NPS Score -->
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium opacity-90">NPS Score</h3>
+        <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </div>
+      <p class="text-4xl font-bold"><?= $stats['nps_medio'] ?></p>
+      <p class="text-xs opacity-80 mt-1">
+        <?php if ($stats['nps_medio'] >= 75): ?>
+          Excelente! 🎉
+        <?php elseif ($stats['nps_medio'] >= 50): ?>
+          Muito Bom! 👍
+        <?php elseif ($stats['nps_medio'] >= 0): ?>
+          Bom 😊
+        <?php else: ?>
+          Precisa Melhorar 📈
+        <?php endif; ?>
+      </p>
+    </div>
+
+    <!-- Card Total Respostas -->
+    <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-gray-600">Total de Respostas</h3>
+        <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+      </div>
+      <p class="text-4xl font-bold text-gray-900"><?= $stats['total_respostas'] ?></p>
+      <p class="text-xs text-gray-500 mt-1">Respostas coletadas</p>
+    </div>
+
+    <!-- Card Formulários -->
+    <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-gray-600">Formulários</h3>
+        <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+      </div>
+      <p class="text-4xl font-bold text-gray-900"><?= $stats['total_formularios'] ?></p>
+      <p class="text-xs text-gray-500 mt-1"><?= $stats['formularios_ativos'] ?> ativos</p>
+    </div>
+
+    <!-- Card Promotores -->
+    <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium text-gray-600">Promotores</h3>
+        <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+        </svg>
+      </div>
+      <p class="text-4xl font-bold text-gray-900"><?= $stats['promotores'] ?></p>
+      <p class="text-xs text-gray-500 mt-1">Notas 9-10</p>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Gráfico de Pizza: Distribuição NPS -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Distribuição NPS</h3>
+      <div class="relative" style="height: 300px;">
+        <canvas id="chartDistribuicao"></canvas>
+      </div>
+      <div class="grid grid-cols-3 gap-4 mt-4">
+        <div class="text-center">
+          <p class="text-2xl font-bold text-green-600"><?= $stats['promotores'] ?></p>
+          <p class="text-xs text-gray-600">Promotores (9-10)</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-yellow-600"><?= $stats['neutros'] ?></p>
+          <p class="text-xs text-gray-600">Neutros (7-8)</p>
+        </div>
+        <div class="text-center">
+          <p class="text-2xl font-bold text-red-600"><?= $stats['detratores'] ?></p>
+          <p class="text-xs text-gray-600">Detratores (0-6)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico de Barras: Distribuição de Notas -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+      <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Distribuição de Notas</h3>
+      <div class="relative" style="height: 300px;">
+        <canvas id="chartNotas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico de Linha: Respostas ao Longo do Tempo -->
+  <div class="bg-white rounded-lg shadow-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">📅 Respostas nos Últimos 30 Dias</h3>
+    <div class="relative" style="height: 300px;">
+      <canvas id="chartTempo"></canvas>
+    </div>
+  </div>
+
+  <?php if ($stats['total_respostas'] === 0): ?>
+    <!-- Mensagem de Boas-Vindas -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
+      <svg class="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">Bem-vindo ao Dashboard NPS! 🎉</h3>
+      <p class="text-gray-600 mb-4">Você ainda não tem respostas coletadas. Crie seu primeiro formulário e compartilhe o link para começar a receber feedback!</p>
+      <a href="/nps" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+        Criar Formulário
+      </a>
+    </div>
+  <?php endif; ?>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dados do PHP
+const stats = <?= json_encode($stats) ?>;
+
+// Gráfico de Pizza: Distribuição NPS
+const ctxDistribuicao = document.getElementById('chartDistribuicao').getContext('2d');
+new Chart(ctxDistribuicao, {
+  type: 'doughnut',
+  data: {
+    labels: ['Promotores (9-10)', 'Neutros (7-8)', 'Detratores (0-6)'],
+    datasets: [{
+      data: [stats.promotores, stats.neutros, stats.detratores],
+      backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 15,
+          font: { size: 12 }
+        }
+      }
+    }
+  }
+});
+
+// Gráfico de Barras: Distribuição de Notas
+const ctxNotas = document.getElementById('chartNotas').getContext('2d');
+new Chart(ctxNotas, {
+  type: 'bar',
+  data: {
+    labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+    datasets: [{
+      label: 'Quantidade',
+      data: stats.distribuicao_notas,
+      backgroundColor: function(context) {
+        const value = context.dataIndex;
+        if (value >= 9) return '#10B981'; // Verde (Promotores)
+        if (value >= 7) return '#F59E0B'; // Amarelo (Neutros)
+        return '#EF4444'; // Vermelho (Detratores)
+      },
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1 }
+      }
+    }
+  }
+});
+
+// Gráfico de Linha: Respostas ao Longo do Tempo
+const ctxTempo = document.getElementById('chartTempo').getContext('2d');
+new Chart(ctxTempo, {
+  type: 'line',
+  data: {
+    labels: stats.respostas_por_dia.map(d => d.data),
+    datasets: [{
+      label: 'Respostas',
+      data: stats.respostas_por_dia.map(d => d.total),
+      borderColor: '#3B82F6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 3,
+      pointHoverRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1 }
+      }
+    }
+  }
+});
+</script>

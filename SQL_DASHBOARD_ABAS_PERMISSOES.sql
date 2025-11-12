@@ -1,7 +1,11 @@
--- ===================================================================
--- SISTEMA DE PERMISSÕES POR ABA DO DASHBOARD
--- Permite controlar quais abas cada perfil pode visualizar
--- Data: 12/11/2025
+-- =======================-- ============================================
+-- SCRIPT: Sistema de Permissões por Aba do Dashboard + NPS
+-- Versão: 2.7.1
+-- Data: 2024
+-- Descrição: Cria tabela de permissões granulares por aba
+--            e popula com permissões padrão baseadas no status
+--            de administrador de cada perfil.
+--            Inclui módulo NPS nas permissões.
 -- ===================================================================
 
 -- 1. Criar tabela de permissões de abas do dashboard

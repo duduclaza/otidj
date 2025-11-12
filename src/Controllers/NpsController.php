@@ -557,4 +557,116 @@ class NpsController
         }
         exit;
     }
+    
+    /**
+     * Dashboard com estatísticas e gráficos NPS
+     */
+    public function dashboard()
+    {
+        // Verificar autenticação
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+        
+        $userId = $_SESSION['user_id'];
+        $userRole = $_SESSION['user_role'] ?? '';
+        
+        // Coletar estatísticas gerais
+        $stats = $this->coletarEstatisticas($userId, $userRole);
+        
+        $title = 'Dashboard NPS - SGQ OTI DJ';
+        $viewFile = __DIR__ . '/../../views/pages/nps/dashboard.php';
+        include __DIR__ . '/../../views/layouts/main.php';
+    }
+    
+    /**
+     * Coletar estatísticas para o dashboard
+     */
+    private function coletarEstatisticas($userId, $userRole)
+    {
+        $stats = [
+            'total_formularios' => 0,
+            'total_respostas' => 0,
+            'nps_medio' => 0,
+            'promotores' => 0,
+            'neutros' => 0,
+            'detratores' => 0,
+            'formularios_ativos' => 0,
+            'formularios_por_mes' => [],
+            'respostas_por_dia' => [],
+            'distribuicao_notas' => array_fill(0, 11, 0), // 0-10
+        ];
+        
+        // Contar formulários
+        $formFiles = glob($this->storageDir . '/formulario_*.json');
+        foreach ($formFiles as $file) {
+            $form = json_decode(file_get_contents($file), true);
+            // Filtrar por usuário ou admin
+            if ($form['criado_por'] == $userId || $userRole === 'admin' || $userRole === 'super_admin') {
+                $stats['total_formularios']++;
+                if ($form['ativo']) {
+                    $stats['formularios_ativos']++;
+                }
+            }
+        }
+        
+        // Coletar respostas
+        $respostaFiles = glob($this->respostasDir . '/resposta_*.json');
+        $ultimosDias = [];
+        
+        foreach ($respostaFiles as $file) {
+            $resposta = json_decode(file_get_contents($file), true);
+            
+            // Verificar se a resposta pertence a um formulário do usuário
+            $formFile = $this->storageDir . '/formulario_' . $resposta['formulario_id'] . '.json';
+            if (file_exists($formFile)) {
+                $form = json_decode(file_get_contents($formFile), true);
+                
+                if ($form['criado_por'] == $userId || $userRole === 'admin' || $userRole === 'super_admin') {
+                    $stats['total_respostas']++;
+                    
+                    // Analisar respostas para calcular NPS
+                    foreach ($resposta['respostas'] as $r) {
+                        if (is_numeric($r['resposta']) && $r['resposta'] >= 0 && $r['resposta'] <= 10) {
+                            $nota = (int)$r['resposta'];
+                            $stats['distribuicao_notas'][$nota]++;
+                            
+                            if ($nota >= 9) {
+                                $stats['promotores']++;
+                            } elseif ($nota >= 7) {
+                                $stats['neutros']++;
+                            } else {
+                                $stats['detratores']++;
+                            }
+                        }
+                    }
+                    
+                    // Respostas por dia (últimos 30 dias)
+                    $data = date('Y-m-d', strtotime($resposta['respondido_em']));
+                    if (!isset($ultimosDias[$data])) {
+                        $ultimosDias[$data] = 0;
+                    }
+                    $ultimosDias[$data]++;
+                }
+            }
+        }
+        
+        // Calcular NPS
+        $totalAvaliacoes = $stats['promotores'] + $stats['neutros'] + $stats['detratores'];
+        if ($totalAvaliacoes > 0) {
+            $stats['nps_medio'] = round((($stats['promotores'] - $stats['detratores']) / $totalAvaliacoes) * 100);
+        }
+        
+        // Preparar dados dos últimos 30 dias
+        for ($i = 29; $i >= 0; $i--) {
+            $data = date('Y-m-d', strtotime("-$i days"));
+            $stats['respostas_por_dia'][] = [
+                'data' => date('d/m', strtotime($data)),
+                'total' => $ultimosDias[$data] ?? 0
+            ];
+        }
+        
+        return $stats;
+    }
 }

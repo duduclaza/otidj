@@ -20,32 +20,44 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.7.0';
-        $lastUpdate = '12/11/2025';
+        $systemVersion = '2.7.1';
+        $lastUpdate = '2024-11-12';
         
-        // Últimas atualizações do sistema - apenas Melhorias e Ajustes
-        $allUpdates = [
+        // Buscar últimas atualizações (changelog do sistema)
+        $updates = [
+            [
+                'version' => '2.7.1',
+                'date' => '2024-11-12',
+                'title' => 'Dashboard NPS com Gráficos + Exportação CSV + QR Code',
+                'description' => 'Dashboard completo com visualizações gráficas, exportação de dados e geração de QR Code',
+                'features' => [
+                    '📊 Dashboard NPS com 3 gráficos interativos (Chart.js)',
+                    '📈 Gráfico de distribuição (Promotores/Neutros/Detratores)',
+                    '📊 Gráfico de notas detalhado (0-10)',
+                    '📅 Gráfico de evolução temporal (últimos 30 dias)',
+                    '📥 Exportação CSV com filtros aplicados',
+                    '📱 Geração de QR Code para formulários',
+                    '💾 Download de QR Code em PNG (256x256)',
+                    '🎨 Upload de logo personalizado (PNG transparente)',
+                    '🗑️ Exclusão de respostas (admin/super_admin)',
+                    '🔐 Sistema de permissões para módulo NPS'
+                ]
+            ],
             [
                 'version' => '2.7.0',
-                'date' => '12/11/2025',
-                'type' => 'Melhoria',
-                'title' => 'Sistema Completo de Formulários NPS Personalizados',
-                'description' => 'Criação de formulários personalizados com link público para resposta sem login',
-                'items' => [
-                    'Criação de formulários personalizados com título e descrição',
-                    'Suporte a 4 tipos de pergunta: Texto, Número (0-10), Múltipla Escolha, Sim/Não',
-                    'Link público gerado automaticamente para cada formulário',
-                    'Respostas sem necessidade de login no sistema',
-                    'Armazenamento em arquivos JSON (pasta storage/formularios/)',
-                    'Gerenciamento completo: criar, editar, ativar/desativar, excluir',
-                    'Proteção: formulários com respostas NÃO podem ser excluídos',
-                    'Visualização de todas as respostas recebidas',
-                    'Cálculo automático de NPS Score (Promotores, Neutros, Detratores)',
-                    'Estatísticas em tempo real com gráficos visuais',
-                    'Coleta de dados do respondente: nome, email, IP, User-Agent',
-                    'Copiar link público com um clique',
-                    'Interface responsiva para desktop e mobile',
-                    'Múltiplos formulários por usuário',
+                'date' => '2024-11-12',
+                'title' => 'Sistema de Formulários NPS Personalizados',
+                'description' => 'Novo sistema completo para criar formulários NPS customizados e coletar feedback de clientes',
+                'features' => [
+                    'Criação ilimitada de formulários NPS customizados',
+                    'Perguntas configuráveis (0-10, Sim/Não, Texto livre)',
+                    'Links públicos únicos para cada formulário',
+                    'Página de resposta sem necessidade de login',
+                    'Cálculo automático de NPS (Promotores, Neutros, Detratores)',
+                    'Visualização detalhada de todas as respostas',
+                    'Controle de formulários ativos/inativos',
+                    'Sistema baseado em arquivos JSON (sem necessidade de DB)',
+                    'Interface moderna e responsiva',
                     'Admin visualiza todos os formulários do sistema',
                     'Documentação completa em SISTEMA_NPS_README.md'
                 ]
