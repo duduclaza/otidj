@@ -727,8 +727,10 @@ class NpsController
                     $stats['total_respostas']++;
                     
                     // Analisar respostas para calcular NPS
+                    // IMPORTANTE: Contar apenas a PRIMEIRA pergunta numérica 0-10 por resposta
+                    $notaContabilizada = false;
                     foreach ($resposta['respostas'] as $r) {
-                        if (is_numeric($r['resposta']) && $r['resposta'] >= 0 && $r['resposta'] <= 10) {
+                        if (!$notaContabilizada && is_numeric($r['resposta']) && $r['resposta'] >= 0 && $r['resposta'] <= 10) {
                             $nota = (int)$r['resposta'];
                             $stats['distribuicao_notas'][$nota]++;
                             
@@ -739,6 +741,9 @@ class NpsController
                             } else {
                                 $stats['detratores']++;
                             }
+                            
+                            // Marca que já contabilizou uma nota para essa resposta
+                            $notaContabilizada = true;
                         }
                     }
                     
@@ -768,5 +773,111 @@ class NpsController
         }
         
         return $stats;
+    }
+    
+    /**
+     * Exportar relatório NPS em CSV
+     */
+    public function exportarCSV()
+    {
+        // Verificar autenticação
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+        
+        $userId = $_SESSION['user_id'];
+        $userRole = $_SESSION['user_role'] ?? '';
+        
+        // Coletar todas as respostas
+        $dadosExportacao = [];
+        $respostaFiles = glob($this->respostasDir . '/resposta_*.json');
+        
+        foreach ($respostaFiles as $file) {
+            $resposta = json_decode(file_get_contents($file), true);
+            
+            // Verificar se pertence a formulário do usuário
+            $formFile = $this->storageDir . '/formulario_' . $resposta['formulario_id'] . '.json';
+            if (file_exists($formFile)) {
+                $form = json_decode(file_get_contents($formFile), true);
+                
+                if ($form['criado_por'] == $userId || $userRole === 'admin' || $userRole === 'super_admin') {
+                    // Preparar dados para exportação
+                    $linha = [
+                        'formulario' => $resposta['formulario_titulo'] ?? $form['titulo'],
+                        'respondente_nome' => $resposta['nome'] ?? 'Anônimo',
+                        'respondente_email' => $resposta['email'] ?? '',
+                        'data_resposta' => date('d/m/Y H:i', strtotime($resposta['respondido_em'])),
+                    ];
+                    
+                    // Adicionar cada resposta como coluna
+                    $notaNPS = null;
+                    foreach ($resposta['respostas'] as $index => $r) {
+                        $pergunta = $r['pergunta'] ?? "Pergunta " . ($index + 1);
+                        $respostaTexto = $r['resposta'];
+                        
+                        // Capturar primeira nota NPS (0-10)
+                        if ($notaNPS === null && is_numeric($respostaTexto) && $respostaTexto >= 0 && $respostaTexto <= 10) {
+                            $notaNPS = (int)$respostaTexto;
+                        }
+                        
+                        $linha[$pergunta] = $respostaTexto;
+                    }
+                    
+                    // Adicionar classificação NPS
+                    if ($notaNPS !== null) {
+                        if ($notaNPS >= 9) {
+                            $linha['classificacao_nps'] = 'Promotor';
+                        } elseif ($notaNPS >= 7) {
+                            $linha['classificacao_nps'] = 'Neutro';
+                        } else {
+                            $linha['classificacao_nps'] = 'Detrator';
+                        }
+                        $linha['nota_nps'] = $notaNPS;
+                    } else {
+                        $linha['classificacao_nps'] = 'N/A';
+                        $linha['nota_nps'] = '';
+                    }
+                    
+                    $dadosExportacao[] = $linha;
+                }
+            }
+        }
+        
+        // Ordenar por data (mais recente primeiro)
+        usort($dadosExportacao, function($a, $b) {
+            return strtotime(str_replace('/', '-', $b['data_resposta'])) - strtotime(str_replace('/', '-', $a['data_resposta']));
+        });
+        
+        // Gerar arquivo CSV
+        $filename = 'relatorio_nps_' . date('Y-m-d_His') . '.csv';
+        
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        
+        // Abrir saída
+        $output = fopen('php://output', 'w');
+        
+        // BOM para UTF-8 (compatibilidade com Excel)
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+        
+        // Cabeçalhos (primeira linha)
+        if (!empty($dadosExportacao)) {
+            fputcsv($output, array_keys($dadosExportacao[0]), ';');
+            
+            // Dados
+            foreach ($dadosExportacao as $linha) {
+                fputcsv($output, $linha, ';');
+            }
+        } else {
+            // Arquivo vazio
+            fputcsv($output, ['Mensagem'], ';');
+            fputcsv($output, ['Nenhuma resposta encontrada'], ';');
+        }
+        
+        fclose($output);
+        exit;
     }
 }

@@ -268,6 +268,7 @@ $router->get('/nao-conformidades/anexo/{id}', [App\Controllers\NaoConformidadesC
 // NPS routes
 $router->get('/nps', [App\Controllers\NpsController::class, 'index']);
 $router->get('/nps/dashboard', [App\Controllers\NpsController::class, 'dashboard']);
+$router->get('/nps/exportar-csv', [App\Controllers\NpsController::class, 'exportarCSV']);
 $router->get('/nps/listar', [App\Controllers\NpsController::class, 'listar']);
 $router->post('/nps/criar', [App\Controllers\NpsController::class, 'criar']);
 $router->post('/nps/editar', [App\Controllers\NpsController::class, 'editar']);
