@@ -689,12 +689,35 @@ class NpsController
         $userEmail = $_SESSION['user_email'] ?? '';
         $userRole = $_SESSION['user_role'] ?? '';
 
+        $permissionCheckErrors = [];
+
         // Permitir apenas administradores, super administradores ou usuário master
-        $isAdmin = in_array($userRole, ['admin', 'super_admin'], true) || PermissionService::isAdmin($userId) || PermissionService::isSuperAdmin($userId);
-        if (!$isAdmin && !\App\Services\MasterUserService::isMasterUserId($userId)) {
+        $isAdmin = in_array($userRole, ['admin', 'super_admin'], true);
+
+        if (!$isAdmin) {
+            try {
+                $isAdmin = PermissionService::isAdmin($userId) || PermissionService::isSuperAdmin($userId);
+            } catch (\Throwable $permissionSvcError) {
+                $permissionCheckErrors[] = 'Erro PermissionService: ' . $permissionSvcError->getMessage();
+            }
+        }
+
+        if (!$isAdmin) {
+            try {
+                $isAdmin = \App\Services\MasterUserService::isMasterUserId($userId);
+            } catch (\Throwable $masterUserError) {
+                $permissionCheckErrors[] = 'Erro MasterUserService: ' . $masterUserError->getMessage();
+            }
+        }
+
+        if (!$isAdmin) {
             http_response_code(403);
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Acesso negado ao debug NPS']);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Acesso negado ao debug NPS',
+                'permission_errors' => $permissionCheckErrors,
+            ]);
             exit;
         }
 
@@ -719,6 +742,7 @@ class NpsController
                 'user_has_edit' => null,
                 'user_has_delete' => null,
                 'module_records' => [],
+                'check_errors' => $permissionCheckErrors,
             ],
             'logs' => [
                 'today_file' => null,
