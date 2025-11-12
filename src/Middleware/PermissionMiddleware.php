@@ -89,6 +89,7 @@ class PermissionMiddleware
         '/nps/{id}/detalhes' => 'nps',
         '/nps/{id}/respostas' => 'nps',
         '/nps/{id}/exportar-excel' => 'nps',
+        '/nps/debug' => 'nps',
 
         // Melhoria Contínua - DESABILITADO (usar Melhoria Contínua 2.0)
         // '/melhoria-continua' => 'melhoria_continua',

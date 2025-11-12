@@ -2,6 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Config\Database;
+use App\Services\PermissionService;
+
 class NpsController
 {
     private $storageDir;
@@ -669,6 +672,98 @@ class NpsController
         header('Cache-Control: max-age=0');
         
         echo $csv;
+        exit;
+    }
+
+    /**
+     * Página de debug para diagnosticar problemas de permissão/rotas
+     */
+    public function debug()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+
+        $userId = (int)($_SESSION['user_id'] ?? 0);
+        $userEmail = $_SESSION['user_email'] ?? '';
+        $userRole = $_SESSION['user_role'] ?? '';
+
+        // Permitir apenas administradores, super administradores ou usuário master
+        $isAdmin = in_array($userRole, ['admin', 'super_admin'], true) || PermissionService::isAdmin($userId) || PermissionService::isSuperAdmin($userId);
+        if (!$isAdmin && !\App\Services\MasterUserService::isMasterUserId($userId)) {
+            http_response_code(403);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Acesso negado ao debug NPS']);
+            exit;
+        }
+
+        $response = [
+            'success' => true,
+            'session' => [
+                'user_id' => $userId,
+                'user_email' => $userEmail,
+                'user_role' => $userRole,
+            ],
+            'storage' => [
+                'storage_dir' => $this->storageDir,
+                'respostas_dir' => $this->respostasDir,
+                'storage_exists' => is_dir($this->storageDir),
+                'respostas_exists' => is_dir($this->respostasDir),
+                'formularios_count' => count(glob($this->storageDir . '/formulario_*.json')),
+                'respostas_count' => count(glob($this->respostasDir . '/resposta_*.json')),
+            ],
+            'permissions' => [
+                'module_exists' => null,
+                'user_has_view' => null,
+                'user_has_edit' => null,
+                'user_has_delete' => null,
+                'module_records' => [],
+            ],
+            'logs' => [
+                'today_file' => null,
+                'today_tail' => null,
+            ],
+        ];
+
+        // Verificar permissões pelo serviço
+        try {
+            $response['permissions']['user_has_view'] = PermissionService::hasPermission($userId, 'nps', 'view');
+            $response['permissions']['user_has_edit'] = PermissionService::hasPermission($userId, 'nps', 'edit');
+            $response['permissions']['user_has_delete'] = PermissionService::hasPermission($userId, 'nps', 'delete');
+        } catch (\Throwable $permissionError) {
+            $response['permissions']['error'] = $permissionError->getMessage();
+        }
+
+        // Consultar banco de dados sobre o módulo nps
+        try {
+            $db = Database::getInstance();
+
+            // Verificar existência do módulo na tabela profile_permissions
+            $stmt = $db->prepare("SELECT COUNT(*) FROM profile_permissions WHERE module = 'nps'");
+            $stmt->execute();
+            $response['permissions']['module_exists'] = $stmt->fetchColumn() > 0;
+
+            // Trazer até 10 registros do módulo
+            $stmt = $db->prepare("SELECT p.name AS profile_name, pp.can_view, pp.can_edit, pp.can_delete, pp.can_export FROM profile_permissions pp JOIN profiles p ON pp.profile_id = p.id WHERE pp.module = 'nps' LIMIT 10");
+            $stmt->execute();
+            $response['permissions']['module_records'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\Throwable $dbError) {
+            $response['permissions']['db_error'] = $dbError->getMessage();
+        }
+
+        // Ler últimos logs do dia
+        $logFile = __DIR__ . '/../../storage/logs/app_' . date('Y-m-d') . '.log';
+        if (file_exists($logFile)) {
+            $response['logs']['today_file'] = $logFile;
+            $lines = @file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if ($lines !== false) {
+                $response['logs']['today_tail'] = array_slice($lines, -20);
+            }
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         exit;
     }
     

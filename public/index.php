@@ -276,6 +276,7 @@ $router->post('/nps/excluir', [App\Controllers\NpsController::class, 'excluir'])
 $router->get('/nps/{id}/detalhes', [App\Controllers\NpsController::class, 'detalhes']);
 $router->get('/nps/{id}/respostas', [App\Controllers\NpsController::class, 'verRespostas']);
 $router->get('/nps/{id}/exportar-excel', [App\Controllers\NpsController::class, 'exportarExcel']);
+$router->get('/nps/debug', [App\Controllers\NpsController::class, 'debug']);
 $router->post('/nps/excluir-resposta', [App\Controllers\NpsController::class, 'excluirResposta']);
 // Rotas públicas (SEM autenticação)
 $router->get('/nps/responder/{id}', [App\Controllers\NpsController::class, 'responder']);
@@ -508,7 +509,41 @@ try {
     
 } catch (\Exception $e) {
     error_log('Application error: ' . $e->getMessage());
-    
+
+    // Log detalhado em arquivo
+    try {
+        $logDir = __DIR__ . '/../storage/logs';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
+
+        $logFile = $logDir . '/app_' . date('Y-m-d') . '.log';
+
+        $context = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'route' => $currentRoute,
+            'method' => $method,
+            'session_user_id' => $_SESSION['user_id'] ?? null,
+            'session_user_email' => $_SESSION['user_email'] ?? null,
+            'get' => $_GET ?? [],
+            'post_keys' => array_keys($_POST ?? []),
+            'exception' => [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ],
+        ];
+
+        $logEntry = '[' . $context['timestamp'] . '] ' . $context['method'] . ' ' . $context['route'] . ' | User: ' . ($context['session_user_id'] ?? 'guest') . '\n';
+        $logEntry .= 'Message: ' . $context['exception']['message'] . ' (' . $context['exception']['file'] . ':' . $context['exception']['line'] . ')\n';
+        $logEntry .= 'GET: ' . json_encode($context['get']) . ' | POST_KEYS: ' . json_encode($context['post_keys']) . '\n';
+        $logEntry .= str_repeat('-', 80) . "\n";
+
+        error_log($logEntry, 3, $logFile);
+    } catch (\Throwable $logError) {
+        error_log('Erro ao escrever log: ' . $logError->getMessage());
+    }
+
     if ($isDebug) {
         echo '<h1>Erro: ' . htmlspecialchars($e->getMessage()) . '</h1>';
         echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
