@@ -2,12 +2,6 @@
 
 namespace App\Controllers;
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-
 class NpsController
 {
     private $storageDir;
@@ -629,8 +623,13 @@ class NpsController
             return strtotime($b['respondido_em']) - strtotime($a['respondido_em']);
         });
         
+        // Verificar se biblioteca PhpSpreadsheet está disponível
+        if (!class_exists('\PhpOffice\PhpSpreadsheet\Spreadsheet')) {
+            die('Biblioteca PhpSpreadsheet não instalada. Execute: composer require phpoffice/phpspreadsheet');
+        }
+        
         // Criar Excel com PhpSpreadsheet
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Respostas NPS');
         
@@ -660,12 +659,12 @@ class NpsController
                 'size' => 12
             ],
             'fill' => [
-                'fillType' => Fill::FILL_SOLID,
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                 'startColor' => ['rgb' => '3B82F6'] // Azul
             ],
             'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
             ]
         ];
         
@@ -694,7 +693,7 @@ class NpsController
                     if ($valor >= 9) {
                         $sheet->getStyle($col . $row)->applyFromArray([
                             'font' => ['bold' => true, 'color' => ['rgb' => '10B981']],
-                            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D1FAE5']]
+                            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D1FAE5']]
                         ]);
                     }
                 } else {
@@ -707,7 +706,7 @@ class NpsController
             // Linhas alternadas
             if ($row % 2 == 0) {
                 $sheet->getStyle('A' . $row . ':' . $lastCol . $row)->applyFromArray([
-                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F9FAFB']]
+                    'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F9FAFB']]
                 ]);
             }
             
@@ -723,7 +722,7 @@ class NpsController
         $sheet->getStyle('A1:' . $lastCol . ($row - 1))->applyFromArray([
             'borders' => [
                 'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
                     'color' => ['rgb' => 'D1D5DB']
                 ]
             ]
@@ -741,7 +740,7 @@ class NpsController
         header('Cache-Control: max-age=0');
         
         // Salvar e enviar
-        $writer = new Xlsx($spreadsheet);
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $writer->save('php://output');
         exit;
     }
