@@ -135,7 +135,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 let perguntas = [];
-let editandoFormularioId = null;
 let qrCodeInstance = null;
 
 // Carregar formulários ao abrir a página
@@ -235,21 +234,6 @@ function renderFormularios(formularios) {
               `}
             </button>
             
-            <!-- Botão Editar (só se não tiver respostas) -->
-            ${parseInt(f.total_respostas) === 0 ? `
-              <button onclick="editarFormulario('${f.id}')" class="p-2 text-blue-600 hover:text-blue-700" title="✏️ Editar formulário">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                </svg>
-              </button>
-            ` : `
-              <button class="p-2 text-gray-300 cursor-not-allowed" title="🔒 Não é possível editar formulário com respostas (${f.total_respostas} respostas)" disabled>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
-              </button>
-            `}
-            
             <!-- Botão Excluir (só se não tiver respostas) -->
             <button onclick="excluirFormulario('${f.id}', ${f.total_respostas})" class="p-2 ${parseInt(f.total_respostas) === 0 ? 'text-red-600 hover:text-red-700' : 'text-gray-300 cursor-not-allowed'}" title="${parseInt(f.total_respostas) === 0 ? '🗑️ Excluir formulário' : '🔒 Não é possível excluir formulário com respostas ('+f.total_respostas+' respostas)'}" ${parseInt(f.total_respostas) > 0 ? 'disabled' : ''}>
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,7 +249,6 @@ function renderFormularios(formularios) {
 
 // Abrir modal para criar
 function abrirModal() {
-  editandoFormularioId = null;
   document.getElementById('modalTitulo').textContent = 'Novo Formulário';
   document.getElementById('formularioForm').reset();
   document.getElementById('formulario_id').value = '';
@@ -340,13 +323,12 @@ function removerLogo() {
   document.getElementById('btnRemoverLogo').classList.add('hidden');
 }
 
-// Submeter formulário
+// Submeter formulário (CRIAR apenas)
 document.getElementById('formularioForm').addEventListener('submit', function(e) {
   e.preventDefault();
   
   const titulo = document.getElementById('titulo').value.trim();
   const descricao = document.getElementById('descricao').value.trim();
-  const formularioId = document.getElementById('formulario_id').value;
   const logoFile = document.getElementById('logo').files[0];
   
   // Coletar perguntas
@@ -368,16 +350,11 @@ document.getElementById('formularioForm').addEventListener('submit', function(e)
   formData.append('titulo', titulo);
   formData.append('descricao', descricao);
   formData.append('perguntas', JSON.stringify(perguntasData));
-  if (formularioId) {
-    formData.append('formulario_id', formularioId);
-  }
   if (logoFile) {
     formData.append('logo', logoFile);
   }
   
-  const url = formularioId ? '/nps/editar' : '/nps/criar';
-  
-  fetch(url, {
+  fetch('/nps/criar', {
     method: 'POST',
     body: formData
   })
@@ -396,43 +373,6 @@ document.getElementById('formularioForm').addEventListener('submit', function(e)
   })
   .catch(err => alert('Erro de conexão'));
 });
-
-// Editar formulário
-function editarFormulario(id) {
-  console.log('Editando formulário:', id);
-  
-  fetch(`/nps/${id}/detalhes`)
-  .then(r => r.json())
-  .then(data => {
-    console.log('Resposta detalhes:', data);
-    
-    if (data.success) {
-      const f = data.formulario;
-      editandoFormularioId = id;
-      document.getElementById('modalTitulo').textContent = 'Editar Formulário';
-      document.getElementById('formulario_id').value = id;
-      document.getElementById('titulo').value = f.titulo;
-      document.getElementById('descricao').value = f.descricao || '';
-      
-      // Carregar perguntas
-      perguntas = f.perguntas;
-      document.getElementById('perguntasContainer').innerHTML = '';
-      f.perguntas.forEach((p, i) => {
-        adicionarPergunta();
-        document.getElementById(`pergunta_${i}`).value = p.texto;
-        document.getElementById(`tipo_${i}`).value = p.tipo;
-      });
-      
-      document.getElementById('modalFormulario').classList.remove('hidden');
-    } else {
-      alert('Erro ao carregar formulário: ' + data.message);
-    }
-  })
-  .catch(err => {
-    console.error('Erro ao editar:', err);
-    alert('Erro de conexão ao carregar formulário');
-  });
-}
 
 // Toggle status
 function toggleStatus(id) {
