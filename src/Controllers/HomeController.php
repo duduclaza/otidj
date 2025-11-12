@@ -20,11 +20,35 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.6.3';
-        $lastUpdate = '07/11/2025';
+        $systemVersion = '2.6.4';
+        $lastUpdate = '12/11/2025';
         
         // Últimas atualizações do sistema - apenas Melhorias e Ajustes
         $allUpdates = [
+            [
+                'version' => '2.6.4',
+                'date' => '12/11/2025',
+                'type' => 'Melhoria',
+                'title' => 'Sistema de Permissões por Aba do Dashboard',
+                'description' => 'Implementado controle granular de visualização das abas do dashboard por perfil de usuário',
+                'items' => [
+                    'Nova tabela dashboard_tab_permissions para armazenar permissões',
+                    'Interface de configuração em Gerenciar Perfis com toggles por aba',
+                    '5 abas controláveis: Retornados, Amostragens, Fornecedores, Garantias, Melhorias',
+                    'Ocultação automática de abas sem permissão no dashboard',
+                    'Ocultação de botões E conteúdo das abas restritas',
+                    'Fallback seguro: libera todas as abas se não houver configuração',
+                    'Administradores sempre veem todas as abas (bypass de permissões)',
+                    'API getDashboardTabPermissions para carregar permissões no frontend',
+                    'Método saveDashboardTabPermissions para salvar ao criar/editar perfil',
+                    'Permissões padrão configuradas para perfis existentes via SQL',
+                    'Graceful: sistema funciona mesmo se tabela não existir',
+                    'Mensagem amigável quando usuário não tem nenhuma aba permitida',
+                    'Documentação completa em DASHBOARD_ABAS_PERMISSOES_README.md',
+                    'Script SQL de instalação: SQL_DASHBOARD_ABAS_PERMISSOES.sql',
+                    'Logs detalhados para debugging e monitoramento'
+                ]
+            ],
             [
                 'version' => '2.6.3',
                 'date' => '07/11/2025',

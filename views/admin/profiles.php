@@ -508,6 +508,9 @@ function editProfile(profileId) {
         if (checkboxes.export) checkboxes.export.checked = perm.can_export == 1;
       });
       
+      // Load dashboard tab permissions
+      loadDashboardTabPermissions(profile.id);
+      
       // Update toggle button
       const btn = document.getElementById('toggleFormBtn');
       btn.innerHTML = `
@@ -589,5 +592,44 @@ function deleteProfile(profileId, profileName) {
       alert('Erro de conexão: ' + error.message);
     });
   }
+}
+
+// Load dashboard tab permissions for a profile
+function loadDashboardTabPermissions(profileId) {
+  fetch(`/admin/profiles/${profileId}/dashboard-tabs`, {
+    method: 'GET',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success && result.dashboard_tabs) {
+      const tabs = result.dashboard_tabs;
+      
+      // Set dashboard tab checkboxes
+      const tabCheckboxes = {
+        retornados: document.querySelector('input[name="dashboard_tabs[retornados]"]'),
+        amostragens: document.querySelector('input[name="dashboard_tabs[amostragens]"]'),
+        fornecedores: document.querySelector('input[name="dashboard_tabs[fornecedores]"]'),
+        garantias: document.querySelector('input[name="dashboard_tabs[garantias]"]'),
+        melhorias: document.querySelector('input[name="dashboard_tabs[melhorias]"]')
+      };
+      
+      Object.keys(tabCheckboxes).forEach(tab => {
+        if (tabCheckboxes[tab]) {
+          tabCheckboxes[tab].checked = tabs[tab] === true || tabs[tab] === 1;
+        }
+      });
+      
+      console.log('✅ Dashboard tab permissions loaded:', tabs);
+    } else {
+      console.log('⚠️ No dashboard tab permissions found, using defaults');
+    }
+  })
+  .catch(error => {
+    console.error('Error loading dashboard tab permissions:', error);
+    // Não alertar o usuário, apenas logar
+  });
 }
 </script>

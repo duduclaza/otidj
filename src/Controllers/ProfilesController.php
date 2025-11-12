@@ -404,5 +404,137 @@ class ProfilesController
         $checkStmt->execute([$profileId]);
         $saved = $checkStmt->fetchAll(\PDO::FETCH_ASSOC);
         error_log('Permissions saved in database: ' . json_encode($saved));
+        
+        // Salvar permissões de abas do dashboard (se houver)
+        $this->saveDashboardTabPermissions($profileId, $_POST['dashboard_tabs'] ?? []);
+    }
+    
+    /**
+     * Save dashboard tab permissions
+     */
+    private function saveDashboardTabPermissions($profileId, $dashboardTabs)
+    {
+        error_log('Saving dashboard tab permissions for profile ' . $profileId . ': ' . json_encode($dashboardTabs));
+        
+        try {
+            // Verificar se a tabela existe
+            $tableExists = $this->db->query("SHOW TABLES LIKE 'dashboard_tab_permissions'")->rowCount() > 0;
+            
+            if (!$tableExists) {
+                error_log('Table dashboard_tab_permissions does not exist yet');
+                return;
+            }
+            
+            // Delete existing dashboard tab permissions
+            $stmt = $this->db->prepare("DELETE FROM dashboard_tab_permissions WHERE profile_id = ?");
+            $stmt->execute([$profileId]);
+            
+            // Insert new dashboard tab permissions
+            $availableTabs = ['retornados', 'amostragens', 'fornecedores', 'garantias', 'melhorias'];
+            
+            foreach ($availableTabs as $tabName) {
+                $canView = isset($dashboardTabs[$tabName]) ? 1 : 0;
+                
+                error_log("Saving dashboard tab $tabName: can_view=$canView");
+                
+                $stmt = $this->db->prepare("
+                    INSERT INTO dashboard_tab_permissions 
+                    (profile_id, tab_name, can_view) 
+                    VALUES (?, ?, ?)
+                ");
+                $stmt->execute([
+                    $profileId,
+                    $tabName,
+                    $canView
+                ]);
+            }
+            
+            error_log('Dashboard tab permissions saved successfully');
+            
+        } catch (\Exception $e) {
+            error_log('Error saving dashboard tab permissions: ' . $e->getMessage());
+            // Não falhar se tabela não existir
+        }
+    }
+    
+    /**
+     * Get dashboard tab permissions for a profile
+     */
+    public function getDashboardTabPermissions($profileId)
+    {
+        AuthController::requireAdmin();
+        
+        // Clean output buffer
+        if (ob_get_level()) {
+            ob_clean();
+        }
+        
+        // Set JSON headers
+        header('Content-Type: application/json');
+        header('Cache-Control: no-cache, must-revalidate');
+        
+        try {
+            // Verificar se a tabela existe
+            $tableExists = $this->db->query("SHOW TABLES LIKE 'dashboard_tab_permissions'")->rowCount() > 0;
+            
+            if (!$tableExists) {
+                // Retornar todas as abas como permitidas por padrão
+                echo json_encode([
+                    'success' => true,
+                    'dashboard_tabs' => [
+                        'retornados' => true,
+                        'amostragens' => true,
+                        'fornecedores' => true,
+                        'garantias' => true,
+                        'melhorias' => true
+                    ]
+                ]);
+                exit;
+            }
+            
+            // Get dashboard tab permissions
+            $stmt = $this->db->prepare("
+                SELECT tab_name, can_view 
+                FROM dashboard_tab_permissions 
+                WHERE profile_id = ?
+            ");
+            $stmt->execute([$profileId]);
+            $permissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            $dashboardTabs = [
+                'retornados' => true,
+                'amostragens' => true,
+                'fornecedores' => true,
+                'garantias' => true,
+                'melhorias' => true
+            ];
+            
+            // Se há permissões salvas, aplicar
+            if (!empty($permissions)) {
+                // Resetar todas para false primeiro
+                foreach ($dashboardTabs as $tab => $val) {
+                    $dashboardTabs[$tab] = false;
+                }
+                
+                // Aplicar permissões salvas
+                foreach ($permissions as $perm) {
+                    $dashboardTabs[$perm['tab_name']] = (bool)$perm['can_view'];
+                }
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'dashboard_tabs' => $dashboardTabs
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Error getting dashboard tab permissions: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao carregar permissões de abas do dashboard'
+            ]);
+        }
+        
+        exit;
     }
 }

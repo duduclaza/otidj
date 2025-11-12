@@ -284,6 +284,7 @@ $router->post('/admin/profiles/create', [App\Controllers\ProfilesController::cla
 $router->post('/admin/profiles/update', [App\Controllers\ProfilesController::class, 'update']);
 $router->post('/admin/profiles/delete', [App\Controllers\ProfilesController::class, 'delete']);
 $router->get('/admin/profiles/{id}/permissions', [App\Controllers\ProfilesController::class, 'getPermissions']);
+$router->get('/admin/profiles/{id}/dashboard-tabs', [App\Controllers\ProfilesController::class, 'getDashboardTabPermissions']);
 
 // Melhoria Continua routes - DESABILITADO (usar Melhoria Contínua 2.0)
 // $router->get('/melhoria-continua/solicitacoes', [App\Controllers\MelhoriaContinuaController::class, 'index']);

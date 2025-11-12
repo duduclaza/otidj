@@ -9,9 +9,32 @@
     <h1 class="text-2xl font-semibold text-gray-900">📊 Dashboard - Análise de Dados</h1>
   </div>
 
-  <!-- Sistema de Abas -->
+  <!-- Sistema de Abas com Controle de Permissões -->
+  <?php
+  // Definir permissões de abas (vem do controller)
+  $tabPermissions = $dashboardTabs ?? [
+    'retornados' => true,
+    'amostragens' => true,
+    'fornecedores' => true,
+    'garantias' => true,
+    'melhorias' => true
+  ];
+  
+  // Contar quantas abas o usuário pode ver
+  $visibleTabs = array_filter($tabPermissions);
+  $hasAnyTab = count($visibleTabs) > 0;
+  ?>
+  
+  <?php if (!$hasAnyTab): ?>
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4">
+      <p class="font-medium">⚠️ Sem permissão para visualizar abas do dashboard</p>
+      <p class="text-sm mt-1">Entre em contato com o administrador para solicitar acesso.</p>
+    </div>
+  <?php else: ?>
+  
   <div class="bg-white rounded-lg shadow-lg overflow-hidden">
     <div class="flex border-b border-gray-200">
+      <?php if ($tabPermissions['retornados']): ?>
       <button onclick="switchTab('retornados')" id="tab-retornados" class="tab-button active flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
         <span class="flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,6 +43,9 @@
           📦 Retornados
         </span>
       </button>
+      <?php endif; ?>
+      
+      <?php if ($tabPermissions['amostragens']): ?>
       <button onclick="switchTab('amostragens')" id="tab-amostragens" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
         <span class="flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,6 +54,9 @@
           🧪 Amostragens 2.0
         </span>
       </button>
+      <?php endif; ?>
+      
+      <?php if ($tabPermissions['fornecedores']): ?>
       <button onclick="switchTab('fornecedores')" id="tab-fornecedores" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
         <span class="flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,6 +65,9 @@
           🏭 Fornecedores
         </span>
       </button>
+      <?php endif; ?>
+      
+      <?php if ($tabPermissions['garantias']): ?>
       <button onclick="switchTab('garantias')" id="tab-garantias" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
         <span class="flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,6 +76,9 @@
           🛡️ Garantias
         </span>
       </button>
+      <?php endif; ?>
+      
+      <?php if ($tabPermissions['melhorias']): ?>
       <button onclick="switchTab('melhorias')" id="tab-melhorias" class="tab-button flex-1 px-6 py-4 text-center font-medium text-sm transition-all duration-200">
         <span class="flex items-center justify-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,8 +87,10 @@
           🚀 Melhorias
         </span>
       </button>
+      <?php endif; ?>
     </div>
   </div>
+  <?php endif; ?>
 
   <style>
     .tab-button {
@@ -79,6 +116,7 @@
   </style>
 
   <!-- CONTEÚDO ABA RETORNADOS -->
+  <?php if ($tabPermissions['retornados']): ?>
   <div id="content-retornados" class="tab-content active">
 
   <!-- Filtros -->
@@ -230,9 +268,11 @@
   </div>
 
   </div>
+  <?php endif; ?>
   <!-- FIM CONTEÚDO ABA RETORNADOS -->
 
   <!-- CONTEÚDO ABA AMOSTRAGENS 2.0 -->
+  <?php if ($tabPermissions['amostragens']): ?>
   <div id="content-amostragens" class="tab-content space-y-6">
     
     <!-- Filtros AMOSTRAGENS -->
@@ -388,9 +428,11 @@
     </div>
 
   </div>
+  <?php endif; ?>
   <!-- FIM CONTEÚDO ABA AMOSTRAGENS -->
 
   <!-- CONTEÚDO ABA FORNECEDORES -->
+  <?php if ($tabPermissions['fornecedores']): ?>
   <div id="content-fornecedores" class="tab-content space-y-6">
     
     <!-- Filtros FORNECEDORES -->
@@ -575,11 +617,15 @@
     </div>
 
   </div>
+  <?php endif; ?>
   <!-- FIM CONTEÚDO ABA FORNECEDORES -->
 
+  <?php if ($tabPermissions['garantias']): ?>
   <?php include __DIR__ . '/dashboard_garantias_tab.php'; ?>
+  <?php endif; ?>
 
   <!-- CONTEÚDO ABA MELHORIAS -->
+  <?php if ($tabPermissions['melhorias']): ?>
   <div id="content-melhorias" class="tab-content space-y-6">
     
     <!-- Cards de Status (baseados nos status reais do grid) -->
@@ -727,6 +773,7 @@
     </div>
 
   </div>
+  <?php endif; ?>
   <!-- FIM CONTEÚDO ABA MELHORIAS -->
 
 </section>
