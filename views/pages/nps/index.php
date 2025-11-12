@@ -236,14 +236,14 @@ function renderFormularios(formularios) {
             </button>
             
             <!-- Botão Editar (só se não tiver respostas) -->
-            ${f.total_respostas === 0 ? `
+            ${parseInt(f.total_respostas) === 0 ? `
               <button onclick="editarFormulario('${f.id}')" class="p-2 text-blue-600 hover:text-blue-700" title="✏️ Editar formulário">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
               </button>
             ` : `
-              <button class="p-2 text-gray-300 cursor-not-allowed" title="🔒 Não é possível editar formulário com respostas" disabled>
+              <button class="p-2 text-gray-300 cursor-not-allowed" title="🔒 Não é possível editar formulário com respostas (${f.total_respostas} respostas)" disabled>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                 </svg>
@@ -251,7 +251,7 @@ function renderFormularios(formularios) {
             `}
             
             <!-- Botão Excluir (só se não tiver respostas) -->
-            <button onclick="excluirFormulario('${f.id}', ${f.total_respostas})" class="p-2 ${f.total_respostas === 0 ? 'text-red-600 hover:text-red-700' : 'text-gray-300 cursor-not-allowed'}" title="${f.total_respostas === 0 ? '🗑️ Excluir formulário' : '🔒 Não é possível excluir formulário com respostas'}" ${f.total_respostas > 0 ? 'disabled' : ''}>
+            <button onclick="excluirFormulario('${f.id}', ${f.total_respostas})" class="p-2 ${parseInt(f.total_respostas) === 0 ? 'text-red-600 hover:text-red-700' : 'text-gray-300 cursor-not-allowed'}" title="${parseInt(f.total_respostas) === 0 ? '🗑️ Excluir formulário' : '🔒 Não é possível excluir formulário com respostas ('+f.total_respostas+' respostas)'}" ${parseInt(f.total_respostas) > 0 ? 'disabled' : ''}>
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
@@ -399,9 +399,13 @@ document.getElementById('formularioForm').addEventListener('submit', function(e)
 
 // Editar formulário
 function editarFormulario(id) {
+  console.log('Editando formulário:', id);
+  
   fetch(`/nps/${id}/detalhes`)
   .then(r => r.json())
   .then(data => {
+    console.log('Resposta detalhes:', data);
+    
     if (data.success) {
       const f = data.formulario;
       editandoFormularioId = id;
@@ -420,7 +424,13 @@ function editarFormulario(id) {
       });
       
       document.getElementById('modalFormulario').classList.remove('hidden');
+    } else {
+      alert('Erro ao carregar formulário: ' + data.message);
     }
+  })
+  .catch(err => {
+    console.error('Erro ao editar:', err);
+    alert('Erro de conexão ao carregar formulário');
   });
 }
 

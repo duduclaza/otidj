@@ -207,6 +207,24 @@ class NpsController
                 exit;
             }
             
+            // Verificar se tem respostas (não pode editar se tiver)
+            $respostaFiles = glob($this->respostasDir . '/resposta_*.json');
+            $totalRespostas = 0;
+            foreach ($respostaFiles as $file) {
+                $resposta = json_decode(file_get_contents($file), true);
+                if ($resposta['formulario_id'] == $formularioId) {
+                    $totalRespostas++;
+                }
+            }
+            
+            if ($totalRespostas > 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'Não é possível editar formulário com respostas! Total de respostas: ' . $totalRespostas
+                ]);
+                exit;
+            }
+            
             // Atualizar dados
             $formulario['titulo'] = trim($_POST['titulo'] ?? $formulario['titulo']);
             $formulario['descricao'] = trim($_POST['descricao'] ?? $formulario['descricao']);
