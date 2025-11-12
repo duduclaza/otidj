@@ -76,7 +76,20 @@ class PermissionMiddleware
         '/fluxogramas/logs/visualizacao' => 'fluxogramas',
         '/fluxogramas/visualizar' => 'fluxogramas',
         '/fluxogramas/titulo/delete' => 'fluxogramas',
-        
+
+        // NPS (Net Promoter Score)
+        '/nps' => 'nps',
+        '/nps/dashboard' => 'nps',
+        '/nps/listar' => 'nps',
+        '/nps/criar' => 'nps',
+        '/nps/editar' => 'nps',
+        '/nps/toggle-status' => 'nps',
+        '/nps/excluir' => 'nps',
+        '/nps/excluir-resposta' => 'nps',
+        '/nps/{id}/detalhes' => 'nps',
+        '/nps/{id}/respostas' => 'nps',
+        '/nps/{id}/exportar-excel' => 'nps',
+
         // Melhoria Contínua - DESABILITADO (usar Melhoria Contínua 2.0)
         // '/melhoria-continua' => 'melhoria_continua',
         // '/melhoria-continua/list' => 'melhoria_continua',
