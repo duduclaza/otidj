@@ -74,86 +74,95 @@
           </button>
         </div>
         
-        <!-- Toggle Visualização -->
-        <div class="flex items-center space-x-2">
-          <span class="text-xs text-gray-600">Visualização:</span>
-          <button onclick="alternarVisualizacao('grid')" id="btnGrid" class="p-2 rounded hover:bg-gray-100 transition-colors bg-blue-50 text-blue-600" title="Grid">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-            </svg>
-          </button>
-          <button onclick="alternarVisualizacao('lista')" id="btnLista" class="p-2 rounded hover:bg-gray-100 transition-colors" title="Lista">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-          </button>
-        </div>
       </div>
     </div>
 
-    <!-- Container de Respostas (Grid/Lista) -->
-    <div id="respostasContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <?php foreach ($respostas as $resposta): ?>
-        <div class="resposta-card bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6" 
-             data-nome="<?= strtolower(e($resposta['nome'])) ?>"
-             data-email="<?= strtolower(e($resposta['email'] ?? '')) ?>"
-             data-data="<?= date('Y-m-d', strtotime($resposta['respondido_em'])) ?>">
-          
-          <!-- Cabeçalho da Resposta -->
-          <div class="flex justify-between items-start mb-4 pb-4 border-b border-gray-200">
-            <div class="flex-1 min-w-0">
-              <h3 class="font-semibold text-gray-900 flex items-center truncate">
-                <svg class="w-5 h-5 mr-2 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                <span class="truncate"><?= e($resposta['nome']) ?></span>
-              </h3>
-              <?php if ($resposta['email']): ?>
-                <p class="text-xs text-gray-600 mt-1 ml-7 truncate"><?= e($resposta['email']) ?></p>
-              <?php endif; ?>
-            </div>
-            <div class="flex items-center space-x-2 ml-2 flex-shrink-0">
-              <div class="text-right">
-                <span class="text-xs font-medium text-gray-700 block">
-                  <?= date('d/m/Y', strtotime($resposta['respondido_em'])) ?>
-                </span>
-                <p class="text-xs text-gray-500">
-                  <?= date('H:i', strtotime($resposta['respondido_em'])) ?>
-                </p>
-              </div>
+    <!-- Container de Respostas (Tabela em Colunas) -->
+    <div id="respostasContainer" class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Respondente</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Data</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Respostas</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">IP</th>
               <?php if ($podeExcluir): ?>
-                <button onclick="excluirResposta('<?= e($resposta['id']) ?>')" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" title="Excluir resposta">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
+                <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Ações</th>
               <?php endif; ?>
-            </div>
-          </div>
-          
-          <!-- Respostas -->
-          <div class="space-y-3 max-h-64 overflow-y-auto">
-            <?php foreach ($resposta['respostas'] as $r): ?>
-              <div class="bg-gray-50 rounded-lg p-3">
-                <p class="text-xs font-medium text-gray-700 mb-1">
-                  <?= e($r['pergunta']) ?>
-                </p>
-                <p class="text-sm text-gray-900 <?= is_numeric($r['resposta']) && $r['resposta'] >= 9 ? 'text-green-600 font-bold' : '' ?>">
-                  <?= e($r['resposta']) ?>
-                  <?php if (is_numeric($r['resposta']) && $r['resposta'] <= 10): ?>
-                    <span class="text-xs text-gray-500">/ 10</span>
-                  <?php endif; ?>
-                </p>
-              </div>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <?php foreach ($respostas as $resposta): ?>
+              <tr class="resposta-row hover:bg-gray-50 transition-colors" 
+                  data-nome="<?= strtolower(e($resposta['nome'])) ?>"
+                  data-email="<?= strtolower(e($resposta['email'] ?? '')) ?>"
+                  data-data="<?= date('Y-m-d', strtotime($resposta['respondido_em'])) ?>">
+                
+                <!-- Coluna Respondente -->
+                <td class="px-4 py-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span class="text-blue-600 font-medium text-sm">
+                          <?= strtoupper(substr($resposta['nome'], 0, 2)) ?>
+                        </span>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900"><?= e($resposta['nome']) ?></div>
+                      <?php if ($resposta['email']): ?>
+                        <div class="text-sm text-gray-500"><?= e($resposta['email']) ?></div>
+                      <?php endif; ?>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Coluna Data -->
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900"><?= date('d/m/Y', strtotime($resposta['respondido_em'])) ?></div>
+                  <div class="text-sm text-gray-500"><?= date('H:i', strtotime($resposta['respondido_em'])) ?></div>
+                </td>
+                
+                <!-- Coluna Respostas -->
+                <td class="px-4 py-4">
+                  <div class="space-y-2 max-w-md">
+                    <?php foreach ($resposta['respostas'] as $r): ?>
+                      <div class="text-sm">
+                        <span class="font-medium text-gray-700"><?= e($r['pergunta']) ?>:</span>
+                        <span class="<?= is_numeric($r['resposta']) && $r['resposta'] >= 9 ? 'text-green-600 font-bold' : 'text-gray-900' ?>">
+                          <?= e($r['resposta']) ?>
+                          <?php if (is_numeric($r['resposta']) && $r['resposta'] <= 10): ?>
+                            <span class="text-gray-500">/10</span>
+                          <?php endif; ?>
+                        </span>
+                      </div>
+                    <?php endforeach; ?>
+                  </div>
+                </td>
+                
+                <!-- Coluna IP -->
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <?= e($resposta['ip']) ?>
+                </td>
+                
+                <!-- Coluna Ações -->
+                <?php if ($podeExcluir): ?>
+                  <td class="px-4 py-4 whitespace-nowrap text-center">
+                    <button onclick="excluirResposta('<?= e($resposta['id']) ?>')" 
+                            class="text-red-600 hover:text-red-900 transition-colors" 
+                            title="Excluir resposta">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </td>
+                <?php endif; ?>
+              </tr>
             <?php endforeach; ?>
-          </div>
-          
-          <!-- Metadados -->
-          <div class="mt-4 pt-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-400">
-            <span class="truncate">IP: <?= e($resposta['ip']) ?></span>
-          </div>
-        </div>
-      <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
     
     <!-- Mensagem quando não há resultados -->
@@ -244,21 +253,19 @@
 </style>
 
 <script>
-let visualizacaoAtual = 'grid';
-
 // Aplicar filtros
 function aplicarFiltros() {
   const busca = document.getElementById('filtroBusca').value.toLowerCase();
   const dataInicio = document.getElementById('filtroDataInicio').value;
   const dataFim = document.getElementById('filtroDataFim').value;
   
-  const cards = document.querySelectorAll('.resposta-card');
+  const rows = document.querySelectorAll('.resposta-row');
   let visiveis = 0;
   
-  cards.forEach(card => {
-    const nome = card.dataset.nome || '';
-    const email = card.dataset.email || '';
-    const data = card.dataset.data;
+  rows.forEach(row => {
+    const nome = row.dataset.nome || '';
+    const email = row.dataset.email || '';
+    const data = row.dataset.data;
     
     // Filtro de busca
     const matchBusca = !busca || nome.includes(busca) || email.includes(busca);
@@ -269,10 +276,10 @@ function aplicarFiltros() {
     if (dataFim && data > dataFim) matchData = false;
     
     if (matchBusca && matchData) {
-      card.style.display = '';
+      row.style.display = '';
       visiveis++;
     } else {
-      card.style.display = 'none';
+      row.style.display = 'none';
     }
   });
   
@@ -343,28 +350,6 @@ function limparFiltros() {
   });
   
   aplicarFiltros();
-}
-
-// Alternar visualização
-function alternarVisualizacao(tipo) {
-  visualizacaoAtual = tipo;
-  const container = document.getElementById('respostasContainer');
-  const btnGrid = document.getElementById('btnGrid');
-  const btnLista = document.getElementById('btnLista');
-  
-  if (tipo === 'grid') {
-    container.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
-    btnGrid.classList.add('bg-blue-50', 'text-blue-600');
-    btnGrid.classList.remove('text-gray-600');
-    btnLista.classList.remove('bg-blue-50', 'text-blue-600');
-    btnLista.classList.add('text-gray-600');
-  } else {
-    container.className = 'space-y-4';
-    btnLista.classList.add('bg-blue-50', 'text-blue-600');
-    btnLista.classList.remove('text-gray-600');
-    btnGrid.classList.remove('bg-blue-50', 'text-blue-600');
-    btnGrid.classList.add('text-gray-600');
-  }
 }
 
 // Event listeners

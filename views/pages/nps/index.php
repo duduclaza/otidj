@@ -34,7 +34,7 @@
     </div>
     
     <div class="p-6">
-      <form id="formularioForm" class="space-y-6">
+      <form id="formularioForm" class="space-y-6" enctype="multipart/form-data">
         <input type="hidden" id="formulario_id">
         
         <div>
@@ -45,6 +45,26 @@
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
           <textarea id="descricao" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Breve descrição sobre o formulário"></textarea>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">🎨 Logo Personalizado (opcional)</label>
+          <div class="mt-1 flex items-center space-x-4">
+            <div id="logoPreview" class="hidden w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+              <img id="logoPreviewImg" src="" alt="Logo" class="w-full h-full object-contain">
+            </div>
+            <div class="flex-1">
+              <label class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Selecionar Logo (PNG)
+                <input type="file" id="logo" accept="image/png" class="hidden" onchange="previewLogo(this)">
+              </label>
+              <p class="text-xs text-gray-500 mt-2">PNG recomendado: 200x200px, máx. 500KB</p>
+              <button type="button" onclick="removerLogo()" id="btnRemoverLogo" class="hidden mt-2 text-xs text-red-600 hover:text-red-700">Remover logo</button>
+            </div>
+          </div>
         </div>
         
         <div>
@@ -233,6 +253,30 @@ function removerPergunta(index) {
   });
 }
 
+// Preview do logo
+function previewLogo(input) {
+  const preview = document.getElementById('logoPreview');
+  const previewImg = document.getElementById('logoPreviewImg');
+  const btnRemover = document.getElementById('btnRemoverLogo');
+  
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      previewImg.src = e.target.result;
+      preview.classList.remove('hidden');
+      btnRemover.classList.remove('hidden');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// Remover logo
+function removerLogo() {
+  document.getElementById('logo').value = '';
+  document.getElementById('logoPreview').classList.add('hidden');
+  document.getElementById('btnRemoverLogo').classList.add('hidden');
+}
+
 // Submeter formulário
 document.getElementById('formularioForm').addEventListener('submit', function(e) {
   e.preventDefault();
@@ -240,6 +284,7 @@ document.getElementById('formularioForm').addEventListener('submit', function(e)
   const titulo = document.getElementById('titulo').value.trim();
   const descricao = document.getElementById('descricao').value.trim();
   const formularioId = document.getElementById('formulario_id').value;
+  const logoFile = document.getElementById('logo').files[0];
   
   // Coletar perguntas
   const perguntasData = [];
@@ -262,6 +307,9 @@ document.getElementById('formularioForm').addEventListener('submit', function(e)
   formData.append('perguntas', JSON.stringify(perguntasData));
   if (formularioId) {
     formData.append('formulario_id', formularioId);
+  }
+  if (logoFile) {
+    formData.append('logo', logoFile);
   }
   
   const url = formularioId ? '/nps/editar' : '/nps/criar';

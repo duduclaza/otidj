@@ -11,6 +11,11 @@
     <div class="bg-white rounded-lg shadow-xl overflow-hidden">
       <!-- Header -->
       <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white text-center">
+        <?php if (!empty($formulario['logo'])): ?>
+          <div class="mb-4 flex justify-center">
+            <img src="/<?= e($formulario['logo']) ?>" alt="Logo" class="h-24 w-auto object-contain bg-white rounded-lg p-2">
+          </div>
+        <?php endif; ?>
         <h1 class="text-3xl font-bold mb-2"><?= e($formulario['titulo']) ?></h1>
         <?php if ($formulario['descricao']): ?>
           <p class="text-blue-100"><?= e($formulario['descricao']) ?></p>

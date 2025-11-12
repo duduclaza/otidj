@@ -124,12 +124,30 @@ class NpsController
             // Gerar ID único
             $formularioId = 'form_' . time() . '_' . uniqid();
             
+            // Processar upload de logo
+            $logoPath = null;
+            if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+                $logosDir = $this->storageDir . '/logos';
+                if (!is_dir($logosDir)) {
+                    mkdir($logosDir, 0755, true);
+                }
+                
+                $fileExtension = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
+                $logoFilename = $formularioId . '.' . $fileExtension;
+                $logoFullPath = $logosDir . '/' . $logoFilename;
+                
+                if (move_uploaded_file($_FILES['logo']['tmp_name'], $logoFullPath)) {
+                    $logoPath = 'storage/formularios/logos/' . $logoFilename;
+                }
+            }
+            
             // Dados do formulário
             $formulario = [
                 'id' => $formularioId,
                 'titulo' => $titulo,
                 'descricao' => $descricao,
                 'perguntas' => $perguntas,
+                'logo' => $logoPath,
                 'ativo' => true,
                 'criado_por' => $userId,
                 'criado_por_nome' => $userName,
