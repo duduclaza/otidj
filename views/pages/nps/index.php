@@ -96,9 +96,39 @@
   </div>
 </div>
 
+<!-- Modal QR Code -->
+<div id="modalQRCode" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div class="p-6 border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xl font-semibold text-gray-900">📱 QR Code do Formulário</h3>
+        <button onclick="fecharModalQR()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="p-6 text-center">
+      <h4 id="qrTitulo" class="text-lg font-medium text-gray-900 mb-4"></h4>
+      <div id="qrcodeContainer" class="flex justify-center mb-4 bg-white p-4 rounded-lg inline-block"></div>
+      <p class="text-sm text-gray-600 mb-4">Escaneie este QR Code para acessar o formulário</p>
+      <button onclick="baixarQRCode()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 mx-auto transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        <span>Baixar QR Code</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 let perguntas = [];
 let editandoFormularioId = null;
+let qrCodeInstance = null;
 
 // Carregar formulários ao abrir a página
 document.addEventListener('DOMContentLoaded', function() {
@@ -167,6 +197,11 @@ function renderFormularios(formularios) {
             <button onclick="copiarLink('${f.id}')" class="text-blue-600 hover:text-blue-700" title="Copiar link">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+              </svg>
+            </button>
+            <button onclick="gerarQRCode('${f.id}', '${f.link_publico}', '${escapeHtml(f.titulo)}')" class="text-purple-600 hover:text-purple-700" title="Gerar QR Code">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
               </svg>
             </button>
           </div>
@@ -411,26 +446,71 @@ function excluirFormulario(id, totalRespostas) {
 
 // Ver respostas
 function verRespostas(id) {
-  window.location.href = `/nps/${id}/respostas`;
+  window.location.href = '/nps/' + id + '/respostas';
 }
 
-// Copiar link
+// Copiar link para clipboard
 function copiarLink(id) {
-  const input = document.getElementById('link-' + id);
-  input.select();
+  const linkInput = document.getElementById('link-' + id);
+  linkInput.select();
   document.execCommand('copy');
-  alert('Link copiado para a área de transferência!');
+  alert('Link copiado!');
 }
 
-// Helpers
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
+// Formatar data
 function formatarData(dataStr) {
-  const data = new Date(dataStr);
-  return data.toLocaleDateString('pt-BR');
+  const d = new Date(dataStr);
+  return d.toLocaleDateString('pt-BR');
+}
+
+// Escape HTML
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Gerar QR Code
+function gerarQRCode(id, link, titulo) {
+  // Limpar QR Code anterior
+  const container = document.getElementById('qrcodeContainer');
+  container.innerHTML = '';
+  
+  // Atualizar título
+  document.getElementById('qrTitulo').textContent = titulo;
+  
+  // Gerar novo QR Code
+  qrCodeInstance = new QRCode(container, {
+    text: link,
+    width: 256,
+    height: 256,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  
+  // Abrir modal
+  document.getElementById('modalQRCode').classList.remove('hidden');
+}
+
+// Fechar modal QR Code
+function fecharModalQR() {
+  document.getElementById('modalQRCode').classList.add('hidden');
+}
+
+// Baixar QR Code como PNG
+function baixarQRCode() {
+  const canvas = document.querySelector('#qrcodeContainer canvas');
+  if (canvas) {
+    const link = document.createElement('a');
+    link.download = 'qrcode-formulario-nps.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
 }
 </script>

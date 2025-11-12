@@ -1,23 +1,26 @@
 <section class="space-y-6">
-  <div class="flex justify-between items-center">
+  <div class="flex justify-between items-center mb-6">
     <div>
-      <a href="/nps" class="text-blue-600 hover:text-blue-700 text-sm mb-2 inline-block flex items-center">
-        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-        Voltar para Formulários
-      </a>
-      <h1 class="text-2xl font-semibold text-gray-900"><?= e($formulario['titulo']) ?></h1>
-      <p class="text-gray-600 mt-1">
-        <span class="font-medium">Total de respostas:</span> <span id="contadorTotal"><?= count($respostas) ?></span>
-        <span class="text-gray-400 ml-2">|</span>
-        <span class="ml-2">Exibindo: <span id="contadorFiltrado"><?= count($respostas) ?></span></span>
+      <h1 class="text-2xl font-bold text-gray-900 mb-1">📊 <?= e($formulario['titulo']) ?></h1>
+      <p class="text-sm text-gray-600">
+        Total: <span id="contadorTotal"><?= count($respostas) ?></span> respostas | 
+        Exibindo: <span id="contadorFiltrado"><?= count($respostas) ?></span>
       </p>
     </div>
     
-    <div class="text-right">
-      <p class="text-sm text-gray-500">Criado por: <?= e($formulario['criado_por_nome']) ?></p>
-      <p class="text-sm text-gray-500">Em: <?= date('d/m/Y H:i', strtotime($formulario['criado_em'])) ?></p>
+    <div class="flex items-center space-x-3">
+      <button onclick="exportarCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span>Exportar CSV</span>
+      </button>
+      <a href="/nps" class="text-blue-600 hover:text-blue-700 flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Voltar
+      </a>
     </div>
   </div>
 
@@ -383,5 +386,91 @@ function excluirResposta(respostaId) {
     console.error(err);
     alert('Erro de conexão');
   });
+}
+
+// Exportar respostas para CSV
+function exportarCSV() {
+  // Coletar apenas as linhas visíveis (respeitando filtros)
+  const rows = document.querySelectorAll('.resposta-row');
+  const respostasVisiveis = [];
+  
+  rows.forEach(row => {
+    if (row.style.display !== 'none') {
+      // Extrair dados da linha
+      const cells = row.querySelectorAll('td');
+      const nome = cells[0]?.querySelector('.text-sm.font-medium')?.textContent || '';
+      const email = cells[0]?.querySelector('.text-sm.text-gray-500')?.textContent || '';
+      const data = cells[1]?.querySelector('.text-sm.text-gray-900')?.textContent || '';
+      const hora = cells[1]?.querySelector('.text-sm.text-gray-500')?.textContent || '';
+      const ip = cells[3]?.textContent.trim() || '';
+      
+      // Extrair respostas
+      const respostasDiv = cells[2]?.querySelectorAll('.text-sm');
+      const respostas = {};
+      respostasDiv?.forEach(resp => {
+        const texto = resp.textContent;
+        const match = texto.match(/(.+?):\s*(.+)/);
+        if (match) {
+          respostas[match[1].trim()] = match[2].trim();
+        }
+      });
+      
+      respostasVisiveis.push({
+        nome,
+        email,
+        data,
+        hora,
+        ip,
+        respostas
+      });
+    }
+  });
+  
+  if (respostasVisiveis.length === 0) {
+    alert('Nenhuma resposta para exportar!');
+    return;
+  }
+  
+  // Criar CSV
+  let csv = '\uFEFF'; // BOM para UTF-8
+  
+  // Cabeçalho
+  const headers = ['Nome', 'Email', 'Data', 'Hora', 'IP'];
+  
+  // Adicionar colunas de perguntas
+  const primeiraResposta = respostasVisiveis[0];
+  const perguntas = Object.keys(primeiraResposta.respostas);
+  headers.push(...perguntas);
+  
+  csv += headers.map(h => `"${h}"`).join(',') + '\n';
+  
+  // Dados
+  respostasVisiveis.forEach(item => {
+    const row = [
+      item.nome,
+      item.email,
+      item.data,
+      item.hora,
+      item.ip
+    ];
+    
+    // Adicionar respostas
+    perguntas.forEach(p => {
+      row.push(item.respostas[p] || '');
+    });
+    
+    csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+  });
+  
+  // Download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'respostas-nps-<?= date("Y-m-d") ?>.csv');
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 </script>
