@@ -20,11 +20,29 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.7.1';
+        $systemVersion = '2.7.2';
         $lastUpdate = '2024-11-12';
         
         // Buscar últimas atualizações (changelog do sistema)
         $updates = [
+            [
+                'version' => '2.7.2',
+                'date' => '2024-11-12',
+                'title' => 'Exportação Excel Profissional com Formatação',
+                'description' => 'Substituição de CSV por Excel (.xlsx) formatado e profissional',
+                'features' => [
+                    '📊 Exportação em formato Excel (.xlsx) nativo',
+                    '🎨 Cabeçalho azul com texto branco e negrito',
+                    '✨ Linhas alternadas em cinza claro',
+                    '🟢 Notas 9-10 destacadas em verde (Promotores)',
+                    '📏 Largura de colunas auto-ajustada',
+                    '🔲 Bordas em todas as células',
+                    '❄️ Primeira linha congelada para scroll',
+                    '📝 Valores numéricos formatados como números',
+                    '💾 Nome de arquivo inteligente com data',
+                    '🚀 Download direto sem configuração manual'
+                ]
+            ],
             [
                 'version' => '2.7.1',
                 'date' => '2024-11-12',

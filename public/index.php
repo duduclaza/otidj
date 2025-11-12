@@ -275,6 +275,7 @@ $router->post('/nps/toggle-status', [App\Controllers\NpsController::class, 'togg
 $router->post('/nps/excluir', [App\Controllers\NpsController::class, 'excluir']);
 $router->get('/nps/{id}/detalhes', [App\Controllers\NpsController::class, 'detalhes']);
 $router->get('/nps/{id}/respostas', [App\Controllers\NpsController::class, 'verRespostas']);
+$router->get('/nps/{id}/exportar-excel', [App\Controllers\NpsController::class, 'exportarExcel']);
 $router->post('/nps/excluir-resposta', [App\Controllers\NpsController::class, 'excluirResposta']);
 // Rotas públicas (SEM autenticação)
 $router->get('/nps/responder/{id}', [App\Controllers\NpsController::class, 'responder']);

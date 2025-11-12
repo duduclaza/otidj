@@ -581,6 +581,166 @@ class NpsController
     }
     
     /**
+     * Exportar respostas para Excel formatado
+     */
+    public function exportarExcel($formularioId)
+    {
+        // Verificar autenticação
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+        
+        $userId = $_SESSION['user_id'];
+        $userRole = $_SESSION['user_role'] ?? '';
+        
+        // Verificar se formulário existe
+        $formFilename = $this->storageDir . '/formulario_' . $formularioId . '.json';
+        if (!file_exists($formFilename)) {
+            die('Formulário não encontrado');
+        }
+        
+        $formulario = json_decode(file_get_contents($formFilename), true);
+        
+        // Verificar permissão
+        if ($formulario['criado_por'] != $userId && !in_array($userRole, ['admin', 'super_admin'])) {
+            die('Sem permissão');
+        }
+        
+        // Carregar respostas
+        $respostas = [];
+        $files = glob($this->respostasDir . '/resposta_*.json');
+        
+        foreach ($files as $file) {
+            $data = json_decode(file_get_contents($file), true);
+            if ($data['formulario_id'] === $formularioId) {
+                $respostas[] = $data;
+            }
+        }
+        
+        // Ordenar por data
+        usort($respostas, function($a, $b) {
+            return strtotime($b['respondido_em']) - strtotime($a['respondido_em']);
+        });
+        
+        // Criar Excel com PhpSpreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Respostas NPS');
+        
+        // Header da planilha
+        $sheet->setCellValue('A1', 'Nome');
+        $sheet->setCellValue('B1', 'Email');
+        $sheet->setCellValue('C1', 'Data');
+        $sheet->setCellValue('D1', 'Hora');
+        $sheet->setCellValue('E1', 'IP');
+        
+        // Adicionar colunas das perguntas dinamicamente
+        $col = 'F';
+        $perguntas = [];
+        if (!empty($respostas)) {
+            foreach ($respostas[0]['respostas'] as $r) {
+                $perguntas[] = $r['pergunta'];
+                $sheet->setCellValue($col . '1', $r['pergunta']);
+                $col++;
+            }
+        }
+        
+        // Estilizar cabeçalho
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF'],
+                'size' => 12
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '3B82F6'] // Azul
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
+            ]
+        ];
+        
+        $lastCol = chr(ord('E') + count($perguntas));
+        $sheet->getStyle('A1:' . $lastCol . '1')->applyFromArray($headerStyle);
+        
+        // Preencher dados
+        $row = 2;
+        foreach ($respostas as $resposta) {
+            $sheet->setCellValue('A' . $row, $resposta['nome']);
+            $sheet->setCellValue('B' . $row, $resposta['email'] ?? '');
+            $sheet->setCellValue('C' . $row, date('d/m/Y', strtotime($resposta['respondido_em'])));
+            $sheet->setCellValue('D' . $row, date('H:i', strtotime($resposta['respondido_em'])));
+            $sheet->setCellValue('E' . $row, $resposta['ip']);
+            
+            // Preencher respostas
+            $col = 'F';
+            foreach ($resposta['respostas'] as $r) {
+                $valor = $r['resposta'];
+                
+                // Se for numérico, definir como número
+                if (is_numeric($valor)) {
+                    $sheet->setCellValue($col . $row, (float)$valor);
+                    
+                    // Destacar promotores (9-10) em verde
+                    if ($valor >= 9) {
+                        $sheet->getStyle($col . $row)->applyFromArray([
+                            'font' => ['bold' => true, 'color' => ['rgb' => '10B981']],
+                            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'D1FAE5']]
+                        ]);
+                    }
+                } else {
+                    $sheet->setCellValue($col . $row, $valor);
+                }
+                
+                $col++;
+            }
+            
+            // Linhas alternadas
+            if ($row % 2 == 0) {
+                $sheet->getStyle('A' . $row . ':' . $lastCol . $row)->applyFromArray([
+                    'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F9FAFB']]
+                ]);
+            }
+            
+            $row++;
+        }
+        
+        // Auto-ajustar largura das colunas
+        foreach (range('A', $lastCol) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+        
+        // Adicionar bordas
+        $sheet->getStyle('A1:' . $lastCol . ($row - 1))->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => 'D1D5DB']
+                ]
+            ]
+        ]);
+        
+        // Congelar primeira linha
+        $sheet->freezePane('A2');
+        
+        // Nome do arquivo
+        $nomeArquivo = 'Respostas_NPS_' . preg_replace('/[^A-Za-z0-9_\-]/', '_', $formulario['titulo']) . '_' . date('Y-m-d') . '.xlsx';
+        
+        // Headers para download
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $nomeArquivo . '"');
+        header('Cache-Control: max-age=0');
+        
+        // Salvar e enviar
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+    
+    /**
      * Coletar estatísticas para o dashboard
      */
     private function coletarEstatisticas($userId, $userRole)
