@@ -14,6 +14,14 @@ echo '<h2>Autoload</h2>';
 try {
     require __DIR__ . '/../vendor/autoload.php';
     echo '<p style="color:green">Autoload carregado com sucesso.</p>';
+
+    if (class_exists(Dotenv\Dotenv::class)) {
+        $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+        $dotenv->safeLoad();
+        echo '<p style="color:green">Arquivo .env carregado.</p>';
+    } else {
+        echo '<p style="color:orange">Dotenv não encontrado — usando variáveis de ambiente atuais.</p>';
+    }
 } catch (Throwable $e) {
     echo '<pre style="color:red">Erro ao carregar autoload: ' . $e->getMessage() . "\n";
     echo $e->getTraceAsString();
