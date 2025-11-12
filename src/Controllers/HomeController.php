@@ -652,11 +652,7 @@ class HomeController
             ]
         ];
         
-        // Filtrar apenas Melhorias e Ajustes
-        $updates = array_filter($allUpdates, function($update) {
-            return in_array($update['type'], ['Melhoria', 'Ajuste']);
-        });
-        
+        // Renderizar view com todas as atualizações
         $title = 'Início - SGQ OTI DJ';
         $viewFile = __DIR__ . '/../../views/pages/home.php';
         include __DIR__ . '/../../views/layouts/main.php';

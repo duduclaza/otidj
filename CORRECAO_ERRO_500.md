@@ -75,12 +75,37 @@ O sistema de login agora deve funcionar normalmente. Todas as funções auxiliar
 - `sendEmail($to, $subject, $body)` - Envio de emails
 - E outras funções relacionadas a notificações
 
+## 🔴 ERRO ADICIONAL ENCONTRADO E CORRIGIDO
+
+### Problema na Página Inicial (/inicio)
+
+**Sintoma:** Após corrigir o login, erro 500 ao acessar `/inicio`
+
+**Causa:** No `HomeController.php` linha 656, o código tentava usar `$allUpdates` (variável inexistente):
+```php
+$updates = array_filter($allUpdates, function($update) { // ❌ Variável não existe
+```
+
+**Solução:** Removido filtro desnecessário que causava erro fatal.
+
 ## 🚀 Próximos Passos
 
-1. Acesse o sistema: https://djbr.sgqoti.com.br/login
-2. Verifique se o login funciona normalmente
-3. Delete o arquivo de teste: `public/test-helpers.php`
-4. Delete este arquivo após confirmar que tudo funciona
+1. **Teste o login agora:**
+   - Acesse: https://djbr.sgqoti.com.br/login
+   - Tente fazer login com suas credenciais
+   - O sistema deve funcionar normalmente
+   - A página inicial deve carregar sem erros
+
+2. **Limpeza (após testar):**
+   ```bash
+   # Delete o arquivo de teste
+   rm public/test-helpers.php
+   ```
+
+3. **Verificação final:**
+   - Navegue pelo sistema
+   - Teste outros módulos
+   - Confirme que não há mais erros 500
 
 ## 📝 Lição Aprendida
 
