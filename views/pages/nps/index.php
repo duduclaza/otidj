@@ -281,7 +281,7 @@ function adicionarPergunta() {
     <input type="text" id="pergunta_${index}" placeholder="Digite a pergunta" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2 focus:ring-2 focus:ring-blue-500" required>
     <select id="tipo_${index}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
       <option value="texto">Resposta de Texto</option>
-      <option value="numero">Resposta Numérica (0-10)</option>
+      <option value="numero">Resposta Numérica (0-5)</option>
       <option value="multipla">Múltipla Escolha</option>
       <option value="sim_nao">Sim/Não</option>
     </select>

@@ -66,7 +66,7 @@ class HomeController
                 'features' => [
                     '📊 Dashboard NPS com 3 gráficos interativos (Chart.js)',
                     '📈 Gráfico de distribuição (Promotores/Neutros/Detratores)',
-                    '📊 Gráfico de notas detalhado (0-10)',
+                    '📊 Gráfico de notas detalhado (0-5)',
                     '📅 Gráfico de evolução temporal (últimos 30 dias)',
                     '📥 Exportação CSV simplificada (compatível com Excel)',
                     '📱 Geração de QR Code para formulários',
@@ -83,7 +83,7 @@ class HomeController
                 'description' => 'Novo sistema completo para criar formulários NPS customizados e coletar feedback de clientes',
                 'features' => [
                     'Criação ilimitada de formulários NPS customizados',
-                    'Perguntas configuráveis (0-10, Sim/Não, Texto livre)',
+                    'Perguntas configuráveis (0-5, Sim/Não, Texto livre)',
                     'Links públicos únicos para cada formulário',
                     'Página de resposta sem necessidade de login',
                     'Cálculo automático de NPS (Promotores, Neutros, Detratores)',

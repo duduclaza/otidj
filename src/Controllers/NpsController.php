@@ -899,19 +899,19 @@ class NpsController
                         $pergunta = $r['pergunta'] ?? "Pergunta " . ($index + 1);
                         $respostaTexto = $r['resposta'];
                         
-                        // Capturar primeira nota NPS (0-10)
-                        if ($notaNPS === null && is_numeric($respostaTexto) && $respostaTexto >= 0 && $respostaTexto <= 10) {
+                        // Capturar primeira nota NPS (0-5)
+                        if ($notaNPS === null && is_numeric($respostaTexto) && $respostaTexto >= 0 && $respostaTexto <= 5) {
                             $notaNPS = (int)$respostaTexto;
                         }
                         
                         $linha[$pergunta] = $respostaTexto;
                     }
                     
-                    // Adicionar classificação NPS
+                    // Adicionar classificação NPS (Escala 0-5)
                     if ($notaNPS !== null) {
-                        if ($notaNPS >= 9) {
+                        if ($notaNPS >= 4) {
                             $linha['classificacao_nps'] = 'Promotor';
-                        } elseif ($notaNPS >= 7) {
+                        } elseif ($notaNPS == 3) {
                             $linha['classificacao_nps'] = 'Neutro';
                         } else {
                             $linha['classificacao_nps'] = 'Detrator';
