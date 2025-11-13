@@ -16,8 +16,8 @@ use App\Middleware\PermissionMiddleware;
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
-// Error reporting
-$isDebug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
+// Error reporting - TEMPORARIAMENTE SEMPRE ATIVO PARA DEBUG
+$isDebug = true; // FORÇADO PARA DEBUG
 // Permitir forçar debug via query string (?debug=1)
 if (isset($_GET['debug']) && $_GET['debug'] == '1') {
     $isDebug = true;
