@@ -2,7 +2,7 @@
 <div class="bg-white rounded-2xl shadow-2xl p-8 relative">
   <!-- Logo DJ no topo -->
   <div class="text-center mb-8">
-    <img src="/assets/logo.png" alt="DJ Logo" class="mx-auto h-12 object-contain mb-4">
+    <img src="/assets/logodj.png" alt="DJ Logo" class="mx-auto h-12 object-contain mb-4">
   </div>
 
   <!-- Login Form -->
