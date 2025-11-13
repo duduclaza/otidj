@@ -1,6 +1,6 @@
 ﻿<?php
-if (!isset($_SESSION[''user_id''])) {
-    header(''Location: /login'');
+if (!isset($_SESSION['user_id'])) {
+    header('Location: /login');
     exit();
 }
 ?>
@@ -22,7 +22,7 @@ if (!isset($_SESSION[''user_id''])) {
                     <span class="px-3 py-1 bg-green-400 text-green-900 text-xs font-bold rounded-full"> TRIAL EM BREVE</span>
                 </div>
                 <h2 class="text-2xl font-bold">Módulo CRM - Prospecção</h2>
-                <p class="text-blue-100 mt-1">Disponível por R$ 800/mês - Trial em breve!</p>
+                <p class="text-blue-100 mt-1">Disponível por R$ 900/mês - Trial em breve!</p>
             </div>
             <div>
                 <a href="mailto:comercial@sgqoti.com" class="inline-block bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-blue-50 transition-colors">

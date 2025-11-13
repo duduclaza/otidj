@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Verificar se usuário está logado
 if (!isset($_SESSION['user_id'])) {
     header('Location: /login');

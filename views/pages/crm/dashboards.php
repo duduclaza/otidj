@@ -47,7 +47,7 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 <div class="text-center mb-6">
                     <div class="flex items-baseline justify-center gap-2 mb-2">
-                        <span class="text-6xl font-bold text-white">R$ 800</span>
+                        <span class="text-6xl font-bold text-white">R$ 900</span>
                         <span class="text-2xl text-blue-200">/mês</span>
                     </div>
                     <p class="text-blue-200 text-lg">CRM Completo com todos os módulos</p>

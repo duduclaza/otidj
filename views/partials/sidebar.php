@@ -99,7 +99,7 @@ $menu = [
         'icon' => '🚀',
         'admin_only' => true,
         'has_submenu' => true,
-        'badge' => 'R$ 800/mês',
+        'badge' => 'R$ 900/mês',
         'submenu' => [
           ['label' => 'DPO', 'href' => '/implantacao/dpo', 'icon' => '📊', 'admin_only' => true],
           ['label' => 'Ordem de Serviços de Implantação', 'href' => '/implantacao/ordem-servicos', 'icon' => '📋', 'admin_only' => true],
@@ -114,7 +114,7 @@ $menu = [
         'icon' => '💼',
         'admin_only' => true,
         'has_submenu' => true,
-        'badge' => 'R$ 800/mês',
+        'badge' => 'R$ 900/mês',
         'submenu' => [
           ['label' => 'Prospecção', 'href' => '/crm/prospeccao', 'icon' => '🎯', 'admin_only' => true],
           ['label' => 'Vendas', 'href' => '/crm/vendas', 'icon' => '💰', 'admin_only' => true],
