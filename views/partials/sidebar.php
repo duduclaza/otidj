@@ -184,12 +184,21 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                   $submenuActive = true;
                 }
               }
-              // Se não tem module mas tem has_submenu, pode ser um submenu aninhado (como Garantia)
+              // Se não tem module mas tem has_submenu, pode ser um submenu aninhado (como Garantia ou Loja)
               elseif (isset($sub['has_submenu']) && $sub['has_submenu']) {
                 // Verificar se tem pelo menos um submenu interno visível
                 if (isset($sub['submenu']) && is_array($sub['submenu'])) {
                   foreach ($sub['submenu'] as $nestedSub) {
-                    if (isset($nestedSub['module']) && hasPermission($nestedSub['module'])) {
+                    // Verificar se é admin_only
+                    if (isset($nestedSub['admin_only']) && $nestedSub['admin_only']) {
+                      $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                      if ($isAdmin) {
+                        $visibleSubmenus[] = $sub;
+                        break; // Encontrou pelo menos um, adicionar o pai
+                      }
+                    }
+                    // Ou verificar por module
+                    elseif (isset($nestedSub['module']) && hasPermission($nestedSub['module'])) {
                       $visibleSubmenus[] = $sub;
                       break; // Encontrou pelo menos um, adicionar o pai
                     }
@@ -246,7 +255,12 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                         <button onclick="toggleSubmenu(this)" class="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 text-slate-400 hover:text-white">
                           <div class="flex items-center gap-3">
                             <span class="text-base"><?= e($sub['icon']) ?></span>
-                            <span><?= e($sub['label']) ?></span>
+                            <span class="flex items-center gap-2">
+                              <?= e($sub['label']) ?>
+                              <?php if (isset($sub['badge'])): ?>
+                                <span class="px-1.5 py-0.5 bg-yellow-500 text-yellow-900 text-xs font-bold rounded"><?= e($sub['badge']) ?></span>
+                              <?php endif; ?>
+                            </span>
                           </div>
                           <span class="submenu-arrow transition-transform duration-200 text-slate-400">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -256,7 +270,13 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                         </button>
                         <ul class="submenu ml-6 mt-1 space-y-1 hidden">
                           <?php foreach ($sub['submenu'] as $nestedSub):
-                            if (!isset($nestedSub['module']) || !hasPermission($nestedSub['module'])) continue;
+                            // Verificar se é admin_only
+                            if (isset($nestedSub['admin_only']) && $nestedSub['admin_only']) {
+                              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                              if (!$isAdmin) continue;
+                            } elseif (isset($nestedSub['module']) && !hasPermission($nestedSub['module'])) {
+                              continue;
+                            }
                             $nestedActive = rtrim($nestedSub['href'], '/') === $current;
                           ?>
                             <li>
@@ -413,7 +433,16 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
             // Se não tem 'module', pode ser um submenu aninhado - verificar recursivamente
             elseif (isset($sub['submenu']) && is_array($sub['submenu'])) {
               foreach ($sub['submenu'] as $nestedSub) {
-                if (isset($nestedSub['module']) && hasPermission($nestedSub['module'])) {
+                // Verificar se é admin_only
+                if (isset($nestedSub['admin_only']) && $nestedSub['admin_only']) {
+                  $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                  if ($isAdmin) {
+                    $hasPermissionForItem = true;
+                    break 2;
+                  }
+                }
+                // Ou verificar por module
+                elseif (isset($nestedSub['module']) && hasPermission($nestedSub['module'])) {
                   $hasPermissionForItem = true;
                   break 2; // Sair dos dois loops
                 }
@@ -422,7 +451,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           }
         } else {
           // Para itens simples, verificar permissão direta
-          $hasPermissionForItem = hasPermission($item['module']);
+          $hasPermissionForItem = isset($item['module']) && hasPermission($item['module']);
         }
         
         // Só mostrar se tiver permissão
