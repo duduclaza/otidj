@@ -177,11 +177,23 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                 $submenuActive = true;
               }
             } else {
-              // Para outros itens, verificar permissão no banco
+              // Para outros itens, verificar permissão no banco (se tiver module)
               if (isset($sub['module']) && hasPermission($sub['module'])) {
                 $visibleSubmenus[] = $sub;
                 if (rtrim($sub['href'], '/') === $current) {
                   $submenuActive = true;
+                }
+              }
+              // Se não tem module mas tem has_submenu, pode ser um submenu aninhado (como Garantia)
+              elseif (isset($sub['has_submenu']) && $sub['has_submenu']) {
+                // Verificar se tem pelo menos um submenu interno visível
+                if (isset($sub['submenu']) && is_array($sub['submenu'])) {
+                  foreach ($sub['submenu'] as $nestedSub) {
+                    if (isset($nestedSub['module']) && hasPermission($nestedSub['module'])) {
+                      $visibleSubmenus[] = $sub;
+                      break; // Encontrou pelo menos um, adicionar o pai
+                    }
+                  }
                 }
               }
             }
@@ -385,13 +397,21 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         if ($hasSubmenu) {
           // Para submenus, verificar se tem permissão para pelo menos um submenu
           foreach ($item['submenu'] as $sub) {
+            // Verificar se é admin_only
+            if (isset($sub['admin_only']) && $sub['admin_only']) {
+              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+              if ($isAdmin) {
+                $hasPermissionForItem = true;
+                break;
+              }
+            }
             // Verificar se tem a chave 'module' antes de usar
-            if (isset($sub['module']) && hasPermission($sub['module'])) {
+            elseif (isset($sub['module']) && hasPermission($sub['module'])) {
               $hasPermissionForItem = true;
               break;
             }
             // Se não tem 'module', pode ser um submenu aninhado - verificar recursivamente
-            if (isset($sub['submenu']) && is_array($sub['submenu'])) {
+            elseif (isset($sub['submenu']) && is_array($sub['submenu'])) {
               foreach ($sub['submenu'] as $nestedSub) {
                 if (isset($nestedSub['module']) && hasPermission($nestedSub['module'])) {
                   $hasPermissionForItem = true;
@@ -418,11 +438,23 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           <?php endif; ?>
           <!-- Para mobile, mostrar todos os subitens que o usuário tem permissão -->
           <?php foreach ($item['submenu'] as $sub): ?>
-            <?php if (isset($sub['module']) && hasPermission($sub['module'])): ?>
-              <a href="<?= e($sub['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200 ml-2">
-                <span class="text-sm"><?= e($sub['icon']) ?></span> <?= e($sub['label']) ?>
-              </a>
-            <?php endif; ?>
+            <?php 
+              // Verificar se é admin_only
+              if (isset($sub['admin_only']) && $sub['admin_only']) {
+                $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                if (!$isAdmin) continue;
+                // Admin pode ver
+              } elseif (isset($sub['module'])) {
+                // Tem module, verificar permissão
+                if (!hasPermission($sub['module'])) continue;
+              } else {
+                // Sem module e sem admin_only, pode ser submenu aninhado - mostrar se tem has_submenu
+                if (!isset($sub['has_submenu']) || !$sub['has_submenu']) continue;
+              }
+            ?>
+            <a href="<?= e($sub['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200 ml-2">
+              <span class="text-sm"><?= e($sub['icon']) ?></span> <?= e($sub['label']) ?>
+            </a>
           <?php endforeach; ?>
         <?php else: ?>
           <a href="<?= e($item['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200"><?= e($item['label']) ?></a>
