@@ -37,8 +37,8 @@ $title = $title ?? 'OTI - Login';
 </head>
 <body class="min-h-screen">
   <div class="flex min-h-screen">
-    <!-- Painel Esquerdo - Azul com Formulário -->
-    <div class="left-panel w-full md:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center p-4 md:p-8">
+    <!-- Painel Esquerdo - Azul com efeito roxo/lilás -->
+    <div class="left-panel w-full md:w-1/2 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 flex items-center justify-center p-4 md:p-8" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #6366f1 100%);">
       <div class="w-full max-w-md my-8">
         <?php include $viewFile; ?>
       </div>
