@@ -459,6 +459,12 @@ $router->get('/registros/departamentos', [App\Controllers\RegistrosController::c
 $router->get('/registros/fornecedores', [App\Controllers\RegistrosController::class, 'fornecedores']);
 $router->get('/registros/parametros', [App\Controllers\RegistrosController::class, 'parametros']);
 
+// Gestão de Implantação routes (Admin Only)
+$router->get('/implantacao/dpo', [App\Controllers\ImplantacaoController::class, 'dpo']);
+$router->get('/implantacao/ordem-servicos', [App\Controllers\ImplantacaoController::class, 'ordemServicos']);
+$router->get('/implantacao/fluxo', [App\Controllers\ImplantacaoController::class, 'fluxo']);
+$router->get('/implantacao/relatorios', [App\Controllers\ImplantacaoController::class, 'relatorios']);
+
 // Power BI API routes
 $router->get('/api/powerbi', [App\Controllers\PowerBIController::class, 'index']);
 $router->get('/api/powerbi/documentacao', [App\Controllers\PowerBIController::class, 'documentacao']);

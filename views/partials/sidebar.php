@@ -66,6 +66,19 @@ $menu = [
     ]
   ],
   [
+    'label' => 'Gestão de Implantação', 
+    'href' => '#', 
+    'icon' => '🚀', 
+    'category' => true,
+    'admin_only' => true,
+    'submenu' => [
+      ['label' => 'DPO', 'href' => '/implantacao/dpo', 'icon' => '📊', 'admin_only' => true],
+      ['label' => 'Ordem de Serviços de Implantação', 'href' => '/implantacao/ordem-servicos', 'icon' => '📋', 'admin_only' => true],
+      ['label' => 'Fluxo de Implantação', 'href' => '/implantacao/fluxo', 'icon' => '🔄', 'admin_only' => true],
+      ['label' => 'Relatórios', 'href' => '/implantacao/relatorios', 'icon' => '📈', 'admin_only' => true],
+    ]
+  ],
+  [
     'label' => 'Administrativo', 
     'href' => '#', 
     'icon' => '⚙️', 

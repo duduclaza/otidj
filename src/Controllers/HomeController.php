@@ -20,11 +20,34 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.7.6';
+        $systemVersion = '2.8.0';
         $lastUpdate = '2024-11-13';
         
         // Buscar últimas atualizações (changelog do sistema)
         $updates = [
+            [
+                'version' => '2.8.0',
+                'date' => '2024-11-13',
+                'type' => 'Novo Módulo',
+                'title' => 'Gestão de Implantação (Premium)',
+                'description' => 'Novo módulo premium para gestão completa de implantações - Trial em breve por R$ 700/mês',
+                'features' => [
+                    '🚀 Novo Módulo: "Gestão de Implantação" (Admin Only)',
+                    '📊 Submenu: DPO (Documento de Planejamento de Operações)',
+                    '📋 Submenu: Ordem de Serviços de Implantação',
+                    '🔄 Submenu: Fluxo de Implantação',
+                    '📈 Submenu: Relatórios e Analytics',
+                    '🎯 Trial disponível em breve para testes',
+                    '💰 Valor: R$ 700,00/mês (contratação adicional)',
+                    '👥 Visível apenas para Administradores',
+                    '🎨 Páginas com design premium e informações detalhadas',
+                    '✨ Editor visual de fluxos com drag & drop',
+                    '📊 50+ relatórios prontos e customizáveis',
+                    '📱 App mobile para técnicos em campo',
+                    '🔔 Notificações automáticas e alertas de SLA',
+                    '📊 Dashboard executivo com KPIs em tempo real'
+                ]
+            ],
             [
                 'version' => '2.7.6',
                 'date' => '2024-11-13',
