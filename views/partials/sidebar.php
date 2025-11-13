@@ -178,7 +178,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
               }
             } else {
               // Para outros itens, verificar permissão no banco
-              if (hasPermission($sub['module'])) {
+              if (isset($sub['module']) && hasPermission($sub['module'])) {
                 $visibleSubmenus[] = $sub;
                 if (rtrim($sub['href'], '/') === $current) {
                   $submenuActive = true;
@@ -189,7 +189,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           $hasPermissionForItem = !empty($visibleSubmenus);
         } else {
           // Para itens simples, verificar permissão direta
-          $hasPermissionForItem = hasPermission($item['module']);
+          $hasPermissionForItem = isset($item['module']) && hasPermission($item['module']);
         }
         
         // Só mostrar o item se o usuário tiver permissão
@@ -220,7 +220,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                     $subActive = rtrim($sub['href'], '/') === $current;
                   } else {
                     // Só mostrar submenu se o usuário tiver permissão
-                    if (!hasPermission($sub['module'])) continue;
+                    if (!isset($sub['module']) || !hasPermission($sub['module'])) continue;
                     $subActive = rtrim($sub['href'], '/') === $current;
                   }
                   
@@ -244,7 +244,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                         </button>
                         <ul class="submenu ml-6 mt-1 space-y-1 hidden">
                           <?php foreach ($sub['submenu'] as $nestedSub):
-                            if (!hasPermission($nestedSub['module'])) continue;
+                            if (!isset($nestedSub['module']) || !hasPermission($nestedSub['module'])) continue;
                             $nestedActive = rtrim($nestedSub['href'], '/') === $current;
                           ?>
                             <li>
@@ -385,9 +385,19 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         if ($hasSubmenu) {
           // Para submenus, verificar se tem permissão para pelo menos um submenu
           foreach ($item['submenu'] as $sub) {
-            if (hasPermission($sub['module'])) {
+            // Verificar se tem a chave 'module' antes de usar
+            if (isset($sub['module']) && hasPermission($sub['module'])) {
               $hasPermissionForItem = true;
               break;
+            }
+            // Se não tem 'module', pode ser um submenu aninhado - verificar recursivamente
+            if (isset($sub['submenu']) && is_array($sub['submenu'])) {
+              foreach ($sub['submenu'] as $nestedSub) {
+                if (isset($nestedSub['module']) && hasPermission($nestedSub['module'])) {
+                  $hasPermissionForItem = true;
+                  break 2; // Sair dos dois loops
+                }
+              }
             }
           }
         } else {
@@ -408,7 +418,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           <?php endif; ?>
           <!-- Para mobile, mostrar todos os subitens que o usuário tem permissão -->
           <?php foreach ($item['submenu'] as $sub): ?>
-            <?php if (hasPermission($sub['module'])): ?>
+            <?php if (isset($sub['module']) && hasPermission($sub['module'])): ?>
               <a href="<?= e($sub['href']) ?>" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200 ml-2">
                 <span class="text-sm"><?= e($sub['icon']) ?></span> <?= e($sub['label']) ?>
               </a>
