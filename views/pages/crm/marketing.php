@@ -1,6 +1,6 @@
 ﻿<?php
-if (!isset($_SESSION[''user_id''])) {
-    header(''Location: /login'');
+if (!isset($_SESSION['user_id'])) {
+    header('Location: /login');
     exit();
 }
 ?>
@@ -100,3 +100,4 @@ if (!isset($_SESSION[''user_id''])) {
         <a href="mailto:comercial@sgqoti.com" class="inline-block bg-white text-orange-700 px-8 py-4 rounded-xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 transition-all"> Solicitar Demonstração</a>
     </div>
 </section>
+
