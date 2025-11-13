@@ -28,11 +28,12 @@ class HomeController
             [
                 'version' => '2.8.0',
                 'date' => '2024-11-13',
-                'type' => 'Novo Módulo',
-                'title' => 'Gestão de Implantação (Premium)',
-                'description' => 'Novo módulo premium para gestão completa de implantações - Trial em breve por R$ 700/mês',
+                'type' => 'Novo',
+                'title' => 'Loja de Módulos - Marketplace Premium',
+                'description' => 'Nova seção "Loja de Módulos" para compra de módulos adicionais - Primeiro módulo: Gestão de Implantação por R$ 700/mês',
                 'features' => [
-                    '🚀 Novo Módulo: "Gestão de Implantação" (Admin Only)',
+                    '🛍️ Novo Menu: "Loja de Módulos" (Marketplace)',
+                    '🚀 Módulo Disponível: "Gestão de Implantação"',
                     '📊 Submenu: DPO (Documento de Planejamento de Operações)',
                     '📋 Submenu: Ordem de Serviços de Implantação',
                     '🔄 Submenu: Fluxo de Implantação',

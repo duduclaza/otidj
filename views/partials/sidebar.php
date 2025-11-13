@@ -66,16 +66,27 @@ $menu = [
     ]
   ],
   [
-    'label' => 'Gestão de Implantação', 
+    'label' => 'Loja de Módulos', 
     'href' => '#', 
-    'icon' => '🚀', 
+    'icon' => '🛍️', 
     'category' => true,
     'admin_only' => true,
     'submenu' => [
-      ['label' => 'DPO', 'href' => '/implantacao/dpo', 'icon' => '📊', 'admin_only' => true],
-      ['label' => 'Ordem de Serviços de Implantação', 'href' => '/implantacao/ordem-servicos', 'icon' => '📋', 'admin_only' => true],
-      ['label' => 'Fluxo de Implantação', 'href' => '/implantacao/fluxo', 'icon' => '🔄', 'admin_only' => true],
-      ['label' => 'Relatórios', 'href' => '/implantacao/relatorios', 'icon' => '📈', 'admin_only' => true],
+      // Gestão de Implantação - Módulo Premium
+      [
+        'label' => 'Gestão de Implantação',
+        'href' => '#',
+        'icon' => '🚀',
+        'admin_only' => true,
+        'has_submenu' => true,
+        'badge' => 'R$ 700/mês',
+        'submenu' => [
+          ['label' => 'DPO', 'href' => '/implantacao/dpo', 'icon' => '📊', 'admin_only' => true],
+          ['label' => 'Ordem de Serviços de Implantação', 'href' => '/implantacao/ordem-servicos', 'icon' => '📋', 'admin_only' => true],
+          ['label' => 'Fluxo de Implantação', 'href' => '/implantacao/fluxo', 'icon' => '🔄', 'admin_only' => true],
+          ['label' => 'Relatórios', 'href' => '/implantacao/relatorios', 'icon' => '📈', 'admin_only' => true],
+        ]
+      ],
     ]
   ],
   [
