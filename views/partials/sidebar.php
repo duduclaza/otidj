@@ -255,12 +255,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                         <button onclick="toggleSubmenu(this)" class="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 text-slate-400 hover:text-white">
                           <div class="flex items-center gap-3">
                             <span class="text-base"><?= e($sub['icon']) ?></span>
-                            <span class="flex items-center gap-2">
-                              <?= e($sub['label']) ?>
-                              <?php if (isset($sub['badge'])): ?>
-                                <span class="px-1.5 py-0.5 bg-yellow-500 text-yellow-900 text-xs font-bold rounded"><?= e($sub['badge']) ?></span>
-                              <?php endif; ?>
-                            </span>
+                            <span><?= e($sub['label']) ?></span>
                           </div>
                           <span class="submenu-arrow transition-transform duration-200 text-slate-400">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
