@@ -4,8 +4,8 @@
     <div class="inline-flex items-center justify-center m-0">
       <img src="/public/assets/logo.png" alt="DJLogo" class="w-22 h-10 object-contain">
     </div>
-    <h1 class="text-4xl font-bold text-white mb-3">SGQ OTI</h1>
-    <p class="text-blue-100 text-lg">Sistema de Gestão da Qualidade</p>
+    <h1 class="text-4xl font-bold text-white mb-3">OTI</h1>
+    <p class="text-blue-100 text-lg">Organização Tecnológica Integrada</p>
   </div>
 
   <!-- Login Form -->
