@@ -44,11 +44,18 @@ $title = $title ?? 'OTI - Login';
       </div>
     </div>
     
-    <!-- Painel Direito - Branco com Logo -->
-    <div class="right-panel hidden md:flex md:w-1/2 bg-white items-center justify-center p-12">
+    <!-- Painel Direito - Clean Design -->
+    <div class="right-panel hidden md:flex md:w-1/2 items-center justify-center p-12" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);">
       <div class="text-center">
-        <img src="/assets/otilogo.png" alt="Logo OTI" class="mx-auto w-64 h-auto object-contain mb-6">
-        <h2 class="text-2xl font-semibold text-gray-700">Organização Tecnológica Integrada</h2>
+        <h1 class="text-8xl font-bold mb-4" style="font-family: 'Georgia', serif; color: #1e40af; letter-spacing: -0.02em;">OTI</h1>
+        <p class="text-lg text-gray-500 font-light tracking-wide">Organização Tecnológica Integrada</p>
+        
+        <!-- Elemento decorativo -->
+        <div class="mt-12 flex justify-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-blue-400 opacity-60"></div>
+          <div class="w-2 h-2 rounded-full bg-blue-500 opacity-70"></div>
+          <div class="w-2 h-2 rounded-full bg-blue-600 opacity-80"></div>
+        </div>
       </div>
     </div>
   </div>
