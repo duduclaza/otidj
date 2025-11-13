@@ -66,6 +66,24 @@ $menu = [
     ]
   ],
   [
+    'label' => 'Administrativo', 
+    'href' => '#', 
+    'icon' => '⚙️', 
+    'category' => true,
+    'modules' => ['admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel', 'api_powerbi', 'registros_filiais', 'registros_departamentos', 'registros_fornecedores', 'registros_parametros'],
+    'submenu' => [
+      ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥', 'module' => 'admin_usuarios'],
+      ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
+      ['label' => 'Solicitações de Acesso', 'href' => '/admin/access-requests', 'icon' => '📧', 'module' => 'admin_convites'],
+      ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
+      ['label' => 'APIs para Power BI', 'href' => '/api/powerbi', 'icon' => '📊', 'module' => 'api_powerbi', 'badge' => 'BETA'],
+      ['label' => 'Filiais', 'href' => '/registros/filiais', 'icon' => '🏢', 'module' => 'registros_filiais'],
+      ['label' => 'Departamentos', 'href' => '/registros/departamentos', 'icon' => '🏛️', 'module' => 'registros_departamentos'],
+      ['label' => 'Fornecedores', 'href' => '/registros/fornecedores', 'icon' => '🏭', 'module' => 'registros_fornecedores'],
+      ['label' => 'Parâmetros de Retornados', 'href' => '/registros/parametros', 'icon' => '📊', 'module' => 'registros_parametros'],
+    ]
+  ],
+  [
     'label' => 'Loja de Módulos', 
     'href' => '#', 
     'icon' => '🛍️', 
@@ -87,24 +105,6 @@ $menu = [
           ['label' => 'Relatórios', 'href' => '/implantacao/relatorios', 'icon' => '📈', 'admin_only' => true],
         ]
       ],
-    ]
-  ],
-  [
-    'label' => 'Administrativo', 
-    'href' => '#', 
-    'icon' => '⚙️', 
-    'category' => true,
-    'modules' => ['admin_usuarios', 'admin_perfis', 'admin_convites', 'admin_painel', 'api_powerbi', 'registros_filiais', 'registros_departamentos', 'registros_fornecedores', 'registros_parametros'],
-    'submenu' => [
-      ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥', 'module' => 'admin_usuarios'],
-      ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
-      ['label' => 'Solicitações de Acesso', 'href' => '/admin/access-requests', 'icon' => '📧', 'module' => 'admin_convites'],
-      ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
-      ['label' => 'APIs para Power BI', 'href' => '/api/powerbi', 'icon' => '📊', 'module' => 'api_powerbi', 'badge' => 'BETA'],
-      ['label' => 'Filiais', 'href' => '/registros/filiais', 'icon' => '🏢', 'module' => 'registros_filiais'],
-      ['label' => 'Departamentos', 'href' => '/registros/departamentos', 'icon' => '🏛️', 'module' => 'registros_departamentos'],
-      ['label' => 'Fornecedores', 'href' => '/registros/fornecedores', 'icon' => '🏭', 'module' => 'registros_fornecedores'],
-      ['label' => 'Parâmetros de Retornados', 'href' => '/registros/parametros', 'icon' => '📊', 'module' => 'registros_parametros'],
     ]
   ],
 ];
