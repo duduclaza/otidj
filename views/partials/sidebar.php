@@ -495,22 +495,27 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
   </style>
   
   <script>
+    // ===== DEFINIR FUNÇÃO GLOBAL PRIMEIRO - ANTES DE TUDO =====
+    window.toggleSubmenu = function(button) {
+      console.log('toggleSubmenu chamada!', button);
+      const submenu = button.parentElement.querySelector('.submenu');
+      const arrow = button.querySelector('.submenu-arrow');
+      if (submenu && arrow) {
+        submenu.classList.toggle('hidden');
+        arrow.style.transform = submenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+      } else {
+        console.error('Submenu ou arrow não encontrado', {submenu, arrow});
+      }
+    }
+    console.log('toggleSubmenu definida:', typeof window.toggleSubmenu);
+    
+    // Mobile menu
     const btn = document.getElementById('menuBtn');
     const overlay = document.getElementById('mobileMenu');
     const drawer = document.getElementById('mobileDrawer');
     function toggle(){ overlay.classList.toggle('hidden'); drawer.classList.toggle('hidden'); }
     btn?.addEventListener('click', toggle);
     overlay?.addEventListener('click', toggle);
-    
-    // Submenu toggle function - Tornar global
-    window.toggleSubmenu = function(button) {
-      const submenu = button.parentElement.querySelector('.submenu');
-      const arrow = button.querySelector('.submenu-arrow');
-      if (submenu && arrow) {
-        submenu.classList.toggle('hidden');
-        arrow.style.transform = submenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-      }
-    }
     
     // Auto-expand active submenu
     document.addEventListener('DOMContentLoaded', function() {
