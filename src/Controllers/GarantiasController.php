@@ -21,7 +21,7 @@ class GarantiasController
             $filiais = $this->getFiliais();
             $usuarios = $this->getUsuarios();
             
-            $title = 'Garantias - SGQ OTI DJ';
+            $title = 'Registro de Garantias - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/garantias/index.php';
             include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Exception $e) {
@@ -369,7 +369,7 @@ class GarantiasController
             }
             $tempoTotal = $this->formatarTempo($tempoTotalSegundos);
             
-            $title = 'Garantia #' . $garantia['id'] . ' - SGQ OTI DJ';
+            $title = 'Registro de Garantia #' . $garantia['id'] . ' - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/garantias/detalhes.php';
             include __DIR__ . '/../../views/layouts/main.php';
             

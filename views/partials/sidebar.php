@@ -30,7 +30,7 @@ $menu = [
     'href' => '#', 
     'icon' => '📋', 
     'category' => true,
-    'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'garantias', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc', 'nps'],
+    'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc', 'nps'],
     'submenu' => [
       // Itens vindos de Operacionais
       ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '💧🩸', 'module' => 'toners_cadastro'],
@@ -38,7 +38,6 @@ $menu = [
       ['label' => 'Cadastro de Peças', 'href' => '/cadastro-pecas', 'icon' => '🔧', 'module' => 'cadastro_pecas'],
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
       ['label' => 'Amostragens 2.0', 'href' => '/amostragens-2', 'icon' => '🔬', 'module' => 'amostragens_2'],
-      ['label' => 'Garantias', 'href' => '/garantias', 'icon' => '🛡️', 'module' => 'garantias'],
       ['label' => 'Controle de Descartes', 'href' => '/controle-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
       // Itens originais de Gestão da Qualidade
       ['label' => 'Homologações', 'href' => '/homologacoes', 'icon' => '✅', 'module' => 'homologacoes'],
@@ -51,6 +50,16 @@ $menu = [
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
       ['label' => 'NPS', 'href' => '/nps', 'icon' => '📊', 'module' => 'nps'],
+    ]
+  ],
+  [
+    'label' => 'Garantia', 
+    'href' => '#', 
+    'icon' => '🛡️', 
+    'category' => true,
+    'modules' => ['garantias'],
+    'submenu' => [
+      ['label' => 'Registro de Garantias', 'href' => '/garantias', 'icon' => '📝', 'module' => 'garantias'],
     ]
   ],
   [

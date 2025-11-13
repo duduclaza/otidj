@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Header -->
     <div class="flex justify-between items-center">
         <div>
-            <h1 class="text-2xl font-semibold text-gray-900">Garantias</h1>
-            <p class="text-gray-600 mt-1">Controle de garantias de produtos</p>
+            <h1 class="text-2xl font-semibold text-gray-900">Registro de Garantias</h1>
+            <p class="text-gray-600 mt-1">Controle e gestão de garantias de produtos</p>
         </div>
         <div class="flex space-x-3">
             <button id="toggleCorreiosFormBtn" type="button" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">

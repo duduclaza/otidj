@@ -20,11 +20,27 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.7.4';
+        $systemVersion = '2.7.5';
         $lastUpdate = '2024-11-13';
         
         // Buscar últimas atualizações (changelog do sistema)
         $updates = [
+            [
+                'version' => '2.7.5',
+                'date' => '2024-11-13',
+                'type' => 'Melhoria',
+                'title' => 'Reorganização do Menu Garantia',
+                'description' => 'Criado novo menu principal "Garantia" com submenu "Registro de Garantias" para melhor organização',
+                'features' => [
+                    '🆕 Novo menu principal: "Garantia" (🛡️)',
+                    '📋 "Garantias" renomeado para "Registro de Garantias"',
+                    '📁 Menu organizado com categoria própria',
+                    '✅ Permissões mantidas (módulo "garantias")',
+                    '🎯 Facilita expansão futura do módulo',
+                    '👀 Interface mais limpa e organizada',
+                    '📏 Continua no contexto de Gestão da Qualidade'
+                ]
+            ],
             [
                 'version' => '2.7.4',
                 'date' => '2024-11-13',
