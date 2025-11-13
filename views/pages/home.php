@@ -2,13 +2,12 @@
   <!-- Cabeçalho de Boas-vindas -->
   <div class="text-center">
     <div class="mb-6">
-      <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mb-4">
-        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-        </svg>
+      <!-- Logo OTI -->
+      <div class="mb-6">
+        <img src="/assets/logo-oti.png" alt="Logo OTI System" class="mx-auto h-32 object-contain">
       </div>
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">Bem-vindo ao SGQ OTI DJ</h1>
-      <p class="text-xl text-gray-600">Sistema de Gestão da Qualidade</p>
+      <h1 class="text-4xl font-bold text-gray-900 mb-2">Bem-vindo ao Sistema OTI</h1>
+      <p class="text-xl text-gray-600">Organização Tecnológica Integrada</p>
     </div>
     
     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-8">

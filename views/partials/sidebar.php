@@ -130,8 +130,8 @@ $menu = [
 $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/') ?: '/';
 ?>
 <aside id="sidebar" class="hidden lg:flex lg:w-72 flex-col bg-slate-800 border-r border-slate-700">
-  <div class="h-16 flex items-center px-6 border-b border-slate-700">
-    <div>
+  <div class="h-16 flex items-center justify-center px-6 border-b border-slate-700">
+    <div class="text-center">
       <div class="text-lg font-semibold text-white">OTI</div>
       <div class="text-xs text-slate-400">Organização Tecnológica Integrada</div>
     </div>
