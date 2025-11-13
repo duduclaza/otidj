@@ -502,12 +502,14 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     btn?.addEventListener('click', toggle);
     overlay?.addEventListener('click', toggle);
     
-    // Submenu toggle function
-    function toggleSubmenu(button) {
+    // Submenu toggle function - Tornar global
+    window.toggleSubmenu = function(button) {
       const submenu = button.parentElement.querySelector('.submenu');
       const arrow = button.querySelector('.submenu-arrow');
-      submenu.classList.toggle('hidden');
-      arrow.style.transform = submenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+      if (submenu && arrow) {
+        submenu.classList.toggle('hidden');
+        arrow.style.transform = submenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+      }
     }
     
     // Auto-expand active submenu
