@@ -1,30 +1,25 @@
-<div class="glass-effect rounded-2xl shadow-2xl p-8">
-  <!-- Logo/Header -->
-  <div class="text-center mb-6">
-    <div class="inline-flex items-center justify-center m-0">
-      <img src="/public/assets/logo.png" alt="DJLogo" class="w-22 h-10 object-contain">
-    </div>
-    <h1 class="text-4xl font-bold text-white mb-3">OTI</h1>
-    <p class="text-blue-100 text-lg">Organização Tecnológica Integrada</p>
+<!-- Card Branco -->
+<div class="bg-white rounded-2xl shadow-2xl p-8 relative">
+  <!-- Logo DJ no topo -->
+  <div class="text-center mb-8">
+    <img src="/assets/logo.png" alt="DJ Logo" class="mx-auto h-12 object-contain mb-4">
   </div>
 
   <!-- Login Form -->
   <form id="loginForm" class="space-y-6">
     <div>
-      <label class="block text-white text-sm font-medium mb-2">Email</label>
       <input type="email" name="email" required 
-             class="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
-             placeholder="seu@email.com">
+             class="w-full px-4 py-3 border-2 border-blue-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+             placeholder="Seu Email">
     </div>
 
     <div>
-      <label class="block text-white text-sm font-medium mb-2">Senha</label>
       <div class="relative">
         <input type="password" name="password" id="loginPassword" required 
-               class="w-full px-4 py-3 pr-12 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-white placeholder-opacity-70 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 focus:border-transparent"
-               placeholder="••••••••">
+               class="w-full px-4 py-3 pr-12 border-2 border-blue-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+               placeholder="Sua Senha">
         <button type="button" onclick="toggleLoginPassword()" 
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-white hover:text-blue-200 transition-colors">
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors">
           <svg id="loginEyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -34,33 +29,33 @@
     </div>
 
     <button type="submit" 
-            class="w-full btn-primary text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200">
+            class="w-full btn-primary text-white font-semibold py-3 px-6 rounded-lg">
       Entrar
     </button>
   </form>
 
-  <!-- Forgot Password Link -->
-  <div class="mt-4 text-center">
-    <a href="/password-reset/request" class="text-blue-200 text-sm hover:text-white transition-colors">
-      🔐 Esqueci minha senha
-    </a>
-  </div>
-
-  <!-- Register Link -->
-  <div class="mt-4 text-center">
-    <p class="text-blue-100 text-sm">
-      Não tem uma conta? 
-      <a href="/request-access" class="text-blue-300 font-semibold hover:text-blue-200 transition-colors">
+  <!-- Links -->
+  <div class="mt-6 text-center space-y-2">
+    <div>
+      <a href="/password-reset/request" class="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+        Esqueci minha senha?
+      </a>
+    </div>
+    <div>
+      <a href="/request-access" class="text-sm bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors inline-block">
         Solicitar Acesso
       </a>
-    </p>
+    </div>
   </div>
 
   <!-- Loading Overlay -->
-  <div id="loginLoading" class="hidden absolute inset-0 bg-black bg-opacity-50 rounded-2xl flex items-center justify-center">
-    <div class="text-white text-center">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-      <div class="text-sm">Entrando...</div>
+  <div id="loginLoading" class="hidden absolute inset-0 bg-white bg-opacity-90 rounded-2xl flex items-center justify-center">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600 mx-auto mb-4"></div>
+      <div class="text-gray-700 font-semibold">Entrando...</div>
     </div>
   </div>
 </div>
