@@ -36,6 +36,33 @@ class GarantiasController
         include __DIR__ . '/../../views/pages/garantias/ficha.php';
     }
     
+    // Página de Requisição de Garantias
+    public function requisicao()
+    {
+        try {
+            $fornecedores = $this->getFornecedores();
+            $filiais = $this->getFiliais();
+            
+            $title = 'Requisição de Garantias - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/garantias/requisicao.php';
+            include __DIR__ . '/../../views/layouts/main.php';
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    
+    // Página de Requisições Pendentes
+    public function pendentes()
+    {
+        try {
+            $title = 'Requisições Pendentes - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/garantias/pendentes.php';
+            include __DIR__ . '/../../views/layouts/main.php';
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    
     // Gerar número de ticket único
     public function gerarTicket()
     {

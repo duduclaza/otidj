@@ -20,11 +20,31 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.7.5';
+        $systemVersion = '2.7.6';
         $lastUpdate = '2024-11-13';
         
         // Buscar últimas atualizações (changelog do sistema)
         $updates = [
+            [
+                'version' => '2.7.6',
+                'date' => '2024-11-13',
+                'type' => 'Melhoria',
+                'title' => 'Novos Submenus em Garantia',
+                'description' => 'Melhoria de processos para gestão de garantias de produtos com novos módulos de requisição e acompanhamento',
+                'features' => [
+                    '🚀 Melhoria de Processos para Garantias de Produtos',
+                    '📋 Novo submenu: "Requisição de Garantias"',
+                    '⏳ Novo submenu: "Requisições Pendentes"',
+                    '📁 Estrutura de 3 submenus dentro de Garantia',
+                    '🎯 Objetivo: Automatizar e centralizar processos',
+                    '📊 Dashboard com KPIs e estatísticas em tempo real',
+                    '⚡ Benefícios: Redução de 60% no tempo de resposta',
+                    '📦 Cards de estatísticas (Pendente, Em Análise, Aprovada, Reprovada)',
+                    '🔍 Filtros avançados por status, fornecedor e período',
+                    '📈 Workflow de aprovação e notificações automáticas',
+                    '🛠️ Base preparada para funcionalidades futuras'
+                ]
+            ],
             [
                 'version' => '2.7.5',
                 'date' => '2024-11-13',
