@@ -97,7 +97,7 @@ $menu = [
         'icon' => '🚀',
         'admin_only' => true,
         'has_submenu' => true,
-        'badge' => 'R$ 700/mês',
+        'badge' => 'R$ 800/mês',
         'submenu' => [
           ['label' => 'DPO', 'href' => '/implantacao/dpo', 'icon' => '📊', 'admin_only' => true],
           ['label' => 'Ordem de Serviços de Implantação', 'href' => '/implantacao/ordem-servicos', 'icon' => '📋', 'admin_only' => true],
