@@ -465,6 +465,14 @@ $router->get('/implantacao/ordem-servicos', [App\Controllers\ImplantacaoControll
 $router->get('/implantacao/fluxo', [App\Controllers\ImplantacaoController::class, 'fluxo']);
 $router->get('/implantacao/relatorios', [App\Controllers\ImplantacaoController::class, 'relatorios']);
 
+// CRM routes (Admin Only)
+$router->get('/crm/prospeccao', [App\Controllers\CRMController::class, 'prospeccao']);
+$router->get('/crm/vendas', [App\Controllers\CRMController::class, 'vendas']);
+$router->get('/crm/relacionamento', [App\Controllers\CRMController::class, 'relacionamento']);
+$router->get('/crm/marketing', [App\Controllers\CRMController::class, 'marketing']);
+$router->get('/crm/relatorios', [App\Controllers\CRMController::class, 'relatorios']);
+$router->get('/crm/dashboards', [App\Controllers\CRMController::class, 'dashboards']);
+
 // Power BI API routes
 $router->get('/api/powerbi', [App\Controllers\PowerBIController::class, 'index']);
 $router->get('/api/powerbi/documentacao', [App\Controllers\PowerBIController::class, 'documentacao']);

@@ -105,6 +105,23 @@ $menu = [
           ['label' => 'Relatórios', 'href' => '/implantacao/relatorios', 'icon' => '📈', 'admin_only' => true],
         ]
       ],
+      // CRM - Módulo Premium
+      [
+        'label' => 'CRM',
+        'href' => '#',
+        'icon' => '💼',
+        'admin_only' => true,
+        'has_submenu' => true,
+        'badge' => 'R$ 800/mês',
+        'submenu' => [
+          ['label' => 'Prospecção', 'href' => '/crm/prospeccao', 'icon' => '🎯', 'admin_only' => true],
+          ['label' => 'Vendas', 'href' => '/crm/vendas', 'icon' => '💰', 'admin_only' => true],
+          ['label' => 'Relacionamento', 'href' => '/crm/relacionamento', 'icon' => '🤝', 'admin_only' => true],
+          ['label' => 'Marketing', 'href' => '/crm/marketing', 'icon' => '📢', 'admin_only' => true],
+          ['label' => 'Relatórios', 'href' => '/crm/relatorios', 'icon' => '📈', 'admin_only' => true],
+          ['label' => 'Dashboards', 'href' => '/crm/dashboards', 'icon' => '📊', 'admin_only' => true],
+        ]
+      ],
     ]
   ],
 ];
