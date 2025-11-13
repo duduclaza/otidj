@@ -15,7 +15,7 @@ $title = $title ?? 'OTI - Login';
     body {
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      overflow-y: auto;
     }
     .btn-primary {
       background: #2563eb;
@@ -29,14 +29,17 @@ $title = $title ?? 'OTI - Login';
       .right-panel {
         display: none;
       }
+      .left-panel {
+        min-height: 100vh;
+      }
     }
   </style>
 </head>
-<body class="h-screen">
-  <div class="flex h-full">
+<body class="min-h-screen">
+  <div class="flex min-h-screen">
     <!-- Painel Esquerdo - Azul com Formulário -->
-    <div class="w-full md:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center p-8">
-      <div class="w-full max-w-md">
+    <div class="left-panel w-full md:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 flex items-center justify-center p-4 md:p-8">
+      <div class="w-full max-w-md my-8">
         <?php include $viewFile; ?>
       </div>
     </div>

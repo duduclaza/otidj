@@ -35,7 +35,7 @@
   </form>
 
   <!-- Links -->
-  <div class="mt-6 text-center space-y-2">
+  <div class="mt-4 text-center space-y-2">
     <div>
       <a href="/password-reset/request" class="text-sm text-gray-600 hover:text-blue-600 transition-colors inline-flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
