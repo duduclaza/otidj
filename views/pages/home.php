@@ -4,7 +4,7 @@
     <div class="mb-6">
       <!-- Logo OTI -->
       <div class="mb-6">
-        <img src="/assets/logo-oti.png" alt="Logo OTI System" class="mx-auto h-32 object-contain">
+        <img src="/assets/logooti.png" alt="Logo OTI System" class="mx-auto h-32 object-contain">
       </div>
       <h1 class="text-4xl font-bold text-gray-900 mb-2">Bem-vindo ao Sistema OTI</h1>
       <p class="text-xl text-gray-600">Organização Tecnológica Integrada</p>
