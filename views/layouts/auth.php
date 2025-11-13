@@ -25,6 +25,16 @@ $title = $title ?? 'OTI - Login';
       background: #1d4ed8;
       transform: scale(1.02);
     }
+    .typing-effect {
+      border-right: 2px solid #6b7280;
+      animation: blink 0.7s step-end infinite;
+      display: inline-block;
+      min-height: 1.5rem;
+    }
+    @keyframes blink {
+      from, to { border-color: transparent; }
+      50% { border-color: #6b7280; }
+    }
     @media (max-width: 768px) {
       .right-panel {
         display: none;
@@ -47,8 +57,8 @@ $title = $title ?? 'OTI - Login';
     <!-- Painel Direito - Clean Design -->
     <div class="right-panel hidden md:flex md:w-1/2 items-center justify-center p-12" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);">
       <div class="text-center">
-        <h1 class="text-8xl font-bold mb-4" style="font-family: 'Georgia', serif; color: #1e40af; letter-spacing: -0.02em;">OTI</h1>
-        <p class="text-lg text-gray-500 font-light tracking-wide">Organização Tecnológica Integrada</p>
+        <h1 class="text-8xl font-bold mb-4 text-blue-800">OTI</h1>
+        <p class="text-lg text-gray-500 font-light tracking-wide typing-effect" id="typingText"></p>
         
         <!-- Elemento decorativo -->
         <div class="mt-12 flex justify-center gap-2">
@@ -59,5 +69,36 @@ $title = $title ?? 'OTI - Login';
       </div>
     </div>
   </div>
+  
+  <script>
+    // Efeito de digitação
+    const text = 'Organização Tecnológica Integrada';
+    const typingElement = document.getElementById('typingText');
+    let index = 0;
+    let isDeleting = false;
+    
+    function typeWriter() {
+      if (!isDeleting && index <= text.length) {
+        typingElement.textContent = text.substring(0, index);
+        index++;
+        setTimeout(typeWriter, 100);
+      } else if (isDeleting && index >= 0) {
+        typingElement.textContent = text.substring(0, index);
+        index--;
+        setTimeout(typeWriter, 50);
+      } else if (index > text.length) {
+        setTimeout(() => {
+          isDeleting = true;
+          typeWriter();
+        }, 2000);
+      } else {
+        isDeleting = false;
+        index = 0;
+        setTimeout(typeWriter, 500);
+      }
+    }
+    
+    typeWriter();
+  </script>
 </body>
 </html>
