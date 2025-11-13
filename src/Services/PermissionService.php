@@ -39,8 +39,15 @@ class PermissionService
         
         $permissions = self::$userPermissions[$userId] ?? [];
         
+        // DEBUG: Log para diagnóstico
+        error_log("PermissionService::hasPermission - User: $userId, Module: $module, Action: $action");
+        error_log("User permissions: " . json_encode($permissions));
+        
         // Check if user has permission for this module and action
-        return isset($permissions[$module]) && ($permissions[$module][$action] ?? false);
+        $hasPermission = isset($permissions[$module]) && ($permissions[$module][$action] ?? false);
+        error_log("Has permission: " . ($hasPermission ? 'YES' : 'NO'));
+        
+        return $hasPermission;
     }
     
     /**
@@ -90,8 +97,12 @@ class PermissionService
     {
         $db = self::getDb();
         
+        // DEBUG: Log query
+        error_log("=== Loading permissions for user $userId ===");
+        
         $stmt = $db->prepare("
-            SELECT pp.module, pp.can_view, pp.can_edit, pp.can_delete, pp.can_import, pp.can_export
+            SELECT u.id as user_id, u.profile_id, p.name as profile_name, 
+                   pp.module, pp.can_view, pp.can_edit, pp.can_delete, pp.can_import, pp.can_export
             FROM users u
             LEFT JOIN profiles p ON u.profile_id = p.id
             LEFT JOIN profile_permissions pp ON p.id = pp.profile_id
@@ -99,6 +110,9 @@ class PermissionService
         ");
         $stmt->execute([$userId]);
         $permissions = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        
+        // DEBUG: Log raw permissions from DB
+        error_log("Raw permissions from DB: " . json_encode($permissions));
         
         $userPermissions = [];
         foreach ($permissions as $perm) {
@@ -112,6 +126,10 @@ class PermissionService
                 ];
             }
         }
+        
+        // DEBUG: Log processed permissions
+        error_log("Processed permissions: " . json_encode($userPermissions));
+        error_log("=== End loading permissions ===");
         
         self::$userPermissions[$userId] = $userPermissions;
     }

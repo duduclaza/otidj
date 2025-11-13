@@ -25,6 +25,22 @@ if (!function_exists('flash')) {
   <link rel="stylesheet" href="/src/Support/modal-styles.css">
   <script src="/src/Support/modal-utils.js"></script>
   <script>
+    // ===== TOGGLE SUBMENU - GLOBAL FUNCTION =====
+    // Definir PRIMEIRO, antes de qualquer outra coisa
+    window.toggleSubmenu = function(button) {
+      console.log('toggleSubmenu global chamada!', button);
+      const submenu = button.parentElement.querySelector('.submenu');
+      const arrow = button.querySelector('.submenu-arrow');
+      if (submenu && arrow) {
+        submenu.classList.toggle('hidden');
+        arrow.style.transform = submenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        console.log('Submenu toggled - hidden:', submenu.classList.contains('hidden'));
+      } else {
+        console.error('ERRO: Submenu ou arrow não encontrado!', {submenu, arrow, parent: button.parentElement});
+      }
+    }
+    console.log('[LAYOUT] toggleSubmenu definida:', typeof window.toggleSubmenu);
+    
     // User permissions for frontend
     window.userPermissions = <?= json_encode($_SESSION['user_permissions'] ?? []) ?>;
   </script>
