@@ -98,3 +98,34 @@
     </div>
   </div>
 </section>
+
+<script>
+  // Efeito de digitação na página inicial
+  const textHome = 'Organização Tecnológica Integrada';
+  const typingElementHome = document.getElementById('typingTextHome');
+  let indexHome = 0;
+  let isDeletingHome = false;
+  
+  function typeWriterHome() {
+    if (!isDeletingHome && indexHome <= textHome.length) {
+      typingElementHome.textContent = textHome.substring(0, indexHome);
+      indexHome++;
+      setTimeout(typeWriterHome, 100);
+    } else if (isDeletingHome && indexHome >= 0) {
+      typingElementHome.textContent = textHome.substring(0, indexHome);
+      indexHome--;
+      setTimeout(typeWriterHome, 50);
+    } else if (indexHome > textHome.length) {
+      setTimeout(() => {
+        isDeletingHome = true;
+        typeWriterHome();
+      }, 2000);
+    } else {
+      isDeletingHome = false;
+      indexHome = 0;
+      setTimeout(typeWriterHome, 500);
+    }
+  }
+  
+  typeWriterHome();
+</script>
