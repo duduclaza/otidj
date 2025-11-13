@@ -47,8 +47,8 @@ $title = $title ?? 'OTI - Login';
     <!-- Painel Direito - Branco com Logo -->
     <div class="right-panel hidden md:flex md:w-1/2 bg-white items-center justify-center p-12">
       <div class="text-center">
-        <img src="/assets/otilogo.png" alt="Logo OTI" class="mx-auto w-96 h-auto object-contain mb-8">
-        <h2 class="text-4xl font-bold text-gray-800 mb-4">Organização Tecnológica Integrada</h2>
+        <img src="/assets/otilogo.png" alt="Logo OTI" class="mx-auto w-64 h-auto object-contain mb-6">
+        <h2 class="text-2xl font-semibold text-gray-700">Organização Tecnológica Integrada</h2>
       </div>
     </div>
   </div>
