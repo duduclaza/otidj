@@ -5,11 +5,13 @@ function hasPermission($module, $action = 'view') {
         return false;
     }
     
-    // Admin sempre tem acesso
-    if ($_SESSION['user_role'] === 'admin') {
+    // Admin e Super Admin sempre tem acesso
+    $userRole = $_SESSION['user_role'] ?? '';
+    if (in_array($userRole, ['admin', 'super_admin'])) {
         return true;
     }
     
+    // Para outros usuários, verificar permissão no banco via PermissionService
     $userId = $_SESSION['user_id'];
     return \App\Services\PermissionService::hasPermission($userId, $module, $action);
 }

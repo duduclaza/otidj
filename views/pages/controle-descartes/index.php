@@ -5,13 +5,11 @@ if (!function_exists('hasPermission')) {
         if (!isset($_SESSION['user_id'])) {
             return false;
         }
-        // Admin tem acesso total
-        try {
-            if (\App\Services\PermissionService::isAdmin((int)$_SESSION['user_id'])) {
-                return true;
-            }
-        } catch (\Throwable $e) {}
-
+        // Admin e Super Admin sempre tem acesso
+        $userRole = $_SESSION['user_role'] ?? '';
+        if (in_array($userRole, ['admin', 'super_admin'])) {
+            return true;
+        }
         // Fallback via sessão
         $profile = $_SESSION['profile'] ?? ($_SESSION['user_profile']['profile_name'] ?? null);
         if ($profile === 'Administrador') { return true; }
