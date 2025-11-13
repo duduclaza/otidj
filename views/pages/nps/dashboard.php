@@ -1,11 +1,25 @@
 <section class="space-y-6">
   <!-- Cabeçalho -->
-  <div class="flex justify-between items-center">
+  <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">📊 Dashboard NPS</h1>
       <p class="text-sm text-gray-600 mt-1">Visão geral e análise de todas as respostas</p>
     </div>
-    <div class="flex items-center space-x-3">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+      <!-- Filtro por Formulário -->
+      <?php if (count($formularios) > 0): ?>
+      <div class="flex items-center space-x-2">
+        <label for="filtroFormulario" class="text-sm font-medium text-gray-700 whitespace-nowrap">📋 Formulário:</label>
+        <select id="filtroFormulario" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+          <option value="todos">Todos os Formulários</option>
+          <?php foreach ($formularios as $form): ?>
+            <option value="<?= htmlspecialchars($form['id']) ?>"><?= htmlspecialchars($form['titulo']) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php endif; ?>
+      
+      <!-- Botões de Ação -->
       <?php if ($stats['total_respostas'] > 0): ?>
       <a href="/nps/exportar-csv" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +161,7 @@ const stats = <?= json_encode($stats) ?>;
 
 // Gráfico de Pizza: Distribuição NPS
 const ctxDistribuicao = document.getElementById('chartDistribuicao').getContext('2d');
-new Chart(ctxDistribuicao, {
+let chartDistribuicao = new Chart(ctxDistribuicao, {
   type: 'doughnut',
   data: {
     labels: ['Promotores (9-10)', 'Neutros (7-8)', 'Detratores (0-6)'],
@@ -174,7 +188,7 @@ new Chart(ctxDistribuicao, {
 
 // Gráfico de Barras: Distribuição de Notas
 const ctxNotas = document.getElementById('chartNotas').getContext('2d');
-new Chart(ctxNotas, {
+let chartNotas = new Chart(ctxNotas, {
   type: 'bar',
   data: {
     labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
@@ -207,7 +221,7 @@ new Chart(ctxNotas, {
 
 // Gráfico de Linha: Respostas ao Longo do Tempo
 const ctxTempo = document.getElementById('chartTempo').getContext('2d');
-new Chart(ctxTempo, {
+let chartTempo = new Chart(ctxTempo, {
   type: 'line',
   data: {
     labels: stats.respostas_por_dia.map(d => d.data),
@@ -236,4 +250,70 @@ new Chart(ctxTempo, {
     }
   }
 });
+
+// Função para atualizar os gráficos com novos dados
+function atualizarDashboard(formularioId) {
+  // Mostrar indicador de carregamento (opcional)
+  const url = '/nps/dashboard/data' + (formularioId !== 'todos' ? '?formulario_id=' + encodeURIComponent(formularioId) : '');
+  
+  fetch(url)
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        const newStats = result.stats;
+        
+        // Atualizar cards de estatísticas
+        document.querySelector('.bg-gradient-to-br.from-blue-500 p.text-4xl').textContent = newStats.nps_medio;
+        document.querySelectorAll('.bg-white .text-4xl')[0].textContent = newStats.total_respostas;
+        document.querySelectorAll('.bg-white .text-4xl')[1].textContent = newStats.total_formularios;
+        document.querySelectorAll('.bg-white .text-4xl')[2].textContent = newStats.promotores;
+        
+        // Atualizar texto dos formulários ativos
+        document.querySelectorAll('.text-xs.text-gray-500')[1].textContent = newStats.formularios_ativos + ' ativos';
+        
+        // Atualizar resumo abaixo do gráfico de pizza
+        document.querySelectorAll('.grid.grid-cols-3 .text-2xl')[0].textContent = newStats.promotores;
+        document.querySelectorAll('.grid.grid-cols-3 .text-2xl')[1].textContent = newStats.neutros;
+        document.querySelectorAll('.grid.grid-cols-3 .text-2xl')[2].textContent = newStats.detratores;
+        
+        // Atualizar gráfico de pizza
+        chartDistribuicao.data.datasets[0].data = [newStats.promotores, newStats.neutros, newStats.detratores];
+        chartDistribuicao.update();
+        
+        // Atualizar gráfico de barras (distribuição de notas)
+        chartNotas.data.datasets[0].data = newStats.distribuicao_notas;
+        chartNotas.update();
+        
+        // Atualizar gráfico de linha (respostas ao longo do tempo)
+        chartTempo.data.labels = newStats.respostas_por_dia.map(d => d.data);
+        chartTempo.data.datasets[0].data = newStats.respostas_por_dia.map(d => d.total);
+        chartTempo.update();
+        
+        // Atualizar mensagem de NPS
+        const npsTexto = document.querySelector('.bg-gradient-to-br p.text-xs');
+        if (newStats.nps_medio >= 75) {
+          npsTexto.textContent = 'Excelente! 🎉';
+        } else if (newStats.nps_medio >= 50) {
+          npsTexto.textContent = 'Muito Bom! 👍';
+        } else if (newStats.nps_medio >= 0) {
+          npsTexto.textContent = 'Bom 😊';
+        } else {
+          npsTexto.textContent = 'Precisa Melhorar 📈';
+        }
+      } else {
+        console.error('Erro ao carregar dados:', result.message);
+      }
+    })
+    .catch(error => {
+      console.error('Erro na requisição:', error);
+    });
+}
+
+// Event listener para o filtro de formulário
+const filtroFormulario = document.getElementById('filtroFormulario');
+if (filtroFormulario) {
+  filtroFormulario.addEventListener('change', function() {
+    atualizarDashboard(this.value);
+  });
+}
 </script>

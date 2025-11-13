@@ -593,7 +593,26 @@ class NpsController
         $userId = $_SESSION['user_id'];
         $userRole = $_SESSION['user_role'] ?? '';
         
-        // Coletar estatísticas gerais
+        // Buscar lista de formulários para o filtro
+        $formularios = [];
+        $formFiles = glob($this->storageDir . '/formulario_*.json');
+        foreach ($formFiles as $file) {
+            $form = json_decode(file_get_contents($file), true);
+            // Filtrar por usuário ou admin
+            if ($form['criado_por'] == $userId || $userRole === 'admin' || $userRole === 'super_admin') {
+                $formularios[] = [
+                    'id' => $form['id'],
+                    'titulo' => $form['titulo']
+                ];
+            }
+        }
+        
+        // Ordenar formulários por título
+        usort($formularios, function($a, $b) {
+            return strcmp($a['titulo'], $b['titulo']);
+        });
+        
+        // Coletar estatísticas gerais (sem filtro)
         $stats = $this->coletarEstatisticas($userId, $userRole);
         
         $title = 'Dashboard NPS - SGQ OTI DJ';
@@ -700,8 +719,11 @@ class NpsController
     
     /**
      * Coletar estatísticas para o dashboard
+     * @param int $userId ID do usuário
+     * @param string $userRole Role do usuário
+     * @param string|null $formularioId ID do formulário para filtrar (opcional)
      */
-    private function coletarEstatisticas($userId, $userRole)
+    private function coletarEstatisticas($userId, $userRole, $formularioId = null)
     {
         $stats = [
             'total_formularios' => 0,
@@ -735,6 +757,11 @@ class NpsController
         
         foreach ($respostaFiles as $file) {
             $resposta = json_decode(file_get_contents($file), true);
+            
+            // Aplicar filtro por formulário se especificado
+            if ($formularioId !== null && $resposta['formulario_id'] !== $formularioId) {
+                continue;
+            }
             
             // Verificar se a resposta pertence a um formulário do usuário
             $formFile = $this->storageDir . '/formulario_' . $resposta['formulario_id'] . '.json';
@@ -791,6 +818,43 @@ class NpsController
         }
         
         return $stats;
+    }
+    
+    /**
+     * API AJAX: Obter dados do dashboard com filtro opcional
+     */
+    public function getDashboardData()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                exit;
+            }
+            
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'] ?? '';
+            $formularioId = $_GET['formulario_id'] ?? null;
+            
+            // Se formulario_id for 'todos', passar null para ver todos
+            if ($formularioId === 'todos') {
+                $formularioId = null;
+            }
+            
+            // Coletar estatísticas (com ou sem filtro)
+            $stats = $this->coletarEstatisticas($userId, $userRole, $formularioId);
+            
+            echo json_encode([
+                'success' => true,
+                'stats' => $stats
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao carregar dados do dashboard: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao carregar dados']);
+        }
+        exit;
     }
     
     /**

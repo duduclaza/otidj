@@ -20,11 +20,27 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.7.1';
-        $lastUpdate = '2024-11-12';
+        $systemVersion = '2.7.3';
+        $lastUpdate = '2024-11-13';
         
         // Buscar últimas atualizações (changelog do sistema)
         $updates = [
+            [
+                'version' => '2.7.3',
+                'date' => '2024-11-13',
+                'type' => 'Melhoria',
+                'title' => 'Filtro por Formulário no Dashboard NPS',
+                'description' => 'Dashboard NPS agora permite filtrar estatísticas e gráficos por formulário específico',
+                'features' => [
+                    '📋 Dropdown para selecionar formulário específico',
+                    '🔄 Atualização dinâmica de gráficos via AJAX',
+                    '📈 Estatísticas filtradas por formulário selecionado',
+                    '✅ Opção "Todos os Formulários" para visão geral',
+                    '💡 Interface responsiva e intuitiva',
+                    '⚡ Atualização instantânea sem recarregar página',
+                    '🎯 Análise focada em formulários individuais'
+                ]
+            ],
             [
                 'version' => '2.7.1',
                 'date' => '2024-11-12',
