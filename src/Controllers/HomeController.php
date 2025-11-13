@@ -20,11 +20,28 @@ class HomeController
         $userProfile = $_SESSION['user_profile']['name'] ?? 'Usuário';
         
         // Informações do sistema
-        $systemVersion = '2.7.3';
+        $systemVersion = '2.7.4';
         $lastUpdate = '2024-11-13';
         
         // Buscar últimas atualizações (changelog do sistema)
         $updates = [
+            [
+                'version' => '2.7.4',
+                'date' => '2024-11-13',
+                'type' => 'Correção',
+                'title' => 'Ajuste de Escala NPS: 0-5',
+                'description' => 'Sistema NPS ajustado para usar escala de 0 a 5 em vez de 0 a 10, conforme padrão solicitado',
+                'features' => [
+                    '📊 Escala de avaliação: 0-5 (antes era 0-10)',
+                    '👍 Promotores: notas 4-5 (clientes satisfeitos)',
+                    '😐 Neutros: nota 3 (clientes passivos)',
+                    '👎 Detratores: notas 0-2 (clientes insatisfeitos)',
+                    '📈 Gráficos atualizados para 6 posições (0-5)',
+                    '✅ Cálculo de NPS ajustado para nova escala',
+                    '🎨 Cores dos gráficos adaptadas: Verde (4-5), Amarelo (3), Vermelho (0-2)',
+                    '🔄 Todos os textos e labels atualizados'
+                ]
+            ],
             [
                 'version' => '2.7.3',
                 'date' => '2024-11-13',

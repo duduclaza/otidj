@@ -94,7 +94,7 @@
         </svg>
       </div>
       <p class="text-4xl font-bold text-gray-900"><?= $stats['promotores'] ?></p>
-      <p class="text-xs text-gray-500 mt-1">Notas 9-10</p>
+      <p class="text-xs text-gray-500 mt-1">Notas 4-5</p>
     </div>
   </div>
 
@@ -109,15 +109,15 @@
       <div class="grid grid-cols-3 gap-4 mt-4">
         <div class="text-center">
           <p class="text-2xl font-bold text-green-600"><?= $stats['promotores'] ?></p>
-          <p class="text-xs text-gray-600">Promotores (9-10)</p>
+          <p class="text-xs text-gray-600">Promotores (4-5)</p>
         </div>
         <div class="text-center">
           <p class="text-2xl font-bold text-yellow-600"><?= $stats['neutros'] ?></p>
-          <p class="text-xs text-gray-600">Neutros (7-8)</p>
+          <p class="text-xs text-gray-600">Neutros (3)</p>
         </div>
         <div class="text-center">
           <p class="text-2xl font-bold text-red-600"><?= $stats['detratores'] ?></p>
-          <p class="text-xs text-gray-600">Detratores (0-6)</p>
+          <p class="text-xs text-gray-600">Detratores (0-2)</p>
         </div>
       </div>
     </div>
@@ -164,7 +164,7 @@ const ctxDistribuicao = document.getElementById('chartDistribuicao').getContext(
 let chartDistribuicao = new Chart(ctxDistribuicao, {
   type: 'doughnut',
   data: {
-    labels: ['Promotores (9-10)', 'Neutros (7-8)', 'Detratores (0-6)'],
+    labels: ['Promotores (4-5)', 'Neutros (3)', 'Detratores (0-2)'],
     datasets: [{
       data: [stats.promotores, stats.neutros, stats.detratores],
       backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
@@ -191,15 +191,15 @@ const ctxNotas = document.getElementById('chartNotas').getContext('2d');
 let chartNotas = new Chart(ctxNotas, {
   type: 'bar',
   data: {
-    labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+    labels: ['0', '1', '2', '3', '4', '5'],
     datasets: [{
       label: 'Quantidade',
       data: stats.distribuicao_notas,
       backgroundColor: function(context) {
         const value = context.dataIndex;
-        if (value >= 9) return '#10B981'; // Verde (Promotores)
-        if (value >= 7) return '#F59E0B'; // Amarelo (Neutros)
-        return '#EF4444'; // Vermelho (Detratores)
+        if (value >= 4) return '#10B981'; // Verde (Promotores 4-5)
+        if (value == 3) return '#F59E0B'; // Amarelo (Neutros 3)
+        return '#EF4444'; // Vermelho (Detratores 0-2)
       },
       borderRadius: 4
     }]
