@@ -30,7 +30,7 @@ $menu = [
     'href' => '#', 
     'icon' => '📋', 
     'category' => true,
-    'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc', 'nps'],
+    'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'garantias', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc', 'nps'],
     'submenu' => [
       // Itens vindos de Operacionais
       ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '💧🩸', 'module' => 'toners_cadastro'],
@@ -49,17 +49,18 @@ $menu = [
       ['label' => 'Não Conformidades', 'href' => '/nao-conformidades', 'icon' => '⚠️', 'module' => 'nao_conformidades'],
       ['label' => 'Melhoria Contínua', 'href' => '/melhoria-continua-2', 'icon' => '🚀', 'module' => 'melhoria_continua_2'],
       ['label' => 'Controle de RC', 'href' => '/controle-de-rc', 'icon' => '🗂️', 'module' => 'controle_rc'],
+      // Garantia com submenu
+      [
+        'label' => 'Garantia',
+        'href' => '#',
+        'icon' => '🛡️',
+        'module' => 'garantias',
+        'has_submenu' => true,
+        'submenu' => [
+          ['label' => 'Registro de Garantias', 'href' => '/garantias', 'icon' => '📝', 'module' => 'garantias'],
+        ]
+      ],
       ['label' => 'NPS', 'href' => '/nps', 'icon' => '📊', 'module' => 'nps'],
-    ]
-  ],
-  [
-    'label' => 'Garantia', 
-    'href' => '#', 
-    'icon' => '🛡️', 
-    'category' => true,
-    'modules' => ['garantias'],
-    'submenu' => [
-      ['label' => 'Registro de Garantias', 'href' => '/garantias', 'icon' => '📝', 'module' => 'garantias'],
     ]
   ],
   [
@@ -177,19 +178,53 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                     if (!hasPermission($sub['module'])) continue;
                     $subActive = rtrim($sub['href'], '/') === $current;
                   }
+                  
+                  // Verificar se este submenu tem seus próprios submenus
+                  $hasNestedSubmenu = isset($sub['has_submenu']) && $sub['has_submenu'] && isset($sub['submenu']);
                 ?>
                   <li>
-                    <a href="<?= e($sub['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $subActive?'bg-blue-500 text-white shadow-md':'text-slate-400 hover:text-white'; ?> <?php echo isset($sub['beta']) && $sub['beta'] ? 'beta-menu' : ''; ?>">
-                      <span class="text-base"><?= e($sub['icon']) ?></span>
-                      <span class="flex items-center gap-2">
-                        <?= e($sub['label']) ?>
-                        <?php if (isset($sub['beta']) && $sub['beta']): ?>
-                          <span class="beta-badge">BETA</span>
-                        <?php elseif (isset($sub['badge'])): ?>
-                          <span class="px-1.5 py-0.5 bg-yellow-500 text-yellow-900 text-xs font-bold rounded"><?= e($sub['badge']) ?></span>
-                        <?php endif; ?>
-                      </span>
-                    </a>
+                    <?php if ($hasNestedSubmenu): ?>
+                      <!-- Submenu aninhado -->
+                      <div class="submenu-container">
+                        <button onclick="toggleSubmenu(this)" class="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 text-slate-400 hover:text-white">
+                          <div class="flex items-center gap-3">
+                            <span class="text-base"><?= e($sub['icon']) ?></span>
+                            <span><?= e($sub['label']) ?></span>
+                          </div>
+                          <span class="submenu-arrow transition-transform duration-200 text-slate-400">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                          </span>
+                        </button>
+                        <ul class="submenu ml-6 mt-1 space-y-1 hidden">
+                          <?php foreach ($sub['submenu'] as $nestedSub):
+                            if (!hasPermission($nestedSub['module'])) continue;
+                            $nestedActive = rtrim($nestedSub['href'], '/') === $current;
+                          ?>
+                            <li>
+                              <a href="<?= e($nestedSub['href']) ?>" class="page-link flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $nestedActive?'bg-blue-500 text-white shadow-md':'text-slate-500 hover:text-white'; ?>">
+                                <span><?= e($nestedSub['icon']) ?></span>
+                                <span><?= e($nestedSub['label']) ?></span>
+                              </a>
+                            </li>
+                          <?php endforeach; ?>
+                        </ul>
+                      </div>
+                    <?php else: ?>
+                      <!-- Link normal do submenu -->
+                      <a href="<?= e($sub['href']) ?>" class="page-link flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $subActive?'bg-blue-500 text-white shadow-md':'text-slate-400 hover:text-white'; ?> <?php echo isset($sub['beta']) && $sub['beta'] ? 'beta-menu' : ''; ?>">
+                        <span class="text-base"><?= e($sub['icon']) ?></span>
+                        <span class="flex items-center gap-2">
+                          <?= e($sub['label']) ?>
+                          <?php if (isset($sub['beta']) && $sub['beta']): ?>
+                            <span class="beta-badge">BETA</span>
+                          <?php elseif (isset($sub['badge'])): ?>
+                            <span class="px-1.5 py-0.5 bg-yellow-500 text-yellow-900 text-xs font-bold rounded"><?= e($sub['badge']) ?></span>
+                          <?php endif; ?>
+                        </span>
+                      </a>
+                    <?php endif; ?>
                   </li>
                 <?php endforeach; ?>
               </ul>

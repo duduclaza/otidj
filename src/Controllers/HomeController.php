@@ -30,15 +30,15 @@ class HomeController
                 'date' => '2024-11-13',
                 'type' => 'Melhoria',
                 'title' => 'Reorganização do Menu Garantia',
-                'description' => 'Criado novo menu principal "Garantia" com submenu "Registro de Garantias" para melhor organização',
+                'description' => 'Módulo Garantia reorganizado dentro de Gestão da Qualidade com submenu expansível',
                 'features' => [
-                    '🆕 Novo menu principal: "Garantia" (🛡️)',
                     '📋 "Garantias" renomeado para "Registro de Garantias"',
-                    '📁 Menu organizado com categoria própria',
+                    '🛡️ Menu "Garantia" dentro de Gestão da Qualidade',
+                    '📂 Submenu expansível com "Registro de Garantias"',
                     '✅ Permissões mantidas (módulo "garantias")',
+                    '🔧 Suporte a submenus aninhados (nested submenus)',
                     '🎯 Facilita expansão futura do módulo',
-                    '👀 Interface mais limpa e organizada',
-                    '📏 Continua no contexto de Gestão da Qualidade'
+                    '📏 Organizado dentro do contexto de Gestão da Qualidade'
                 ]
             ],
             [
