@@ -1,13 +1,22 @@
+<style>
+  .typing-effect-home {
+    border-right: 2px solid #9ca3af;
+    animation: blink-home 0.7s step-end infinite;
+    display: inline-block;
+    min-height: 1.75rem;
+  }
+  @keyframes blink-home {
+    from, to { border-color: transparent; }
+    50% { border-color: #9ca3af; }
+  }
+</style>
+
 <section class="space-y-8">
   <!-- Cabeçalho de Boas-vindas -->
   <div class="text-center">
     <div class="mb-6">
-      <!-- Logo OTI -->
-      <div class="mb-6">
-        <img src="/assets/otilogo.png" alt="Logo OTI System" class="mx-auto h-32 object-contain">
-      </div>
-      <h1 class="text-4xl font-bold text-gray-900 mb-2">Bem-vindo ao Sistema OTI</h1>
-      <p class="text-xl text-gray-600">Organização Tecnológica Integrada</p>
+      <h1 class="text-6xl font-bold text-gray-900 mb-4">OTI</h1>
+      <p class="text-xl text-gray-600 typing-effect-home" id="typingTextHome"></p>
     </div>
     
     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-8">
