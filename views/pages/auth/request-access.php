@@ -1,13 +1,8 @@
 <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="glass-effect rounded-2xl shadow-2xl p-8">
-        <!-- Logo/Header -->
+        <!-- Header -->
         <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center m-0">
-                <img src="/public/assets/logo.png" alt="DJLogo" class="w-22 h-10 object-contain">
-            </div>
-            <h1 class="text-4xl font-bold text-white mb-3">SGQ OTI</h1>
-            <p class="text-blue-100 text-lg mb-4">Sistema de Gestão da Qualidade</p>
-            <h2 class="text-2xl font-bold text-white">
+            <h2 class="text-3xl font-bold text-white mb-2">
                 Solicitar Acesso
             </h2>
             <p class="mt-2 text-center text-sm text-blue-100">
