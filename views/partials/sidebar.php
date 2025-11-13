@@ -132,8 +132,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
 <aside id="sidebar" class="hidden lg:flex lg:w-72 flex-col bg-slate-800 border-r border-slate-700">
   <div class="h-16 flex items-center px-6 border-b border-slate-700">
     <div>
-      <div class="text-lg font-semibold text-white">Sistema SGQ</div>
-      <div class="text-xs text-slate-400">Gestão da Qualidade</div>
+      <div class="text-lg font-semibold text-white">OTI</div>
+      <div class="text-xs text-slate-400">Organização Tecnológica Integrada</div>
     </div>
   </div>
   <nav class="flex-1 overflow-y-auto py-4 sidebar-scroll">
@@ -390,7 +390,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       </svg>
     </button>
     <div class="text-center">
-      <div class="text-sm font-semibold text-white">Sistema SGQ</div>
+      <div class="text-sm font-semibold text-white">OTI</div>
     </div>
     <span></span>
   </div>
