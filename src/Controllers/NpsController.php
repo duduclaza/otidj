@@ -484,7 +484,8 @@ class NpsController
         
         $formulario = json_decode(file_get_contents($formFilename), true);
         
-        if ($formulario['criado_por'] != $userId && ($_SESSION['user_role'] ?? '') !== 'admin') {
+        $userRole = $_SESSION['user_role'] ?? '';
+        if ($formulario['criado_por'] != $userId && $userRole !== 'admin' && $userRole !== 'super_admin') {
             echo 'Sem permissão para ver as respostas';
             exit;
         }

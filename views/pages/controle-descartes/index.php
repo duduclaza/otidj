@@ -49,6 +49,29 @@ $canEdit = hasPermission('controle_descartes', 'edit');
 $canDelete = hasPermission('controle_descartes', 'delete');
 $canImport = hasPermission('controle_descartes', 'import');
 $canExport = hasPermission('controle_descartes', 'export');
+
+// Verificar se pode alterar status (admin ou perfil qualidade)
+$canAlterarStatus = false;
+$userRole = $_SESSION['user_role'] ?? '';
+if ($userRole === 'admin' || $userRole === 'super_admin') {
+    $canAlterarStatus = true;
+} else {
+    // Verificar se tem perfil qualidade
+    try {
+        $db = \App\Config\Database::getInstance();
+        $stmt = $db->prepare("
+            SELECT p.nome 
+            FROM user_profiles up
+            JOIN profiles p ON up.profile_id = p.id
+            WHERE up.user_id = ?
+        ");
+        $stmt->execute([$_SESSION['user_id']]);
+        $perfis = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $canAlterarStatus = in_array('Qualidade', $perfis) || in_array('qualidade', $perfis);
+    } catch (\Exception $e) {
+        $canAlterarStatus = false;
+    }
+}
 ?>
 
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -143,6 +166,7 @@ $canExport = hasPermission('controle_descartes', 'export');
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Descarte</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OS</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Anexo</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                     </tr>
@@ -306,7 +330,58 @@ $canExport = hasPermission('controle_descartes', 'export');
     </div>
 </div>
 
+<!-- Modal Alterar Status -->
+<div id="modal-alterar-status" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Alterar Status do Descarte</h3>
+                <button onclick="fecharModalAlterarStatus()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="form-alterar-status">
+                <input type="hidden" id="status-descarte-id">
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status Atual:</label>
+                    <p id="status-atual-display" class="text-sm text-gray-600 mb-4"></p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Novo Status: *</label>
+                    <select id="novo-status" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">Selecione...</option>
+                        <option value="Aguardando Descarte">⏳ Aguardando Descarte</option>
+                        <option value="Itens Descartados">✅ Itens Descartados</option>
+                        <option value="Descartes Reprovados">❌ Descartes Reprovados</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Justificativa:</label>
+                    <textarea id="justificativa-status" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="Ex: Aprovado após conferência física..."></textarea>
+                    <small class="text-gray-500">Opcional, mas recomendado</small>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="fecharModalAlterarStatus()" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="salvarNovoStatus()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md">
+                        Salvar Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+const podeAlterarStatusGlobal = <?= $canAlterarStatus ? 'true' : 'false' ?>;
 let descartes = [];
 
 // Carregar dados ao inicializar
@@ -390,6 +465,9 @@ function renderizarTabela() {
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${descarte.numero_os ? escapeHtml(descarte.numero_os) : '-'}
             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                ${getStatusBadge(descarte.status || 'Aguardando Descarte')}
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 ${descarte.tem_anexo ? 
                     `<a href="/controle-descartes/anexo/${descarte.id}" class="text-blue-600 hover:text-blue-800" title="Baixar anexo">
@@ -401,6 +479,13 @@ function renderizarTabela() {
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
+                    ${podeAlterarStatus() ? 
+                        `<button onclick="abrirModalAlterarStatus(${descarte.id}, '${escapeHtml(descarte.status || 'Aguardando Descarte')}')" class="text-purple-600 hover:text-purple-800" title="Alterar Status">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </button>` : ''
+                    }
                     <?php if ($canEdit): ?>
                     <button onclick="editarDescarte(${descarte.id})" class="text-blue-600 hover:text-blue-800" title="Editar">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -549,6 +634,72 @@ function formatarData(data) {
 function exportarDescartes() {
     // TODO: Implementar exportação
     alert('Funcionalidade de exportação será implementada em breve');
+}
+
+// Verificar se pode alterar status
+function podeAlterarStatus() {
+    return podeAlterarStatusGlobal;
+}
+
+// Obter badge de status colorido
+function getStatusBadge(status) {
+    const badges = {
+        'Aguardando Descarte': '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">⏳ Aguardando</span>',
+        'Itens Descartados': '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">✅ Descartados</span>',
+        'Descartes Reprovados': '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">❌ Reprovados</span>'
+    };
+    return badges[status] || badges['Aguardando Descarte'];
+}
+
+// Abrir modal para alterar status
+function abrirModalAlterarStatus(descarteId, statusAtual) {
+    document.getElementById('status-descarte-id').value = descarteId;
+    document.getElementById('status-atual-display').innerHTML = getStatusBadge(statusAtual);
+    document.getElementById('novo-status').value = '';
+    document.getElementById('justificativa-status').value = '';
+    document.getElementById('modal-alterar-status').classList.remove('hidden');
+}
+
+// Fechar modal alterar status
+function fecharModalAlterarStatus() {
+    document.getElementById('modal-alterar-status').classList.add('hidden');
+}
+
+// Salvar novo status
+function salvarNovoStatus() {
+    const descarteId = document.getElementById('status-descarte-id').value;
+    const novoStatus = document.getElementById('novo-status').value;
+    const justificativa = document.getElementById('justificativa-status').value;
+    
+    if (!novoStatus) {
+        alert('Selecione um status');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('id', descarteId);
+    formData.append('status', novoStatus);
+    formData.append('justificativa', justificativa);
+    
+    fetch('/controle-descartes/alterar-status', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            fecharModalAlterarStatus();
+            carregarDescartes();
+        } else {
+            alert('Erro: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao alterar status');
+    });
 }
 
 // ===== FUNÇÕES DE IMPORTAÇÃO =====
