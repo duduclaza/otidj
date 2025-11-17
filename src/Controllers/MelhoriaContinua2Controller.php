@@ -443,10 +443,12 @@ class MelhoriaContinua2Controller
                 $data = json_decode(file_get_contents('php://input'), true);
                 $status = $data['status'] ?? '';
                 $pontuacao = null;
+                $motivoRecusa = $data['motivo_recusa'] ?? '';
             } else {
                 $id = (int)($_POST['id'] ?? 0);
                 $status = $_POST['status'] ?? '';
                 $pontuacao = !empty($_POST['pontuacao']) ? (int)$_POST['pontuacao'] : null;
+                $motivoRecusa = $_POST['motivo_recusa'] ?? '';
             }
 
             // DEBUG: Log detalhado do status recebido
@@ -471,23 +473,31 @@ class MelhoriaContinua2Controller
                 return;
             }
             
+            // Validar motivo de recusa
+            if ($status === 'Recusada' && empty(trim($motivoRecusa))) {
+                echo json_encode(['success' => false, 'message' => 'Motivo da recusa é obrigatório']);
+                return;
+            }
+            
             error_log("✅ Status válido confirmado!");
 
-            $stmt = $this->db->prepare('
-                UPDATE melhoria_continua_2 SET 
-                    status = :status' . ($pontuacao !== null ? ', pontuacao = :pontuacao' : '') . ',
-                    updated_at = NOW()
-                WHERE id = :id
-            ');
-
-            $params = [
-                ':id' => $id,
-                ':status' => $status
-            ];
+            // Preparar SQL com observacao se status = Recusada
+            $sql = 'UPDATE melhoria_continua_2 SET status = :status';
+            $params = [':id' => $id, ':status' => $status];
             
             if ($pontuacao !== null) {
+                $sql .= ', pontuacao = :pontuacao';
                 $params[':pontuacao'] = $pontuacao;
             }
+            
+            if ($status === 'Recusada' && !empty($motivoRecusa)) {
+                $sql .= ', observacao = :observacao';
+                $params[':observacao'] = 'RECUSADA: ' . trim($motivoRecusa);
+            }
+            
+            $sql .= ', updated_at = NOW() WHERE id = :id';
+            
+            $stmt = $this->db->prepare($sql);
             
             error_log("Executando UPDATE com params: " . json_encode($params));
             $stmt->execute($params);
@@ -1071,45 +1081,60 @@ class MelhoriaContinua2Controller
             error_log("✅ Melhoria encontrada: " . $melhoria['titulo']);
             error_log("Responsáveis (IDs): " . ($melhoria['responsaveis'] ?? 'VAZIO'));
 
-            // Buscar emails dos responsáveis se houver
+            // Buscar emails dos destinatários
+            $destinatariosIds = [];
+            
+            // Adicionar criador (sempre recebe notificação)
+            if (!empty($melhoria['criado_por'])) {
+                $destinatariosIds[] = $melhoria['criado_por'];
+            }
+            
+            // Adicionar responsáveis (se houver)
             if (!empty($melhoria['responsaveis'])) {
                 $responsaveisIds = array_map('trim', explode(',', $melhoria['responsaveis']));
-                error_log("IDs dos responsáveis: " . implode(', ', $responsaveisIds));
-                
-                $placeholders = str_repeat('?,', count($responsaveisIds) - 1) . '?';
-                $stmt = $this->db->prepare("SELECT name, email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");
-                $stmt->execute($responsaveisIds);
-                $responsaveis = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                
-                error_log("Responsáveis encontrados: " . count($responsaveis));
-                foreach ($responsaveis as $resp) {
-                    error_log("  - {$resp['name']} ({$resp['email']})");
-                }
-                
-                $emails = array_column($responsaveis, 'email');
+                $destinatariosIds = array_merge($destinatariosIds, $responsaveisIds);
+            }
+            
+            // Remover duplicatas
+            $destinatariosIds = array_unique($destinatariosIds);
+            
+            if (empty($destinatariosIds)) {
+                error_log("❌ Melhoria #{$melhoriaId}: Nenhum destinatário identificado");
+                return false;
+            }
+            
+            error_log("IDs dos destinatários: " . implode(', ', $destinatariosIds));
+            
+            $placeholders = str_repeat('?,', count($destinatariosIds) - 1) . '?';
+            $stmt = $this->db->prepare("SELECT name, email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");
+            $stmt->execute($destinatariosIds);
+            $destinatarios = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            error_log("Destinatários encontrados: " . count($destinatarios));
+            foreach ($destinatarios as $dest) {
+                error_log("  - {$dest['name']} ({$dest['email']})");
+            }
+            
+            $emails = array_column($destinatarios, 'email');
 
-                if (empty($emails)) {
-                    error_log("❌ Melhoria #{$melhoriaId}: Nenhum email válido encontrado para os responsáveis");
-                    return false;
-                }
+            if (empty($emails)) {
+                error_log("❌ Melhoria #{$melhoriaId}: Nenhum email válido encontrado para os destinatários");
+                return false;
+            }
 
-                error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
+            error_log("📧 Tentando enviar email para: " . implode(', ', $emails));
 
-                // Enviar email com template específico do status
-                $emailService = new \App\Services\EmailService();
-                error_log("EmailService criado");
-                
-                $enviado = $emailService->sendMelhoriaStatusNotification($melhoria, $emails, $novoStatus);
+            // Enviar email com template específico do status
+            $emailService = new \App\Services\EmailService();
+            error_log("EmailService criado");
+            
+            $enviado = $emailService->sendMelhoriaStatusNotification($melhoria, $emails, $novoStatus);
 
-                if ($enviado) {
-                    error_log("✅ Email de mudança de status enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
-                    return true;
-                } else {
-                    error_log("❌ Falha ao enviar email de mudança de status para melhoria #{$melhoriaId}");
-                    return false;
-                }
+            if ($enviado) {
+                error_log("✅ Email de mudança de status enviado para melhoria #{$melhoriaId} para: " . implode(', ', $emails));
+                return true;
             } else {
-                error_log("⚠️ Melhoria #{$melhoriaId}: Sem responsáveis cadastrados");
+                error_log("❌ Falha ao enviar email de mudança de status para melhoria #{$melhoriaId}");
                 return false;
             }
 

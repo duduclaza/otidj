@@ -350,21 +350,30 @@ function construirUrlPaginacao($pagina) {
             <td class="px-4 py-4 text-sm text-gray-500 max-w-xs truncate">
               <?= !empty($melhoria['resultado_esperado']) ? e($melhoria['resultado_esperado']) : '-' ?>
             </td>
-            <td class="px-4 py-4 whitespace-nowrap">
-              <?php if ($isAdmin): ?>
-                <select onchange="updateStatusInline(<?= $melhoria['id'] ?>, this.value)" class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?> border-0 cursor-pointer">
-                  <option value="Pendente análise" <?= $melhoria['status'] === 'Pendente análise' ? 'selected' : '' ?>>Pendente análise</option>
-                  <option value="Enviado para Aprovação" <?= $melhoria['status'] === 'Enviado para Aprovação' ? 'selected' : '' ?>>Enviado para Aprovação</option>
-                  <option value="Em andamento" <?= $melhoria['status'] === 'Em andamento' ? 'selected' : '' ?>>Em andamento</option>
-                  <option value="Concluída" <?= $melhoria['status'] === 'Concluída' ? 'selected' : '' ?>>Concluída</option>
-                  <option value="Recusada" <?= $melhoria['status'] === 'Recusada' ? 'selected' : '' ?>>Recusada</option>
-                  <option value="Pendente Adaptação" <?= $melhoria['status'] === 'Pendente Adaptação' ? 'selected' : '' ?>>Pendente Adaptação</option>
-                </select>
-              <?php else: ?>
-                <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?>">
-                  <?= e($melhoria['status']) ?>
-                </span>
-              <?php endif; ?>
+            <td class="px-4 py-4">
+              <div>
+                <?php if ($isAdmin): ?>
+                  <select onchange="updateStatusInline(<?= $melhoria['id'] ?>, this.value)" class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?> border-0 cursor-pointer">
+                    <option value="Pendente análise" <?= $melhoria['status'] === 'Pendente análise' ? 'selected' : '' ?>>Pendente análise</option>
+                    <option value="Enviado para Aprovação" <?= $melhoria['status'] === 'Enviado para Aprovação' ? 'selected' : '' ?>>Enviado para Aprovação</option>
+                    <option value="Em andamento" <?= $melhoria['status'] === 'Em andamento' ? 'selected' : '' ?>>Em andamento</option>
+                    <option value="Concluída" <?= $melhoria['status'] === 'Concluída' ? 'selected' : '' ?>>Concluída</option>
+                    <option value="Recusada" <?= $melhoria['status'] === 'Recusada' ? 'selected' : '' ?>>Recusada</option>
+                    <option value="Pendente Adaptação" <?= $melhoria['status'] === 'Pendente Adaptação' ? 'selected' : '' ?>>Pendente Adaptação</option>
+                  </select>
+                <?php else: ?>
+                  <span class="status-badge status-<?= strtolower(str_replace(' ', '-', $melhoria['status'])) ?>">
+                    <?= e($melhoria['status']) ?>
+                  </span>
+                <?php endif; ?>
+                
+                <?php if ($melhoria['status'] === 'Recusada' && !empty($melhoria['observacao'])): ?>
+                  <div class="mt-1 text-xs text-red-600 font-medium">
+                    <span class="inline-block mr-1">❌</span>
+                    <?= e(str_replace('RECUSADA: ', '', $melhoria['observacao'])) ?>
+                  </div>
+                <?php endif; ?>
+              </div>
             </td>
             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
               <?= e($melhoria['idealizador'] ?? '-') ?>
@@ -497,6 +506,30 @@ function construirUrlPaginacao($pagina) {
   </div>
   <?php endif; ?>
 </section>
+
+<!-- Modal de Motivo de Recusa -->
+<div id="modalMotivoRecusa" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">❌ Motivo da Recusa</h3>
+      <button onclick="fecharModalRecusa()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    <p class="text-sm text-gray-600 mb-4">Informe o motivo da recusa desta melhoria:</p>
+    <textarea id="motivoRecusaTexto" rows="4" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none" placeholder="Digite o motivo da recusa..."></textarea>
+    <div class="flex gap-2 mt-4">
+      <button onclick="confirmarRecusa()" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors font-medium">
+        Confirmar Recusa
+      </button>
+      <button onclick="fecharModalRecusa()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg transition-colors font-medium">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
 
 <style>
 
@@ -876,8 +909,21 @@ document.getElementById('melhoriaForm').addEventListener('submit', async functio
   }
 });
 
+// Variáveis globais para o modal de recusa
+let melhoriaIdRecusa = null;
+
 // Atualizar Status Inline (Admin)
 async function updateStatusInline(id, status) {
+  // Se o status for "Recusada", abrir modal para pedir motivo
+  if (status === 'Recusada') {
+    melhoriaIdRecusa = id;
+    document.getElementById('modalMotivoRecusa').classList.remove('hidden');
+    document.getElementById('motivoRecusaTexto').value = '';
+    document.getElementById('motivoRecusaTexto').focus();
+    return;
+  }
+  
+  // Para outros status, atualizar normalmente
   try {
     console.log('=== ATUALIZANDO STATUS ===');
     console.log('ID:', id);
@@ -904,6 +950,47 @@ async function updateStatusInline(id, status) {
   } catch (error) {
     console.error('Erro completo:', error);
     alert('❌ Erro ao atualizar status: ' + error.message);
+  }
+}
+
+// Fechar modal de recusa
+function fecharModalRecusa() {
+  document.getElementById('modalMotivoRecusa').classList.add('hidden');
+  document.getElementById('motivoRecusaTexto').value = '';
+  melhoriaIdRecusa = null;
+}
+
+// Confirmar recusa com motivo
+async function confirmarRecusa() {
+  const motivo = document.getElementById('motivoRecusaTexto').value.trim();
+  
+  if (!motivo) {
+    alert('❌ Por favor, informe o motivo da recusa');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/melhoria-continua-2/${melhoriaIdRecusa}/update-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        status: 'Recusada',
+        motivo_recusa: motivo
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert('✅ Melhoria recusada com sucesso!\n📧 Email com o motivo será enviado aos envolvidos.');
+      fecharModalRecusa();
+      location.reload();
+    } else {
+      alert('❌ Erro: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Erro ao recusar:', error);
+    alert('❌ Erro ao recusar melhoria: ' + error.message);
   }
 }
 
