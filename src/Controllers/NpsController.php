@@ -792,43 +792,47 @@ class NpsController
                 continue;
             }
             
-            // Verificar se a resposta pertence a um formulário do usuário
+            // IMPORTANTE: Verificar se o formulário ainda existe
             $formFile = $this->storageDir . '/formulario_' . $resposta['formulario_id'] . '.json';
-            if (file_exists($formFile)) {
-                $form = json_decode(file_get_contents($formFile), true);
+            if (!file_exists($formFile)) {
+                // Formulário foi excluído, ignorar esta resposta
+                continue;
+            }
+            
+            $form = json_decode(file_get_contents($formFile), true);
+            
+            // Verificar se a resposta pertence a um formulário do usuário
+            if ($form['criado_por'] == $userId || $userRole === 'admin' || $userRole === 'super_admin') {
+                $stats['total_respostas']++;
                 
-                if ($form['criado_por'] == $userId || $userRole === 'admin' || $userRole === 'super_admin') {
-                    $stats['total_respostas']++;
-                    
-                    // Analisar respostas para calcular NPS
-                    // IMPORTANTE: Contar apenas a PRIMEIRA pergunta numérica 0-10 por resposta
-                    $notaContabilizada = false;
-                    foreach ($resposta['respostas'] as $r) {
-                        if (!$notaContabilizada && is_numeric($r['resposta']) && $r['resposta'] >= 0 && $r['resposta'] <= 10) {
-                            $nota = (int)$r['resposta'];
-                            $stats['distribuicao_notas'][$nota]++;
-                            
-                            // Escala 0-10 padrão NPS: Promotores (9-10), Neutros (7-8), Detratores (0-6)
-                            if ($nota >= 9) {
-                                $stats['promotores']++;
-                            } elseif ($nota >= 7) {
-                                $stats['neutros']++;
-                            } else {
-                                $stats['detratores']++;
-                            }
-                            
-                            // Marca que já contabilizou uma nota para essa resposta
-                            $notaContabilizada = true;
+                // Analisar respostas para calcular NPS
+                // IMPORTANTE: Contar apenas a PRIMEIRA pergunta numérica 0-10 por resposta
+                $notaContabilizada = false;
+                foreach ($resposta['respostas'] as $r) {
+                    if (!$notaContabilizada && is_numeric($r['resposta']) && $r['resposta'] >= 0 && $r['resposta'] <= 10) {
+                        $nota = (int)$r['resposta'];
+                        $stats['distribuicao_notas'][$nota]++;
+                        
+                        // Escala 0-10 padrão NPS: Promotores (9-10), Neutros (7-8), Detratores (0-6)
+                        if ($nota >= 9) {
+                            $stats['promotores']++;
+                        } elseif ($nota >= 7) {
+                            $stats['neutros']++;
+                        } else {
+                            $stats['detratores']++;
                         }
+                        
+                        // Marca que já contabilizou uma nota para essa resposta
+                        $notaContabilizada = true;
                     }
-                    
-                    // Respostas por dia (últimos 30 dias)
-                    $data = date('Y-m-d', strtotime($resposta['respondido_em']));
-                    if (!isset($ultimosDias[$data])) {
-                        $ultimosDias[$data] = 0;
-                    }
-                    $ultimosDias[$data]++;
                 }
+                
+                // Respostas por dia (últimos 30 dias)
+                $data = date('Y-m-d', strtotime($resposta['respondido_em']));
+                if (!isset($ultimosDias[$data])) {
+                    $ultimosDias[$data] = 0;
+                }
+                $ultimosDias[$data]++;
             }
         }
         
@@ -1089,5 +1093,83 @@ class NpsController
         } catch (\Exception $e) {
             error_log('NPS: Erro ao notificar admins: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Limpar respostas órfãs (formulários excluídos)
+     */
+    public function limparRespostasOrfas()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar se é admin
+            if (!isset($_SESSION['user_role']) || !in_array($_SESSION['user_role'], ['admin', 'super_admin'])) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão']);
+                exit;
+            }
+            
+            $respostaFiles = glob($this->respostasDir . '/resposta_*.json');
+            $totalOrfas = 0;
+            $respostasRemovidas = [];
+            
+            foreach ($respostaFiles as $file) {
+                $resposta = json_decode(file_get_contents($file), true);
+                $formFile = $this->storageDir . '/formulario_' . $resposta['formulario_id'] . '.json';
+                
+                // Se formulário não existe mais, é resposta órfã
+                if (!file_exists($formFile)) {
+                    $respostasRemovidas[] = [
+                        'formulario_id' => $resposta['formulario_id'],
+                        'respondido_em' => $resposta['respondido_em']
+                    ];
+                    unlink($file); // Deletar arquivo de resposta órfã
+                    $totalOrfas++;
+                }
+            }
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => "Limpeza concluída! {$totalOrfas} resposta(s) órfã(s) removida(s).",
+                'total_removidas' => $totalOrfas,
+                'detalhes' => $respostasRemovidas
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao limpar respostas órfãs: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao limpar respostas']);
+        }
+        exit;
+    }
+    
+    /**
+     * Contar respostas órfãs (apenas contagem, sem deletar)
+     */
+    public function contarRespostasOrfas()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $respostaFiles = glob($this->respostasDir . '/resposta_*.json');
+            $totalOrfas = 0;
+            
+            foreach ($respostaFiles as $file) {
+                $resposta = json_decode(file_get_contents($file), true);
+                $formFile = $this->storageDir . '/formulario_' . $resposta['formulario_id'] . '.json';
+                
+                if (!file_exists($formFile)) {
+                    $totalOrfas++;
+                }
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'total_orfas' => $totalOrfas
+            ]);
+            
+        } catch (\Exception $e) {
+            echo json_encode(['success' => false, 'total_orfas' => 0]);
+        }
+        exit;
     }
 }
