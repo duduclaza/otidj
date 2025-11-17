@@ -19,7 +19,7 @@ class SuporteController
     {
         try {
             $userId = $_SESSION['user_id'];
-            $userRole = $_SESSION['role'] ?? '';
+            $userRole = $_SESSION['user_role'] ?? '';
             
             // Verificar se é admin ou super_admin
             // Admin: pode criar solicitações e ver as suas
@@ -77,7 +77,7 @@ class SuporteController
 
         try {
             $userId = $_SESSION['user_id'];
-            $userRole = $_SESSION['role'] ?? '';
+            $userRole = $_SESSION['user_role'] ?? '';
 
             // APENAS ADMINS podem criar solicitações
             // Super Admins NÃO podem criar, apenas gerenciar
@@ -135,7 +135,7 @@ class SuporteController
         header('Content-Type: application/json');
 
         try {
-            $userRole = $_SESSION['role'] ?? '';
+            $userRole = $_SESSION['user_role'] ?? '';
 
             // APENAS SUPER_ADMIN pode atualizar status e adicionar observações
             if ($userRole !== 'super_admin') {

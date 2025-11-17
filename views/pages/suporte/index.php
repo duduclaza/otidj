@@ -1,5 +1,5 @@
 <?php
-$userRole = $_SESSION['role'] ?? '';
+$userRole = $_SESSION['user_role'] ?? '';
 $isSuperAdmin = $userRole === 'super_admin';
 $isAdmin = $userRole === 'admin';
 ?>
