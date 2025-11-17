@@ -1,6 +1,6 @@
 <!-- Modal Nova NC -->
-<div id="modalNovaNC" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+<div id="modalNovaNC" class="modal-overlay hidden">
+  <div class="modal-content">
     <h2 class="text-xl font-bold mb-4">➕ Nova Não Conformidade</h2>
     <form id="formNovaNC" enctype="multipart/form-data">
       <div class="space-y-4">
@@ -47,8 +47,8 @@
 </div>
 
 <!-- Modal Detalhes -->
-<div id="modalDetalhes" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+<div id="modalDetalhes" class="modal-overlay hidden">
+  <div class="modal-content modal-content-large">
     <div class="flex justify-between items-start mb-4">
       <h2 class="text-xl font-bold">Detalhes da NC</h2>
       <button onclick="fecharModalDetalhes()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -58,8 +58,8 @@
 </div>
 
 <!-- Modal Registrar Ação -->
-<div id="modalAcao" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
+<div id="modalAcao" class="modal-overlay hidden">
+  <div class="modal-content">
     <h2 class="text-xl font-bold mb-4">✍️ Registrar Ação Corretiva</h2>
     <form id="formAcao" enctype="multipart/form-data">
       <input type="hidden" name="nc_id" id="acaoNcId">
@@ -82,6 +82,7 @@
 </div>
 
 <style>
+/* Tabs */
 .tab-button {
   padding: 1rem 1.5rem;
   font-weight: 500;
@@ -102,5 +103,82 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   margin-left: 0.5rem;
+}
+
+/* Modais - Sair do iframe e centralizar */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999 !important;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  max-width: 42rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  animation: modalFadeIn 0.2s ease-out;
+  position: relative;
+  margin: auto;
+}
+
+.modal-content-large {
+  max-width: 56rem;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Scrollbar do modal */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Fechar modal ao clicar fora */
+.modal-overlay:not(.no-close-outside) {
+  cursor: pointer;
+}
+
+.modal-overlay .modal-content {
+  cursor: default;
 }
 </style>

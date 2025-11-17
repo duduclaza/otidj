@@ -9,12 +9,43 @@ function mudarAba(nome) {
 
 // Modal Nova NC
 function abrirModalNovaNC() {
-  document.getElementById('modalNovaNC').classList.remove('hidden');
+  const modal = document.getElementById('modalNovaNC');
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden'; // Prevenir scroll do body
 }
 function fecharModalNovaNC() {
-  document.getElementById('modalNovaNC').classList.add('hidden');
+  const modal = document.getElementById('modalNovaNC');
+  modal.classList.add('hidden');
   document.getElementById('formNovaNC').reset();
+  document.body.style.overflow = ''; // Restaurar scroll
 }
+
+// Fechar modal ao clicar fora
+document.addEventListener('DOMContentLoaded', function() {
+  // Modal Nova NC
+  document.getElementById('modalNovaNC')?.addEventListener('click', function(e) {
+    if (e.target === this) fecharModalNovaNC();
+  });
+  
+  // Modal Detalhes
+  document.getElementById('modalDetalhes')?.addEventListener('click', function(e) {
+    if (e.target === this) fecharModalDetalhes();
+  });
+  
+  // Modal Ação
+  document.getElementById('modalAcao')?.addEventListener('click', function(e) {
+    if (e.target === this) fecharModalAcao();
+  });
+  
+  // ESC para fechar
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      fecharModalNovaNC();
+      fecharModalDetalhes();
+      fecharModalAcao();
+    }
+  });
+});
 
 // Criar NC
 document.getElementById('formNovaNC').addEventListener('submit', async (e) => {
@@ -87,23 +118,31 @@ async function verDetalhes(id) {
     html += '</div></div>';
     
     document.getElementById('conteudoDetalhes').innerHTML = html;
-    document.getElementById('modalDetalhes').classList.remove('hidden');
+    const modal = document.getElementById('modalDetalhes');
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
   }
 }
 
 function fecharModalDetalhes() {
-  document.getElementById('modalDetalhes').classList.add('hidden');
+  const modal = document.getElementById('modalDetalhes');
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
 // Modal Ação
 function abrirModalAcao(ncId) {
   document.getElementById('acaoNcId').value = ncId;
   fecharModalDetalhes();
-  document.getElementById('modalAcao').classList.remove('hidden');
+  const modal = document.getElementById('modalAcao');
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 function fecharModalAcao() {
-  document.getElementById('modalAcao').classList.add('hidden');
+  const modal = document.getElementById('modalAcao');
+  modal.classList.add('hidden');
   document.getElementById('formAcao').reset();
+  document.body.style.overflow = '';
 }
 
 // Registrar Ação
