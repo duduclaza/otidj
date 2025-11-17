@@ -419,8 +419,12 @@ class NpsController
             $respostaFilename = $this->respostasDir . '/resposta_' . $respostaId . '.json';
             file_put_contents($respostaFilename, json_encode($resposta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             
-            // Enviar email para todos admins e super admins
-            $this->notificarAdminsNovaResposta($formulario, $resposta);
+            // Enviar email para todos admins e super admins (não bloqueia se falhar)
+            try {
+                $this->notificarAdminsNovaResposta($formulario, $resposta);
+            } catch (\Exception $emailError) {
+                error_log('NPS: Erro ao enviar notificação, mas resposta foi salva: ' . $emailError->getMessage());
+            }
             
             echo json_encode([
                 'success' => true, 
@@ -428,8 +432,12 @@ class NpsController
             ]);
             
         } catch (\Exception $e) {
-            error_log('Erro ao salvar resposta: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao enviar resposta']);
+            error_log('Erro ao salvar resposta NPS: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Erro ao enviar resposta: ' . $e->getMessage()
+            ]);
         }
         exit;
     }
