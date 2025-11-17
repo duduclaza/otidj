@@ -312,6 +312,28 @@ if ($userRole === 'admin' || $userRole === 'super_admin') {
                     <small class="text-gray-500">Formatos aceitos: PNG, JPEG, PDF. Máximo 10MB</small>
                 </div>
 
+                <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <span class="text-red-600">*</span> Notificar Pessoas (Obrigatório)
+                    </label>
+                    <select id="notificar-usuarios" name="notificar_usuarios[]" multiple required 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" 
+                            style="min-height: 150px;">
+                        <?php foreach ($usuariosNotificacao as $usuario): ?>
+                        <option value="<?= $usuario['id'] ?>">
+                            <?= htmlspecialchars($usuario['name']) ?> (<?= htmlspecialchars($usuario['email']) ?>)
+                            <?php if (in_array($usuario['role'], ['admin', 'super_admin'])): ?>
+                                - Admin
+                            <?php endif; ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <small class="text-gray-600 mt-2 block">
+                        💡 <strong>Dica:</strong> Segure <kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Ctrl</kbd> (ou <kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Cmd</kbd> no Mac) e clique para selecionar múltiplas pessoas
+                    </small>
+                    <div id="erro-notificacao" class="text-red-600 text-sm mt-2 hidden">⚠️ Selecione pelo menos uma pessoa para notificar</div>
+                </div>
+
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
                     <textarea id="observacoes" name="observacoes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
@@ -526,6 +548,16 @@ function abrirModalDescarte() {
     document.getElementById('modal-titulo').textContent = 'Novo Descarte';
     document.getElementById('form-descarte').reset();
     document.getElementById('descarte-id').value = '';
+    
+    // Limpar seleção do select múltiplo
+    const selectNotificar = document.getElementById('notificar-usuarios');
+    if (selectNotificar) {
+        for (let i = 0; i < selectNotificar.options.length; i++) {
+            selectNotificar.options[i].selected = false;
+        }
+    }
+    document.getElementById('erro-notificacao').classList.add('hidden');
+    
     document.getElementById('modal-descarte').classList.remove('hidden');
 }
 
@@ -584,6 +616,20 @@ function excluirDescarte(id) {
 document.getElementById('btn-salvar-descarte').addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Validar se pelo menos um usuário foi selecionado para notificação
+    const selectNotificar = document.getElementById('notificar-usuarios');
+    const erroNotificacao = document.getElementById('erro-notificacao');
+    const selecionados = Array.from(selectNotificar.selectedOptions);
+    
+    if (selecionados.length === 0) {
+        erroNotificacao.classList.remove('hidden');
+        alert('Selecione pelo menos uma pessoa para notificar sobre este descarte\n\nDica: Segure Ctrl e clique para selecionar múltiplas pessoas');
+        return;
+    }
+    
+    erroNotificacao.classList.add('hidden');
+    
     const form = document.getElementById('form-descarte');
     const formData = new FormData(form);
     const isEdit = document.getElementById('descarte-id').value !== '';

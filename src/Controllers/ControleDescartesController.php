@@ -27,6 +27,7 @@ class ControleDescartesController
             }
 
             $filiais = $this->getFiliais();
+            $usuariosNotificacao = $this->getUsuariosParaNotificacao();
             
             // Usar o layout padrão com TailwindCSS
             $title = 'Controle de Descartes - SGQ OTI DJ';
@@ -141,6 +142,15 @@ class ControleDescartesController
                     return;
                 }
             }
+            
+            // Validar se pelo menos um usuário foi selecionado para notificação
+            if (empty($_POST['notificar_usuarios']) || !is_array($_POST['notificar_usuarios'])) {
+                echo json_encode(['success' => false, 'message' => 'Selecione pelo menos um usuário para notificar']);
+                return;
+            }
+            
+            // Converter array de IDs em string separada por vírgula
+            $notificarUsuarios = implode(',', array_map('intval', $_POST['notificar_usuarios']));
 
             // Data do descarte (se não informada, usar hoje)
             $data_descarte = !empty($_POST['data_descarte']) ? $_POST['data_descarte'] : date('Y-m-d');
@@ -179,8 +189,8 @@ class ControleDescartesController
                     numero_serie, filial_id, codigo_produto, descricao_produto, 
                     data_descarte, numero_os, anexo_os_blob, anexo_os_nome, 
                     anexo_os_tipo, anexo_os_tamanho, responsavel_tecnico, 
-                    observacoes, status, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aguardando Descarte', ?)
+                    observacoes, notificar_usuarios, status, created_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aguardando Descarte', ?)
             ");
             
             $stmt->execute([
@@ -196,6 +206,7 @@ class ControleDescartesController
                 $anexo_tamanho,
                 $_POST['responsavel_tecnico'],
                 $_POST['observacoes'] ?? null,
+                $notificarUsuarios,
                 $_SESSION['user_id']
             ]);
 
@@ -447,6 +458,20 @@ class ControleDescartesController
     private function getFiliais()
     {
         $stmt = $this->db->query("SELECT id, nome FROM filiais ORDER BY nome");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    private function getUsuariosParaNotificacao()
+    {
+        // Buscar todos usuários ativos com email
+        $stmt = $this->db->query("
+            SELECT id, name, email, role 
+            FROM users 
+            WHERE active = 1 
+            AND email IS NOT NULL 
+            AND email != ''
+            ORDER BY name
+        ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -780,7 +805,7 @@ class ControleDescartesController
         }
     }
     
-    // Notificar admins e qualidade sobre novo descarte
+    // Notificar usuários selecionados sobre novo descarte
     private function notificarNovoDescarte($descarte_id)
     {
         try {
@@ -790,25 +815,36 @@ class ControleDescartesController
                 return;
             }
             
-            // Buscar admins e usuários com perfil de qualidade
+            // Buscar usuários que foram selecionados para notificação
+            if (empty($descarte['notificar_usuarios'])) {
+                error_log('Controle Descartes: Nenhum usuário selecionado para notificação no descarte ID ' . $descarte_id);
+                return;
+            }
+            
+            // Converter string de IDs em array
+            $usuariosIds = explode(',', $descarte['notificar_usuarios']);
+            $usuariosIds = array_filter(array_map('intval', $usuariosIds));
+            
+            if (empty($usuariosIds)) {
+                error_log('Controle Descartes: IDs de usuários inválidos no descarte ID ' . $descarte_id);
+                return;
+            }
+            
+            // Buscar dados dos usuários selecionados
+            $placeholders = implode(',', array_fill(0, count($usuariosIds), '?'));
             $stmt = $this->db->prepare("
-                SELECT DISTINCT u.id, u.name, u.email
-                FROM users u
-                LEFT JOIN user_profiles up ON u.id = up.user_id
-                LEFT JOIN profiles p ON up.profile_id = p.id
-                WHERE (
-                    u.role IN ('admin', 'super_admin')
-                    OR LOWER(p.nome) = 'qualidade'
-                )
-                AND u.email IS NOT NULL 
-                AND u.email != ''
-                ORDER BY u.name
+                SELECT id, name, email
+                FROM users
+                WHERE id IN ($placeholders)
+                AND email IS NOT NULL 
+                AND email != ''
+                ORDER BY name
             ");
-            $stmt->execute();
+            $stmt->execute($usuariosIds);
             $destinatarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             if (empty($destinatarios)) {
-                error_log('Controle Descartes: Nenhum destinatário encontrado para notificação');
+                error_log('Controle Descartes: Nenhum destinatário válido encontrado para o descarte ID ' . $descarte_id);
                 return;
             }
             
