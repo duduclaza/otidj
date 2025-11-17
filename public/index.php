@@ -456,6 +456,16 @@ $router->post('/certificados/delete', [App\Controllers\CertificadosController::c
 // $router->get('/melhoria-continua/{id}/anexos', [App\Controllers\MelhoriaContinuaController::class, 'getAnexos']);
 // $router->get('/melhoria-continua/anexo/{anexoId}', [App\Controllers\MelhoriaContinuaController::class, 'downloadAnexo']);
 
+// Cadastros routes (novo módulo)
+$router->get('/cadastros/contratos', function() {
+    $viewFile = __DIR__ . '/../views/pages/cadastros/contratos.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/cadastros/clientes', function() {
+    $viewFile = __DIR__ . '/../views/pages/cadastros/clientes.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+
 // Registros routes
 $router->get('/registros/filiais', [App\Controllers\RegistrosController::class, 'filiais']);
 $router->get('/registros/departamentos', [App\Controllers\RegistrosController::class, 'departamentos']);

@@ -28,16 +28,26 @@ function hasAnyPermission($modules) {
 
 $menu = [
   [
+    'label' => 'Cadastros', 
+    'href' => '#', 
+    'icon' => '📝', 
+    'category' => true,
+    'modules' => ['toners_cadastro', 'cadastro_maquinas', 'cadastro_pecas', 'registros_fornecedores', 'cadastro_contratos', 'cadastro_clientes'],
+    'submenu' => [
+      ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '💧', 'module' => 'toners_cadastro'],
+      ['label' => 'Cadastro de Máquinas e Peças', 'href' => '/cadastro-maquinas', 'icon' => '🖨️', 'module' => 'cadastro_maquinas'],
+      ['label' => 'Cadastro de Fornecedores', 'href' => '/registros/fornecedores', 'icon' => '🏭', 'module' => 'registros_fornecedores'],
+      ['label' => 'Cadastro de Contratos', 'href' => '/cadastros/contratos', 'icon' => '📄', 'module' => 'cadastro_contratos'],
+      ['label' => 'Cadastro de Clientes', 'href' => '/cadastros/clientes', 'icon' => '👥', 'module' => 'cadastro_clientes'],
+    ]
+  ],
+  [
     'label' => 'Gestão da Qualidade', 
     'href' => '#', 
     'icon' => '📋', 
     'category' => true,
-    'modules' => ['toners_cadastro', 'toners_retornados', 'cadastro_maquinas', 'cadastro_pecas', 'amostragens_2', 'garantias', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc', 'nps'],
+    'modules' => ['toners_retornados', 'amostragens_2', 'garantias', 'controle_descartes', 'homologacoes', 'certificados', 'fmea', 'pops_its_visualizacao', 'pops_its_cadastro_titulos', 'pops_its_meus_registros', 'pops_its_pendente_aprovacao', 'fluxogramas', 'auditorias', 'nao_conformidades', 'melhoria_continua', 'melhoria_continua_2', 'controle_rc', 'nps'],
     'submenu' => [
-      // Itens vindos de Operacionais
-      ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '💧🩸', 'module' => 'toners_cadastro'],
-      ['label' => 'Cadastro de Máquinas', 'href' => '/cadastro-maquinas', 'icon' => '🖨️', 'module' => 'cadastro_maquinas'],
-      ['label' => 'Cadastro de Peças', 'href' => '/cadastro-pecas', 'icon' => '🔧', 'module' => 'cadastro_pecas'],
       ['label' => 'Registro de Retornados', 'href' => '/toners/retornados', 'icon' => '📋', 'module' => 'toners_retornados'],
       ['label' => 'Amostragens 2.0', 'href' => '/amostragens-2', 'icon' => '🔬', 'module' => 'amostragens_2'],
       ['label' => 'Controle de Descartes', 'href' => '/controle-descartes', 'icon' => '♻️', 'module' => 'controle_descartes'],
