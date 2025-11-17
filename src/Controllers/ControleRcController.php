@@ -70,9 +70,11 @@ class ControleRcController
                     rc.*,
                     u.name as usuario_nome,
                     f.nome as fornecedor_nome,
+                    ua.name as alterado_por_nome,
                     (SELECT COUNT(*) FROM controle_rc_evidencias WHERE rc_id = rc.id) as total_evidencias
                 FROM controle_rc rc
                 LEFT JOIN users u ON rc.usuario_id = u.id
+                LEFT JOIN users ua ON rc.status_alterado_por = ua.id
                 LEFT JOIN fornecedores f ON rc.fornecedor_id = f.id
                 ORDER BY rc.created_at DESC
             ");
@@ -118,13 +120,13 @@ class ControleRcController
             $nextId = $stmt->fetch(\PDO::FETCH_ASSOC)['next_id'];
             $numeroRegistro = 'RC-' . date('Y') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
-            // Inserir registro principal
+            // Inserir registro principal com status padrão
             $stmt = $this->db->prepare("
                 INSERT INTO controle_rc (
                     numero_registro, data_abertura, origem, cliente_nome, categoria,
                     detalhamento, qual_produto, numero_serie, fornecedor_id, testes_realizados, acoes_realizadas,
-                    conclusao, usuario_id, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                    conclusao, status, usuario_id, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Em analise', ?, NOW())
             ");
 
             $stmt->execute([
@@ -637,6 +639,161 @@ class ControleRcController
             error_log("❌ ERRO ao notificar administradores: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
             return false;
+        }
+    }
+
+    /**
+     * Alterar status do RC (apenas admin ou qualidade)
+     */
+    public function alterarStatus()
+    {
+        ob_clean();
+        header('Content-Type: application/json');
+        
+        try {
+            $rc_id = $_POST['id'] ?? 0;
+            $novo_status = $_POST['status'] ?? '';
+            $justificativa = trim($_POST['justificativa'] ?? '');
+            
+            if (!$rc_id) {
+                echo json_encode(['success' => false, 'message' => 'ID do RC é obrigatório']);
+                return;
+            }
+            
+            // Validar status
+            $status_validos = [
+                'Em analise',
+                'Aguardando ações do fornecedor', 
+                'Aguardando retorno do produto', 
+                'Finalizado', 
+                'Concluída'
+            ];
+            if (!in_array($novo_status, $status_validos)) {
+                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+                return;
+            }
+            
+            // Verificar se usuário tem permissão (admin ou qualidade)
+            $user_role = $_SESSION['user_role'] ?? '';
+            $user_id = $_SESSION['user_id'] ?? 0;
+            
+            // Buscar perfis do usuário
+            $stmt = $this->db->prepare("
+                SELECT p.nome 
+                FROM user_profiles up
+                JOIN profiles p ON up.profile_id = p.id
+                WHERE up.user_id = ?
+            ");
+            $stmt->execute([$user_id]);
+            $perfis = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            $tem_permissao = ($user_role === 'admin' || $user_role === 'super_admin' || 
+                             in_array('Qualidade', $perfis) || in_array('qualidade', $perfis));
+            
+            if (!$tem_permissao) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão. Apenas Admin ou Qualidade podem alterar status.']);
+                return;
+            }
+            
+            // Verificar se RC existe
+            $stmt = $this->db->prepare("SELECT * FROM controle_rc WHERE id = ?");
+            $stmt->execute([$rc_id]);
+            $rc = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$rc) {
+                echo json_encode(['success' => false, 'message' => 'RC não encontrado']);
+                return;
+            }
+            
+            // Atualizar status
+            $stmt = $this->db->prepare("
+                UPDATE controle_rc 
+                SET status = ?,
+                    status_alterado_por = ?,
+                    status_alterado_em = NOW(),
+                    justificativa_status = ?
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([
+                $novo_status,
+                $user_id,
+                $justificativa,
+                $rc_id
+            ]);
+            
+            // Enviar notificações sobre mudança de status (não crítico)
+            try {
+                $this->notificarMudancaStatus($rc_id, $novo_status);
+            } catch (\Exception $e) {
+                error_log("Erro ao enviar notificações de mudança de status (não crítico): " . $e->getMessage());
+            }
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => "Status alterado para '{$novo_status}' com sucesso!"
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao alterar status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao alterar status: ' . $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * Notificar sobre mudança de status
+     */
+    private function notificarMudancaStatus($rc_id, $novo_status)
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT * FROM controle_rc WHERE id = ?");
+            $stmt->execute([$rc_id]);
+            $rc = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$rc) {
+                return;
+            }
+            
+            $adminNome = $_SESSION['user_name'] ?? 'Administrador';
+            $criadorId = $rc['usuario_id'];
+            
+            // Mapear ícones por status
+            $statusIcons = [
+                'Em analise' => '🔍',
+                'Aguardando ações do fornecedor' => '⏳',
+                'Aguardando retorno do produto' => '📦',
+                'Finalizado' => '✅',
+                'Concluída' => '🎯'
+            ];
+            $icon = $statusIcons[$novo_status] ?? '📊';
+            
+            // Mapear tipo de notificação por status
+            $notifType = match($novo_status) {
+                'Finalizado' => 'success',
+                'Concluída' => 'success',
+                'Em analise' => 'info',
+                default => 'warning'
+            };
+            
+            // Notificar o CRIADOR
+            $stmt = $this->db->prepare('
+                INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, NOW())
+            ');
+            
+            $stmt->execute([
+                $criadorId,
+                "$icon Status atualizado",
+                "$adminNome alterou o status do RC {$rc['numero_registro']} para: $novo_status",
+                $notifType,
+                'controle_rc',
+                $rc_id
+            ]);
+            
+            error_log("Notificação de mudança de status enviada - RC ID: $rc_id - Status: $novo_status");
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao notificar mudança de status: " . $e->getMessage());
         }
     }
 
