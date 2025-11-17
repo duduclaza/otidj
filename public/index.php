@@ -135,11 +135,7 @@ $router->post('/melhoria-continua-2/{id}/update-pontuacao', [App\Controllers\Mel
 $router->get('/melhoria-continua-2/{id}/details', [App\Controllers\MelhoriaContinua2Controller::class, 'details']);
 $router->get('/melhoria-continua-2/{id}/view', [App\Controllers\MelhoriaContinua2Controller::class, 'view']);
 $router->post('/melhoria-continua-2/delete', [App\Controllers\MelhoriaContinua2Controller::class, 'delete']);
-$router->post('/melhoria-continua-2/enviar-email', [App\Controllers\MelhoriaContinua2Controller::class, 'enviarEmailDetalhes']);
 $router->get('/melhoria-continua-2/export', [App\Controllers\MelhoriaContinua2Controller::class, 'exportExcel']);
-
-// Diagnostic route for SMTP test
-$router->get('/test-email', [App\Controllers\EmailTestController::class, 'test']);
 
 // Amostragens 2.0 routes
 $router->get('/amostragens-2', [App\Controllers\Amostragens2Controller::class, 'index']);
@@ -411,8 +407,6 @@ $router->post('/fluxogramas/solicitacao/reprovar', [App\Controllers\FluxogramasC
 $router->get('/fluxogramas/visualizacao/list', [App\Controllers\FluxogramasController::class, 'listVisualizacao']);
 $router->get('/fluxogramas/logs/visualizacao', [App\Controllers\FluxogramasController::class, 'listLogs']);
 
-// ===== TESTE DE DIAGNÓSTICO =====
-$router->get('/homologacoes/test', [App\Controllers\HomologacoesTestController::class, 'test']);
 
 // ===== MÓDULO HOMOLOGAÇÕES (KANBAN) - ATIVADO v3.0.0 =====
 $router->get('/homologacoes', [App\Controllers\HomologacoesKanbanController::class, 'index']);
