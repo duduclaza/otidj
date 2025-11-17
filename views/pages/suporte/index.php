@@ -140,8 +140,9 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 </section>
 
 <!-- Modal de Detalhes -->
-<div id="modalDetalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity duration-300" style="z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
-  <div class="bg-white rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
+<div id="modalDetalhes" class="fixed inset-0 hidden" style="z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg max-w-3xl w-full shadow-2xl transform transition-all duration-300 my-auto" onclick="event.stopPropagation()" style="max-height: 90vh;">
     <!-- Cabeçalho Fixo -->
     <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10">
       <div class="flex items-center gap-3">
@@ -156,13 +157,15 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
     </div>
     <!-- Conteúdo -->
     <div id="detalhesContent" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);"></div>
+    </div>
   </div>
 </div>
 
 <!-- Modal de Gerenciamento (APENAS Super Admin) -->
 <?php if ($isSuperAdmin): ?>
-<div id="modalResolucao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity duration-300" style="z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
-  <div class="bg-white rounded-lg max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
+<div id="modalResolucao" class="fixed inset-0 hidden" style="z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-lg max-w-md w-full shadow-2xl transform transition-all duration-300 my-auto" onclick="event.stopPropagation()">
     <!-- Cabeçalho -->
     <div class="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
       <div class="flex items-center gap-3">
@@ -205,6 +208,7 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
         </button>
       </div>
     </form>
+    </div>
     </div>
   </div>
 </div>
