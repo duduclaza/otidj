@@ -29,13 +29,13 @@
         <!-- Dados do Respondente -->
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Seu Nome (opcional)</label>
-            <input type="text" name="nome" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" placeholder="Digite seu nome">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Seu Nome *</label>
+            <input type="text" name="nome" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" placeholder="Digite seu nome">
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Seu Email (opcional)</label>
-            <input type="email" name="email" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" placeholder="seu@email.com">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Seu Email *</label>
+            <input type="email" name="email" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500" placeholder="seu@email.com">
           </div>
         </div>
 

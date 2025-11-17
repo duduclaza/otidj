@@ -378,11 +378,27 @@ class NpsController
         try {
             $formularioId = $_POST['formulario_id'] ?? '';
             $respostas = json_decode($_POST['respostas'] ?? '[]', true);
-            $nome = trim($_POST['nome'] ?? 'Anônimo');
+            $nome = trim($_POST['nome'] ?? '');
             $email = trim($_POST['email'] ?? '');
             
+            // Validar campos obrigatórios
             if (empty($formularioId) || empty($respostas)) {
                 echo json_encode(['success' => false, 'message' => 'Dados incompletos']);
+                exit;
+            }
+            
+            if (empty($nome)) {
+                echo json_encode(['success' => false, 'message' => 'Nome é obrigatório']);
+                exit;
+            }
+            
+            if (empty($email)) {
+                echo json_encode(['success' => false, 'message' => 'Email é obrigatório']);
+                exit;
+            }
+            
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                echo json_encode(['success' => false, 'message' => 'Email inválido']);
                 exit;
             }
             
@@ -748,7 +764,7 @@ class NpsController
             'formularios_ativos' => 0,
             'formularios_por_mes' => [],
             'respostas_por_dia' => [],
-            'distribuicao_notas' => array_fill(0, 6, 0), // 0-5
+            'distribuicao_notas' => array_fill(0, 11, 0), // 0-10 (escala NPS padrão)
         ];
         
         // Contar formulários
@@ -785,17 +801,17 @@ class NpsController
                     $stats['total_respostas']++;
                     
                     // Analisar respostas para calcular NPS
-                    // IMPORTANTE: Contar apenas a PRIMEIRA pergunta numérica 0-5 por resposta
+                    // IMPORTANTE: Contar apenas a PRIMEIRA pergunta numérica 0-10 por resposta
                     $notaContabilizada = false;
                     foreach ($resposta['respostas'] as $r) {
-                        if (!$notaContabilizada && is_numeric($r['resposta']) && $r['resposta'] >= 0 && $r['resposta'] <= 5) {
+                        if (!$notaContabilizada && is_numeric($r['resposta']) && $r['resposta'] >= 0 && $r['resposta'] <= 10) {
                             $nota = (int)$r['resposta'];
                             $stats['distribuicao_notas'][$nota]++;
                             
-                            // Escala 0-5: Promotores (4-5), Neutros (3), Detratores (0-2)
-                            if ($nota >= 4) {
+                            // Escala 0-10 padrão NPS: Promotores (9-10), Neutros (7-8), Detratores (0-6)
+                            if ($nota >= 9) {
                                 $stats['promotores']++;
-                            } elseif ($nota == 3) {
+                            } elseif ($nota >= 7) {
                                 $stats['neutros']++;
                             } else {
                                 $stats['detratores']++;
