@@ -473,16 +473,82 @@ function gerarQRCode(id, link, titulo) {
       return;
     }
     
-    const container = document.getElementById('qrcodeContainer');
+    // Detectar se está em iframe
+    const isInIframe = window.self !== window.top;
+    const targetWindow = isInIframe ? window.top : window;
+    const targetDocument = targetWindow.document;
+    
+    // Criar ou encontrar modal no parent window
+    let modalQR = targetDocument.getElementById('modalQRCodeNPS');
+    
+    if (!modalQR) {
+      // Criar modal no parent window
+      modalQR = targetDocument.createElement('div');
+      modalQR.id = 'modalQRCodeNPS';
+      modalQR.className = 'hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-[9999]';
+      modalQR.innerHTML = `
+        <div class="bg-white rounded-lg shadow-2xl max-w-md w-full" onclick="event.stopPropagation()">
+          <div class="p-6 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+              <h3 class="text-xl font-semibold text-gray-900">📱 QR Code do Formulário</h3>
+              <button onclick="window.fecharModalQRNPS()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="p-8 text-center">
+            <h4 id="qrTituloNPS" class="text-lg font-medium text-gray-900 mb-4"></h4>
+            <div id="qrcodeContainerNPS" class="flex justify-center mb-4 bg-gray-50 p-4 rounded-lg inline-block min-h-[256px] min-w-[256px]"></div>
+            <p class="text-sm text-gray-600 mb-4">Escaneie este QR Code para acessar o formulário</p>
+            <button onclick="window.baixarQRCodeNPS()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 mx-auto transition-colors shadow-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+              <span>Baixar QR Code</span>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // Adicionar CSS Tailwind se não existir
+      if (!targetDocument.getElementById('tailwindCSSQR')) {
+        const tailwindLink = targetDocument.createElement('link');
+        tailwindLink.id = 'tailwindCSSQR';
+        tailwindLink.rel = 'stylesheet';
+        tailwindLink.href = 'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css';
+        targetDocument.head.appendChild(tailwindLink);
+      }
+      
+      targetDocument.body.appendChild(modalQR);
+      
+      // Adicionar event listener para fechar com clique fora
+      modalQR.addEventListener('click', function() {
+        targetWindow.fecharModalQRNPS();
+      });
+      
+      // Adicionar event listener para ESC
+      targetDocument.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modalQR.classList.contains('hidden')) {
+          targetWindow.fecharModalQRNPS();
+        }
+      });
+    }
+    
+    const container = targetDocument.getElementById('qrcodeContainerNPS');
+    const tituloEl = targetDocument.getElementById('qrTituloNPS');
     
     // Limpar completamente QR Code anterior
     container.innerHTML = '<div class="text-gray-500 animate-pulse">Gerando QR Code...</div>';
     
     // Atualizar título
-    document.getElementById('qrTitulo').textContent = titulo;
+    tituloEl.textContent = titulo;
     
     // Abrir modal primeiro
-    document.getElementById('modalQRCode').classList.remove('hidden');
+    modalQR.classList.remove('hidden');
+    targetDocument.body.style.overflow = 'hidden';
     
     // Aguardar um momento para o modal renderizar
     setTimeout(() => {
@@ -490,54 +556,98 @@ function gerarQRCode(id, link, titulo) {
       container.innerHTML = '';
       
       // Destruir instância anterior se existir
-      if (qrCodeInstance) {
-        qrCodeInstance.clear();
-        qrCodeInstance = null;
+      if (targetWindow.qrCodeInstanceNPS) {
+        targetWindow.qrCodeInstanceNPS.clear();
+        targetWindow.qrCodeInstanceNPS = null;
       }
       
-      // Gerar novo QR Code
-      qrCodeInstance = new QRCode(container, {
-        text: link,
-        width: 256,
-        height: 256,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-      });
-      
-      console.log('✅ QR Code gerado com sucesso');
+      // Carregar biblioteca QRCode no parent se necessário
+      if (typeof targetWindow.QRCode === 'undefined') {
+        const script = targetDocument.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+        script.onload = function() {
+          // Gerar QR Code após carregar biblioteca
+          targetWindow.qrCodeInstanceNPS = new targetWindow.QRCode(container, {
+            text: link,
+            width: 256,
+            height: 256,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: targetWindow.QRCode.CorrectLevel.H
+          });
+          console.log('✅ QR Code gerado com sucesso (biblioteca carregada)');
+        };
+        targetDocument.head.appendChild(script);
+      } else {
+        // Gerar novo QR Code
+        targetWindow.qrCodeInstanceNPS = new targetWindow.QRCode(container, {
+          text: link,
+          width: 256,
+          height: 256,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: targetWindow.QRCode.CorrectLevel.H
+        });
+        console.log('✅ QR Code gerado com sucesso');
+      }
     }, 100);
     
   } catch (error) {
     console.error('Erro ao gerar QR Code:', error);
     alert('❌ Erro ao gerar QR Code: ' + error.message);
-    fecharModalQR();
   }
 }
 
-// Fechar modal QR Code
+// Fechar modal QR Code (antiga - mantida para compatibilidade)
 function fecharModalQR() {
   const modal = document.getElementById('modalQRCode');
-  modal.classList.add('hidden');
-  
-  // Limpar QR Code ao fechar
-  const container = document.getElementById('qrcodeContainer');
-  if (container) {
-    container.innerHTML = '';
-  }
-  
-  // Destruir instância
-  if (qrCodeInstance) {
-    try {
-      qrCodeInstance.clear();
-    } catch (e) {
-      console.log('QR Code já foi limpo');
+  if (modal) {
+    modal.classList.add('hidden');
+    const container = document.getElementById('qrcodeContainer');
+    if (container) {
+      container.innerHTML = '';
     }
-    qrCodeInstance = null;
+    if (qrCodeInstance) {
+      try {
+        qrCodeInstance.clear();
+      } catch (e) {
+        console.log('QR Code já foi limpo');
+      }
+      qrCodeInstance = null;
+    }
   }
 }
 
-// Baixar QR Code como PNG
+// Fechar modal QR Code no parent window (NOVA)
+window.fecharModalQRNPS = function() {
+  const isInIframe = window.self !== window.top;
+  const targetWindow = isInIframe ? window.top : window;
+  const targetDocument = targetWindow.document;
+  
+  const modal = targetDocument.getElementById('modalQRCodeNPS');
+  if (modal) {
+    modal.classList.add('hidden');
+    targetDocument.body.style.overflow = '';
+    
+    // Limpar QR Code ao fechar
+    const container = targetDocument.getElementById('qrcodeContainerNPS');
+    if (container) {
+      container.innerHTML = '';
+    }
+    
+    // Destruir instância
+    if (targetWindow.qrCodeInstanceNPS) {
+      try {
+        targetWindow.qrCodeInstanceNPS.clear();
+      } catch (e) {
+        console.log('QR Code já foi limpo');
+      }
+      targetWindow.qrCodeInstanceNPS = null;
+    }
+  }
+};
+
+// Baixar QR Code como PNG (antiga - mantida para compatibilidade)
 function baixarQRCode() {
   const canvas = document.querySelector('#qrcodeContainer canvas');
   if (canvas) {
@@ -547,4 +657,22 @@ function baixarQRCode() {
     link.click();
   }
 }
+
+// Baixar QR Code como PNG no parent window (NOVA)
+window.baixarQRCodeNPS = function() {
+  const isInIframe = window.self !== window.top;
+  const targetWindow = isInIframe ? window.top : window;
+  const targetDocument = targetWindow.document;
+  
+  const canvas = targetDocument.querySelector('#qrcodeContainerNPS canvas');
+  if (canvas) {
+    const link = targetDocument.createElement('a');
+    link.download = 'qrcode-formulario-nps.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    console.log('✅ QR Code baixado com sucesso');
+  } else {
+    alert('❌ Erro: QR Code não encontrado para download');
+  }
+};
 </script>
