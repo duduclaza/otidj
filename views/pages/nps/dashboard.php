@@ -2,7 +2,7 @@
   <!-- Cabeçalho -->
   <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">📊 Dashboard NPS</h1>
+      <h1 class="text-2xl font-bold text-gray-900">📊 Dashboard de Formulários</h1>
       <p class="text-sm text-gray-600 mt-1">Visão geral e análise de todas as respostas</p>
     </div>
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
@@ -39,10 +39,10 @@
 
   <!-- Cards de Estatísticas -->
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    <!-- Card NPS Score -->
+    <!-- Card Score Geral -->
     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="text-sm font-medium opacity-90">NPS Score</h3>
+        <h3 class="text-sm font-medium opacity-90">Pontuação Geral</h3>
         <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
         </svg>

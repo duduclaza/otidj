@@ -173,7 +173,7 @@
 
     <!-- Estatísticas (se houver perguntas numéricas) -->
     <?php
-    // Calcular NPS se houver perguntas numéricas
+    // Calcular pontuação se houver perguntas numéricas
     $perguntasNumericas = array_filter($formulario['perguntas'], fn($p) => $p['tipo'] === 'numero');
     if (!empty($perguntasNumericas)):
     ?>
@@ -220,7 +220,7 @@
         </div>
         
         <div class="mt-6 bg-white rounded-lg p-6 text-center">
-          <p class="text-sm text-gray-600 mb-2">Net Promoter Score (NPS)</p>
+          <p class="text-sm text-gray-600 mb-2">Pontuação de Satisfação</p>
           <p class="text-5xl font-bold <?= $nps >= 50 ? 'text-green-600' : ($nps >= 0 ? 'text-yellow-600' : 'text-red-600') ?>">
             <?= round($nps) ?>
           </p>

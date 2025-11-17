@@ -75,7 +75,7 @@ $menu = [
           ['label' => 'Requisições Pendentes', 'href' => '/garantias/pendentes', 'icon' => '⏳', 'module' => 'garantias'],
         ]
       ],
-      ['label' => 'NPS', 'href' => '/nps', 'icon' => '📊', 'module' => 'nps'],
+      ['label' => 'Formulários Online', 'href' => '/nps', 'icon' => '📊', 'module' => 'nps'],
     ]
   ],
   [
