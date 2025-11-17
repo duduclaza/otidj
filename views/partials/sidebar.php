@@ -84,6 +84,45 @@ $menu = [
       ['label' => 'Parâmetros de Retornados', 'href' => '/registros/parametros', 'icon' => '📊', 'module' => 'registros_parametros'],
     ]
   ],
+  [
+    'label' => 'Módulos Especiais', 
+    'href' => '#', 
+    'icon' => '🚀', 
+    'category' => true,
+    'admin_only' => true,
+    'submenu' => [
+      // Gestão de Implantação
+      [
+        'label' => 'Gestão de Implantação',
+        'href' => '#',
+        'icon' => '🚀',
+        'admin_only' => true,
+        'has_submenu' => true,
+        'submenu' => [
+          ['label' => 'DPO', 'href' => '/implantacao/dpo', 'icon' => '📊', 'admin_only' => true],
+          ['label' => 'Ordem de Serviços de Implantação', 'href' => '/implantacao/ordem-servicos', 'icon' => '📋', 'admin_only' => true],
+          ['label' => 'Fluxo de Implantação', 'href' => '/implantacao/fluxo', 'icon' => '🔄', 'admin_only' => true],
+          ['label' => 'Relatórios', 'href' => '/implantacao/relatorios', 'icon' => '📈', 'admin_only' => true],
+        ]
+      ],
+      // CRM
+      [
+        'label' => 'CRM',
+        'href' => '#',
+        'icon' => '💼',
+        'admin_only' => true,
+        'has_submenu' => true,
+        'submenu' => [
+          ['label' => 'Prospecção', 'href' => '/crm/prospeccao', 'icon' => '🎯', 'admin_only' => true],
+          ['label' => 'Vendas', 'href' => '/crm/vendas', 'icon' => '💰', 'admin_only' => true],
+          ['label' => 'Relacionamento', 'href' => '/crm/relacionamento', 'icon' => '🤝', 'admin_only' => true],
+          ['label' => 'Marketing', 'href' => '/crm/marketing', 'icon' => '📢', 'admin_only' => true],
+          ['label' => 'Relatórios', 'href' => '/crm/relatorios', 'icon' => '📈', 'admin_only' => true],
+          ['label' => 'Dashboards', 'href' => '/crm/dashboards', 'icon' => '📊', 'admin_only' => true],
+        ]
+      ],
+    ]
+  ],
 ];
 $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/') ?: '/';
 ?>
