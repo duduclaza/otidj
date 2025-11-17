@@ -143,13 +143,7 @@ class ControleDescartesController
                 }
             }
             
-            // Validar se pelo menos um usuário foi selecionado para notificação
-            if (empty($_POST['notificar_usuarios']) || !is_array($_POST['notificar_usuarios'])) {
-                echo json_encode(['success' => false, 'message' => 'Selecione pelo menos um usuário para notificar']);
-                return;
-            }
-            
-            // Converter array de IDs em string separada por vírgula
+            // Converter array de IDs em string separada por vírgula (opcional)
             $notificarUsuarios = null;
             if (!empty($_POST['notificar_usuarios']) && is_array($_POST['notificar_usuarios'])) {
                 $notificarUsuarios = implode(',', array_map('intval', $_POST['notificar_usuarios']));

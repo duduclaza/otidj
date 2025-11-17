@@ -314,9 +314,9 @@ if ($userRole === 'admin' || $userRole === 'super_admin') {
 
                 <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <span class="text-red-600">*</span> Notificar Pessoas (Obrigatório)
+                        Notificar Pessoas (Opcional)
                     </label>
-                    <select id="notificar-usuarios" name="notificar_usuarios[]" multiple required 
+                    <select id="notificar-usuarios" name="notificar_usuarios[]" multiple 
                             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" 
                             style="min-height: 150px;">
                         <?php foreach ($usuariosNotificacao as $usuario): ?>
@@ -329,9 +329,8 @@ if ($userRole === 'admin' || $userRole === 'super_admin') {
                         <?php endforeach; ?>
                     </select>
                     <small class="text-gray-600 mt-2 block">
-                        💡 <strong>Dica:</strong> Segure <kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Ctrl</kbd> (ou <kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Cmd</kbd> no Mac) e clique para selecionar múltiplas pessoas
+                        💡 <strong>Dica:</strong> Segure <kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Ctrl</kbd> (ou <kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Cmd</kbd> no Mac) e clique para selecionar múltiplas pessoas. Se nenhuma pessoa for selecionada, ninguém será notificado por email.
                     </small>
-                    <div id="erro-notificacao" class="text-red-600 text-sm mt-2 hidden">⚠️ Selecione pelo menos uma pessoa para notificar</div>
                 </div>
 
                 <div class="mb-6">
@@ -556,7 +555,6 @@ function abrirModalDescarte() {
             selectNotificar.options[i].selected = false;
         }
     }
-    document.getElementById('erro-notificacao').classList.add('hidden');
     
     document.getElementById('modal-descarte').classList.remove('hidden');
 }
@@ -616,19 +614,6 @@ function excluirDescarte(id) {
 document.getElementById('btn-salvar-descarte').addEventListener('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Validar se pelo menos um usuário foi selecionado para notificação
-    const selectNotificar = document.getElementById('notificar-usuarios');
-    const erroNotificacao = document.getElementById('erro-notificacao');
-    const selecionados = Array.from(selectNotificar.selectedOptions);
-    
-    if (selecionados.length === 0) {
-        erroNotificacao.classList.remove('hidden');
-        alert('Selecione pelo menos uma pessoa para notificar sobre este descarte\n\nDica: Segure Ctrl e clique para selecionar múltiplas pessoas');
-        return;
-    }
-    
-    erroNotificacao.classList.add('hidden');
     
     const form = document.getElementById('form-descarte');
     const formData = new FormData(form);
