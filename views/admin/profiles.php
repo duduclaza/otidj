@@ -277,6 +277,7 @@ const modules = [
   { key: 'melhoria_continua_2', name: 'Melhoria Contínua 2.0 🚀' },
   { key: 'controle_rc', name: 'Controle de RC' },
   { key: 'auditorias', name: 'Auditorias' },
+  { key: 'nao_conformidades', name: 'Não Conformidades ⚠️' },
   { key: 'nps', name: 'NPS - Net Promoter Score 🎯' },
   { key: 'registros_filiais', name: 'Filiais' },
   { key: 'registros_departamentos', name: 'Departamentos' },
