@@ -141,31 +141,43 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 
 <!-- Modal de Detalhes -->
 <div id="modalDetalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity duration-300" style="z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
-  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-900">📋 Detalhes da Solicitação</h3>
-      <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600">
+  <div class="bg-white rounded-lg max-w-3xl w-full mx-4 max-h-[90vh] shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
+    <!-- Cabeçalho Fixo -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">📋</span>
+        <h3 class="text-xl font-semibold">Detalhes da Solicitação de Suporte</h3>
+      </div>
+      <button onclick="fecharModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all" title="Fechar">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
     </div>
-    <div id="detalhesContent"></div>
+    <!-- Conteúdo -->
+    <div id="detalhesContent" class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);"></div>
   </div>
 </div>
 
 <!-- Modal de Gerenciamento (APENAS Super Admin) -->
 <?php if ($isSuperAdmin): ?>
 <div id="modalResolucao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity duration-300" style="z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
-  <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-900">⚙️ Gerenciar Solicitação</h3>
-      <button onclick="fecharModalResolucao()" class="text-gray-400 hover:text-gray-600">
+  <div class="bg-white rounded-lg max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
+    <!-- Cabeçalho -->
+    <div class="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-t-lg flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">⚙️</span>
+        <h3 class="text-xl font-semibold">Gerenciar Solicitação</h3>
+      </div>
+      <button onclick="fecharModalResolucao()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all" title="Fechar">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
     </div>
+    
+    <!-- Conteúdo -->
+    <div class="p-6">
     
     <form id="formResolucao" class="space-y-4">
       <input type="hidden" id="resolucaoId" name="id">
@@ -193,6 +205,7 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
         </button>
       </div>
     </form>
+    </div>
   </div>
 </div>
 <?php endif; ?>
@@ -245,47 +258,70 @@ async function verDetalhes(id) {
       const sol = result.data;
       const anexos = sol.anexos_array || [];
       
+      // Cores do status
+      const statusColors = {
+        'Pendente': 'bg-yellow-100 text-yellow-800',
+        'Em Análise': 'bg-blue-100 text-blue-800',
+        'Concluído': 'bg-green-100 text-green-800'
+      };
+      const statusColor = statusColors[sol.status] || 'bg-gray-100 text-gray-800';
+      
       let html = `
-        <div class="space-y-4">
-          <div>
-            <strong class="text-gray-700">Título:</strong>
-            <p class="text-gray-900 mt-1">${sol.titulo}</p>
+        <div class="space-y-6">
+          <!-- Título -->
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Título</label>
+            <p class="text-lg font-semibold text-gray-900 mt-1">${sol.titulo}</p>
           </div>
           
-          <div>
-            <strong class="text-gray-700">Descrição:</strong>
-            <p class="text-gray-900 mt-1 whitespace-pre-wrap">${sol.descricao}</p>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong class="text-gray-700">Solicitante:</strong>
-              <p class="text-gray-900">${sol.solicitante_nome}</p>
+          <!-- Informações Principais -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">👤 Solicitante</label>
+              <p class="text-gray-900 mt-1 font-medium">${sol.solicitante_nome}</p>
+              <p class="text-xs text-gray-500">${sol.solicitante_email}</p>
             </div>
-            <div>
-              <strong class="text-gray-700">Data:</strong>
-              <p class="text-gray-900">${new Date(sol.created_at).toLocaleString('pt-BR')}</p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">📅 Data</label>
+              <p class="text-gray-900 mt-1 font-medium">${new Date(sol.created_at).toLocaleString('pt-BR')}</p>
             </div>
-            <div>
-              <strong class="text-gray-700">Status:</strong>
-              <p class="text-gray-900">${sol.status}</p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">🏷️ Status</label>
+              <div class="mt-1">
+                <span class="px-3 py-1 text-sm font-semibold rounded-full ${statusColor}">
+                  ${sol.status}
+                </span>
+              </div>
             </div>
             ${sol.resolvido_por_nome ? `
-            <div>
-              <strong class="text-gray-700">Resolvido por:</strong>
-              <p class="text-gray-900">${sol.resolvido_por_nome}</p>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">✅ Resolvido por</label>
+              <p class="text-gray-900 mt-1 font-medium">${sol.resolvido_por_nome}</p>
             </div>
             ` : ''}
           </div>
           
+          <!-- Descrição -->
+          <div>
+            <label class="text-sm font-semibold text-gray-700 mb-2 block">📝 Descrição do Problema/Dúvida</label>
+            <div class="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
+              <p class="text-gray-900 whitespace-pre-wrap">${sol.descricao}</p>
+            </div>
+          </div>
+          
           ${anexos.length > 0 ? `
           <div>
-            <strong class="text-gray-700">Anexos (${anexos.length}):</strong>
-            <ul class="mt-2 space-y-1">
+            <label class="text-sm font-semibold text-gray-700 mb-2 block">📎 Anexos (${anexos.length})</label>
+            <ul class="space-y-2">
               ${anexos.map((a, idx) => `
-                <li class="flex items-center justify-between bg-gray-50 p-2 rounded">
-                  <span class="text-sm text-gray-900">${a.nome_original}</span>
-                  <a href="/suporte/anexo/${sol.id}_${idx}" class="text-blue-600 hover:text-blue-800 text-sm">Baixar</a>
+                <li class="flex items-center justify-between bg-blue-50 p-3 rounded-lg hover:bg-blue-100 transition-colors">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                    </svg>
+                    <span class="text-sm text-gray-900 font-medium">${a.nome_original}</span>
+                  </div>
+                  <a href="/suporte/anexo/${sol.id}_${idx}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">Baixar</a>
                 </li>
               `).join('')}
             </ul>
@@ -293,10 +329,15 @@ async function verDetalhes(id) {
           ` : ''}
           
           ${sol.resolucao ? `
-          <div class="border-t pt-4">
-            <strong class="text-gray-700">Resolução:</strong>
-            <p class="text-gray-900 mt-1 whitespace-pre-wrap">${sol.resolucao}</p>
-            ${sol.resolvido_em ? `<p class="text-xs text-gray-500 mt-1">Concluído em: ${new Date(sol.resolvido_em).toLocaleString('pt-BR')}</p>` : ''}
+          <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+            <label class="text-sm font-semibold text-green-800 mb-2 block flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Resolução / O que foi feito
+            </label>
+            <p class="text-gray-900 whitespace-pre-wrap">${sol.resolucao}</p>
+            ${sol.resolvido_em ? `<p class="text-xs text-green-700 mt-2 font-medium"><svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Concluído em: ${new Date(sol.resolvido_em).toLocaleString('pt-BR')}</p>` : ''}
           </div>
           ` : ''}
         </div>
