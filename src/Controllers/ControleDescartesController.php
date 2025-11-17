@@ -787,22 +787,11 @@ class ControleDescartesController
                 return;
             }
             
-            // Verificar se usuário tem permissão (admin ou qualidade)
+            // Verificar se usuário tem permissão (admin ou super_admin)
             $user_role = $_SESSION['user_role'] ?? '';
             $user_id = $_SESSION['user_id'] ?? 0;
             
-            // Buscar perfis do usuário
-            $stmt = $this->db->prepare("
-                SELECT p.nome 
-                FROM user_profiles up
-                JOIN profiles p ON up.profile_id = p.id
-                WHERE up.user_id = ?
-            ");
-            $stmt->execute([$user_id]);
-            $perfis = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            
-            $tem_permissao = ($user_role === 'admin' || $user_role === 'super_admin' || 
-                             in_array('Qualidade', $perfis) || in_array('qualidade', $perfis));
+            $tem_permissao = ($user_role === 'admin' || $user_role === 'super_admin');
             
             if (!$tem_permissao) {
                 echo json_encode(['success' => false, 'message' => 'Sem permissão. Apenas Admin ou Qualidade podem alterar status.']);
