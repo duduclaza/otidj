@@ -173,14 +173,14 @@ class ControleDescartesController
                 $anexo_tamanho = $file['size'];
             }
 
-            // Inserir descarte
+            // Inserir descarte com status inicial "Aguardando Descarte"
             $stmt = $this->db->prepare("
                 INSERT INTO controle_descartes (
                     numero_serie, filial_id, codigo_produto, descricao_produto, 
                     data_descarte, numero_os, anexo_os_blob, anexo_os_nome, 
                     anexo_os_tipo, anexo_os_tamanho, responsavel_tecnico, 
-                    observacoes, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    observacoes, status, created_by
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aguardando Descarte', ?)
             ");
             
             $stmt->execute([
@@ -200,6 +200,14 @@ class ControleDescartesController
             ]);
 
             $descarte_id = $this->db->lastInsertId();
+            
+            // Enviar notificação por email para admins e qualidade
+            try {
+                $this->notificarNovoDescarte($descarte_id);
+            } catch (\Exception $emailError) {
+                error_log('Erro ao enviar notificação de novo descarte: ' . $emailError->getMessage());
+                // Não falhar a criação se email falhar
+            }
 
             echo json_encode(['success' => true, 'message' => 'Descarte registrado com sucesso!', 'descarte_id' => $descarte_id]);
         } catch (\PDOException $e) {
@@ -689,6 +697,226 @@ class ControleDescartesController
         } catch (\Exception $e) {
             error_log('Erro na importação: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Erro ao processar importação: ' . $e->getMessage()]);
+        }
+    }
+    
+    // Alterar status do descarte (apenas admin ou qualidade)
+    public function alterarStatus()
+    {
+        ob_clean();
+        header('Content-Type: application/json');
+        
+        try {
+            $descarte_id = $_POST['id'] ?? 0;
+            $novo_status = $_POST['status'] ?? '';
+            $justificativa = trim($_POST['justificativa'] ?? '');
+            
+            if (!$descarte_id) {
+                echo json_encode(['success' => false, 'message' => 'ID do descarte é obrigatório']);
+                return;
+            }
+            
+            // Validar status
+            $status_validos = ['Aguardando Descarte', 'Itens Descartados', 'Descartes Reprovados'];
+            if (!in_array($novo_status, $status_validos)) {
+                echo json_encode(['success' => false, 'message' => 'Status inválido']);
+                return;
+            }
+            
+            // Verificar se usuário tem permissão (admin ou qualidade)
+            $user_role = $_SESSION['user_role'] ?? '';
+            $user_id = $_SESSION['user_id'] ?? 0;
+            
+            // Buscar perfis do usuário
+            $stmt = $this->db->prepare("
+                SELECT p.nome 
+                FROM user_profiles up
+                JOIN profiles p ON up.profile_id = p.id
+                WHERE up.user_id = ?
+            ");
+            $stmt->execute([$user_id]);
+            $perfis = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            $tem_permissao = ($user_role === 'admin' || $user_role === 'super_admin' || 
+                             in_array('Qualidade', $perfis) || in_array('qualidade', $perfis));
+            
+            if (!$tem_permissao) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão. Apenas Admin ou Qualidade podem alterar status.']);
+                return;
+            }
+            
+            // Verificar se descarte existe
+            $descarte = $this->getDescarteById($descarte_id);
+            if (!$descarte) {
+                echo json_encode(['success' => false, 'message' => 'Descarte não encontrado']);
+                return;
+            }
+            
+            // Atualizar status
+            $stmt = $this->db->prepare("
+                UPDATE controle_descartes 
+                SET status = ?,
+                    status_alterado_por = ?,
+                    status_alterado_em = NOW(),
+                    justificativa_status = ?
+                WHERE id = ?
+            ");
+            
+            $stmt->execute([
+                $novo_status,
+                $user_id,
+                $justificativa,
+                $descarte_id
+            ]);
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => "Status alterado para '{$novo_status}' com sucesso!"
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log('Erro ao alterar status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao alterar status: ' . $e->getMessage()]);
+        }
+    }
+    
+    // Notificar admins e qualidade sobre novo descarte
+    private function notificarNovoDescarte($descarte_id)
+    {
+        try {
+            // Buscar dados do descarte
+            $descarte = $this->getDescarteById($descarte_id);
+            if (!$descarte) {
+                return;
+            }
+            
+            // Buscar admins e usuários com perfil de qualidade
+            $stmt = $this->db->prepare("
+                SELECT DISTINCT u.id, u.name, u.email
+                FROM users u
+                LEFT JOIN user_profiles up ON u.id = up.user_id
+                LEFT JOIN profiles p ON up.profile_id = p.id
+                WHERE (
+                    u.role IN ('admin', 'super_admin')
+                    OR LOWER(p.nome) = 'qualidade'
+                )
+                AND u.email IS NOT NULL 
+                AND u.email != ''
+                ORDER BY u.name
+            ");
+            $stmt->execute();
+            $destinatarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if (empty($destinatarios)) {
+                error_log('Controle Descartes: Nenhum destinatário encontrado para notificação');
+                return;
+            }
+            
+            // Preparar email
+            $assunto = "🗑️ Novo Descarte Registrado - Aguardando Aprovação";
+            
+            $mensagem = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <div style='background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                        <h1 style='color: white; margin: 0; font-size: 24px;'>🗑️ Novo Descarte Registrado</h1>
+                    </div>
+                    
+                    <div style='background: #f7fafc; padding: 30px; border-radius: 0 0 10px 10px;'>
+                        <div style='background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;'>
+                            <h2 style='color: #2d3748; margin-top: 0;'>Status:</h2>
+                            <p style='font-size: 18px; margin: 10px 0;'>
+                                <span style='background: #fef3c7; color: #92400e; padding: 8px 16px; border-radius: 20px; font-weight: bold;'>
+                                    ⏳ Aguardando Descarte
+                                </span>
+                            </p>
+                        </div>
+                        
+                        <div style='background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;'>
+                            <h3 style='color: #2d3748; margin-top: 0;'>📦 Informações do Equipamento:</h3>
+                            <table style='width: 100%; border-collapse: collapse;'>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Número de Série:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>{$descarte['numero_serie']}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Filial:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>{$descarte['filial_nome']}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Código Produto:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>{$descarte['codigo_produto']}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Descrição:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>{$descarte['descricao_produto']}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Data do Descarte:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>" . date('d/m/Y', strtotime($descarte['data_descarte'])) . "</td>
+                                </tr>
+                                " . ($descarte['numero_os'] ? "<tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Número OS:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>{$descarte['numero_os']}</td>
+                                </tr>" : "") . "
+                                <tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Responsável Técnico:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>{$descarte['responsavel_tecnico']}</td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 8px 0; color: #4a5568;'><strong>Registrado por:</strong></td>
+                                    <td style='padding: 8px 0; color: #2d3748;'>{$descarte['criado_por_nome']}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        " . ($descarte['observacoes'] ? "
+                        <div style='background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;'>
+                            <h3 style='color: #2d3748; margin-top: 0;'>📝 Observações:</h3>
+                            <p style='color: #4a5568; line-height: 1.6; margin: 0;'>{$descarte['observacoes']}</p>
+                        </div>
+                        " : "") . "
+                        
+                        <div style='background: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;'>
+                            <p style='margin: 0; color: #92400e;'>
+                                <strong>⚠️ Ação Necessária:</strong><br>
+                                Este descarte está aguardando aprovação. Acesse o sistema para revisar e alterar o status para:<br>
+                                • <strong>Itens Descartados</strong> (se aprovado)<br>
+                                • <strong>Descartes Reprovados</strong> (se não aprovado)
+                            </p>
+                        </div>
+                        
+                        <div style='text-align: center; margin-top: 30px;'>
+                            <a href='" . ($_ENV['APP_URL'] ?? 'http://localhost') . "/controle-descartes' 
+                               style='display: inline-block; background: #f59e0b; color: white; padding: 12px 30px; 
+                                      text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                                Ver Controle de Descartes
+                            </a>
+                        </div>
+                        
+                        <p style='text-align: center; color: #a0aec0; font-size: 12px; margin-top: 30px;'>
+                            Esta é uma notificação automática do sistema de Controle de Descartes - SGQ OTI DJ
+                        </p>
+                    </div>
+                </div>
+            ";
+            
+            // Enviar email para cada destinatário
+            $emails_enviados = 0;
+            foreach ($destinatarios as $dest) {
+                try {
+                    if (class_exists('\App\Services\EmailService')) {
+                        \App\Services\EmailService::send($dest['email'], $assunto, $mensagem);
+                        $emails_enviados++;
+                    }
+                } catch (\Exception $e) {
+                    error_log("Controle Descartes: Erro ao enviar email para {$dest['email']}: " . $e->getMessage());
+                }
+            }
+            
+            error_log("Controle Descartes: {$emails_enviados} email(s) enviado(s) sobre novo descarte ID {$descarte_id}");
+            
+        } catch (\Exception $e) {
+            error_log('Controle Descartes: Erro ao notificar: ' . $e->getMessage());
         }
     }
 }
