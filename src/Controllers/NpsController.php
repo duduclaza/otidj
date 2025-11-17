@@ -419,6 +419,9 @@ class NpsController
             $respostaFilename = $this->respostasDir . '/resposta_' . $respostaId . '.json';
             file_put_contents($respostaFilename, json_encode($resposta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             
+            // Enviar email para todos admins e super admins
+            $this->notificarAdminsNovaResposta($formulario, $resposta);
+            
             echo json_encode([
                 'success' => true, 
                 'message' => 'Obrigado por responder! Sua opinião é muito importante para nós.'
@@ -962,5 +965,103 @@ class NpsController
         
         fclose($output);
         exit;
+    }
+    
+    /**
+     * Notificar todos admins e super admins sobre nova resposta NPS
+     * @param array $formulario Dados do formulário
+     * @param array $resposta Dados da resposta
+     */
+    private function notificarAdminsNovaResposta($formulario, $resposta)
+    {
+        try {
+            // Buscar todos admins e super admins
+            $db = Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT id, name, email 
+                FROM users 
+                WHERE role IN ('admin', 'super_admin')
+                AND email IS NOT NULL 
+                AND email != ''
+                ORDER BY name
+            ");
+            $stmt->execute();
+            $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            if (empty($admins)) {
+                error_log('NPS: Nenhum admin encontrado para notificar');
+                return;
+            }
+            
+            // Preparar dados da resposta para exibição
+            $respostasHtml = '';
+            foreach ($resposta['respostas'] as $r) {
+                $respostasHtml .= "<li><strong>{$r['pergunta']}</strong><br>";
+                $respostasHtml .= "Resposta: " . htmlspecialchars($r['resposta']) . "</li>";
+            }
+            
+            // Preparar email
+            $assunto = "📊 Nova Resposta NPS: {$formulario['titulo']}";
+            $mensagem = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;'>
+                        <h1 style='color: white; margin: 0; font-size: 24px;'>📊 Nova Resposta NPS</h1>
+                    </div>
+                    
+                    <div style='background: #f7fafc; padding: 30px; border-radius: 0 0 10px 10px;'>
+                        <div style='background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;'>
+                            <h2 style='color: #2d3748; margin-top: 0;'>Formulário:</h2>
+                            <p style='font-size: 18px; color: #4a5568; margin: 10px 0;'><strong>{$formulario['titulo']}</strong></p>
+                            " . ($formulario['descricao'] ? "<p style='color: #718096; margin: 10px 0;'>{$formulario['descricao']}</p>" : "") . "
+                        </div>
+                        
+                        <div style='background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;'>
+                            <h3 style='color: #2d3748; margin-top: 0;'>👤 Respondido por:</h3>
+                            <p style='margin: 5px 0;'><strong>Nome:</strong> {$resposta['nome']}</p>
+                            " . ($resposta['email'] ? "<p style='margin: 5px 0;'><strong>Email:</strong> {$resposta['email']}</p>" : "") . "
+                            <p style='margin: 5px 0; color: #718096;'><strong>Data:</strong> " . date('d/m/Y H:i', strtotime($resposta['respondido_em'])) . "</p>
+                        </div>
+                        
+                        <div style='background: white; padding: 20px; border-radius: 8px;'>
+                            <h3 style='color: #2d3748; margin-top: 0;'>💬 Respostas:</h3>
+                            <ul style='list-style: none; padding: 0;'>
+                                {$respostasHtml}
+                            </ul>
+                        </div>
+                        
+                        <div style='text-align: center; margin-top: 30px;'>
+                            <a href='" . ($_ENV['APP_URL'] ?? 'http://localhost') . "/nps/respostas/{$formulario['id']}' 
+                               style='display: inline-block; background: #667eea; color: white; padding: 12px 30px; 
+                                      text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                                Ver Todas as Respostas
+                            </a>
+                        </div>
+                        
+                        <p style='text-align: center; color: #a0aec0; font-size: 12px; margin-top: 30px;'>
+                            Esta é uma notificação automática do sistema NPS - SGQ OTI DJ
+                        </p>
+                    </div>
+                </div>
+            ";
+            
+            // Enviar email para cada admin
+            $emailsEnviados = 0;
+            foreach ($admins as $admin) {
+                try {
+                    // Verificar se EmailService existe
+                    if (class_exists('\App\Services\EmailService')) {
+                        \App\Services\EmailService::send($admin['email'], $assunto, $mensagem);
+                        $emailsEnviados++;
+                    }
+                } catch (\Exception $e) {
+                    error_log("NPS: Erro ao enviar email para {$admin['email']}: " . $e->getMessage());
+                }
+            }
+            
+            error_log("NPS: {$emailsEnviados} email(s) enviado(s) para admins sobre resposta do formulário {$formulario['id']}");
+            
+        } catch (\Exception $e) {
+            error_log('NPS: Erro ao notificar admins: ' . $e->getMessage());
+        }
     }
 }
