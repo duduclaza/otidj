@@ -60,8 +60,10 @@ class NpsController
             foreach ($files as $file) {
                 $data = json_decode(file_get_contents($file), true);
                 
-                // Filtrar apenas formulários do usuário ou se for admin
-                if ($data['criado_por'] == $userId || ($_SESSION['user_role'] ?? '') === 'admin') {
+                $userRole = $_SESSION['user_role'] ?? '';
+                
+                // Filtrar apenas formulários do usuário ou se for admin/super_admin
+                if ($data['criado_por'] == $userId || $userRole === 'admin' || $userRole === 'super_admin') {
                     // Contar respostas
                     $totalRespostas = $this->contarRespostas($data['id']);
                     
