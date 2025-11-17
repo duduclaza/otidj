@@ -281,6 +281,13 @@ $router->post('/nps/excluir-resposta', [App\Controllers\NpsController::class, 'e
 $router->get('/nps/responder/{id}', [App\Controllers\NpsController::class, 'responder']);
 $router->post('/nps/salvar-resposta', [App\Controllers\NpsController::class, 'salvarResposta']);
 
+// Suporte routes (Admin e Super Admin)
+$router->get('/suporte', [App\Controllers\SuporteController::class, 'index']);
+$router->post('/suporte/store', [App\Controllers\SuporteController::class, 'store']);
+$router->post('/suporte/update-status', [App\Controllers\SuporteController::class, 'updateStatus']);
+$router->get('/suporte/{id}/details', [App\Controllers\SuporteController::class, 'details']);
+$router->get('/suporte/anexo/{anexoId}', [App\Controllers\SuporteController::class, 'downloadAnexo']);
+
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
 $router->post('/admin/db/run-migrations', [App\Controllers\ConfigController::class, 'runMigrations']);
