@@ -9,9 +9,19 @@ function mudarAba(nome) {
 
 // Modal Nova NC
 function abrirModalNovaNC() {
+  console.log('🔴 Função abrirModalNovaNC chamada!');
   const modal = document.getElementById('modalNovaNC');
+  console.log('Modal encontrado:', modal);
+  
+  if (!modal) {
+    console.error('❌ Modal não encontrado! ID: modalNovaNC');
+    alert('Erro: Modal não encontrado. Verifique o console.');
+    return;
+  }
+  
   modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden'; // Prevenir scroll do body
+  document.body.style.overflow = 'hidden';
+  console.log('✅ Modal aberto com sucesso!');
 }
 function fecharModalNovaNC() {
   const modal = document.getElementById('modalNovaNC');
@@ -20,24 +30,24 @@ function fecharModalNovaNC() {
   document.body.style.overflow = ''; // Restaurar scroll
 }
 
-// Fechar modal ao clicar fora
+// Aguardar DOM carregar
 document.addEventListener('DOMContentLoaded', function() {
-  // Modal Nova NC
+  // Modal Nova NC - Fechar ao clicar fora
   document.getElementById('modalNovaNC')?.addEventListener('click', function(e) {
     if (e.target === this) fecharModalNovaNC();
   });
   
-  // Modal Detalhes
+  // Modal Detalhes - Fechar ao clicar fora
   document.getElementById('modalDetalhes')?.addEventListener('click', function(e) {
     if (e.target === this) fecharModalDetalhes();
   });
   
-  // Modal Ação
+  // Modal Ação - Fechar ao clicar fora
   document.getElementById('modalAcao')?.addEventListener('click', function(e) {
     if (e.target === this) fecharModalAcao();
   });
   
-  // ESC para fechar
+  // ESC para fechar qualquer modal
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       fecharModalNovaNC();
@@ -45,19 +55,40 @@ document.addEventListener('DOMContentLoaded', function() {
       fecharModalAcao();
     }
   });
-});
-
-// Criar NC
-document.getElementById('formNovaNC').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const res = await fetch('/nao-conformidades/criar', { method: 'POST', body: formData });
-  const data = await res.json();
-  if (data.success) {
-    alert(data.message);
-    location.reload();
-  } else {
-    alert('Erro: ' + data.message);
+  
+  // Criar NC - Submit do formulário
+  const formNovaNC = document.getElementById('formNovaNC');
+  if (formNovaNC) {
+    formNovaNC.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const res = await fetch('/nao-conformidades/criar', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Erro: ' + data.message);
+      }
+    });
+  }
+  
+  // Registrar Ação - Submit do formulário
+  const formAcao = document.getElementById('formAcao');
+  if (formAcao) {
+    formAcao.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const ncId = document.getElementById('acaoNcId').value;
+      const formData = new FormData(e.target);
+      const res = await fetch(`/nao-conformidades/registrar-acao/${ncId}`, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Erro: ' + data.message);
+      }
+    });
   }
 });
 
