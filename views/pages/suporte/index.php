@@ -140,8 +140,8 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 </section>
 
 <!-- Modal de Detalhes -->
-<div id="modalDetalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+<div id="modalDetalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity duration-300" style="z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
+  <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-semibold text-gray-900">📋 Detalhes da Solicitação</h3>
       <button onclick="fecharModal()" class="text-gray-400 hover:text-gray-600">
@@ -156,8 +156,8 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 
 <!-- Modal de Gerenciamento (APENAS Super Admin) -->
 <?php if ($isSuperAdmin): ?>
-<div id="modalResolucao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+<div id="modalResolucao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center transition-opacity duration-300" style="z-index: 9999; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
+  <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-transform duration-300" onclick="event.stopPropagation()">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-semibold text-gray-900">⚙️ Gerenciar Solicitação</h3>
       <button onclick="fecharModalResolucao()" class="text-gray-400 hover:text-gray-600">
@@ -303,7 +303,12 @@ async function verDetalhes(id) {
       `;
       
       document.getElementById('detalhesContent').innerHTML = html;
-      document.getElementById('modalDetalhes').classList.remove('hidden');
+      
+      // Abrir modal com efeitos
+      const modal = document.getElementById('modalDetalhes');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Bloquear scroll da página
+      
     } else {
       alert('Erro: ' + result.message);
     }
@@ -315,19 +320,23 @@ async function verDetalhes(id) {
 // Fechar modal detalhes
 function fecharModal() {
   document.getElementById('modalDetalhes').classList.add('hidden');
+  document.body.style.overflow = ''; // Restaurar scroll da página
 }
 
 <?php if ($isSuperAdmin): ?>
 // Resolver solicitação
 function resolverSolicitacao(id) {
   document.getElementById('resolucaoId').value = id;
-  document.getElementById('modalResolucao').classList.remove('hidden');
+  const modal = document.getElementById('modalResolucao');
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden'; // Bloquear scroll da página
 }
 
 // Fechar modal resolução
 function fecharModalResolucao() {
   document.getElementById('modalResolucao').classList.add('hidden');
   document.getElementById('formResolucao').reset();
+  document.body.style.overflow = ''; // Restaurar scroll da página
 }
 
 // Submit resolução
@@ -367,4 +376,19 @@ document.addEventListener('keydown', function(e) {
     <?php endif; ?>
   }
 });
+
+// Fechar modal clicando fora
+document.getElementById('modalDetalhes')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    fecharModal();
+  }
+});
+
+<?php if ($isSuperAdmin): ?>
+document.getElementById('modalResolucao')?.addEventListener('click', function(e) {
+  if (e.target === this) {
+    fecharModalResolucao();
+  }
+});
+<?php endif; ?>
 </script>
