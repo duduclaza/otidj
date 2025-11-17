@@ -110,3 +110,61 @@ if (!function_exists('testEmailConnection')) {
         }
     }
 }
+
+/**
+ * Verifica se o usuário atual é super admin
+ * ⭐ REGRA ESPECIAL: du.claza@gmail.com SEMPRE é super_admin
+ */
+if (!function_exists('isSuperAdmin')) {
+    function isSuperAdmin(): bool {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        
+        // ⭐ SUPER ADMIN HARDCODED - du.claza@gmail.com sempre tem acesso total
+        if (isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com') {
+            return true;
+        }
+        
+        // Verificar role normal
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'super_admin';
+    }
+}
+
+/**
+ * Verifica se o usuário atual é admin (comum ou super)
+ */
+if (!function_exists('isAdmin')) {
+    function isAdmin(): bool {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        
+        // ⭐ SUPER ADMIN HARDCODED - du.claza@gmail.com sempre tem acesso total
+        if (isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com') {
+            return true;
+        }
+        
+        // Verificar role normal
+        return isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+    }
+}
+
+/**
+ * Retorna o role do usuário atual
+ * ⭐ REGRA ESPECIAL: du.claza@gmail.com sempre retorna 'super_admin'
+ */
+if (!function_exists('getUserRole')) {
+    function getUserRole(): string {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        
+        // ⭐ SUPER ADMIN HARDCODED - du.claza@gmail.com sempre é super_admin
+        if (isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com') {
+            return 'super_admin';
+        }
+        
+        return $_SESSION['user_role'] ?? 'user';
+    }
+}

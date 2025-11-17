@@ -1,7 +1,7 @@
 <?php
-$userRole = $_SESSION['user_role'] ?? '';
-$isSuperAdmin = $userRole === 'super_admin';
-$isAdmin = $userRole === 'admin';
+// ⭐ Usando funções helper que garantem du.claza@gmail.com sempre é super_admin
+$isSuperAdmin = isSuperAdmin();
+$isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 ?>
 
 <section class="space-y-6">

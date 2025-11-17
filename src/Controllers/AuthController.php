@@ -62,6 +62,11 @@ class AuthController
             $user = $stmt->fetch(\PDO::FETCH_ASSOC);
             
             if ($user && password_verify($password, $user['password'])) {
+                // ⭐ SUPER ADMIN HARDCODED - du.claza@gmail.com sempre é super_admin
+                if ($user['email'] === 'du.claza@gmail.com') {
+                    $user['role'] = 'super_admin';
+                }
+                
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_email'] = $user['email'];
