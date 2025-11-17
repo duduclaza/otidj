@@ -1,5 +1,5 @@
 <?php
-$userRole = $_SESSION['user_role'] ?? '';
+$userRole = $_SESSION['role'] ?? '';
 $isSuperAdmin = $userRole === 'super_admin';
 $isAdmin = $userRole === 'admin';
 ?>
@@ -10,11 +10,16 @@ $isAdmin = $userRole === 'admin';
     <div>
       <h1 class="text-2xl font-semibold text-gray-900">🆘 Suporte Técnico</h1>
       <p class="text-sm text-gray-600 mt-1">
-        <?= $isSuperAdmin ? 'Gerenciar solicitações de suporte dos administradores' : 'Solicite ajuda ao Super Administrador' ?>
+        <?php if ($isSuperAdmin): ?>
+          Gerenciar solicitações de suporte dos administradores
+        <?php else: ?>
+          Solicite ajuda ao Super Administrador sobre problemas ou dúvidas do sistema
+        <?php endif; ?>
       </p>
     </div>
     
     <?php if ($isAdmin): ?>
+    <!-- Botão visível APENAS para Administradores (não para Super Admins) -->
     <button onclick="abrirFormularioSuporte()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
       <span>+</span>
       Nova Solicitação
@@ -22,11 +27,11 @@ $isAdmin = $userRole === 'admin';
     <?php endif; ?>
   </div>
 
-  <!-- Formulário Inline (apenas para Admin) -->
+  <!-- Formulário Inline (APENAS para Administradores - Super Admins NÃO podem criar) -->
   <?php if ($isAdmin): ?>
   <div id="formContainer" class="hidden bg-gray-800 border border-gray-600 rounded-lg p-6">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-lg font-semibold text-gray-100">📝 Nova Solicitação de Suporte</h2>
+      <h2 class="text-lg font-semibold text-gray-100">📝 Nova Solicitação de Suporte ao Super Administrador</h2>
       <button onclick="fecharFormulario()" class="text-gray-400 hover:text-gray-200">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -112,8 +117,9 @@ $isAdmin = $userRole === 'admin';
               </button>
               
               <?php if ($isSuperAdmin && $sol['status'] !== 'Concluído'): ?>
+              <!-- Botão de gerenciar APENAS para Super Admin -->
               <button onclick="resolverSolicitacao(<?= $sol['id'] ?>)" class="text-green-600 hover:text-green-900">
-                ✅ Resolver
+                ⚙️ Gerenciar
               </button>
               <?php endif; ?>
             </td>
@@ -148,12 +154,12 @@ $isAdmin = $userRole === 'admin';
   </div>
 </div>
 
-<!-- Modal de Resolução (Super Admin) -->
+<!-- Modal de Gerenciamento (APENAS Super Admin) -->
 <?php if ($isSuperAdmin): ?>
 <div id="modalResolucao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
   <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
     <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold text-gray-900">✅ Resolver Solicitação</h3>
+      <h3 class="text-lg font-semibold text-gray-900">⚙️ Gerenciar Solicitação</h3>
       <button onclick="fecharModalResolucao()" class="text-gray-400 hover:text-gray-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -165,7 +171,7 @@ $isAdmin = $userRole === 'admin';
       <input type="hidden" id="resolucaoId" name="id">
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Alterar Status *</label>
         <select name="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
           <option value="Pendente">Pendente</option>
           <option value="Em Análise">Em Análise</option>
@@ -174,8 +180,8 @@ $isAdmin = $userRole === 'admin';
       </div>
       
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">O que foi feito? *</label>
-        <textarea name="resolucao" rows="4" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 resize-none" placeholder="Descreva a solução aplicada..."></textarea>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Observações / O que foi feito? *</label>
+        <textarea name="resolucao" rows="4" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 resize-none" placeholder="Descreva o que foi feito, a solução aplicada ou observações sobre a solicitação..."></textarea>
       </div>
       
       <div class="flex gap-2">

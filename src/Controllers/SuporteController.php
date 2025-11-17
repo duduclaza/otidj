@@ -19,12 +19,14 @@ class SuporteController
     {
         try {
             $userId = $_SESSION['user_id'];
-            $userRole = $_SESSION['user_role'] ?? '';
+            $userRole = $_SESSION['role'] ?? '';
             
             // Verificar se é admin ou super_admin
+            // Admin: pode criar solicitações e ver as suas
+            // Super Admin: pode ver todas e gerenciar status/observações
             if (!in_array($userRole, ['admin', 'super_admin'])) {
                 http_response_code(403);
-                echo "Acesso negado. Apenas administradores podem acessar o suporte.";
+                echo "Acesso negado. Apenas Administradores podem acessar o suporte.";
                 return;
             }
 
@@ -68,18 +70,19 @@ class SuporteController
         }
     }
 
-    // Criar nova solicitação
+    // Criar nova solicitação (APENAS ADMIN)
     public function store(): void
     {
         header('Content-Type: application/json');
 
         try {
             $userId = $_SESSION['user_id'];
-            $userRole = $_SESSION['user_role'] ?? '';
+            $userRole = $_SESSION['role'] ?? '';
 
-            // Apenas admins podem criar solicitações
+            // APENAS ADMINS podem criar solicitações
+            // Super Admins NÃO podem criar, apenas gerenciar
             if ($userRole !== 'admin') {
-                echo json_encode(['success' => false, 'message' => 'Apenas administradores podem criar solicitações']);
+                echo json_encode(['success' => false, 'message' => 'Apenas Administradores podem criar solicitações de suporte. Super Administradores apenas gerenciam.']);
                 return;
             }
 
@@ -126,17 +129,17 @@ class SuporteController
         }
     }
 
-    // Atualizar status (Super Admin)
+    // Atualizar status e observações (APENAS SUPER ADMIN)
     public function updateStatus(): void
     {
         header('Content-Type: application/json');
 
         try {
-            $userRole = $_SESSION['user_role'] ?? '';
+            $userRole = $_SESSION['role'] ?? '';
 
-            // Apenas super_admin pode atualizar status
+            // APENAS SUPER_ADMIN pode atualizar status e adicionar observações
             if ($userRole !== 'super_admin') {
-                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas Super Administradores podem gerenciar solicitações.']);
                 return;
             }
 

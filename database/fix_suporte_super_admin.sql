@@ -8,9 +8,9 @@ SELECT
     id,
     name,
     email,
-    user_role,
+    role,
     CASE 
-        WHEN user_role = 'super_admin' THEN '✅ CORRETO'
+        WHEN role = 'super_admin' THEN '✅ CORRETO'
         ELSE '❌ PRECISA CORRIGIR'
     END as status
 FROM users 
@@ -22,7 +22,7 @@ WHERE email = 'du.claza@gmail.com';
 
 -- Execute esta linha para corrigir:
 UPDATE users 
-SET user_role = 'super_admin' 
+SET role = 'super_admin' 
 WHERE email = 'du.claza@gmail.com';
 
 -- Verificar se foi atualizado:
@@ -30,7 +30,7 @@ SELECT
     id,
     name,
     email,
-    user_role as role_atual
+    role as role_atual
 FROM users 
 WHERE email = 'du.claza@gmail.com';
 
@@ -43,12 +43,12 @@ SELECT
     id,
     name,
     email,
-    user_role,
+    role,
     created_at
 FROM users 
-WHERE user_role IN ('admin', 'super_admin')
+WHERE role IN ('admin', 'super_admin')
 ORDER BY 
-    FIELD(user_role, 'super_admin', 'admin'),
+    FIELD(role, 'super_admin', 'admin'),
     name;
 
 -- ========================================
@@ -88,7 +88,7 @@ ORDER BY
 -- PROBLEMAS COMUNS E SOLUÇÕES
 -- ========================================
 
--- Problema 1: user_role diferente de 'super_admin'
+-- Problema 1: role diferente de 'super_admin'
 -- Solução: Execute a query UPDATE acima
 
 -- Problema 2: Sessão desatualizada
@@ -102,11 +102,15 @@ ORDER BY
 -- Solução: Verifique se a tabela existe:
 -- SHOW TABLES LIKE 'suporte_solicitacoes';
 
+-- Problema 5: Erro "Coluna 'user_role' desconhecida"
+-- Solução: A coluna se chama 'role', não 'user_role'
+-- Este SQL já foi corrigido para usar 'role'
+
 -- ========================================
 -- AFTER FIX: CHECKLIST
 -- ========================================
 
--- [ ] 1. Executar UPDATE do user_role
+-- [ ] 1. Executar UPDATE do role
 -- [ ] 2. Verificar que foi atualizado
 -- [ ] 3. Fazer LOGOUT no sistema
 -- [ ] 4. Fazer LOGIN novamente
@@ -122,7 +126,7 @@ ORDER BY
 -- 
 -- Isso mostrará:
 -- - Dados da sessão atual
--- - User_role no banco
+-- - Role no banco
 -- - Todas as solicitações
 -- - Diagnóstico completo
 
@@ -143,3 +147,7 @@ ORDER BY
 -- 3. Diferença importante:
 --    'admin' ≠ 'super_admin'
 --    Certifique-se que está exatamente 'super_admin' (sem espaços)
+
+-- 4. Nome da coluna:
+--    A coluna se chama 'role', não 'user_role'
+--    Sempre use: SELECT role FROM users

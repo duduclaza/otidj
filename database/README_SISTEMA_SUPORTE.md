@@ -2,13 +2,17 @@
 
 ## 📋 Visão Geral
 
-Sistema que permite **Administradores** solicitarem ajuda ao **Super Administrador**. 
+Sistema que permite **APENAS Administradores** solicitarem ajuda ao **Super Administrador**. 
 
 ### Fluxo:
 1. **Admin** cria solicitação (texto + anexos)
-2. **Super Admin** recebe e visualiza
-3. **Super Admin** resolve e documenta solução
+2. **Super Admin** recebe, visualiza todas as solicitações
+3. **Super Admin** altera status e adiciona observações/soluções
 4. **Admin** acompanha status e resolução
+
+### ⚠️ Importante:
+- **Super Admins NÃO podem criar** solicitações, apenas gerenciar
+- **Apenas Admins podem criar** solicitações de suporte
 
 ---
 
@@ -73,33 +77,40 @@ chmod 755 storage/uploads/suporte
 
 ## 👥 Permissões e Acesso
 
-### Administrador (Admin)
+### 👤 Administrador (Admin)
+
+**Papel:** Solicitar ajuda ao Super Administrador
 
 **Pode:**
 - ✅ Acessar menu "Suporte"
-- ✅ Criar novas solicitações
-- ✅ Adicionar texto e anexos
-- ✅ Ver suas próprias solicitações
-- ✅ Acompanhar status das solicitações
-- ✅ Ver resolução quando concluído
+- ✅ **Criar novas solicitações** (EXCLUSIVO)
+- ✅ Adicionar título, descrição e anexos
+- ✅ Ver **apenas suas próprias** solicitações
+- ✅ Acompanhar status das suas solicitações
+- ✅ Ver resolução/observações quando adicionadas
 
 **Não pode:**
-- ❌ Ver solicitações de outros admins
-- ❌ Alterar status
-- ❌ Resolver solicitações
+- ❌ Ver solicitações de outros administradores
+- ❌ Alterar status de qualquer solicitação
+- ❌ Gerenciar ou resolver solicitações
+- ❌ Adicionar observações em solicitações
 
-### Super Administrador (Super Admin)
+### 🔑 Super Administrador (Super Admin)
+
+**Papel:** Gerenciar e resolver solicitações dos administradores
 
 **Pode:**
-- ✅ Ver TODAS as solicitações
-- ✅ Filtrar por status
-- ✅ Atualizar status (Pendente → Em Análise → Concluído)
-- ✅ Adicionar resolução
-- ✅ Ver solicitante de cada pedido
-- ✅ Baixar anexos
+- ✅ Acessar menu "Suporte"
+- ✅ Ver **TODAS** as solicitações (de todos os admins)
+- ✅ Visualizar solicitante de cada pedido
+- ✅ **Alterar status** (Pendente → Em Análise → Concluído)
+- ✅ **Adicionar observações** e descrição de soluções
+- ✅ Baixar anexos das solicitações
+- ✅ Filtrar solicitações por status
 
 **Não pode:**
-- ❌ Criar solicitações (apenas recebe)
+- ❌ **Criar solicitações** (apenas administradores podem criar)
+- ❌ Botão "Nova Solicitação" não aparece para super admins
 
 ---
 
@@ -237,18 +248,18 @@ chmod 755 storage/uploads/suporte
 └─────────────────────────────────┘
 ```
 
-### Modal de Resolução (Super Admin)
+### Modal de Gerenciamento (Super Admin)
 
 ```
 ┌─────────────────────────────────┐
-│ ✅ Resolver Solicitação         │
+│ ⚙️ Gerenciar Solicitação        │
 ├─────────────────────────────────┤
-│ Status: [dropdown]              │
+│ Alterar Status: [dropdown]     │
 │ • Pendente                      │
 │ • Em Análise                    │
 │ • Concluído                     │
 │                                 │
-│ O que foi feito? *              │
+│ Observações / O que foi feito? *│
 │ [textarea]                      │
 │                                 │
 │ [Salvar] [Cancelar]             │
@@ -322,7 +333,7 @@ sgqpro/
 1. Login como Admin
 2. Acessar menu "🆘 Suporte"
 3. Clicar "+ Nova Solicitação"
-4. Preencher formulário
+4. Preencher formulário (título e descrição obrigatórios)
 5. Adicionar anexo (opcional)
 6. Enviar
 7. Verificar que aparece na lista
@@ -332,16 +343,18 @@ sgqpro/
 
 1. Login como Super Admin
 2. Acessar menu "🆘 Suporte"
-3. Ver lista de todas solicitações
-4. Clicar "👁️ Ver" para ver detalhes
-5. Clicar "✅ Resolver"
-6. Alterar status para "Em Análise"
-7. Salvar
-8. Novamente "✅ Resolver"
-9. Alterar para "Concluído"
-10. Adicionar resolução
-11. Salvar
-12. Verificar que admin vê a resolução
+3. **Verificar que NÃO aparece botão "Nova Solicitação"** ✅
+4. Ver lista de **todas** solicitações (de todos os admins)
+5. Clicar "👁️ Ver" para ver detalhes
+6. Clicar "⚙️ Gerenciar"
+7. Alterar status para "Em Análise"
+8. Adicionar observações sobre o andamento
+9. Salvar
+10. Novamente "⚙️ Gerenciar"
+11. Alterar para "Concluído"
+12. Adicionar observações/resolução do problema
+13. Salvar
+14. Verificar que admin vê as observações/resolução
 
 ---
 

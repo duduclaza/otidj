@@ -155,8 +155,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       </li>
       <?php endif; ?>
       
-      <!-- Suporte (Admin e Super Admin) -->
-      <?php if (isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin'])): ?>
+      <!-- Suporte (Admin cria solicitações, Super Admin gerencia) -->
+      <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'super_admin'])): ?>
       <li>
         <a href="/suporte" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/suporte'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
           <span class="text-lg">🆘</span>

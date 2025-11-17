@@ -25,15 +25,15 @@ class SuporteDebugController
         echo "<h2>1️⃣ Dados da Sessão</h2>";
         echo "<pre>";
         echo "user_id: " . ($_SESSION['user_id'] ?? 'NÃO DEFINIDO') . "\n";
-        echo "user_role: " . ($_SESSION['user_role'] ?? 'NÃO DEFINIDO') . "\n";
-        echo "user_email: " . ($_SESSION['user_email'] ?? 'NÃO DEFINIDO') . "\n";
+        echo "role: " . ($_SESSION['role'] ?? 'NÃO DEFINIDO') . "\n";
+        echo "email: " . ($_SESSION['email'] ?? 'NÃO DEFINIDO') . "\n";
         echo "</pre>";
         
         // 2. Verificar usuário no banco
         echo "<h2>2️⃣ Dados do Usuário no Banco</h2>";
-        if (isset($_SESSION['user_email'])) {
-            $stmt = $this->db->prepare('SELECT id, name, email, user_role FROM users WHERE email = :email');
-            $stmt->execute([':email' => $_SESSION['user_email']]);
+        if (isset($_SESSION['email'])) {
+            $stmt = $this->db->prepare('SELECT id, name, email, role FROM users WHERE email = :email');
+            $stmt->execute([':email' => $_SESSION['email']]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($user) {
@@ -47,7 +47,7 @@ class SuporteDebugController
         
         // 3. Verificar super admin específico
         echo "<h2>3️⃣ Verificar du.claza@gmail.com</h2>";
-        $stmt = $this->db->prepare('SELECT id, name, email, user_role FROM users WHERE email = :email');
+        $stmt = $this->db->prepare('SELECT id, name, email, role FROM users WHERE email = :email');
         $stmt->execute([':email' => 'du.claza@gmail.com']);
         $duclaza = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -56,10 +56,10 @@ class SuporteDebugController
             print_r($duclaza);
             echo "</pre>";
             
-            if ($duclaza['user_role'] !== 'super_admin') {
-                echo "<p style='color: orange;'>⚠️ PROBLEMA: user_role = '{$duclaza['user_role']}' mas deveria ser 'super_admin'</p>";
+            if ($duclaza['role'] !== 'super_admin') {
+                echo "<p style='color: orange;'>⚠️ PROBLEMA: role = '{$duclaza['role']}' mas deveria ser 'super_admin'</p>";
             } else {
-                echo "<p style='color: green;'>✅ user_role correto: super_admin</p>";
+                echo "<p style='color: green;'>✅ role correto: super_admin</p>";
             }
         } else {
             echo "<p style='color: red;'>❌ Usuário du.claza@gmail.com não encontrado!</p>";
@@ -67,18 +67,18 @@ class SuporteDebugController
         
         // 4. Listar todos admins e super admins
         echo "<h2>4️⃣ Todos Admins e Super Admins</h2>";
-        $stmt = $this->db->query("SELECT id, name, email, user_role FROM users WHERE user_role IN ('admin', 'super_admin') ORDER BY user_role, name");
+        $stmt = $this->db->query("SELECT id, name, email, role FROM users WHERE role IN ('admin', 'super_admin') ORDER BY role, name");
         $admins = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         echo "<table border='1' cellpadding='5' style='border-collapse: collapse;'>";
         echo "<tr><th>ID</th><th>Nome</th><th>Email</th><th>Role</th></tr>";
         foreach ($admins as $admin) {
-            $color = $admin['user_role'] === 'super_admin' ? '#e0ffe0' : '#fff';
+            $color = $admin['role'] === 'super_admin' ? '#e0ffe0' : '#fff';
             echo "<tr style='background: {$color};'>";
             echo "<td>{$admin['id']}</td>";
             echo "<td>{$admin['name']}</td>";
             echo "<td>{$admin['email']}</td>";
-            echo "<td><strong>{$admin['user_role']}</strong></td>";
+            echo "<td><strong>{$admin['role']}</strong></td>";
             echo "</tr>";
         }
         echo "</table>";
@@ -142,17 +142,17 @@ class SuporteDebugController
         echo "<hr>";
         echo "<h2>💡 Solução</h2>";
         
-        if ($duclaza && $duclaza['user_role'] !== 'super_admin') {
+        if ($duclaza && $duclaza['role'] !== 'super_admin') {
             echo "<p style='background: #ffeeee; padding: 10px; border-left: 4px solid red;'>";
-            echo "<strong>PROBLEMA ENCONTRADO:</strong> O usuário du.claza@gmail.com tem user_role = '{$duclaza['user_role']}' mas precisa ser 'super_admin'.<br><br>";
+            echo "<strong>PROBLEMA ENCONTRADO:</strong> O usuário du.claza@gmail.com tem role = '{$duclaza['role']}' mas precisa ser 'super_admin'.<br><br>";
             echo "<strong>Execute este SQL:</strong><br>";
             echo "<code style='background: #f0f0f0; padding: 10px; display: block; margin-top: 10px;'>";
-            echo "UPDATE users SET user_role = 'super_admin' WHERE email = 'du.claza@gmail.com';";
+            echo "UPDATE users SET role = 'super_admin' WHERE email = 'du.claza@gmail.com';";
             echo "</code>";
             echo "</p>";
         } else {
             echo "<p style='background: #eeffee; padding: 10px; border-left: 4px solid green;'>";
-            echo "✅ user_role está correto. Verifique se você fez logout e login novamente para atualizar a sessão.";
+            echo "✅ role está correto. Verifique se você fez logout e login novamente para atualizar a sessão.";
             echo "</p>";
         }
         
