@@ -80,8 +80,15 @@ class NaoConformidadesController
             }
 
             // Buscar todos os usuários para o combo
-            $stmt = $this->db->query("SELECT id, name, email FROM users WHERE active = 1 ORDER BY name");
-            $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Tenta com active, se falhar busca todos
+            try {
+                $stmt = $this->db->query("SELECT id, name, email FROM users WHERE active = 1 ORDER BY name");
+                $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                // Se coluna active não existir, buscar todos
+                $stmt = $this->db->query("SELECT id, name, email FROM users ORDER BY name");
+                $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
 
         } catch (\Exception $e) {
             error_log("Erro ao carregar NCs: " . $e->getMessage());

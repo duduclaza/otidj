@@ -16,10 +16,22 @@
           <label class="block text-sm font-medium mb-1">Responsável pela Correção *</label>
           <select name="responsavel_id" required class="w-full px-3 py-2 border rounded-lg">
             <option value="">Selecione...</option>
-            <?php foreach ($usuarios ?? [] as $u): ?>
+            <?php 
+            // Debug temporário
+            if (empty($usuarios)) {
+                echo '<option value="" disabled>⚠️ Nenhum usuário encontrado</option>';
+            } else {
+                foreach ($usuarios as $u): 
+            ?>
               <option value="<?= $u['id'] ?>"><?= htmlspecialchars($u['name']) ?> (<?= htmlspecialchars($u['email']) ?>)</option>
-            <?php endforeach; ?>
+            <?php 
+                endforeach;
+            }
+            ?>
           </select>
+          <?php if (empty($usuarios)): ?>
+            <p class="text-xs text-red-600 mt-1">⚠️ Execute: database/verificar_usuarios.sql</p>
+          <?php endif; ?>
         </div>
         <div>
           <label class="block text-sm font-medium mb-1">Evidências (Fotos, PDFs)</label>
