@@ -35,7 +35,8 @@ $menu = [
     'modules' => ['toners_cadastro', 'cadastro_maquinas', 'cadastro_pecas', 'registros_fornecedores', 'cadastro_contratos', 'cadastro_clientes'],
     'submenu' => [
       ['label' => 'Cadastro de Toners', 'href' => '/toners/cadastro', 'icon' => '💧', 'module' => 'toners_cadastro'],
-      ['label' => 'Cadastro de Máquinas e Peças', 'href' => '/cadastro-maquinas', 'icon' => '🖨️', 'module' => 'cadastro_maquinas'],
+      ['label' => 'Cadastro de Máquinas', 'href' => '/cadastro-maquinas', 'icon' => '🖨️', 'module' => 'cadastro_maquinas'],
+      ['label' => 'Cadastro de Peças', 'href' => '/cadastro-pecas', 'icon' => '🔧', 'module' => 'cadastro_pecas'],
       ['label' => 'Cadastro de Fornecedores', 'href' => '/registros/fornecedores', 'icon' => '🏭', 'module' => 'registros_fornecedores'],
       ['label' => 'Cadastro de Contratos', 'href' => '/cadastros/contratos', 'icon' => '📄', 'module' => 'cadastro_contratos'],
       ['label' => 'Cadastro de Clientes', 'href' => '/cadastros/clientes', 'icon' => '👥', 'module' => 'cadastro_clientes'],
