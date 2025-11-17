@@ -61,10 +61,30 @@ class PermissionService
 
     /**
      * Check if user is super admin (unrestricted access - not customizable)
+     * ⭐ Super Admin tem ACESSO TOTAL a tudo
      */
     public static function isSuperAdmin(int $userId): bool
     {
         $db = self::getDb();
+        
+        // ⭐ Verificar por email hardcoded (du.claza@gmail.com sempre é super admin)
+        $stmt = $db->prepare("SELECT email, role FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        
+        if ($user) {
+            // Email hardcoded sempre é super admin
+            if ($user['email'] === 'du.claza@gmail.com') {
+                return true;
+            }
+            
+            // Verificar role direto
+            if ($user['role'] === 'super_admin') {
+                return true;
+            }
+        }
+        
+        // Fallback: verificar pelo perfil
         $stmt = $db->prepare("
             SELECT COUNT(*) 
             FROM users u 

@@ -217,6 +217,73 @@ class SuporteController
         }
     }
 
+    // Excluir solicitação (APENAS ADMIN - suas próprias)
+    public function delete(): void
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'] ?? '';
+
+            // APENAS ADMIN pode excluir suas próprias solicitações
+            if ($userRole !== 'admin') {
+                echo json_encode(['success' => false, 'message' => 'Apenas Administradores podem excluir solicitações.']);
+                return;
+            }
+
+            $id = (int)($_POST['id'] ?? 0);
+
+            if (!$id) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                return;
+            }
+
+            // Verificar se a solicitação pertence ao admin logado
+            $stmt = $this->db->prepare('SELECT solicitante_id, anexos FROM suporte_solicitacoes WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+            $solicitacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$solicitacao) {
+                echo json_encode(['success' => false, 'message' => 'Solicitação não encontrada']);
+                return;
+            }
+
+            // Verificar se é o dono da solicitação
+            if ($solicitacao['solicitante_id'] != $userId) {
+                echo json_encode(['success' => false, 'message' => 'Você só pode excluir suas próprias solicitações']);
+                return;
+            }
+
+            // Excluir anexos do servidor
+            if (!empty($solicitacao['anexos'])) {
+                $anexos = json_decode($solicitacao['anexos'], true);
+                if (is_array($anexos)) {
+                    $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/storage/uploads/suporte/';
+                    foreach ($anexos as $anexo) {
+                        $filePath = $uploadDir . $anexo['arquivo'];
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
+                    }
+                }
+            }
+
+            // Excluir do banco de dados
+            $stmt = $this->db->prepare('DELETE FROM suporte_solicitacoes WHERE id = :id');
+            $stmt->execute([':id' => $id]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Solicitação excluída com sucesso!'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao excluir solicitação: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao excluir: ' . $e->getMessage()]);
+        }
+    }
+
     // Download de anexo
     public function downloadAnexo($anexoId): void
     {
@@ -257,6 +324,24 @@ class SuporteController
             error_log('Erro ao baixar anexo: ' . $e->getMessage());
             http_response_code(500);
             echo "Erro ao baixar anexo";
+        }
+    }
+
+    // Contar solicitações pendentes (para badge do header - Super Admin)
+    public static function contarPendentes(): int
+    {
+        try {
+            $db = \App\Config\Database::getInstance();
+            $stmt = $db->prepare("
+                SELECT COUNT(*) 
+                FROM suporte_solicitacoes 
+                WHERE status IN ('Pendente', 'Em Análise')
+            ");
+            $stmt->execute();
+            return (int)$stmt->fetchColumn();
+        } catch (\Exception $e) {
+            error_log('Erro ao contar solicitações pendentes: ' . $e->getMessage());
+            return 0;
         }
     }
 

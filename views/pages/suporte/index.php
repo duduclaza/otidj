@@ -122,6 +122,13 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
                 ⚙️ Gerenciar
               </button>
               <?php endif; ?>
+              
+              <?php if ($isAdmin): ?>
+              <!-- Botão de excluir APENAS para Admin (suas próprias solicitações) -->
+              <button onclick="excluirSolicitacao(<?= $sol['id'] ?>)" class="text-red-600 hover:text-red-900">
+                🗑️ Excluir
+              </button>
+              <?php endif; ?>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -140,7 +147,7 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 </section>
 
 <!-- Modal de Detalhes -->
-<div id="modalDetalhes" class="fixed inset-0 hidden" style="z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+<div id="modalDetalhes" class="fixed hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
   <div class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white rounded-lg max-w-3xl w-full shadow-2xl transform transition-all duration-300 my-auto" onclick="event.stopPropagation()" style="max-height: 90vh;">
     <!-- Cabeçalho Fixo -->
@@ -163,7 +170,7 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 
 <!-- Modal de Gerenciamento (APENAS Super Admin) -->
 <?php if ($isSuperAdmin): ?>
-<div id="modalResolucao" class="fixed inset-0 hidden" style="z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+<div id="modalResolucao" class="fixed hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
   <div class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white rounded-lg max-w-md w-full shadow-2xl transform transition-all duration-300 my-auto" onclick="event.stopPropagation()">
     <!-- Cabeçalho -->
@@ -409,6 +416,36 @@ document.getElementById('formResolucao')?.addEventListener('submit', async funct
     alert('Erro ao atualizar status');
   }
 });
+<?php endif; ?>
+
+<?php if ($isAdmin): ?>
+// Excluir solicitação (Admin)
+async function excluirSolicitacao(id) {
+  if (!confirm('Tem certeza que deseja excluir esta solicitação?\n\nEsta ação não pode ser desfeita e excluirá também todos os anexos.')) {
+    return;
+  }
+  
+  try {
+    const formData = new FormData();
+    formData.append('id', id);
+    
+    const response = await fetch('/suporte/delete', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      alert(result.message);
+      location.reload();
+    } else {
+      alert('Erro: ' + result.message);
+    }
+  } catch (error) {
+    alert('Erro ao excluir solicitação');
+  }
+}
 <?php endif; ?>
 
 // Fechar com ESC

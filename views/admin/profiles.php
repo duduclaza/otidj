@@ -274,7 +274,6 @@ const modules = [
   { key: 'pops_its_solicitacoes', name: '→ Solicitações de Exclusão' },
   { key: '5w2h', name: '5W2H' },
   { key: 'fluxogramas', name: 'Fluxogramas' },
-  { key: 'melhoria_continua', name: 'Melhoria Contínua' },
   { key: 'melhoria_continua_2', name: 'Melhoria Contínua 2.0 🚀' },
   { key: 'controle_rc', name: 'Controle de RC' },
   { key: 'auditorias', name: 'Auditorias' },

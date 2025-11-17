@@ -285,6 +285,7 @@ $router->post('/nps/salvar-resposta', [App\Controllers\NpsController::class, 'sa
 $router->get('/suporte', [App\Controllers\SuporteController::class, 'index']);
 $router->post('/suporte/store', [App\Controllers\SuporteController::class, 'store']);
 $router->post('/suporte/update-status', [App\Controllers\SuporteController::class, 'updateStatus']);
+$router->post('/suporte/delete', [App\Controllers\SuporteController::class, 'delete']);
 $router->get('/suporte/{id}/details', [App\Controllers\SuporteController::class, 'details']);
 $router->get('/suporte/anexo/{anexoId}', [App\Controllers\SuporteController::class, 'downloadAnexo']);
 $router->get('/suporte/debug', [App\Controllers\SuporteDebugController::class, 'debug']);

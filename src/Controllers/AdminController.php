@@ -677,7 +677,8 @@ class AdminController
                 exit;
             }
             
-            if ($_SESSION['user_role'] !== 'admin') {
+            // ⭐ Super Admin tem acesso total
+            if (!in_array($_SESSION['user_role'], ['admin', 'super_admin'])) {
                 error_log("Authorization failed: user role is " . ($_SESSION['user_role'] ?? 'undefined'));
                 echo json_encode(['success' => false, 'message' => 'Acesso negado - apenas administradores']);
                 exit;

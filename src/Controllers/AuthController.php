@@ -252,16 +252,23 @@ class AuthController
     }
     
     /**
-     * Require admin role
+     * Require admin role (admin or super_admin)
+     * ⭐ Super Admin tem ACESSO TOTAL a tudo
      */
     public static function requireAdmin(): void
     {
         self::requireAuth();
         
-        if ($_SESSION['user_role'] !== 'admin') {
+        // ⭐ du.claza@gmail.com sempre tem acesso total (hardcoded)
+        if (isset($_SESSION['user_email']) && $_SESSION['user_email'] === 'du.claza@gmail.com') {
+            return; // Acesso garantido
+        }
+        
+        // Verificar se é admin ou super_admin
+        if (!in_array($_SESSION['user_role'], ['admin', 'super_admin'])) {
             if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Acesso negado']);
+                echo json_encode(['success' => false, 'message' => 'Acesso negado. Apenas administradores podem acessar.']);
                 exit;
             } else {
                 // Redirecionar para primeiro módulo permitido em vez de criar loop

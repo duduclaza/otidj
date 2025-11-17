@@ -155,16 +155,16 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       </li>
       <?php endif; ?>
       
-      <!-- Suporte (Admin cria solicitações, Super Admin gerencia) -->
-      <!-- ⭐ du.claza@gmail.com SEMPRE tem acesso (super_admin hardcoded) -->
-      <?php if (isAdmin()): ?>
+      <!-- Suporte movido para o header (ícone ao lado do sininho) -->
+      <!-- Removido do sidebar para ficar mais acessível no topo da página -->
+      <?php /* if (isAdmin()): ?>
       <li>
         <a href="/suporte" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/suporte'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
           <span class="text-lg">🆘</span>
           <span>Suporte</span>
         </a>
       </li>
-      <?php endif; ?>
+      <?php endif; */ ?>
       
       <?php foreach ($menu as $item):
         $active = rtrim($item['href'], '/') === $current;
