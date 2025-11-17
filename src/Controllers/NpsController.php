@@ -419,12 +419,14 @@ class NpsController
             $respostaFilename = $this->respostasDir . '/resposta_' . $respostaId . '.json';
             file_put_contents($respostaFilename, json_encode($resposta, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
             
-            // Enviar email para todos admins e super admins (não bloqueia se falhar)
+            // Notificação por email DESABILITADA temporariamente
+            /*
             try {
                 $this->notificarAdminsNovaResposta($formulario, $resposta);
             } catch (\Exception $emailError) {
                 error_log('NPS: Erro ao enviar notificação, mas resposta foi salva: ' . $emailError->getMessage());
             }
+            */
             
             echo json_encode([
                 'success' => true, 
