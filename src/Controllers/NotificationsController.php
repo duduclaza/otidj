@@ -135,6 +135,70 @@ class NotificationsController
         }
     }
 
+    // Redirecionar ao clicar na notificação
+    public function redirect($id)
+    {
+        try {
+            $userId = $_SESSION['user_id'] ?? null;
+            $id = (int)$id;
+            
+            if (!$userId) {
+                header('Location: /login');
+                exit;
+            }
+            
+            // Buscar dados da notificação
+            $stmt = $this->db->prepare("
+                SELECT related_type, related_id 
+                FROM notifications 
+                WHERE id = ? AND user_id = ?
+            ");
+            $stmt->execute([$id, $userId]);
+            $notification = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$notification) {
+                header('Location: /dashboard');
+                exit;
+            }
+            
+            // Marcar como lida
+            $stmt = $this->db->prepare("UPDATE notifications SET read_at = NOW() WHERE id = ? AND user_id = ?");
+            $stmt->execute([$id, $userId]);
+            
+            // Redirecionar baseado no tipo
+            $redirectUrl = '/dashboard'; // URL padrão
+            
+            switch ($notification['related_type']) {
+                case 'controle_descartes':
+                    $redirectUrl = '/controle-descartes';
+                    break;
+                case 'controle_rc':
+                    $redirectUrl = '/controle-rc';
+                    break;
+                case 'melhoria_continua_2':
+                    $redirectUrl = '/melhoria-continua-2';
+                    break;
+                case 'pop_its':
+                    $redirectUrl = '/pop-its';
+                    break;
+                case 'nao_conformidades':
+                    $redirectUrl = '/nao-conformidades';
+                    break;
+                default:
+                    $redirectUrl = '/dashboard';
+                    break;
+            }
+            
+            header("Location: $redirectUrl");
+            exit;
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao redirecionar notificação: " . $e->getMessage());
+            header('Location: /dashboard');
+            exit;
+        }
+    }
+
     // Criar notificação (método estático para uso em outros controllers)
     public static function create($userId, $title, $message, $type = 'info', $relatedType = null, $relatedId = null)
     {

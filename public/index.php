@@ -184,10 +184,12 @@ $router->get('/master/logout', [App\Controllers\MasterController::class, 'logout
 
 // Controle de RC routes
 $router->get('/controle-de-rc', [App\Controllers\ControleRcController::class, 'index']);
+$router->get('/controle-rc', [App\Controllers\ControleRcController::class, 'index']);
 $router->get('/controle-rc/list', [App\Controllers\ControleRcController::class, 'list']);
 $router->post('/controle-rc/create', [App\Controllers\ControleRcController::class, 'create']);
 $router->post('/controle-rc/update', [App\Controllers\ControleRcController::class, 'update']);
 $router->post('/controle-rc/delete', [App\Controllers\ControleRcController::class, 'delete']);
+$router->post('/controle-rc/alterar-status', [App\Controllers\ControleRcController::class, 'alterarStatus']);
 $router->get('/controle-rc/{id}', [App\Controllers\ControleRcController::class, 'show']);
 $router->get('/controle-rc/{id}/print', [App\Controllers\ControleRcController::class, 'print']);
 $router->post('/controle-rc/export', [App\Controllers\ControleRcController::class, 'exportReport']);
@@ -347,6 +349,7 @@ $router->get('/api/notifications', [App\Controllers\NotificationsController::cla
 $router->post('/api/notifications/{id}/read', [App\Controllers\NotificationsController::class, 'markAsRead']);
 $router->post('/api/notifications/read-all', [App\Controllers\NotificationsController::class, 'markAllAsRead']);
 $router->post('/api/notifications/clear-history', [App\Controllers\NotificationsController::class, 'clearHistory']);
+$router->get('/notifications/{id}/redirect', [App\Controllers\NotificationsController::class, 'redirect']);
 
 // FMEA routes
 $router->get('/fmea', [App\Controllers\FMEAController::class, 'index']);

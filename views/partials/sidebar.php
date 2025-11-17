@@ -896,6 +896,8 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
         'fluxograma': '/fluxogramas',
         'user': '/admin/users',
         'profile': '/admin/profiles',
+        'controle_descartes': '/controle-descartes',
+        'controle_rc': '/controle-rc',
         // Notificações de POPs e ITs
         'pops_its_pendente': '/pops-e-its?tab=pendentes',
         'pops_its_aprovado': '/pops-e-its?tab=registros',
