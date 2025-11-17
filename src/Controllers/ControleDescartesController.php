@@ -463,16 +463,21 @@ class ControleDescartesController
     
     private function getUsuariosParaNotificacao()
     {
-        // Buscar todos usuários ativos com email
-        $stmt = $this->db->query("
-            SELECT id, name, email, role 
-            FROM users 
-            WHERE active = 1 
-            AND email IS NOT NULL 
-            AND email != ''
-            ORDER BY name
-        ");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Buscar todos usuários com email (sem filtrar por status)
+        // Alguns sistemas usam 'status', outros 'active', então buscar todos
+        try {
+            $stmt = $this->db->query("
+                SELECT id, name, email, role 
+                FROM users 
+                WHERE email IS NOT NULL 
+                AND email != ''
+                ORDER BY name
+            ");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Exception $e) {
+            error_log('Erro ao buscar usuários para notificação: ' . $e->getMessage());
+            return [];
+        }
     }
 
     // Relatórios
