@@ -287,6 +287,7 @@ $router->post('/suporte/store', [App\Controllers\SuporteController::class, 'stor
 $router->post('/suporte/update-status', [App\Controllers\SuporteController::class, 'updateStatus']);
 $router->get('/suporte/{id}/details', [App\Controllers\SuporteController::class, 'details']);
 $router->get('/suporte/anexo/{anexoId}', [App\Controllers\SuporteController::class, 'downloadAnexo']);
+$router->get('/suporte/debug', [App\Controllers\SuporteDebugController::class, 'debug']);
 
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
