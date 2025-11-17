@@ -1,9 +1,26 @@
 -- Adicionar coluna de status para Controle de RC (Reclamação do Cliente)
 -- Data: 17/11/2025
 
--- Verificar e adicionar coluna status apenas se não existir
+-- Primeiro, verificar e adicionar coluna observacoes se não existir
 SET @dbname = DATABASE();
 SET @tablename = "controle_rc";
+SET @columnname = "observacoes";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  "ALTER TABLE controle_rc ADD COLUMN observacoes TEXT NULL AFTER conclusao"
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Verificar e adicionar coluna status apenas se não existir
 SET @columnname = "status";
 SET @preparedStatement = (SELECT IF(
   (
@@ -70,6 +87,10 @@ EXECUTE alterIfNotExists4;
 DEALLOCATE PREPARE alterIfNotExists4;
 
 -- Adicionar comentários nas colunas
+ALTER TABLE controle_rc 
+MODIFY COLUMN observacoes TEXT NULL
+COMMENT 'Observações gerais sobre a reclamação';
+
 ALTER TABLE controle_rc 
 MODIFY COLUMN status VARCHAR(100) NOT NULL DEFAULT 'Em analise'
 COMMENT 'Status da reclamação: Em analise, Aguardando ações do fornecedor, Aguardando retorno do produto, Finalizado, Concluída';
