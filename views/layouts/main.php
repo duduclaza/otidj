@@ -88,9 +88,8 @@ if (!function_exists('flash')) {
       <!-- Header/Navbar -->
       <header class="bg-white shadow-sm border-b border-gray-200">
         <div class="flex items-center justify-between px-6 py-3">
-          <div class="flex items-center gap-4">
-            <h1 class="text-lg font-semibold text-gray-800">Sistema de Gestão da Qualidade</h1>
-          </div>
+          <!-- Espaço vazio à esquerda -->
+          <div></div>
           
           <div class="flex items-center gap-4">
             <!-- Ícone de Suporte (Admin e Super Admin) -->
