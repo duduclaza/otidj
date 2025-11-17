@@ -77,7 +77,6 @@ $menu = [
       ['label' => 'Gerenciar Usuários', 'href' => '/admin/users', 'icon' => '👥', 'module' => 'admin_usuarios'],
       ['label' => 'Gerenciar Perfis', 'href' => '/admin/profiles', 'icon' => '🎭', 'module' => 'admin_perfis'],
       ['label' => 'Solicitações de Acesso', 'href' => '/admin/access-requests', 'icon' => '📧', 'module' => 'admin_convites'],
-      ['label' => 'Painel Admin', 'href' => '/admin', 'icon' => '🔧', 'module' => 'admin_painel'],
       ['label' => 'APIs para Power BI', 'href' => '/api/powerbi', 'icon' => '📊', 'module' => 'api_powerbi', 'badge' => 'BETA'],
       ['label' => 'Filiais', 'href' => '/registros/filiais', 'icon' => '🏢', 'module' => 'registros_filiais'],
       ['label' => 'Departamentos', 'href' => '/registros/departamentos', 'icon' => '🏛️', 'module' => 'registros_departamentos'],
