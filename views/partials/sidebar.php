@@ -131,6 +131,25 @@ $menu = [
           ['label' => 'Dashboards', 'href' => '/crm/dashboards', 'icon' => '📊', 'admin_only' => true],
         ]
       ],
+      // Logística
+      [
+        'label' => 'Logística',
+        'href' => '#',
+        'icon' => '📦',
+        'admin_only' => true,
+        'has_submenu' => true,
+        'badge' => 'R$ 600/mês',
+        'submenu' => [
+          ['label' => 'Entrada de Estoque', 'href' => '/logistica/entrada-estoque', 'icon' => '📥', 'admin_only' => true],
+          ['label' => 'Entrada de Almoxarifados', 'href' => '/logistica/entrada-almoxarifados', 'icon' => '🏭', 'admin_only' => true],
+          ['label' => 'Inventários', 'href' => '/logistica/inventarios', 'icon' => '📋', 'admin_only' => true],
+          ['label' => 'Consulta de Estoque', 'href' => '/logistica/consulta-estoque', 'icon' => '🔍', 'admin_only' => true],
+          ['label' => 'Consulta de Almoxarifado', 'href' => '/logistica/consulta-almoxarifado', 'icon' => '🏢', 'admin_only' => true],
+          ['label' => 'Transferências Internas', 'href' => '/logistica/transferencias-internas', 'icon' => '🔄', 'admin_only' => true],
+          ['label' => 'Transferências Externas', 'href' => '/logistica/transferencias-externas', 'icon' => '🚚', 'admin_only' => true],
+          ['label' => 'Estoque Técnico', 'href' => '/logistica/estoque-tecnico', 'icon' => '🔧', 'admin_only' => true],
+        ]
+      ],
     ]
   ],
 ];

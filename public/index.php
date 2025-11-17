@@ -486,6 +486,40 @@ $router->get('/crm/marketing', [App\Controllers\CRMController::class, 'marketing
 $router->get('/crm/relatorios', [App\Controllers\CRMController::class, 'relatorios']);
 $router->get('/crm/dashboards', [App\Controllers\CRMController::class, 'dashboards']);
 
+// Logística routes (Admin Only - Premium R$ 600/mês)
+$router->get('/logistica/entrada-estoque', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/entrada-estoque.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/logistica/entrada-almoxarifados', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/entrada-almoxarifados.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/logistica/inventarios', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/inventarios.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/logistica/consulta-estoque', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/consulta-estoque.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/logistica/consulta-almoxarifado', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/consulta-almoxarifado.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/logistica/transferencias-internas', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/transferencias-internas.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/logistica/transferencias-externas', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/transferencias-externas.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+$router->get('/logistica/estoque-tecnico', function() {
+    $viewFile = __DIR__ . '/../views/pages/logistica/estoque-tecnico.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+
 // Power BI API routes
 $router->get('/api/powerbi', [App\Controllers\PowerBIController::class, 'index']);
 $router->get('/api/powerbi/documentacao', [App\Controllers\PowerBIController::class, 'documentacao']);
