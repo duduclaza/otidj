@@ -147,7 +147,7 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 </section>
 
 <!-- Modal de Detalhes -->
-<div id="modalDetalhes" class="fixed hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+<div id="modalDetalhes" class="fixed hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 99999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
   <div class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white rounded-lg max-w-3xl w-full shadow-2xl transform transition-all duration-300 my-auto" onclick="event.stopPropagation()" style="max-height: 90vh;">
     <!-- Cabeçalho Fixo -->
@@ -170,7 +170,7 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
 
 <!-- Modal de Gerenciamento (APENAS Super Admin) -->
 <?php if ($isSuperAdmin): ?>
-<div id="modalResolucao" class="fixed hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 9999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+<div id="modalResolucao" class="fixed hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; z-index: 99999; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
   <div class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white rounded-lg max-w-md w-full shadow-2xl transform transition-all duration-300 my-auto" onclick="event.stopPropagation()">
     <!-- Cabeçalho -->
@@ -473,4 +473,22 @@ document.getElementById('modalResolucao')?.addEventListener('click', function(e)
   }
 });
 <?php endif; ?>
+
+// 🚀 MOVER MODAIS PARA O BODY (para ficarem acima de tudo, inclusive sidebar)
+document.addEventListener('DOMContentLoaded', function() {
+  const modalDetalhes = document.getElementById('modalDetalhes');
+  const modalResolucao = document.getElementById('modalResolucao');
+  
+  // Mover modal de detalhes para o body
+  if (modalDetalhes && modalDetalhes.parentElement !== document.body) {
+    document.body.appendChild(modalDetalhes);
+    console.log('✅ Modal de Detalhes movido para body');
+  }
+  
+  // Mover modal de resolução para o body (se existir)
+  if (modalResolucao && modalResolucao.parentElement !== document.body) {
+    document.body.appendChild(modalResolucao);
+    console.log('✅ Modal de Resolução movido para body');
+  }
+});
 </script>
