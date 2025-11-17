@@ -150,7 +150,10 @@ class ControleDescartesController
             }
             
             // Converter array de IDs em string separada por vírgula
-            $notificarUsuarios = implode(',', array_map('intval', $_POST['notificar_usuarios']));
+            $notificarUsuarios = null;
+            if (!empty($_POST['notificar_usuarios']) && is_array($_POST['notificar_usuarios'])) {
+                $notificarUsuarios = implode(',', array_map('intval', $_POST['notificar_usuarios']));
+            }
 
             // Data do descarte (se não informada, usar hoje)
             $data_descarte = !empty($_POST['data_descarte']) ? $_POST['data_descarte'] : date('Y-m-d');
@@ -183,32 +186,69 @@ class ControleDescartesController
                 $anexo_tamanho = $file['size'];
             }
 
+            // Verificar se coluna notificar_usuarios existe
+            $colunaNotificarExiste = false;
+            try {
+                $checkCol = $this->db->query("SHOW COLUMNS FROM controle_descartes LIKE 'notificar_usuarios'");
+                $colunaNotificarExiste = $checkCol->rowCount() > 0;
+            } catch (\Exception $e) {
+                $colunaNotificarExiste = false;
+            }
+
             // Inserir descarte com status inicial "Aguardando Descarte"
-            $stmt = $this->db->prepare("
-                INSERT INTO controle_descartes (
-                    numero_serie, filial_id, codigo_produto, descricao_produto, 
-                    data_descarte, numero_os, anexo_os_blob, anexo_os_nome, 
-                    anexo_os_tipo, anexo_os_tamanho, responsavel_tecnico, 
-                    observacoes, notificar_usuarios, status, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aguardando Descarte', ?)
-            ");
-            
-            $stmt->execute([
-                $_POST['numero_serie'],
-                $_POST['filial_id'],
-                $_POST['codigo_produto'],
-                $_POST['descricao_produto'],
-                $data_descarte,
-                $_POST['numero_os'] ?? null,
-                $anexo_blob,
-                $anexo_nome,
-                $anexo_tipo,
-                $anexo_tamanho,
-                $_POST['responsavel_tecnico'],
-                $_POST['observacoes'] ?? null,
-                $notificarUsuarios,
-                $_SESSION['user_id']
-            ]);
+            if ($colunaNotificarExiste) {
+                $stmt = $this->db->prepare("
+                    INSERT INTO controle_descartes (
+                        numero_serie, filial_id, codigo_produto, descricao_produto, 
+                        data_descarte, numero_os, anexo_os_blob, anexo_os_nome, 
+                        anexo_os_tipo, anexo_os_tamanho, responsavel_tecnico, 
+                        observacoes, notificar_usuarios, status, created_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aguardando Descarte', ?)
+                ");
+                
+                $stmt->execute([
+                    $_POST['numero_serie'],
+                    $_POST['filial_id'],
+                    $_POST['codigo_produto'],
+                    $_POST['descricao_produto'],
+                    $data_descarte,
+                    $_POST['numero_os'] ?? null,
+                    $anexo_blob,
+                    $anexo_nome,
+                    $anexo_tipo,
+                    $anexo_tamanho,
+                    $_POST['responsavel_tecnico'],
+                    $_POST['observacoes'] ?? null,
+                    $notificarUsuarios,
+                    $_SESSION['user_id']
+                ]);
+            } else {
+                // Sem coluna notificar_usuarios
+                $stmt = $this->db->prepare("
+                    INSERT INTO controle_descartes (
+                        numero_serie, filial_id, codigo_produto, descricao_produto, 
+                        data_descarte, numero_os, anexo_os_blob, anexo_os_nome, 
+                        anexo_os_tipo, anexo_os_tamanho, responsavel_tecnico, 
+                        observacoes, status, created_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Aguardando Descarte', ?)
+                ");
+                
+                $stmt->execute([
+                    $_POST['numero_serie'],
+                    $_POST['filial_id'],
+                    $_POST['codigo_produto'],
+                    $_POST['descricao_produto'],
+                    $data_descarte,
+                    $_POST['numero_os'] ?? null,
+                    $anexo_blob,
+                    $anexo_nome,
+                    $anexo_tipo,
+                    $anexo_tamanho,
+                    $_POST['responsavel_tecnico'],
+                    $_POST['observacoes'] ?? null,
+                    $_SESSION['user_id']
+                ]);
+            }
 
             $descarte_id = $this->db->lastInsertId();
             
