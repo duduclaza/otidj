@@ -1149,7 +1149,7 @@ class HomologacoesKanbanController
 
             // Buscar histórico completo
             $stmt = $this->db->prepare("
-                SELECT *, CONVERT_TZ(COALESCE(data_acao, created_at), '+00:00', '-03:00') as data_acao_real
+                SELECT *, COALESCE(data_acao, created_at) as data_acao_real
                 FROM homologacoes_historico 
                 WHERE homologacao_id = ? 
                 ORDER BY COALESCE(data_acao, created_at) ASC
@@ -1254,7 +1254,7 @@ class HomologacoesKanbanController
                 SELECT 
                     h.*,
                     COALESCE(h.data_acao, h.created_at) as data_acao_real,
-                    DATE_FORMAT(CONVERT_TZ(COALESCE(h.data_acao, h.created_at), '+00:00', '-03:00'), '%Y-%m-%d %H:%i:%s') as data_acao_formatada
+                    DATE_FORMAT(COALESCE(h.data_acao, h.created_at), '%Y-%m-%d %H:%i:%s') as data_acao_formatada
                 FROM homologacoes_historico h
                 WHERE h.homologacao_id = ? 
                 ORDER BY COALESCE(h.data_acao, h.created_at) ASC
@@ -1334,7 +1334,7 @@ class HomologacoesKanbanController
             // Buscar histórico completo
             $stmt = $this->db->prepare("
                 SELECT *,
-                       CONVERT_TZ(COALESCE(data_acao, created_at), '+00:00', '-03:00') as data_acao_real
+                       COALESCE(data_acao, created_at) as data_acao_real
                 FROM homologacoes_historico 
                 WHERE homologacao_id = ? 
                 ORDER BY COALESCE(data_acao, created_at) ASC

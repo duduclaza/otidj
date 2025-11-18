@@ -1937,8 +1937,92 @@ function adicionarBotoesLogDetalhado(container, homologacaoId, etapa) {
     container.appendChild(btnRelatorio);
 }
 
-// Incluir funcionalidades de log detalhado
-<?php include __DIR__ . '/log-detalhado.js'; ?>
+// Funcionalidades de log detalhado
+
+/**
+ * Abrir modal de logs
+ */
+async function abrirModalLogs(homologacaoId) {
+    try {
+        const response = await fetch(`/homologacoes/${homologacaoId}/logs`);
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarModalLogs(data.homologacao, data.logs);
+        } else {
+            alert('Erro ao carregar logs: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao carregar logs: ' + error.message);
+    }
+}
+
+/**
+ * Mostrar modal com logs
+ */
+function mostrarModalLogs(homologacao, logs) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h2 class="text-xl font-bold">Histórico de Logs - ${homologacao.cod_referencia}</h2>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto max-h-[70vh]">
+                ${logs.length > 0 ? formatarLogsParaModal(logs) : '<p class="text-center text-gray-500">Nenhum log encontrado</p>'}
+            </div>
+            <div class="flex justify-end p-6 border-t">
+                <button onclick="exportarLogs(${homologacao.id})" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">
+                    Exportar Logs
+                </button>
+                <button onclick="this.closest('.fixed').remove()" class="bg-gray-500 text-white px-4 py-2 rounded">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+/**
+ * Formatar logs para exibição no modal
+ */
+function formatarLogsParaModal(logs) {
+    return logs.map((log, index) => {
+        const dataFormatada = new Date(log.data_acao).toLocaleString('pt-BR');
+        return `
+            <div class="border-l-4 border-blue-500 pl-4 mb-4">
+                <div class="flex justify-between items-start">
+                    <h4 class="font-semibold">${log.acao_realizada || 'Ação não especificada'}</h4>
+                    <span class="text-sm text-gray-500">${dataFormatada}</span>
+                </div>
+                <p class="text-sm text-gray-600">Por: ${log.usuario_nome || 'Usuário não identificado'}</p>
+                ${log.observacoes ? `<p class="mt-2 text-sm">${log.observacoes}</p>` : ''}
+                ${log.detalhes_acao ? `<p class="mt-1 text-xs text-gray-500">${log.detalhes_acao}</p>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Abrir relatório completo
+ */
+function abrirRelatorioCompleto(homologacaoId) {
+    window.open(`/homologacoes/${homologacaoId}/relatorio`, '_blank');
+}
+
+/**
+ * Exportar logs
+ */
+function exportarLogs(homologacaoId) {
+    window.open(`/homologacoes/${homologacaoId}/logs/export`, '_blank');
+}
 
 </script>
 
