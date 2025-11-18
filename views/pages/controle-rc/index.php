@@ -6,6 +6,46 @@
     <p class="text-gray-600 mt-1">Registro e controle de reclamações</p>
 </div>
 
+<style>
+    /* Estilos para dropdown de status */
+    .status-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .status-select:hover {
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .status-select:focus {
+        outline: none;
+        ring: 2px;
+        ring-color: #3b82f6;
+    }
+    
+    /* Animação de notificação */
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    #notificacao-status {
+        animation: slideIn 0.3s ease-out;
+    }
+</style>
+
         <!-- Formulário Inline (Tema Escuro) -->
         <div class="bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
             <div class="flex items-center justify-between mb-4">
@@ -315,16 +355,21 @@
                     <td class="px-6 py-4" title="${reg.acoes_realizadas || ''}">${truncateText(reg.acoes_realizadas)}</td>
                     <td class="px-6 py-4" title="${reg.conclusao || ''}">${truncateText(reg.conclusao)}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(reg.status)}">${reg.status}</span>
+                        <select onchange="alterarStatusDireto(${reg.id}, this.value)" 
+                                data-status-anterior="${reg.status}"
+                                class="status-select px-2 py-1 text-xs rounded-full border-0 ${getStatusColor(reg.status)} cursor-pointer">
+                            <option value="Em analise" ${reg.status === 'Em analise' ? 'selected' : ''}>Em análise</option>
+                            <option value="Aguardando ações do fornecedor" ${reg.status === 'Aguardando ações do fornecedor' ? 'selected' : ''}>Aguardando ações do fornecedor</option>
+                            <option value="Aguardando retorno do produto" ${reg.status === 'Aguardando retorno do produto' ? 'selected' : ''}>Aguardando retorno do produto</option>
+                            <option value="Finalizado" ${reg.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                            <option value="Concluída" ${reg.status === 'Concluída' ? 'selected' : ''}>Concluída</option>
+                        </select>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">${reg.usuario_nome}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex gap-2">
                             <button onclick="editarRegistro(${reg.id})" class="text-blue-600 hover:text-blue-800" title="Editar">
                                 ✏️
-                            </button>
-                            <button onclick="alterarStatus(${reg.id}, '${reg.status}')" class="text-purple-600 hover:text-purple-800" title="Alterar Status">
-                                🔄
                             </button>
                             <button onclick="imprimirRegistro(${reg.id})" class="text-green-600 hover:text-green-800" title="Imprimir">
                                 🖨️
@@ -587,42 +632,72 @@
             }
         }
 
-        // Função para alterar status
-        async function alterarStatus(id, statusAtual) {
-            const statusOptions = [
-                'Em analise',
-                'Aguardando ações do fornecedor',
-                'Aguardando retorno do produto',
-                'Finalizado',
-                'Concluída'
-            ];
+        // Função para alterar status diretamente no dropdown
+        async function alterarStatusDireto(id, novoStatus) {
+            try {
+                // Mostrar loading no dropdown
+                const select = event.target;
+                const statusAnterior = select.dataset.statusAnterior || select.value;
+                select.disabled = true;
+                select.style.opacity = '0.6';
 
-            let options = statusOptions.map(status => 
-                `<option value="${status}" ${status === statusAtual ? 'selected' : ''}>${status}</option>`
-            ).join('');
+                const response = await fetch('/controle-rc/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `id=${id}&status=${encodeURIComponent(novoStatus)}`
+                });
 
-            const novoStatus = prompt(`Alterar status de "${statusAtual}" para:`, statusAtual);
-            
-            if (novoStatus && novoStatus !== statusAtual && statusOptions.includes(novoStatus)) {
-                try {
-                    const response = await fetch('/controle-rc/update-status', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `id=${id}&status=${encodeURIComponent(novoStatus)}`
-                    });
+                const data = await response.json();
 
-                    const data = await response.json();
-
-                    if (data.success) {
-                        alert(data.message);
-                        carregarRegistros(); // Recarregar grid
-                    } else {
-                        alert('Erro: ' + data.message);
-                    }
-                } catch (error) {
-                    alert('Erro ao alterar status: ' + error.message);
+                if (data.success) {
+                    // Mostrar notificação de sucesso
+                    mostrarNotificacao('Status atualizado com sucesso!', 'success');
+                    
+                    // Atualizar a cor do dropdown
+                    select.className = `px-2 py-1 text-xs rounded-full border-0 ${getStatusColor(novoStatus)} cursor-pointer hover:opacity-80 focus:ring-2 focus:ring-blue-500`;
+                    select.dataset.statusAnterior = novoStatus;
+                } else {
+                    // Reverter para status anterior em caso de erro
+                    select.value = statusAnterior;
+                    mostrarNotificacao('Erro: ' + data.message, 'error');
                 }
+            } catch (error) {
+                // Reverter para status anterior em caso de erro
+                select.value = statusAnterior;
+                mostrarNotificacao('Erro ao alterar status: ' + error.message, 'error');
+            } finally {
+                // Remover loading
+                select.disabled = false;
+                select.style.opacity = '1';
             }
+        }
+
+        // Função para mostrar notificações
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            // Remover notificação anterior se existir
+            const notificacaoExistente = document.getElementById('notificacao-status');
+            if (notificacaoExistente) {
+                notificacaoExistente.remove();
+            }
+
+            // Criar nova notificação
+            const notificacao = document.createElement('div');
+            notificacao.id = 'notificacao-status';
+            notificacao.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+                tipo === 'success' ? 'bg-green-500 text-white' : 
+                tipo === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notificacao.textContent = mensagem;
+
+            document.body.appendChild(notificacao);
+
+            // Remover após 3 segundos
+            setTimeout(() => {
+                notificacao.style.opacity = '0';
+                notificacao.style.transform = 'translateX(100%)';
+                setTimeout(() => notificacao.remove(), 300);
+            }, 3000);
         }
 
         // Event listeners para busca em tempo real
