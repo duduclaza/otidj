@@ -1870,8 +1870,18 @@ function adicionarBotoesNavegacao() {
         navButtons.appendChild(btnAnterior);
         navButtons.appendChild(btnProximo);
         
-        // Botões de log detalhado removidos conforme solicitado
-        // adicionarBotoesLogDetalhado(navButtons, homologacaoId, statusAtual);
+        // Adicionar apenas o botão Ver Logs
+        const btnLogs = document.createElement('button');
+        btnLogs.type = 'button';
+        btnLogs.className = 'card-nav-btn bg-purple-500 hover:bg-purple-600';
+        btnLogs.innerHTML = '📜';
+        btnLogs.title = 'Ver histórico de logs';
+        btnLogs.onclick = (e) => {
+            e.stopPropagation();
+            abrirModalLogs(homologacaoId);
+        };
+        
+        navButtons.appendChild(btnLogs);
         
         card.appendChild(navButtons);
         
