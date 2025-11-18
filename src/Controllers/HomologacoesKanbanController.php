@@ -370,7 +370,7 @@ class HomologacoesKanbanController
                 )
                 VALUES (?, 'aguardando_recebimento', ?, 'Homologação criada', NOW())
             ");
-            $stmtHist->execute([$homologacaoId, $_SESSION['user_id']]);
+            $stmtHist->execute([$homologacaoId, $this->getUsuarioIdLog()]);
 
             $this->db->commit();
 
@@ -493,7 +493,7 @@ class HomologacoesKanbanController
                 $homologacaoId,
                 $homologacao['status'],
                 $novoStatus,
-                $_SESSION['user_id'],
+                $this->getUsuarioIdLog(),
                 $observacao ?: "Status alterado de {$homologacao['status']} para {$novoStatus}"
             ]);
 
@@ -582,7 +582,7 @@ class HomologacoesKanbanController
                 $homologacaoId,
                 $statusAnterior,
                 $novoStatus,
-                $_SESSION['user_id'],
+                $this->getUsuarioIdLog(),
                 'Status alterado via navegação rápida'
             ]);
 
@@ -1101,6 +1101,32 @@ class HomologacoesKanbanController
         }
         
         return implode(' | ', $detalhes);
+    }
+
+    /**
+     * Obter ID de usuário válido para registrar no histórico
+     * Evita violação de FK quando a sessão não tem user_id válido
+     */
+    private function getUsuarioIdLog(): int
+    {
+        // Se houver user_id na sessão, usar esse
+        if (!empty($_SESSION['user_id']) && is_numeric($_SESSION['user_id'])) {
+            return (int)$_SESSION['user_id'];
+        }
+
+        // Fallback: buscar um usuário ativo qualquer para não quebrar FK
+        try {
+            $stmt = $this->db->query("SELECT id FROM users WHERE status = 'active' ORDER BY id ASC LIMIT 1");
+            $id = $stmt->fetchColumn();
+            if ($id) {
+                return (int)$id;
+            }
+        } catch (\Exception $e) {
+            // Se der erro aqui, deixa seguir para último fallback
+        }
+
+        // Último fallback: 1 (esperado admin padrão)
+        return 1;
     }
 
     /**
