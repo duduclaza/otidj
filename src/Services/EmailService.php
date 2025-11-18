@@ -1805,4 +1805,153 @@ class EmailService
             ];
         }
     }
+
+    /**
+     * Enviar notificação de novo descarte
+     */
+    public function enviarNotificacaoDescarte(array $descarte, array $destinatarios, string $criadorNome): array
+    {
+        try {
+            $this->mailer->clearAddresses();
+            $this->mailer->clearAttachments();
+            
+            // Adicionar destinatários
+            foreach ($destinatarios as $destinatario) {
+                if (!empty($destinatario['email'])) {
+                    $this->mailer->addAddress($destinatario['email'], $destinatario['name'] ?? '');
+                }
+            }
+            
+            // Assunto
+            $this->mailer->Subject = '🗑️ Novo Descarte Registrado - SGQ OTI DJ';
+            
+            // Corpo do email em HTML
+            $html = $this->gerarTemplateDescarte($descarte, $criadorNome);
+            $this->mailer->msgHTML($html);
+            
+            // Texto alternativo
+            $this->mailer->AltBody = $this->gerarTextoAlternativoDescarte($descarte, $criadorNome);
+            
+            $this->mailer->send();
+            
+            return [
+                'success' => true,
+                'message' => 'Email de notificação de descarte enviado com sucesso'
+            ];
+            
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            return [
+                'success' => false,
+                'message' => 'Erro ao enviar email: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Gerar template HTML para notificação de descarte
+     */
+    private function gerarTemplateDescarte(array $descarte, string $criadorNome): string
+    {
+        $dataFormatada = date('d/m/Y', strtotime($descarte['data_descarte']));
+        $dataRegistro = date('d/m/Y H:i', strtotime($descarte['created_at'] ?? 'now'));
+        
+        return "
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>Novo Descarte Registrado</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center; }
+                .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+                .footer { background: #374151; color: white; padding: 15px; border-radius: 0 0 8px 8px; text-align: center; font-size: 12px; }
+                .info-box { background: white; padding: 15px; margin: 10px 0; border-radius: 6px; border-left: 4px solid #dc2626; }
+                .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+                .status-aguardando { background: #fef3c7; color: #92400e; }
+                .btn { display: inline-block; padding: 12px 24px; background: #dc2626; color: white; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+                .btn:hover { background: #b91c1c; }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>🗑️ Novo Descarte Registrado</h1>
+                    <p>Sistema de Gestão da Qualidade - OTI DJ</p>
+                </div>
+                
+                <div class='content'>
+                    <p><strong>Olá!</strong></p>
+                    
+                    <p>Um novo descarte foi registrado no sistema por <strong>{$criadorNome}</strong>.</p>
+                    
+                    <div class='info-box'>
+                        <h3>📋 Detalhes do Descarte:</h3>
+                        <p><strong>Número de Série:</strong> {$descarte['numero_serie']}</p>
+                        <p><strong>Produto:</strong> {$descarte['codigo_produto']} - {$descarte['descricao_produto']}</p>
+                        <p><strong>Responsável Técnico:</strong> {$descarte['responsavel_tecnico']}</p>
+                        <p><strong>Data do Descarte:</strong> {$dataFormatada}</p>
+                        <p><strong>Status:</strong> <span class='status status-aguardando'>{$descarte['status']}</span></p>
+                        " . (!empty($descarte['numero_os']) ? "<p><strong>Número OS:</strong> {$descarte['numero_os']}</p>" : "") . "
+                        " . (!empty($descarte['observacoes']) ? "<p><strong>Observações:</strong> {$descarte['observacoes']}</p>" : "") . "
+                    </div>
+                    
+                    <div class='info-box'>
+                        <h3>⏰ Informações do Registro:</h3>
+                        <p><strong>Registrado por:</strong> {$criadorNome}</p>
+                        <p><strong>Data/Hora:</strong> {$dataRegistro}</p>
+                    </div>
+                    
+                    <p><strong>⚠️ Ação Necessária:</strong></p>
+                    <p>Este descarte está aguardando processamento. Acesse o sistema para revisar e atualizar o status conforme necessário.</p>
+                    
+                    <a href='#' class='btn'>🔗 Acessar Sistema SGQ</a>
+                </div>
+                
+                <div class='footer'>
+                    <p>📧 Este é um email automático do Sistema SGQ OTI DJ</p>
+                    <p>🚫 Não responda este email - ele é enviado automaticamente</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+    }
+
+    /**
+     * Gerar texto alternativo para notificação de descarte
+     */
+    private function gerarTextoAlternativoDescarte(array $descarte, string $criadorNome): string
+    {
+        $dataFormatada = date('d/m/Y', strtotime($descarte['data_descarte']));
+        $dataRegistro = date('d/m/Y H:i', strtotime($descarte['created_at'] ?? 'now'));
+        
+        return "
+NOVO DESCARTE REGISTRADO - SGQ OTI DJ
+
+Um novo descarte foi registrado no sistema por {$criadorNome}.
+
+DETALHES DO DESCARTE:
+- Número de Série: {$descarte['numero_serie']}
+- Produto: {$descarte['codigo_produto']} - {$descarte['descricao_produto']}
+- Responsável Técnico: {$descarte['responsavel_tecnico']}
+- Data do Descarte: {$dataFormatada}
+- Status: {$descarte['status']}
+" . (!empty($descarte['numero_os']) ? "- Número OS: {$descarte['numero_os']}\n" : "") . "
+" . (!empty($descarte['observacoes']) ? "- Observações: {$descarte['observacoes']}\n" : "") . "
+
+INFORMAÇÕES DO REGISTRO:
+- Registrado por: {$criadorNome}
+- Data/Hora: {$dataRegistro}
+
+AÇÃO NECESSÁRIA:
+Este descarte está aguardando processamento. Acesse o sistema para revisar e atualizar o status conforme necessário.
+
+---
+Este é um email automático do Sistema SGQ OTI DJ
+Não responda este email - ele é enviado automaticamente
+        ";
+    }
 }

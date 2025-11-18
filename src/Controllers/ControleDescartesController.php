@@ -853,22 +853,83 @@ class ControleDescartesController
             $criadorId = $_SESSION['user_id'] ?? null;
             $criadorNome = $_SESSION['user_name'] ?? 'Usuário';
             
-            // Buscar usuários que foram selecionados para notificação
-            if (empty($descarte['notificar_usuarios'])) {
-                error_log('Controle Descartes: Nenhum usuário selecionado para notificação no descarte ID ' . $descarte_id);
+            // 1. BUSCAR ADMINS E SUPER ADMINS (sempre notificados)
+            $adminsStmt = $this->db->prepare("
+                SELECT id, name, email 
+                FROM users 
+                WHERE role IN ('admin', 'super_admin') 
+                AND email IS NOT NULL 
+                AND email != ''
+                AND id != ?
+            ");
+            $adminsStmt->execute([$criadorId]);
+            $admins = $adminsStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // 2. BUSCAR USUÁRIOS SELECIONADOS PARA NOTIFICAÇÃO
+            $usuariosSelecionados = [];
+            if (!empty($descarte['notificar_usuarios'])) {
+                $usuariosIds = explode(',', $descarte['notificar_usuarios']);
+                $usuariosIds = array_filter(array_map('intval', $usuariosIds));
+                
+                if (!empty($usuariosIds)) {
+                    $placeholders = str_repeat('?,', count($usuariosIds) - 1) . '?';
+                    $usuariosStmt = $this->db->prepare("
+                        SELECT id, name, email 
+                        FROM users 
+                        WHERE id IN ($placeholders) 
+                        AND email IS NOT NULL 
+                        AND email != ''
+                        AND id != ?
+                    ");
+                    $usuariosStmt->execute([...$usuariosIds, $criadorId]);
+                    $usuariosSelecionados = $usuariosStmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+            }
+            
+            // 3. COMBINAR TODOS OS DESTINATÁRIOS (sem duplicatas)
+            $todosDestinatarios = [];
+            $emailsJaAdicionados = [];
+            
+            // Adicionar admins
+            foreach ($admins as $admin) {
+                if (!in_array($admin['email'], $emailsJaAdicionados)) {
+                    $todosDestinatarios[] = $admin;
+                    $emailsJaAdicionados[] = $admin['email'];
+                }
+            }
+            
+            // Adicionar usuários selecionados
+            foreach ($usuariosSelecionados as $usuario) {
+                if (!in_array($usuario['email'], $emailsJaAdicionados)) {
+                    $todosDestinatarios[] = $usuario;
+                    $emailsJaAdicionados[] = $usuario['email'];
+                }
+            }
+            
+            if (empty($todosDestinatarios)) {
+                error_log('Controle Descartes: Nenhum destinatário válido encontrado para descarte ID ' . $descarte_id);
                 return;
             }
             
-            // Converter string de IDs em array
-            $usuariosIds = explode(',', $descarte['notificar_usuarios']);
-            $usuariosIds = array_filter(array_map('intval', $usuariosIds));
-            
-            if (empty($usuariosIds)) {
-                error_log('Controle Descartes: IDs de usuários inválidos no descarte ID ' . $descarte_id);
-                return;
+            // 4. ENVIAR EMAILS
+            try {
+                $emailService = new \App\Services\EmailService();
+                $resultadoEmail = $emailService->enviarNotificacaoDescarte(
+                    $descarte, 
+                    $todosDestinatarios, 
+                    $criadorNome
+                );
+                
+                if ($resultadoEmail['success']) {
+                    error_log("Controle Descartes: Email enviado com sucesso para " . count($todosDestinatarios) . " destinatário(s)");
+                } else {
+                    error_log("Controle Descartes: Erro ao enviar email - " . $resultadoEmail['message']);
+                }
+            } catch (\Exception $emailError) {
+                error_log("Controle Descartes: Erro no serviço de email - " . $emailError->getMessage());
             }
             
-            // Criar notificação para cada usuário selecionado
+            // 5. CRIAR NOTIFICAÇÕES INTERNAS (backup)
             $stmt = $this->db->prepare('
                 INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, NOW())
@@ -878,13 +939,10 @@ class ControleDescartesController
             $mensagem = "$criadorNome registrou um novo descarte: Série {$descarte['numero_serie']} - {$descarte['descricao_produto']} (Status: {$descarte['status']})";
             
             $notificados = 0;
-            foreach ($usuariosIds as $userId) {
+            foreach ($todosDestinatarios as $destinatario) {
                 try {
-                    // Não notificar o próprio criador
-                    if ($userId == $criadorId) continue;
-                    
                     $stmt->execute([
-                        $userId,
+                        $destinatario['id'],
                         $titulo,
                         $mensagem,
                         'warning', // Tipo warning para chamar atenção
@@ -893,11 +951,11 @@ class ControleDescartesController
                     ]);
                     $notificados++;
                 } catch (\Exception $e) {
-                    error_log("Erro ao notificar usuário $userId: " . $e->getMessage());
+                    error_log("Erro ao criar notificação interna para usuário {$destinatario['id']}: " . $e->getMessage());
                 }
             }
             
-            error_log("Controle Descartes: $notificados notificação(ões) criada(s) para descarte ID $descarte_id");
+            error_log("Controle Descartes: $notificados notificação(ões) interna(s) criada(s) para descarte ID $descarte_id");
             
         } catch (\Exception $e) {
             error_log('Erro ao notificar novo descarte: ' . $e->getMessage());
