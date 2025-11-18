@@ -1870,18 +1870,18 @@ function adicionarBotoesNavegacao() {
         navButtons.appendChild(btnAnterior);
         navButtons.appendChild(btnProximo);
         
-        // Adicionar apenas o botão Ver Logs
-        const btnLogs = document.createElement('button');
-        btnLogs.type = 'button';
-        btnLogs.className = 'card-nav-btn bg-purple-500 hover:bg-purple-600';
-        btnLogs.innerHTML = '📜';
-        btnLogs.title = 'Ver histórico de logs';
-        btnLogs.onclick = (e) => {
+        // Adicionar apenas o botão Ver Relatório
+        const btnRelatorio = document.createElement('button');
+        btnRelatorio.type = 'button';
+        btnRelatorio.className = 'card-nav-btn bg-green-500 hover:bg-green-600';
+        btnRelatorio.innerHTML = '📊';
+        btnRelatorio.title = 'Ver relatório completo';
+        btnRelatorio.onclick = (e) => {
             e.stopPropagation();
-            abrirModalLogs(homologacaoId);
+            abrirRelatorioCompleto(homologacaoId);
         };
         
-        navButtons.appendChild(btnLogs);
+        navButtons.appendChild(btnRelatorio);
         
         card.appendChild(navButtons);
         
