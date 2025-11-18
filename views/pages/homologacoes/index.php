@@ -1870,8 +1870,8 @@ function adicionarBotoesNavegacao() {
         navButtons.appendChild(btnAnterior);
         navButtons.appendChild(btnProximo);
         
-        // Adicionar botões de log detalhado
-        adicionarBotoesLogDetalhado(navButtons, homologacaoId, statusAtual);
+        // Botões de log detalhado removidos conforme solicitado
+        // adicionarBotoesLogDetalhado(navButtons, homologacaoId, statusAtual);
         
         card.appendChild(navButtons);
         
