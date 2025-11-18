@@ -86,6 +86,40 @@
     pointer-events: none;
 }
 
+/* Botões coloridos de log detalhado */
+.card-nav-btn.bg-blue-500 {
+    background: #3b82f6 !important;
+    color: white !important;
+    border-color: #2563eb !important;
+}
+
+.card-nav-btn.bg-blue-500:hover {
+    background: #2563eb !important;
+    transform: scale(1.1);
+}
+
+.card-nav-btn.bg-purple-500 {
+    background: #8b5cf6 !important;
+    color: white !important;
+    border-color: #7c3aed !important;
+}
+
+.card-nav-btn.bg-purple-500:hover {
+    background: #7c3aed !important;
+    transform: scale(1.1);
+}
+
+.card-nav-btn.bg-green-500 {
+    background: #10b981 !important;
+    color: white !important;
+    border-color: #059669 !important;
+}
+
+.card-nav-btn.bg-green-500:hover {
+    background: #059669 !important;
+    transform: scale(1.1);
+}
+
 /* Cores por status */
 .status-aguardando_recebimento { border-left-color: #ca8a04; background: #fef9c3; }
 .status-recebido { border-left-color: #1d4ed8; background: #dbeafe; }
@@ -1835,6 +1869,10 @@ function adicionarBotoesNavegacao() {
         
         navButtons.appendChild(btnAnterior);
         navButtons.appendChild(btnProximo);
+        
+        // Adicionar botões de log detalhado
+        adicionarBotoesLogDetalhado(navButtons, homologacaoId, statusAtual);
+        
         card.appendChild(navButtons);
         
         // Adicionar margem inferior no conteúdo para os botões
@@ -1844,6 +1882,53 @@ function adicionarBotoesNavegacao() {
         }
     });
 }
+
+// ===== SISTEMA DE LOG DETALHADO =====
+
+/**
+ * Adicionar botões de log detalhado ao container de navegação
+ */
+function adicionarBotoesLogDetalhado(container, homologacaoId, etapa) {
+    // Botão para registrar dados da etapa
+    const btnDados = document.createElement('button');
+    btnDados.type = 'button';
+    btnDados.className = 'card-nav-btn bg-blue-500 hover:bg-blue-600';
+    btnDados.innerHTML = '📝';
+    btnDados.title = 'Registrar dados da etapa';
+    btnDados.onclick = (e) => {
+        e.stopPropagation();
+        abrirModalDadosEtapa(homologacaoId, etapa);
+    };
+    
+    // Botão para ver logs
+    const btnLogs = document.createElement('button');
+    btnLogs.type = 'button';
+    btnLogs.className = 'card-nav-btn bg-purple-500 hover:bg-purple-600';
+    btnLogs.innerHTML = '📜';
+    btnLogs.title = 'Ver histórico de logs';
+    btnLogs.onclick = (e) => {
+        e.stopPropagation();
+        abrirModalLogs(homologacaoId);
+    };
+
+    // Botão para relatório completo
+    const btnRelatorio = document.createElement('button');
+    btnRelatorio.type = 'button';
+    btnRelatorio.className = 'card-nav-btn bg-green-500 hover:bg-green-600';
+    btnRelatorio.innerHTML = '📊';
+    btnRelatorio.title = 'Ver relatório completo';
+    btnRelatorio.onclick = (e) => {
+        e.stopPropagation();
+        abrirRelatorioCompleto(homologacaoId);
+    };
+    
+    container.appendChild(btnDados);
+    container.appendChild(btnLogs);
+    container.appendChild(btnRelatorio);
+}
+
+// Incluir funcionalidades de log detalhado
+<?php include __DIR__ . '/log-detalhado.js'; ?>
 
 </script>
 
