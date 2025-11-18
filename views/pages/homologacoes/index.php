@@ -24,12 +24,12 @@
 .kanban-card {
     background: #ffffff;
     border-radius: 10px;
-    padding: 14px;
+    padding: 14px 14px 40px 14px;
     margin-bottom: 12px;
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
-    cursor: grab;
-    transition: all 0.2s;
-    border-left: 4px solid;
+    border-left: 4px solid #e2e8f0;
+    box-shadow: 0 4px 8px rgba(15, 23, 42, 0.08);
+    cursor: pointer;
+    transition: all 0.3s ease;
     position: relative;
 }
 
@@ -54,8 +54,8 @@
     display: flex;
     gap: 4px;
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    bottom: 8px;
+    left: 8px;
     z-index: 10;
 }
 
@@ -63,10 +63,10 @@
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(100, 116, 139, 0.3);
     border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 16px;
+    padding: 4px 8px;
+    font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
