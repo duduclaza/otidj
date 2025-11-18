@@ -310,12 +310,12 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Data Início:</span>
-                        <?= date('d/m/Y H:i', strtotime($homologacao['created_at'])) ?>
+                        <?= htmlspecialchars($homologacao['data_inicio_br'] ?? date('d/m/Y H:i', strtotime($homologacao['created_at']))) ?>
                     </div>
                     <?php if ($homologacao['data_finalizacao']): ?>
                     <div class="info-item">
                         <span class="info-label">Data Finalização:</span>
-                        <?= date('d/m/Y H:i', strtotime($homologacao['data_finalizacao'])) ?>
+                        <?= htmlspecialchars($homologacao['data_finalizacao_br'] ?? date('d/m/Y H:i', strtotime($homologacao['data_finalizacao']))) ?>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -346,7 +346,7 @@
                                 <?php endif; ?>
                             </div>
                             <div class="timeline-date">
-                                <?= date('d/m/Y H:i', strtotime($item['data_acao_real'] ?? $item['created_at'])) ?>
+                                <?= htmlspecialchars($item['data_acao_br'] ?? date('d/m/Y H:i', strtotime($item['data_acao_real'] ?? $item['created_at']))) ?>
                             </div>
                         </div>
                         

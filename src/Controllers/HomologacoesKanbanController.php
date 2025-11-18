@@ -1178,15 +1178,44 @@ class HomologacoesKanbanController
                 return;
             }
 
-            // Buscar histórico completo
+            // Buscar histórico completo, resolvendo nome de usuário via JOIN
             $stmt = $this->db->prepare("
-                SELECT *, COALESCE(data_acao, created_at) as data_acao_real
-                FROM homologacoes_historico 
-                WHERE homologacao_id = ? 
-                ORDER BY COALESCE(data_acao, created_at) ASC
+                SELECT 
+                    h.*, 
+                    COALESCE(h.data_acao, h.created_at) as data_acao_real,
+                    COALESCE(h.usuario_nome, u.name) as usuario_responsavel
+                FROM homologacoes_historico h
+                LEFT JOIN users u ON u.id = h.usuario_id
+                WHERE h.homologacao_id = ? 
+                ORDER BY COALESCE(h.data_acao, h.created_at) ASC
             ");
             $stmt->execute([$id]);
             $historico = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Normalizar campos de histórico (datas e usuário) para o relatório
+            foreach ($historico as &$item) {
+                // Resolver nome do usuário responsável
+                if (!empty($item['usuario_responsavel'])) {
+                    $item['usuario_nome'] = $item['usuario_responsavel'];
+                } elseif (empty($item['usuario_nome'])) {
+                    $item['usuario_nome'] = 'Usuário não identificado';
+                }
+
+                // Resolver data de ação no fuso de Brasília
+                $baseData = $item['data_acao_real'] ?? $item['created_at'] ?? null;
+                if ($baseData) {
+                    try {
+                        // Assumir que o banco está em UTC e converter para America/Sao_Paulo
+                        $dt = Carbon::parse($baseData, 'UTC')->timezone('America/Sao_Paulo');
+                        $item['data_acao_br'] = $dt->format('d/m/Y H:i');
+                    } catch (\Exception $e) {
+                        $item['data_acao_br'] = null;
+                    }
+                } else {
+                    $item['data_acao_br'] = null;
+                }
+            }
+            unset($item);
 
             // Buscar dados específicos de cada etapa (se a tabela existir)
             $dadosEtapas = [];
@@ -1243,12 +1272,34 @@ class HomologacoesKanbanController
             $anexosOrganizados[$anexo['etapa_upload']][] = $anexo;
         }
 
-        // Calcular tempo total
-        $dataInicio = new \DateTime($homologacao['created_at']);
-        $dataFim = $homologacao['data_finalizacao'] ? 
-                   new \DateTime($homologacao['data_finalizacao']) : 
-                   new \DateTime();
-        $tempoTotal = $dataInicio->diff($dataFim);
+        // Calcular tempo total usando histórico (quando existir) e Carbon em horário de Brasília
+        $tzDb = 'UTC';
+        $tzLocal = 'America/Sao_Paulo';
+
+        if (!empty($historico)) {
+            $primeiro = $historico[0];
+            $ultimo   = $historico[count($historico) - 1];
+
+            $inicio = Carbon::parse($primeiro['data_acao_real'] ?? $primeiro['created_at'], $tzDb)
+                ->timezone($tzLocal);
+            $fim    = Carbon::parse($ultimo['data_acao_real'] ?? $ultimo['created_at'], $tzDb)
+                ->timezone($tzLocal);
+        } else {
+            // Fallback: usar created_at e data_finalizacao da homologação
+            $inicio = Carbon::parse($homologacao['created_at'], $tzDb)->timezone($tzLocal);
+            if (!empty($homologacao['data_finalizacao'])) {
+                $fim = Carbon::parse($homologacao['data_finalizacao'], $tzDb)->timezone($tzLocal);
+            } else {
+                $fim = Carbon::now($tzLocal);
+            }
+        }
+
+        // Intervalo total do processo
+        $tempoTotal = $inicio->diff($fim);
+
+        // Datas formatadas para o template
+        $homologacao['data_inicio_br'] = $inicio->format('d/m/Y H:i');
+        $homologacao['data_finalizacao_br'] = $fim ? $fim->format('d/m/Y H:i') : null;
 
         include __DIR__ . '/../../views/pages/homologacoes/relatorio.php';
     }
