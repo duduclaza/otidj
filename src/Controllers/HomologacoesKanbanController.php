@@ -1036,8 +1036,8 @@ class HomologacoesKanbanController
             $stmt = $this->db->prepare("
                 INSERT INTO homologacoes_historico (
                     homologacao_id, etapa_anterior, etapa_nova, usuario_id, usuario_nome,
-                    observacoes, dados_etapa, tempo_etapa, acao_realizada, detalhes_acao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    observacoes, dados_etapa, tempo_etapa, acao_realizada, detalhes_acao, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
             ");
 
             $stmt->execute([
@@ -1243,10 +1243,11 @@ class HomologacoesKanbanController
             $stmt = $this->db->prepare("
                 SELECT 
                     h.*,
-                    DATE_FORMAT(h.data_acao, '%Y-%m-%d %H:%i:%s') as data_acao_formatada
+                    COALESCE(h.data_acao, h.created_at) as data_acao_real,
+                    DATE_FORMAT(COALESCE(h.data_acao, h.created_at), '%Y-%m-%d %H:%i:%s') as data_acao_formatada
                 FROM homologacoes_historico h
                 WHERE h.homologacao_id = ? 
-                ORDER BY h.data_acao ASC
+                ORDER BY COALESCE(h.data_acao, h.created_at) ASC
             ");
             $stmt->execute([$id]);
             $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1254,6 +1255,20 @@ class HomologacoesKanbanController
             // Formatar dados para o frontend
             foreach ($logs as &$log) {
                 $log['data_acao'] = $log['data_acao_formatada'];
+                
+                // Garantir campos obrigatórios
+                if (empty($log['acao_realizada'])) {
+                    $log['acao_realizada'] = 'Mudança de status para ' . ($log['status_novo'] ?? $log['etapa_nova'] ?? 'nova etapa');
+                }
+                if (empty($log['usuario_nome'])) {
+                    $log['usuario_nome'] = 'Usuário não identificado';
+                }
+                if (empty($log['etapa_nova'])) {
+                    $log['etapa_nova'] = $log['status_novo'] ?? 'indefinido';
+                }
+                if (empty($log['etapa_anterior'])) {
+                    $log['etapa_anterior'] = $log['status_anterior'] ?? null;
+                }
                 
                 // Decodificar dados da etapa se existir
                 if ($log['dados_etapa']) {
@@ -1308,9 +1323,11 @@ class HomologacoesKanbanController
 
             // Buscar histórico completo
             $stmt = $this->db->prepare("
-                SELECT * FROM homologacoes_historico 
+                SELECT *,
+                       COALESCE(data_acao, created_at) as data_acao_real
+                FROM homologacoes_historico 
                 WHERE homologacao_id = ? 
-                ORDER BY data_acao ASC
+                ORDER BY COALESCE(data_acao, created_at) ASC
             ");
             $stmt->execute([$id]);
             $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1356,7 +1373,7 @@ class HomologacoesKanbanController
         
         foreach ($logs as $index => $log) {
             $numero = $index + 1;
-            $dataFormatada = date('d/m/Y H:i:s', strtotime($log['data_acao']));
+            $dataFormatada = date('d/m/Y H:i:s', strtotime($log['data_acao_real'] ?? $log['created_at']));
             $tempoEtapa = $log['tempo_etapa'] ? $this->formatarTempoTexto($log['tempo_etapa']) : 'N/A';
             
             $conteudo .= "#{$numero} - {$log['acao_realizada']}\n";
