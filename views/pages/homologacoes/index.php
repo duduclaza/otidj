@@ -1896,50 +1896,6 @@ function adicionarBotoesNavegacao() {
 // ===== SISTEMA DE LOG DETALHADO =====
 
 /**
- * Adicionar botões de log detalhado ao container de navegação
- */
-function adicionarBotoesLogDetalhado(container, homologacaoId, etapa) {
-    // Botão para registrar dados da etapa
-    const btnDados = document.createElement('button');
-    btnDados.type = 'button';
-    btnDados.className = 'card-nav-btn bg-blue-500 hover:bg-blue-600';
-    btnDados.innerHTML = '📝';
-    btnDados.title = 'Registrar dados da etapa';
-    btnDados.onclick = (e) => {
-        e.stopPropagation();
-        abrirModalDadosEtapa(homologacaoId, etapa);
-    };
-    
-    // Botão para ver logs
-    const btnLogs = document.createElement('button');
-    btnLogs.type = 'button';
-    btnLogs.className = 'card-nav-btn bg-purple-500 hover:bg-purple-600';
-    btnLogs.innerHTML = '📜';
-    btnLogs.title = 'Ver histórico de logs';
-    btnLogs.onclick = (e) => {
-        e.stopPropagation();
-        abrirModalLogs(homologacaoId);
-    };
-
-    // Botão para relatório completo
-    const btnRelatorio = document.createElement('button');
-    btnRelatorio.type = 'button';
-    btnRelatorio.className = 'card-nav-btn bg-green-500 hover:bg-green-600';
-    btnRelatorio.innerHTML = '📊';
-    btnRelatorio.title = 'Ver relatório completo';
-    btnRelatorio.onclick = (e) => {
-        e.stopPropagation();
-        abrirRelatorioCompleto(homologacaoId);
-    };
-    
-    container.appendChild(btnDados);
-    container.appendChild(btnLogs);
-    container.appendChild(btnRelatorio);
-}
-
-// Funcionalidades de log detalhado
-
-/**
  * Abrir modal de logs
  */
 async function abrirModalLogs(homologacaoId) {
