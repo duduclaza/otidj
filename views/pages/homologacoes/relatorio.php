@@ -340,18 +340,18 @@
                     <div class="timeline-content">
                         <div class="timeline-header">
                             <div class="timeline-title">
-                                <?= htmlspecialchars($item['acao_realizada']) ?>
+                                <?= htmlspecialchars($item['acao_realizada'] ?? 'Mudança de status') ?>
                                 <?php if ($tempoFormatado): ?>
                                     <span class="tempo-etapa">⏱️ <?= $tempoFormatado ?></span>
                                 <?php endif; ?>
                             </div>
                             <div class="timeline-date">
-                                <?= date('d/m/Y H:i', strtotime($item['data_acao'])) ?>
+                                <?= date('d/m/Y H:i', strtotime($item['data_acao_real'] ?? $item['created_at'])) ?>
                             </div>
                         </div>
                         
                         <div class="timeline-details">
-                            <p><strong>Responsável:</strong> <?= htmlspecialchars($item['usuario_nome']) ?></p>
+                            <p><strong>Responsável:</strong> <?= htmlspecialchars($item['usuario_nome'] ?? 'Usuário não identificado') ?></p>
                             
                             <?php if ($item['detalhes_acao']): ?>
                                 <p><strong>Detalhes:</strong> <?= htmlspecialchars($item['detalhes_acao']) ?></p>

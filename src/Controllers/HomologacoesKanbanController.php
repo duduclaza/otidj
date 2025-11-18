@@ -1147,31 +1147,39 @@ class HomologacoesKanbanController
 
             // Buscar histórico completo
             $stmt = $this->db->prepare("
-                SELECT * FROM homologacoes_historico 
+                SELECT *, COALESCE(data_acao, created_at) as data_acao_real
+                FROM homologacoes_historico 
                 WHERE homologacao_id = ? 
-                ORDER BY data_acao ASC
+                ORDER BY COALESCE(data_acao, created_at) ASC
             ");
             $stmt->execute([$id]);
             $historico = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Buscar dados específicos de cada etapa
-            $stmt = $this->db->prepare("
-                SELECT etapa, campo, valor, created_at,
-                       (SELECT name FROM users WHERE id = usuario_id) as usuario_nome
-                FROM homologacoes_etapas_dados 
-                WHERE homologacao_id = ? 
-                ORDER BY etapa, created_at ASC
-            ");
-            $stmt->execute([$id]);
-            $dadosEtapas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Buscar dados específicos de cada etapa (se a tabela existir)
+            $dadosEtapas = [];
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT etapa, campo, valor, created_at,
+                           (SELECT name FROM users WHERE id = usuario_id) as usuario_nome
+                    FROM homologacoes_etapas_dados 
+                    WHERE homologacao_id = ? 
+                    ORDER BY etapa, created_at ASC
+                ");
+                $stmt->execute([$id]);
+                $dadosEtapas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Exception $e) {
+                // Tabela não existe ainda, usar array vazio
+                $dadosEtapas = [];
+            }
 
-            // Buscar anexos por etapa
+            // Buscar anexos
             $stmt = $this->db->prepare("
-                SELECT etapa_upload, nome_arquivo, tipo_arquivo, tamanho_bytes, created_at,
+                SELECT 'geral' as etapa_upload, nome_arquivo, tipo_arquivo, 
+                       tamanho_arquivo as tamanho_bytes, created_at,
                        (SELECT name FROM users WHERE id = uploaded_by) as usuario_nome
                 FROM homologacoes_anexos 
                 WHERE homologacao_id = ? 
-                ORDER BY etapa_upload, created_at ASC
+                ORDER BY created_at ASC
             ");
             $stmt->execute([$id]);
             $anexos = $stmt->fetchAll(PDO::FETCH_ASSOC);
