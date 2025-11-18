@@ -14,7 +14,9 @@ class HomologacoesKanbanController
 
     public function __construct()
     {
-        $this->db = Database::getInstance()->getConnection();
+        // Database::getInstance() já retorna uma instância de PDO
+        // Não existe método getConnection() no PDO; usar diretamente a instância
+        $this->db = Database::getInstance();
         
         // Configurar timezone de Brasília para Carbon
         Carbon::setLocale('pt_BR');
