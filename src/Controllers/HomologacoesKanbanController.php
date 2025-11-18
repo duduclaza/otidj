@@ -14,8 +14,6 @@ class HomologacoesKanbanController
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
-        // Definir fuso horário do Brasil
-        date_default_timezone_set('America/Sao_Paulo');
     }
 
     /**
@@ -1038,8 +1036,8 @@ class HomologacoesKanbanController
             $stmt = $this->db->prepare("
                 INSERT INTO homologacoes_historico (
                     homologacao_id, etapa_anterior, etapa_nova, usuario_id, usuario_nome,
-                    observacoes, dados_etapa, tempo_etapa, acao_realizada, detalhes_acao, created_at, data_acao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                    observacoes, dados_etapa, tempo_etapa, acao_realizada, detalhes_acao
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
 
             $stmt->execute([
