@@ -443,6 +443,8 @@ $router->get('/homologacoes/anexo/{id}', [App\Controllers\HomologacoesKanbanCont
 $router->post('/homologacoes/delete', [App\Controllers\HomologacoesKanbanController::class, 'delete']);
 $router->post('/homologacoes/registrar-dados-etapa', [App\Controllers\HomologacoesKanbanController::class, 'registrarDadosEtapa']);
 $router->get('/homologacoes/{id}/relatorio', [App\Controllers\HomologacoesKanbanController::class, 'gerarRelatorio']);
+$router->get('/homologacoes/{id}/logs', [App\Controllers\HomologacoesKanbanController::class, 'buscarLogs']);
+$router->get('/homologacoes/{id}/logs/export', [App\Controllers\HomologacoesKanbanController::class, 'exportarLogs']);
 
 // ===== MÓDULO CERTIFICADOS =====
 $router->get('/certificados', [App\Controllers\CertificadosController::class, 'index']);

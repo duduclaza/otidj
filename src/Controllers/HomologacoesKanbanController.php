@@ -1211,4 +1211,247 @@ class HomologacoesKanbanController
 
         include __DIR__ . '/../../views/pages/homologacoes/relatorio.php';
     }
+
+    /**
+     * Buscar logs da homologação para modal
+     */
+    public function buscarLogs($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                return;
+            }
+
+            // Buscar dados da homologação
+            $stmt = $this->db->prepare("
+                SELECT id, cod_referencia, descricao, status
+                FROM homologacoes 
+                WHERE id = ?
+            ");
+            $stmt->execute([$id]);
+            $homologacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$homologacao) {
+                echo json_encode(['success' => false, 'message' => 'Homologação não encontrada']);
+                return;
+            }
+
+            // Buscar histórico completo
+            $stmt = $this->db->prepare("
+                SELECT 
+                    h.*,
+                    DATE_FORMAT(h.data_acao, '%Y-%m-%d %H:%i:%s') as data_acao_formatada
+                FROM homologacoes_historico h
+                WHERE h.homologacao_id = ? 
+                ORDER BY h.data_acao ASC
+            ");
+            $stmt->execute([$id]);
+            $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Formatar dados para o frontend
+            foreach ($logs as &$log) {
+                $log['data_acao'] = $log['data_acao_formatada'];
+                
+                // Decodificar dados da etapa se existir
+                if ($log['dados_etapa']) {
+                    try {
+                        $dadosEtapa = json_decode($log['dados_etapa'], true);
+                        $log['dados_etapa_decoded'] = $dadosEtapa;
+                    } catch (Exception $e) {
+                        $log['dados_etapa_decoded'] = null;
+                    }
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'homologacao' => $homologacao,
+                'logs' => $logs,
+                'total' => count($logs)
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao buscar logs: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Exportar logs em formato texto
+     */
+    public function exportarLogs($id)
+    {
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                header('Location: /login');
+                exit;
+            }
+
+            // Buscar dados da homologação
+            $stmt = $this->db->prepare("
+                SELECT h.*, u.name as criador_nome
+                FROM homologacoes h
+                LEFT JOIN users u ON h.created_by = u.id
+                WHERE h.id = ?
+            ");
+            $stmt->execute([$id]);
+            $homologacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$homologacao) {
+                http_response_code(404);
+                echo "Homologação não encontrada";
+                return;
+            }
+
+            // Buscar histórico completo
+            $stmt = $this->db->prepare("
+                SELECT * FROM homologacoes_historico 
+                WHERE homologacao_id = ? 
+                ORDER BY data_acao ASC
+            ");
+            $stmt->execute([$id]);
+            $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Gerar arquivo de texto
+            $conteudo = $this->gerarArquivoLogs($homologacao, $logs);
+            
+            // Headers para download
+            $nomeArquivo = "logs_homologacao_{$homologacao['cod_referencia']}_" . date('Y-m-d_H-i-s') . ".txt";
+            header('Content-Type: text/plain; charset=utf-8');
+            header('Content-Disposition: attachment; filename="' . $nomeArquivo . '"');
+            header('Content-Length: ' . strlen($conteudo));
+            
+            echo $conteudo;
+
+        } catch (\Exception $e) {
+            error_log('Erro ao exportar logs: ' . $e->getMessage());
+            http_response_code(500);
+            echo "Erro ao exportar logs: " . $e->getMessage();
+        }
+    }
+
+    /**
+     * Gerar conteúdo do arquivo de logs
+     */
+    private function gerarArquivoLogs($homologacao, $logs)
+    {
+        $conteudo = "=====================================\n";
+        $conteudo .= "HISTÓRICO DE LOGS - HOMOLOGAÇÃO\n";
+        $conteudo .= "=====================================\n\n";
+        
+        $conteudo .= "Código: {$homologacao['cod_referencia']}\n";
+        $conteudo .= "Descrição: {$homologacao['descricao']}\n";
+        $conteudo .= "Status Atual: {$homologacao['status']}\n";
+        $conteudo .= "Criado por: {$homologacao['criador_nome']}\n";
+        $conteudo .= "Data Criação: " . date('d/m/Y H:i:s', strtotime($homologacao['created_at'])) . "\n";
+        $conteudo .= "Relatório gerado em: " . date('d/m/Y H:i:s') . "\n";
+        $conteudo .= "Gerado por: " . ($_SESSION['user_name'] ?? 'Sistema') . "\n\n";
+        
+        $conteudo .= "=====================================\n";
+        $conteudo .= "HISTÓRICO DETALHADO\n";
+        $conteudo .= "=====================================\n\n";
+        
+        foreach ($logs as $index => $log) {
+            $numero = $index + 1;
+            $dataFormatada = date('d/m/Y H:i:s', strtotime($log['data_acao']));
+            $tempoEtapa = $log['tempo_etapa'] ? $this->formatarTempoTexto($log['tempo_etapa']) : 'N/A';
+            
+            $conteudo .= "#{$numero} - {$log['acao_realizada']}\n";
+            $conteudo .= str_repeat("-", 50) . "\n";
+            $conteudo .= "Data/Hora: {$dataFormatada}\n";
+            $conteudo .= "Responsável: {$log['usuario_nome']}\n";
+            $conteudo .= "Etapa: " . $this->formatarNomeEtapaTexto($log['etapa_nova']) . "\n";
+            
+            if ($log['etapa_anterior']) {
+                $conteudo .= "Etapa Anterior: " . $this->formatarNomeEtapaTexto($log['etapa_anterior']) . "\n";
+            }
+            
+            $conteudo .= "Tempo na Etapa: {$tempoEtapa}\n";
+            
+            if ($log['detalhes_acao']) {
+                $conteudo .= "Detalhes: {$log['detalhes_acao']}\n";
+            }
+            
+            if ($log['observacoes']) {
+                $conteudo .= "Observações: {$log['observacoes']}\n";
+            }
+            
+            // Dados específicos da etapa
+            if ($log['dados_etapa']) {
+                try {
+                    $dados = json_decode($log['dados_etapa'], true);
+                    if ($dados && is_array($dados)) {
+                        $conteudo .= "Dados Registrados:\n";
+                        foreach ($dados as $campo => $valor) {
+                            if ($valor && $campo !== 'observacoes') {
+                                $nomeCampo = $this->formatarNomeCampo($campo);
+                                $conteudo .= "  - {$nomeCampo}: {$valor}\n";
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Ignorar erro de JSON
+                }
+            }
+            
+            $conteudo .= "\n";
+        }
+        
+        $conteudo .= "=====================================\n";
+        $conteudo .= "RESUMO\n";
+        $conteudo .= "=====================================\n";
+        $conteudo .= "Total de registros: " . count($logs) . "\n";
+        $conteudo .= "Status final: {$homologacao['status']}\n";
+        
+        if ($homologacao['data_finalizacao']) {
+            $dataInicio = new \DateTime($homologacao['created_at']);
+            $dataFim = new \DateTime($homologacao['data_finalizacao']);
+            $intervalo = $dataInicio->diff($dataFim);
+            $conteudo .= "Tempo total: {$intervalo->days} dias, {$intervalo->h} horas, {$intervalo->i} minutos\n";
+        }
+        
+        return $conteudo;
+    }
+
+    /**
+     * Formatar tempo para texto
+     */
+    private function formatarTempoTexto($minutos)
+    {
+        if ($minutos < 60) {
+            return "{$minutos} minutos";
+        }
+        
+        $horas = floor($minutos / 60);
+        $mins = $minutos % 60;
+        
+        if ($horas < 24) {
+            return $mins > 0 ? "{$horas} horas e {$mins} minutos" : "{$horas} horas";
+        }
+        
+        $dias = floor($horas / 24);
+        $horasRestantes = $horas % 24;
+        
+        return "{$dias} dias, {$horasRestantes} horas";
+    }
+
+    /**
+     * Formatar nome da etapa para texto
+     */
+    private function formatarNomeEtapaTexto($etapa)
+    {
+        $nomes = [
+            'aguardando_recebimento' => 'Aguardando Recebimento',
+            'recebido' => 'Recebido',
+            'em_analise' => 'Em Análise',
+            'em_homologacao' => 'Em Homologação',
+            'aprovado' => 'Aprovado',
+            'reprovado' => 'Reprovado'
+        ];
+        
+        return $nomes[$etapa] ?? ucfirst(str_replace('_', ' ', $etapa));
+    }
 }

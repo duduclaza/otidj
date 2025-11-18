@@ -286,6 +286,376 @@ function fecharModalDadosEtapa() {
 }
 
 /**
+ * Abrir modal com logs da homologação
+ */
+async function abrirModalLogs(homologacaoId) {
+    try {
+        // Buscar logs da homologação
+        const response = await fetch(`/homologacoes/${homologacaoId}/logs`);
+        const result = await response.json();
+        
+        if (!result.success) {
+            mostrarNotificacao('Erro ao carregar logs: ' + result.message, 'error');
+            return;
+        }
+        
+        // Criar modal de logs
+        const modal = criarModalLogs(result.logs, result.homologacao);
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+    } catch (error) {
+        mostrarNotificacao('Erro ao carregar logs: ' + error.message, 'error');
+    }
+}
+
+/**
+ * Criar modal de logs
+ */
+function criarModalLogs(logs, homologacao) {
+    const modal = document.createElement('div');
+    modal.id = 'modalLogs';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    `;
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            max-width: 900px;
+            width: 95%;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        ">
+            <!-- Header -->
+            <div style="
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                color: white;
+                padding: 20px 30px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <div>
+                    <h2 style="margin: 0; font-size: 24px;">📜 Histórico de Logs</h2>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">
+                        ${homologacao.cod_referencia} - ${homologacao.descricao.substring(0, 50)}...
+                    </p>
+                </div>
+                <button onclick="fecharModalLogs()" style="
+                    background: rgba(255,255,255,0.2);
+                    border: none;
+                    color: white;
+                    font-size: 24px;
+                    cursor: pointer;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" 
+                   onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+            </div>
+            
+            <!-- Conteúdo dos logs -->
+            <div style="
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px 30px;
+                background: #f8fafc;
+            ">
+                ${gerarHTMLLogs(logs)}
+            </div>
+            
+            <!-- Footer -->
+            <div style="
+                padding: 15px 30px;
+                background: #f1f5f9;
+                border-top: 1px solid #e2e8f0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <span style="color: #64748b; font-size: 14px;">
+                    📊 Total de ${logs.length} registro(s) de log
+                </span>
+                <button onclick="exportarLogs(${homologacao.id})" style="
+                    padding: 8px 16px;
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: bold;
+                ">📥 Exportar Logs</button>
+            </div>
+        </div>
+    `;
+    
+    return modal;
+}
+
+/**
+ * Gerar HTML dos logs
+ */
+function gerarHTMLLogs(logs) {
+    if (!logs || logs.length === 0) {
+        return `
+            <div style="
+                text-align: center;
+                padding: 40px;
+                color: #64748b;
+            ">
+                <div style="font-size: 48px; margin-bottom: 16px;">📝</div>
+                <h3 style="margin: 0 0 8px 0; color: #374151;">Nenhum log encontrado</h3>
+                <p style="margin: 0;">Esta homologação ainda não possui registros de log.</p>
+            </div>
+        `;
+    }
+    
+    return logs.map((log, index) => {
+        const dataFormatada = new Date(log.data_acao).toLocaleString('pt-BR');
+        const tempoEtapa = log.tempo_etapa ? formatarTempo(log.tempo_etapa) : null;
+        
+        return `
+            <div style="
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                margin-bottom: 16px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            ">
+                <!-- Header do log -->
+                <div style="
+                    background: ${getCorEtapa(log.etapa_nova)};
+                    color: white;
+                    padding: 12px 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                ">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="
+                            background: rgba(255,255,255,0.2);
+                            padding: 4px 8px;
+                            border-radius: 12px;
+                            font-size: 12px;
+                            font-weight: bold;
+                        ">#${index + 1}</span>
+                        <span style="font-weight: bold; font-size: 16px;">
+                            ${log.acao_realizada}
+                        </span>
+                        ${tempoEtapa ? `<span style="
+                            background: rgba(255,255,255,0.2);
+                            padding: 2px 8px;
+                            border-radius: 10px;
+                            font-size: 11px;
+                        ">⏱️ ${tempoEtapa}</span>` : ''}
+                    </div>
+                    <span style="font-size: 14px; opacity: 0.9;">
+                        ${dataFormatada}
+                    </span>
+                </div>
+                
+                <!-- Conteúdo do log -->
+                <div style="padding: 16px 20px;">
+                    <div style="
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        gap: 12px;
+                        margin-bottom: 12px;
+                    ">
+                        <div>
+                            <strong style="color: #374151;">👤 Responsável:</strong><br>
+                            <span style="color: #64748b;">${log.usuario_nome}</span>
+                        </div>
+                        <div>
+                            <strong style="color: #374151;">🔄 Etapa:</strong><br>
+                            <span style="color: #64748b;">${formatarNomeEtapa(log.etapa_nova)}</span>
+                        </div>
+                        ${log.etapa_anterior ? `
+                        <div>
+                            <strong style="color: #374151;">⬅️ Etapa Anterior:</strong><br>
+                            <span style="color: #64748b;">${formatarNomeEtapa(log.etapa_anterior)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${log.detalhes_acao ? `
+                    <div style="margin-bottom: 12px;">
+                        <strong style="color: #374151;">📋 Detalhes:</strong><br>
+                        <span style="color: #64748b;">${log.detalhes_acao}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${log.observacoes ? `
+                    <div style="
+                        background: #f8fafc;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 6px;
+                        padding: 12px;
+                        margin-top: 12px;
+                    ">
+                        <strong style="color: #374151;">💬 Observações:</strong><br>
+                        <span style="color: #64748b;">${log.observacoes.replace(/\n/g, '<br>')}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${log.dados_etapa ? gerarDadosEtapaHTML(log.dados_etapa) : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Gerar HTML dos dados específicos da etapa
+ */
+function gerarDadosEtapaHTML(dadosJson) {
+    try {
+        const dados = JSON.parse(dadosJson);
+        if (!dados || Object.keys(dados).length === 0) return '';
+        
+        const campos = Object.entries(dados)
+            .filter(([key, value]) => value && key !== 'observacoes')
+            .map(([key, value]) => `
+                <div style="display: flex; margin-bottom: 6px;">
+                    <strong style="min-width: 150px; color: #4b5563;">${formatarNomeCampoLog(key)}:</strong>
+                    <span style="color: #64748b; flex: 1;">${value}</span>
+                </div>
+            `).join('');
+            
+        if (!campos) return '';
+        
+        return `
+            <div style="
+                background: #eff6ff;
+                border: 1px solid #bfdbfe;
+                border-radius: 6px;
+                padding: 12px;
+                margin-top: 12px;
+            ">
+                <strong style="color: #1e40af; display: block; margin-bottom: 8px;">📊 Dados Registrados:</strong>
+                ${campos}
+            </div>
+        `;
+    } catch (e) {
+        return '';
+    }
+}
+
+/**
+ * Obter cor da etapa
+ */
+function getCorEtapa(etapa) {
+    const cores = {
+        'aguardando_recebimento': '#f59e0b',
+        'recebido': '#3b82f6',
+        'em_analise': '#8b5cf6',
+        'em_homologacao': '#06b6d4',
+        'aprovado': '#10b981',
+        'reprovado': '#ef4444'
+    };
+    return cores[etapa] || '#6b7280';
+}
+
+/**
+ * Formatar nome da etapa
+ */
+function formatarNomeEtapa(etapa) {
+    const nomes = {
+        'aguardando_recebimento': 'Aguardando Recebimento',
+        'recebido': 'Recebido',
+        'em_analise': 'Em Análise',
+        'em_homologacao': 'Em Homologação',
+        'aprovado': 'Aprovado',
+        'reprovado': 'Reprovado'
+    };
+    return nomes[etapa] || etapa;
+}
+
+/**
+ * Formatar nome do campo para log
+ */
+function formatarNomeCampoLog(campo) {
+    const nomes = {
+        'data_recebimento': 'Data Recebimento',
+        'condicoes_material': 'Condições do Material',
+        'conferencia_realizada': 'Conferência',
+        'data_inicio_analise': 'Início Análise',
+        'testes_realizados': 'Testes Realizados',
+        'resultados_testes': 'Resultados',
+        'responsavel_analise': 'Responsável',
+        'data_inicio_homologacao': 'Início Homologação',
+        'criterios_avaliados': 'Critérios',
+        'aprovacao_tecnica': 'Aprovação Técnica',
+        'recomendacoes': 'Recomendações',
+        'data_aprovacao': 'Data Aprovação',
+        'data_reprovacao': 'Data Reprovação',
+        'justificativa': 'Justificativa',
+        'restricoes_uso': 'Restrições',
+        'validade_aprovacao': 'Validade',
+        'nao_conformidades': 'Não Conformidades',
+        'acoes_recomendadas': 'Ações Recomendadas'
+    };
+    return nomes[campo] || campo.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+/**
+ * Formatar tempo em minutos
+ */
+function formatarTempo(minutos) {
+    if (minutos < 60) {
+        return `${minutos}min`;
+    }
+    
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+    
+    if (horas < 24) {
+        return mins > 0 ? `${horas}h ${mins}min` : `${horas}h`;
+    }
+    
+    const dias = Math.floor(horas / 24);
+    const horasRestantes = horas % 24;
+    
+    return `${dias}d ${horasRestantes}h`;
+}
+
+/**
+ * Fechar modal de logs
+ */
+function fecharModalLogs() {
+    const modal = document.getElementById('modalLogs');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+/**
+ * Exportar logs
+ */
+function exportarLogs(homologacaoId) {
+    const url = `/homologacoes/${homologacaoId}/logs/export`;
+    window.open(url, '_blank');
+}
+
+/**
  * Abrir relatório completo
  */
 function abrirRelatorioCompleto(homologacaoId) {
@@ -397,6 +767,23 @@ function adicionarBotoesAoCard(card) {
     `;
     btnDados.onclick = () => abrirModalDadosEtapa(homologacaoId, etapa);
     
+    // Botão para ver logs
+    const btnLogs = document.createElement('button');
+    btnLogs.innerHTML = '📜 Ver Logs';
+    btnLogs.title = 'Ver histórico de logs';
+    btnLogs.style.cssText = `
+        flex: 1;
+        padding: 6px 12px;
+        background: #8b5cf6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+    `;
+    btnLogs.onclick = () => abrirModalLogs(homologacaoId);
+
     // Botão para relatório completo
     const btnRelatorio = document.createElement('button');
     btnRelatorio.innerHTML = '📊 Relatório';
@@ -415,6 +802,7 @@ function adicionarBotoesAoCard(card) {
     btnRelatorio.onclick = () => abrirRelatorioCompleto(homologacaoId);
     
     botoesContainer.appendChild(btnDados);
+    botoesContainer.appendChild(btnLogs);
     botoesContainer.appendChild(btnRelatorio);
     card.appendChild(botoesContainer);
 }
