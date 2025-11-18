@@ -441,6 +441,8 @@ $router->get('/homologacoes/checklists/respostas/{id}', [App\Controllers\Checkli
 $router->post('/homologacoes/upload-anexo', [App\Controllers\HomologacoesKanbanController::class, 'uploadAnexo']);
 $router->get('/homologacoes/anexo/{id}', [App\Controllers\HomologacoesKanbanController::class, 'downloadAnexo']);
 $router->post('/homologacoes/delete', [App\Controllers\HomologacoesKanbanController::class, 'delete']);
+$router->post('/homologacoes/registrar-dados-etapa', [App\Controllers\HomologacoesKanbanController::class, 'registrarDadosEtapa']);
+$router->get('/homologacoes/{id}/relatorio', [App\Controllers\HomologacoesKanbanController::class, 'gerarRelatorio']);
 
 // ===== MÓDULO CERTIFICADOS =====
 $router->get('/certificados', [App\Controllers\CertificadosController::class, 'index']);

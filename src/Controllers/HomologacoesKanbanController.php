@@ -937,4 +937,278 @@ class HomologacoesKanbanController
             error_log('Erro ao enviar email de homologação: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Registrar dados específicos de uma etapa
+     */
+    public function registrarDadosEtapa()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                return;
+            }
+
+            $homologacaoId = $_POST['homologacao_id'] ?? null;
+            $etapa = $_POST['etapa'] ?? null;
+            $dados = $_POST['dados'] ?? [];
+
+            if (!$homologacaoId || !$etapa) {
+                echo json_encode(['success' => false, 'message' => 'Dados obrigatórios não informados']);
+                return;
+            }
+
+            $userId = $_SESSION['user_id'];
+            $userName = $_SESSION['user_name'] ?? 'Usuário';
+
+            // Salvar cada campo da etapa
+            $stmt = $this->db->prepare("
+                INSERT INTO homologacoes_etapas_dados (homologacao_id, etapa, campo, valor, usuario_id)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE 
+                valor = VALUES(valor), 
+                usuario_id = VALUES(usuario_id),
+                created_at = CURRENT_TIMESTAMP
+            ");
+
+            $camposSalvos = 0;
+            foreach ($dados as $campo => $valor) {
+                if (!empty($valor)) {
+                    $stmt->execute([$homologacaoId, $etapa, $campo, $valor, $userId]);
+                    $camposSalvos++;
+                }
+            }
+
+            // Registrar no histórico detalhado
+            $this->registrarHistoricoDetalhado($homologacaoId, $etapa, $dados, $userId, $userName);
+
+            echo json_encode([
+                'success' => true, 
+                'message' => "Dados da etapa '$etapa' salvos com sucesso ($camposSalvos campos)"
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao registrar dados da etapa: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro interno: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Registrar histórico detalhado com dados da etapa
+     */
+    private function registrarHistoricoDetalhado($homologacaoId, $etapa, $dados, $userId, $userName)
+    {
+        try {
+            // Buscar etapa anterior
+            $stmtAnterior = $this->db->prepare("
+                SELECT etapa_nova 
+                FROM homologacoes_historico 
+                WHERE homologacao_id = ? 
+                ORDER BY data_acao DESC 
+                LIMIT 1
+            ");
+            $stmtAnterior->execute([$homologacaoId]);
+            $etapaAnterior = $stmtAnterior->fetchColumn() ?: null;
+
+            // Calcular tempo gasto na etapa anterior
+            $tempoEtapa = null;
+            if ($etapaAnterior) {
+                $stmtTempo = $this->db->prepare("
+                    SELECT TIMESTAMPDIFF(MINUTE, data_acao, NOW()) as minutos
+                    FROM homologacoes_historico 
+                    WHERE homologacao_id = ? AND etapa_nova = ?
+                    ORDER BY data_acao DESC 
+                    LIMIT 1
+                ");
+                $stmtTempo->execute([$homologacaoId, $etapaAnterior]);
+                $tempoEtapa = $stmtTempo->fetchColumn();
+            }
+
+            // Preparar dados para JSON
+            $dadosJson = json_encode($dados, JSON_UNESCAPED_UNICODE);
+
+            // Gerar descrição da ação
+            $acaoRealizada = $this->gerarDescricaoAcao($etapa, $dados);
+
+            // Inserir no histórico
+            $stmt = $this->db->prepare("
+                INSERT INTO homologacoes_historico (
+                    homologacao_id, etapa_anterior, etapa_nova, usuario_id, usuario_nome,
+                    observacoes, dados_etapa, tempo_etapa, acao_realizada, detalhes_acao
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+
+            $stmt->execute([
+                $homologacaoId,
+                $etapaAnterior,
+                $etapa,
+                $userId,
+                $userName,
+                $dados['observacoes'] ?? null,
+                $dadosJson,
+                $tempoEtapa,
+                $acaoRealizada,
+                $this->gerarDetalhesAcao($dados)
+            ]);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao registrar histórico detalhado: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Gerar descrição da ação baseada na etapa
+     */
+    private function gerarDescricaoAcao($etapa, $dados)
+    {
+        switch ($etapa) {
+            case 'recebido':
+                return 'Material recebido e conferido';
+            case 'em_analise':
+                return 'Iniciada análise técnica do material';
+            case 'em_homologacao':
+                return 'Material em processo de homologação';
+            case 'aprovado':
+                return 'Homologação APROVADA - Material liberado';
+            case 'reprovado':
+                return 'Homologação REPROVADA - Material rejeitado';
+            default:
+                return 'Dados da etapa atualizados';
+        }
+    }
+
+    /**
+     * Gerar detalhes da ação
+     */
+    private function gerarDetalhesAcao($dados)
+    {
+        $detalhes = [];
+        
+        foreach ($dados as $campo => $valor) {
+            if (!empty($valor) && $campo !== 'observacoes') {
+                $nomeCampo = $this->formatarNomeCampo($campo);
+                $detalhes[] = "$nomeCampo: $valor";
+            }
+        }
+        
+        return implode(' | ', $detalhes);
+    }
+
+    /**
+     * Formatar nome do campo para exibição
+     */
+    private function formatarNomeCampo($campo)
+    {
+        $nomes = [
+            'condicoes_material' => 'Condições do Material',
+            'testes_realizados' => 'Testes Realizados',
+            'resultados_testes' => 'Resultados dos Testes',
+            'aprovacao_tecnica' => 'Aprovação Técnica',
+            'recomendacoes' => 'Recomendações',
+            'justificativa' => 'Justificativa',
+            'data_recebimento' => 'Data de Recebimento',
+            'responsavel_analise' => 'Responsável pela Análise'
+        ];
+        
+        return $nomes[$campo] ?? ucfirst(str_replace('_', ' ', $campo));
+    }
+
+    /**
+     * Gerar relatório completo da homologação
+     */
+    public function gerarRelatorio($id)
+    {
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                header('Location: /login');
+                exit;
+            }
+
+            // Buscar dados da homologação
+            $stmt = $this->db->prepare("
+                SELECT h.*, 
+                       u.name as criador_nome,
+                       d.nome as departamento_nome
+                FROM homologacoes h
+                LEFT JOIN users u ON h.created_by = u.id
+                LEFT JOIN departamentos d ON h.departamento_id = d.id
+                WHERE h.id = ?
+            ");
+            $stmt->execute([$id]);
+            $homologacao = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$homologacao) {
+                http_response_code(404);
+                echo "Homologação não encontrada";
+                return;
+            }
+
+            // Buscar histórico completo
+            $stmt = $this->db->prepare("
+                SELECT * FROM homologacoes_historico 
+                WHERE homologacao_id = ? 
+                ORDER BY data_acao ASC
+            ");
+            $stmt->execute([$id]);
+            $historico = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Buscar dados específicos de cada etapa
+            $stmt = $this->db->prepare("
+                SELECT etapa, campo, valor, created_at,
+                       (SELECT name FROM users WHERE id = usuario_id) as usuario_nome
+                FROM homologacoes_etapas_dados 
+                WHERE homologacao_id = ? 
+                ORDER BY etapa, created_at ASC
+            ");
+            $stmt->execute([$id]);
+            $dadosEtapas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Buscar anexos por etapa
+            $stmt = $this->db->prepare("
+                SELECT etapa_upload, nome_arquivo, tipo_arquivo, tamanho_bytes, created_at,
+                       (SELECT name FROM users WHERE id = uploaded_by) as usuario_nome
+                FROM homologacoes_anexos 
+                WHERE homologacao_id = ? 
+                ORDER BY etapa_upload, created_at ASC
+            ");
+            $stmt->execute([$id]);
+            $anexos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Gerar HTML do relatório
+            $this->renderizarRelatorio($homologacao, $historico, $dadosEtapas, $anexos);
+
+        } catch (\Exception $e) {
+            error_log('Erro ao gerar relatório: ' . $e->getMessage());
+            http_response_code(500);
+            echo "Erro ao gerar relatório: " . $e->getMessage();
+        }
+    }
+
+    /**
+     * Renderizar HTML do relatório completo
+     */
+    private function renderizarRelatorio($homologacao, $historico, $dadosEtapas, $anexos)
+    {
+        // Organizar dados por etapa
+        $etapasOrganizadas = [];
+        foreach ($dadosEtapas as $dado) {
+            $etapasOrganizadas[$dado['etapa']][] = $dado;
+        }
+
+        $anexosOrganizados = [];
+        foreach ($anexos as $anexo) {
+            $anexosOrganizados[$anexo['etapa_upload']][] = $anexo;
+        }
+
+        // Calcular tempo total
+        $dataInicio = new \DateTime($homologacao['created_at']);
+        $dataFim = $homologacao['data_finalizacao'] ? 
+                   new \DateTime($homologacao['data_finalizacao']) : 
+                   new \DateTime();
+        $tempoTotal = $dataInicio->diff($dataFim);
+
+        include __DIR__ . '/../../views/pages/homologacoes/relatorio.php';
+    }
 }
