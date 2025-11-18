@@ -1,0 +1,82 @@
+═══════════════════════════════════════════════════════════════
+  INSTALAÇÃO DA BIBLIOTECA CARBON (HORÁRIO DE BRASÍLIA)
+═══════════════════════════════════════════════════════════════
+
+A biblioteca Carbon foi adicionada para resolver problemas de fuso horário!
+
+═══════════════════════════════════════════════════════════════
+  PASSO A PASSO PARA INSTALAR:
+═══════════════════════════════════════════════════════════════
+
+OPÇÃO 1 - VIA SSH (Recomendado):
+---------------------------------
+1. Conecte no servidor via SSH
+2. Entre na pasta do projeto:
+   cd /home/u230868210/domains/djbr.sgqoti.com.br/public_html
+
+3. Execute o comando:
+   composer require nesbot/carbon
+
+4. Pronto! Teste o sistema.
+
+
+OPÇÃO 2 - UPLOAD MANUAL (Se não tiver SSH):
+--------------------------------------------
+1. No seu computador, execute:
+   cd C:\Users\Clayton\Desktop\sgqpro
+   composer install
+
+2. Isso vai baixar o Carbon na pasta vendor/
+
+3. Faça upload da pasta vendor/ completa para o servidor via FTP
+
+4. Pronto! Teste o sistema.
+
+
+OPÇÃO 3 - ALTERNATIVA SEM COMPOSER:
+-----------------------------------
+Se não conseguir instalar o Carbon, podemos usar funções
+nativas do PHP. Me avise se não funcionar!
+
+
+═══════════════════════════════════════════════════════════════
+  O QUE A BIBLIOTECA CARBON FAZ:
+═══════════════════════════════════════════════════════════════
+
+✅ Gerencia automaticamente o fuso horário de Brasília
+✅ Converte datas UTC para horário brasileiro
+✅ Formata datas de forma correta e padronizada
+✅ Resolve problemas de horário de verão
+✅ Simplifica cálculos com datas
+
+
+═══════════════════════════════════════════════════════════════
+  BENEFÍCIOS:
+═══════════════════════════════════════════════════════════════
+
+• Todas as datas mostradas no horário correto de Brasília
+• Não precisa configurar MySQL
+• Funciona em qualquer servidor
+• Biblioteca confiável e muito usada
+
+
+═══════════════════════════════════════════════════════════════
+  APÓS INSTALAR:
+═══════════════════════════════════════════════════════════════
+
+1. Faça upload dos arquivos atualizados:
+   - composer.json (atualizado)
+   - src/Controllers/HomologacoesKanbanController.php (atualizado)
+   - vendor/ (após rodar composer install)
+
+2. Teste acessando:
+   https://djbr.sgqoti.com.br/homologacoes
+
+3. Verifique se as datas estão corretas!
+
+
+═══════════════════════════════════════════════════════════════
+  DÚVIDAS?
+═══════════════════════════════════════════════════════════════
+
+Me avise se tiver algum problema na instalação!

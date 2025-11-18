@@ -6,6 +6,7 @@ use App\Config\Database;
 use App\Services\PermissionService;
 use App\Services\EmailService;
 use PDO;
+use Carbon\Carbon;
 
 class HomologacoesKanbanController
 {
@@ -14,6 +15,10 @@ class HomologacoesKanbanController
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
+        
+        // Configurar timezone de Brasília para Carbon
+        Carbon::setLocale('pt_BR');
+        date_default_timezone_set('America/Sao_Paulo');
     }
 
     /**
@@ -1260,9 +1265,12 @@ class HomologacoesKanbanController
             $stmt->execute([$id]);
             $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Formatar dados para o frontend
+            // Formatar dados para o frontend usando Carbon (horário de Brasília)
             foreach ($logs as &$log) {
-                $log['data_acao'] = $log['data_acao_formatada'];
+                // Usar Carbon para formatar a data no timezone de Brasília
+                $dataAcao = Carbon::parse($log['data_acao_real'])->timezone('America/Sao_Paulo');
+                $log['data_acao'] = $dataAcao->format('Y-m-d H:i:s');
+                $log['data_acao_formatada'] = $dataAcao->format('d/m/Y H:i:s');
                 
                 // Garantir campos obrigatórios
                 if (empty($log['acao_realizada'])) {
@@ -1371,8 +1379,8 @@ class HomologacoesKanbanController
         $conteudo .= "Descrição: {$homologacao['descricao']}\n";
         $conteudo .= "Status Atual: {$homologacao['status']}\n";
         $conteudo .= "Criado por: {$homologacao['criador_nome']}\n";
-        $conteudo .= "Data Criação: " . date('d/m/Y H:i:s', strtotime($homologacao['created_at'])) . "\n";
-        $conteudo .= "Relatório gerado em: " . date('d/m/Y H:i:s') . "\n";
+        $conteudo .= "Data Criação: " . Carbon::parse($homologacao['created_at'])->timezone('America/Sao_Paulo')->format('d/m/Y H:i:s') . "\n";
+        $conteudo .= "Relatório gerado em: " . Carbon::now('America/Sao_Paulo')->format('d/m/Y H:i:s') . "\n";
         $conteudo .= "Gerado por: " . ($_SESSION['user_name'] ?? 'Sistema') . "\n\n";
         
         $conteudo .= "=====================================\n";
@@ -1381,7 +1389,10 @@ class HomologacoesKanbanController
         
         foreach ($logs as $index => $log) {
             $numero = $index + 1;
-            $dataFormatada = date('d/m/Y H:i:s', strtotime($log['data_acao_real'] ?? $log['created_at']));
+            // Usar Carbon para formatar no horário de Brasília
+            $dataFormatada = Carbon::parse($log['data_acao_real'] ?? $log['created_at'])
+                ->timezone('America/Sao_Paulo')
+                ->format('d/m/Y H:i:s');
             $tempoEtapa = $log['tempo_etapa'] ? $this->formatarTempoTexto($log['tempo_etapa']) : 'N/A';
             
             $conteudo .= "#{$numero} - {$log['acao_realizada']}\n";
