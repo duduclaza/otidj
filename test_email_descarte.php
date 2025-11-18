@@ -119,5 +119,5 @@ echo "MAIL_FROM_ADDRESS=suporte@djbr.sgqoti.com.br\n";
 echo "MAIL_FROM_NAME=\"SGQ OTI DJ\"\n";
 echo "</pre>";
 
-echo "<p><a href='/controle-de-descartes' style='background: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;'>🔗 Ir para Controle de Descartes</a></p>";
+echo "<p><a href='https://djbr.sgqoti.com.br/controle-de-descartes' style='background: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;'>🔗 Ir para Controle de Descartes</a></p>";
 ?>

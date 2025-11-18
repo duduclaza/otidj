@@ -1908,7 +1908,7 @@ class EmailService
                     <p><strong>⚠️ Ação Necessária:</strong></p>
                     <p>Este descarte está aguardando processamento. Acesse o sistema para revisar e atualizar o status conforme necessário.</p>
                     
-                    <a href='#' class='btn'>🔗 Acessar Sistema SGQ</a>
+                    <a href='https://djbr.sgqoti.com.br/controle-de-descartes' class='btn'>🔗 Acessar Sistema SGQ</a>
                 </div>
                 
                 <div class='footer'>
