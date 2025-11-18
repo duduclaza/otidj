@@ -120,13 +120,14 @@ class ControleRcController
             $nextId = $stmt->fetch(\PDO::FETCH_ASSOC)['next_id'];
             $numeroRegistro = 'RC-' . date('Y') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
-            // Inserir registro principal com status padrão
+            // Inserir registro principal com status
+            $status = $_POST['status'] ?? 'Em analise';
             $stmt = $this->db->prepare("
                 INSERT INTO controle_rc (
                     numero_registro, data_abertura, origem, cliente_nome, categoria,
                     detalhamento, qual_produto, numero_serie, fornecedor_id, testes_realizados, acoes_realizadas,
                     conclusao, status, usuario_id, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Em analise', ?, NOW())
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
             ");
 
             $stmt->execute([
@@ -142,6 +143,7 @@ class ControleRcController
                 $_POST['testes_realizados'] ?? null,
                 $_POST['acoes_realizadas'] ?? null,
                 $_POST['conclusao'] ?? null,
+                $status,
                 $_SESSION['user_id']
             ]);
 
@@ -204,6 +206,7 @@ class ControleRcController
                     testes_realizados = ?,
                     acoes_realizadas = ?,
                     conclusao = ?,
+                    status = ?,
                     updated_at = NOW()
                 WHERE id = ?
             ");
@@ -220,6 +223,7 @@ class ControleRcController
                 $_POST['testes_realizados'] ?? null,
                 $_POST['acoes_realizadas'] ?? null,
                 $_POST['conclusao'] ?? null,
+                $_POST['status'] ?? 'Em analise',
                 $id
             ]);
 
@@ -230,6 +234,63 @@ class ControleRcController
 
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'message' => 'Registro atualizado com sucesso']);
+        } catch (\Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Atualizar apenas o status do registro
+     */
+    public function updateStatus()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+            exit;
+        }
+
+        if (!PermissionService::hasPermission($_SESSION['user_id'], 'controle_rc', 'edit')) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Sem permissão']);
+            exit;
+        }
+
+        try {
+            $id = $_POST['id'] ?? null;
+            $status = $_POST['status'] ?? null;
+
+            if (!$id || !$status) {
+                throw new \Exception('ID e Status são obrigatórios');
+            }
+
+            // Validar status
+            $statusValidos = [
+                'Em analise',
+                'Aguardando ações do fornecedor',
+                'Aguardando retorno do produto',
+                'Finalizado',
+                'Concluída'
+            ];
+
+            if (!in_array($status, $statusValidos)) {
+                throw new \Exception('Status inválido');
+            }
+
+            $stmt = $this->db->prepare("
+                UPDATE controle_rc SET
+                    status = ?,
+                    status_alterado_por = ?,
+                    status_alterado_em = NOW(),
+                    updated_at = NOW()
+                WHERE id = ?
+            ");
+
+            $stmt->execute([$status, $_SESSION['user_id'], $id]);
+
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'message' => 'Status atualizado com sucesso']);
         } catch (\Exception $e) {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);

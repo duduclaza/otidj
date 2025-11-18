@@ -103,6 +103,7 @@ class PermissionMiddleware
         '/controle-rc/list' => 'controle_rc',
         '/controle-rc/create' => 'controle_rc',
         '/controle-rc/update' => 'controle_rc',
+        '/controle-rc/update-status' => 'controle_rc',
         '/controle-rc/delete' => 'controle_rc',
         '/controle-rc/export' => 'controle_rc',
         '/controle-rc/evidencia' => 'controle_rc',

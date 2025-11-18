@@ -108,6 +108,19 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
+
+                    <!-- Status do RC -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Status do RC</label>
+                        <select name="status" id="status" 
+                                class="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="Em analise">Em análise</option>
+                            <option value="Aguardando ações do fornecedor">Aguardando ações do fornecedor</option>
+                            <option value="Aguardando retorno do produto">Aguardando retorno do produto</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Concluída">Concluída</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Campos Texto Longo -->
@@ -164,11 +177,15 @@
                 <div class="flex-1 flex gap-2">
                     <select id="searchColumn" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="all">Todas as colunas</option>
-                        <option value="0">Número Registro</option>
-                        <option value="2">Origem</option>
-                        <option value="3">Cliente/Empresa</option>
-                        <option value="4">Categoria</option>
-                        <option value="6">Fornecedor</option>
+                        <option value="1">Número Registro</option>
+                        <option value="3">Origem</option>
+                        <option value="4">Cliente/Empresa</option>
+                        <option value="5">Categoria</option>
+                        <option value="8">Fornecedor</option>
+                        <option value="9">Testes Realizados</option>
+                        <option value="10">Ações Realizadas</option>
+                        <option value="11">Conclusão</option>
+                        <option value="12">Status</option>
                     </select>
                     <div class="flex-1 relative">
                         <input type="text" id="searchRC" placeholder="Digite para buscar..." 
@@ -214,6 +231,10 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nº Série</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fornecedor</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evidências</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Testes Realizados</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações Realizadas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conclusão</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuário</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
@@ -256,7 +277,7 @@
             tbody.innerHTML = '';
 
             if (registros.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="15" class="px-6 py-4 text-center text-gray-500">Nenhum registro encontrado</td></tr>';
                 updateResultsCount(0, 0);
                 return;
             }
@@ -269,6 +290,12 @@
                 const evidencias = reg.total_evidencias > 0 
                     ? `<span class="text-blue-600">📎 ${reg.total_evidencias}</span>` 
                     : '<span class="text-gray-400">-</span>';
+                
+                // Função para truncar texto longo
+                const truncateText = (text, maxLength = 50) => {
+                    if (!text) return '-';
+                    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+                };
 
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -284,11 +311,20 @@
                     <td class="px-6 py-4 whitespace-nowrap">${reg.numero_serie || '-'}</td>
                     <td class="px-6 py-4">${reg.fornecedor_nome || '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-center">${evidencias}</td>
+                    <td class="px-6 py-4" title="${reg.testes_realizados || ''}">${truncateText(reg.testes_realizados)}</td>
+                    <td class="px-6 py-4" title="${reg.acoes_realizadas || ''}">${truncateText(reg.acoes_realizadas)}</td>
+                    <td class="px-6 py-4" title="${reg.conclusao || ''}">${truncateText(reg.conclusao)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(reg.status)}">${reg.status}</span>
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap">${reg.usuario_nome}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex gap-2">
                             <button onclick="editarRegistro(${reg.id})" class="text-blue-600 hover:text-blue-800" title="Editar">
                                 ✏️
+                            </button>
+                            <button onclick="alterarStatus(${reg.id}, '${reg.status}')" class="text-purple-600 hover:text-purple-800" title="Alterar Status">
+                                🔄
                             </button>
                             <button onclick="imprimirRegistro(${reg.id})" class="text-green-600 hover:text-green-800" title="Imprimir">
                                 🖨️
@@ -352,6 +388,7 @@
                     document.getElementById('qual_produto').value = reg.qual_produto || '';
                     document.getElementById('numero_serie').value = reg.numero_serie || '';
                     document.getElementById('fornecedor_id').value = reg.fornecedor_id || '';
+                    document.getElementById('status').value = reg.status || 'Em analise';
                     document.getElementById('testes_realizados').value = reg.testes_realizados || '';
                     document.getElementById('acoes_realizadas').value = reg.acoes_realizadas || '';
                     document.getElementById('conclusao').value = reg.conclusao || '';
@@ -515,7 +552,7 @@
             }
 
             if (visibleCount === 0) {
-                tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-4 text-center text-gray-500">🔍 Nenhum resultado encontrado para "' + searchInput.value + '"</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="15" class="px-6 py-4 text-center text-gray-500">🔍 Nenhum resultado encontrado para "' + searchInput.value + '"</td></tr>';
             }
 
             updateResultsCount(visibleCount, totalRows);
@@ -530,6 +567,62 @@
         function updateResultsCount(visible, total) {
             const counter = document.getElementById('resultsCount');
             counter.textContent = `Mostrando ${visible} de ${total} registros`;
+        }
+
+        // Função para definir cores do status
+        function getStatusColor(status) {
+            switch(status) {
+                case 'Em analise':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'Aguardando ações do fornecedor':
+                    return 'bg-orange-100 text-orange-800';
+                case 'Aguardando retorno do produto':
+                    return 'bg-blue-100 text-blue-800';
+                case 'Finalizado':
+                    return 'bg-purple-100 text-purple-800';
+                case 'Concluída':
+                    return 'bg-green-100 text-green-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Função para alterar status
+        async function alterarStatus(id, statusAtual) {
+            const statusOptions = [
+                'Em analise',
+                'Aguardando ações do fornecedor',
+                'Aguardando retorno do produto',
+                'Finalizado',
+                'Concluída'
+            ];
+
+            let options = statusOptions.map(status => 
+                `<option value="${status}" ${status === statusAtual ? 'selected' : ''}>${status}</option>`
+            ).join('');
+
+            const novoStatus = prompt(`Alterar status de "${statusAtual}" para:`, statusAtual);
+            
+            if (novoStatus && novoStatus !== statusAtual && statusOptions.includes(novoStatus)) {
+                try {
+                    const response = await fetch('/controle-rc/update-status', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `id=${id}&status=${encodeURIComponent(novoStatus)}`
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        alert(data.message);
+                        carregarRegistros(); // Recarregar grid
+                    } else {
+                        alert('Erro: ' + data.message);
+                    }
+                } catch (error) {
+                    alert('Erro ao alterar status: ' + error.message);
+                }
+            }
         }
 
         // Event listeners para busca em tempo real

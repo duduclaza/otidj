@@ -188,6 +188,7 @@ $router->get('/controle-rc', [App\Controllers\ControleRcController::class, 'inde
 $router->get('/controle-rc/list', [App\Controllers\ControleRcController::class, 'list']);
 $router->post('/controle-rc/create', [App\Controllers\ControleRcController::class, 'create']);
 $router->post('/controle-rc/update', [App\Controllers\ControleRcController::class, 'update']);
+$router->post('/controle-rc/update-status', [App\Controllers\ControleRcController::class, 'updateStatus']);
 $router->post('/controle-rc/delete', [App\Controllers\ControleRcController::class, 'delete']);
 $router->post('/controle-rc/alterar-status', [App\Controllers\ControleRcController::class, 'alterarStatus']);
 $router->get('/controle-rc/{id}', [App\Controllers\ControleRcController::class, 'show']);
