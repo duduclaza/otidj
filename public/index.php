@@ -14,7 +14,11 @@ use App\Middleware\PermissionMiddleware;
 
 // Load environment
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->safeLoad();
+try {
+    $dotenv->load();
+} catch (Exception $e) {
+    die("Erro ao carregar .env: " . $e->getMessage());
+}
 
 // Error reporting
 $isDebug = ($_ENV['APP_DEBUG'] ?? 'false') === 'true';
