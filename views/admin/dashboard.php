@@ -990,6 +990,57 @@
   </div>
 </div>
 
+<!-- Modal de Expansão do Gráfico - Ranking de Clientes -->
+<div id="modalExpandidoRanking" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-8 transition-all duration-500 ease-out" style="z-index: 999999 !important; position: fixed !important;">
+  <div class="relative w-full max-w-7xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRanking">
+    <!-- Botão Fechar -->
+    <button onclick="fecharGraficoRankingExpandido()" class="absolute top-6 right-6 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group" style="z-index: 1000000;">
+      <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <!-- Título e Filtros -->
+    <div class="mb-6">
+      <div class="text-center mb-4">
+        <h2 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center gap-3">
+          <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+          </svg>
+          🏆 Top 10 - Ranking de Códigos de Cliente
+        </h2>
+        <p class="text-gray-400 mt-2">Classificação dos clientes com maior volume de retornados</p>
+      </div>
+      
+      <!-- Filtro de Destino -->
+      <div class="flex justify-center">
+        <div class="inline-flex items-center gap-3 bg-gradient-to-r from-gray-800/80 to-gray-900/80 px-6 py-3 rounded-xl border border-gray-700/50 backdrop-blur-sm">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+          <label class="text-gray-300 font-medium">Filtrar por Destino:</label>
+          <select 
+            id="filtroDestinoRankingExpandido" 
+            onchange="atualizarGraficoRankingExpandido()" 
+            class="bg-gray-700/50 border border-gray-600 text-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer hover:bg-gray-700"
+          >
+            <option value="">Todos os Destinos</option>
+            <option value="ESTOQUE">Estoque</option>
+            <option value="DESCARTE">Descarte</option>
+            <option value="USO_INTERNO">Uso Interno</option>
+            <option value="GARANTIA">Garantia</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Canvas do Gráfico -->
+    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/50">
+      <canvas id="rankingClientesChartExpandido" height="600"></canvas>
+    </div>
+  </div>
+</div>
+
 <!-- Create User Modal -->
 <div id="createUserModal" class="modal-overlay">
   <div class="modal-container w-full max-w-md">
