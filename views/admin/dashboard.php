@@ -2008,6 +2008,16 @@ document.getElementById('modalExpandidoRanking').addEventListener('click', funct
   }
 });
 
+// 🚀 MOVER MODAL DE RANKING PARA O BODY (para ficar acima de tudo)
+document.addEventListener('DOMContentLoaded', function() {
+  const modalRanking = document.getElementById('modalExpandidoRanking');
+  if (modalRanking && modalRanking.parentElement !== document.body) {
+    console.log('📦 Movendo modal de ranking para o body...');
+    document.body.appendChild(modalRanking);
+    console.log('✅ Modal de ranking movido para o body!');
+  }
+});
+
 // Sincronizar opções de filiais do filtro principal com o modal expandido
 function sincronizarFiliaisExpandido() {
   const filtroOriginal = document.getElementById('filtroFilial');
