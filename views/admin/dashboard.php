@@ -288,7 +288,7 @@
   </div>
 
   <!-- Gráfico de Toners Recuperados -->
-  <div class="bg-white rounded-lg shadow-lg border-l-4 border-purple-500">
+  <div class="bg-white rounded-lg shadow-lg border-l-4 border-purple-500 mt-6">
     <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
       <h3 class="text-lg font-semibold text-gray-900 flex items-center">
         <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
