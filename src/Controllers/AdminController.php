@@ -1262,9 +1262,10 @@ class AdminController
                     SUM(quantidade) as total_retornados
                 FROM retornados 
                 WHERE 1=1
+                AND codigo_cliente REGEXP '[0-9]'
             ";
             
-            // Se checkbox estiver marcado, filtrar apenas registros COM código
+            // Se checkbox estiver marcado, filtrar apenas registros COM código não vazio
             if ($ocultarSemCodigo) {
                 $sql .= " AND codigo_cliente IS NOT NULL AND codigo_cliente != ''";
             }
