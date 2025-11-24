@@ -1250,6 +1250,7 @@ class AdminController
             $destino = $_GET['destino'] ?? '';
             $dataInicial = $_GET['data_inicial'] ?? '';
             $dataFinal = $_GET['data_final'] ?? '';
+            $ocultarSemCodigo = isset($_GET['ocultar_sem_codigo']) && $_GET['ocultar_sem_codigo'] === '1';
             
             $dateColumn = $this->getDateColumn();
             $filialColumn = $this->getFilialColumn();
@@ -1260,9 +1261,13 @@ class AdminController
                     codigo_cliente,
                     SUM(quantidade) as total_retornados
                 FROM retornados 
-                WHERE codigo_cliente IS NOT NULL 
-                AND codigo_cliente != ''
+                WHERE 1=1
             ";
+            
+            // Se checkbox estiver marcado, filtrar apenas registros COM código
+            if ($ocultarSemCodigo) {
+                $sql .= " AND codigo_cliente IS NOT NULL AND codigo_cliente != ''";
+            }
             
             $params = [];
             
@@ -1286,7 +1291,7 @@ class AdminController
                 $params[] = $dataFinal;
             }
             
-            $sql .= " GROUP BY codigo_cliente ORDER BY total_retornados DESC LIMIT 15";
+            $sql .= " GROUP BY codigo_cliente ORDER BY total_retornados DESC LIMIT 10";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
@@ -1296,7 +1301,12 @@ class AdminController
             $data = [];
             
             foreach ($results as $row) {
-                $labels[] = $row['codigo_cliente'];
+                // Se o código estiver vazio, mostrar como "Sem Código"
+                $codigo = $row['codigo_cliente'];
+                if (empty($codigo)) {
+                    $codigo = 'Sem Código';
+                }
+                $labels[] = $codigo;
                 $data[] = (int)$row['total_retornados'];
             }
             

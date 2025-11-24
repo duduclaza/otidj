@@ -259,7 +259,7 @@
           <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
           </svg>
-          🏆 Ranking de Códigos de Cliente
+          🏆 Top 10 - Ranking de Códigos de Cliente
         </h3>
         <button onclick="expandirGraficoRanking()" class="p-2 rounded-lg hover:bg-indigo-50 transition-all duration-200 group" title="Expandir gráfico">
           <svg class="w-5 h-5 text-indigo-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,19 +267,27 @@
           </svg>
         </button>
       </div>
-      <!-- Filtro de Destino específico para este gráfico -->
-      <div class="flex items-center space-x-4">
-        <label class="text-sm font-medium text-gray-700">🎯 Filtrar por Destino:</label>
-        <select id="filtroDestinoRanking" onchange="updateRankingChart()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-          <option value="">Todos os Destinos</option>
-          <option value="ESTOQUE">Estoque</option>
-          <option value="DESCARTE">Descarte</option>
-          <option value="USO_INTERNO">Uso Interno</option>
-          <option value="GARANTIA">Garantia</option>
-        </select>
-        <span class="text-xs text-gray-500">
-          (Este filtro afeta apenas o ranking. Datas compartilhadas com outros gráficos.)
-        </span>
+      <!-- Filtros específicos para este gráfico -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <label class="text-sm font-medium text-gray-700">🎯 Filtrar por Destino:</label>
+          <select id="filtroDestinoRanking" onchange="updateRankingChart()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">Todos os Destinos</option>
+            <option value="ESTOQUE">Estoque</option>
+            <option value="DESCARTE">Descarte</option>
+            <option value="USO_INTERNO">Uso Interno</option>
+            <option value="GARANTIA">Garantia</option>
+          </select>
+          <span class="text-xs text-gray-500">
+            (Este filtro afeta apenas o ranking. Datas compartilhadas.)
+          </span>
+        </div>
+        
+        <!-- Checkbox para ocultar sem código -->
+        <div class="flex items-center space-x-2">
+          <input type="checkbox" id="ocultarSemCodigoRanking" onchange="updateRankingChart()" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+          <label for="ocultarSemCodigoRanking" class="text-xs text-gray-600 cursor-pointer">Ocultar sem código</label>
+        </div>
       </div>
     </div>
     <div class="p-6">
@@ -1378,6 +1386,7 @@ function clearFilters() {
   document.getElementById('dataInicial').value = '';
   document.getElementById('dataFinal').value = '';
   document.getElementById('filtroDestinoRanking').value = '';
+  document.getElementById('ocultarSemCodigoRanking').checked = false;
   loadDashboardData();
 }
 
@@ -1390,12 +1399,14 @@ async function loadRankingClientes() {
     const destino = document.getElementById('filtroDestinoRanking').value;
     const dataInicial = document.getElementById('dataInicial').value;
     const dataFinal = document.getElementById('dataFinal').value;
+    const ocultarSemCodigo = document.getElementById('ocultarSemCodigoRanking').checked;
     
     const params = new URLSearchParams();
     if (filial) params.append('filial', filial);
     if (destino) params.append('destino', destino);
     if (dataInicial) params.append('data_inicial', dataInicial);
     if (dataFinal) params.append('data_final', dataFinal);
+    if (ocultarSemCodigo) params.append('ocultar_sem_codigo', '1');
     
     const response = await fetch(`/admin/dashboard/ranking-clientes?${params.toString()}`);
     const result = await response.json();
