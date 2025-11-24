@@ -178,7 +178,7 @@
       </div>
       <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Acumulado: Retornados por Mês</h3>
       <div class="flex items-end justify-between">
-        <p class="text-4xl font-bold"><?= number_format($totaisAcumulados['retornados_total'] ?? 0, 0, ',', '.') ?></p>
+        <p id="totalRetornadosCard" class="text-4xl font-bold"><?= number_format($totaisAcumulados['retornados_total'] ?? 0, 0, ',', '.') ?></p>
         <span class="text-white text-opacity-80 text-xs">unidades</span>
       </div>
       <div class="mt-4 pt-4 border-t border-white border-opacity-20">
@@ -198,7 +198,7 @@
       </div>
       <h3 class="text-sm font-medium text-white text-opacity-90 mb-2">Acumulado: Toners Recuperados</h3>
       <div class="flex items-end justify-between">
-        <p class="text-4xl font-bold">R$ <?= number_format($totaisAcumulados['valor_recuperado'] ?? 0, 2, ',', '.') ?></p>
+        <p id="valorRecuperadoCard" class="text-4xl font-bold">R$ <?= number_format($totaisAcumulados['valor_recuperado'] ?? 0, 2, ',', '.') ?></p>
       </div>
       <div class="mt-4 pt-4 border-t border-white border-opacity-20">
         <p class="text-xs text-white text-opacity-80">💰 Valor total economizado</p>
@@ -1229,8 +1229,31 @@ function updateChartsWithData() {
     tonersRecuperadosChart.update();
   }
   
+  // Atualizar cards de totais acumulados
+  if (dashboardData.totais_acumulados) {
+    updateTotaisCards(dashboardData.totais_acumulados);
+  }
+  
   // Carregar ranking de clientes
   loadRankingClientes();
+}
+
+// Atualizar cards de totais acumulados
+function updateTotaisCards(totais) {
+  const totalRetornadosCard = document.getElementById('totalRetornadosCard');
+  const valorRecuperadoCard = document.getElementById('valorRecuperadoCard');
+  
+  if (totalRetornadosCard) {
+    totalRetornadosCard.textContent = Number(totais.retornados_total || 0).toLocaleString('pt-BR');
+  }
+  
+  if (valorRecuperadoCard) {
+    const valor = Number(totais.valor_recuperado || 0);
+    valorRecuperadoCard.textContent = 'R$ ' + valor.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
 }
 
 // Popular opções de filiais

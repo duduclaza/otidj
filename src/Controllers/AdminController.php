@@ -1144,6 +1144,87 @@ class AdminController
     }
 
     /**
+     * Get totais acumulados filtrados (para atualização dinâmica dos cards)
+     */
+    private function getTotaisAcumuladosFiltrados($filial = '', $codigoCliente = '', $dataInicial = '', $dataFinal = ''): array
+    {
+        $dateColumn = $this->getDateColumn();
+        $filialColumn = $this->getFilialColumn();
+        $destinoColumn = $this->getDestinoColumn();
+        $valorColumn = $this->getValorColumn();
+        
+        $totais = [
+            'retornados_total' => 0,
+            'valor_recuperado' => 0
+        ];
+        
+        try {
+            // Query base para retornados total
+            $sql = "SELECT COALESCE(SUM(quantidade), 0) as total FROM retornados WHERE 1=1";
+            $params = [];
+            
+            if (!empty($filial)) {
+                $sql .= " AND {$filialColumn} = ?";
+                $params[] = $filial;
+            }
+            
+            if (!empty($codigoCliente)) {
+                $sql .= " AND codigo_cliente LIKE ?";
+                $params[] = '%' . $codigoCliente . '%';
+            }
+            
+            if (!empty($dataInicial)) {
+                $sql .= " AND {$dateColumn} >= ?";
+                $params[] = $dataInicial;
+            }
+            
+            if (!empty($dataFinal)) {
+                $sql .= " AND {$dateColumn} <= ?";
+                $params[] = $dataFinal;
+            }
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $totais['retornados_total'] = (int)($result['total'] ?? 0);
+            
+            // Query para valor recuperado (destino = estoque)
+            $sql = "SELECT COALESCE(SUM({$valorColumn}), 0) as total FROM retornados WHERE {$destinoColumn} = 'estoque'";
+            $params = [];
+            
+            if (!empty($filial)) {
+                $sql .= " AND {$filialColumn} = ?";
+                $params[] = $filial;
+            }
+            
+            if (!empty($codigoCliente)) {
+                $sql .= " AND codigo_cliente LIKE ?";
+                $params[] = '%' . $codigoCliente . '%';
+            }
+            
+            if (!empty($dataInicial)) {
+                $sql .= " AND {$dateColumn} >= ?";
+                $params[] = $dataInicial;
+            }
+            
+            if (!empty($dataFinal)) {
+                $sql .= " AND {$dateColumn} <= ?";
+                $params[] = $dataFinal;
+            }
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $totais['valor_recuperado'] = (float)($result['total'] ?? 0);
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao buscar totais filtrados: " . $e->getMessage());
+        }
+        
+        return $totais;
+    }
+
+    /**
      * Get totais acumulados dos gráficos até a data atual
      * Usa a mesma lógica dos gráficos existentes
      */
@@ -1213,6 +1294,7 @@ class AdminController
                 'retornados_mes' => $this->getRetornadosPorMes($filial, $codigoCliente, $dataInicial, $dataFinal),
                 'retornados_destino' => $this->getRetornadosPorDestino($filial, $codigoCliente, $dataInicial, $dataFinal),
                 'toners_recuperados' => $this->getTonersRecuperados($filial, $codigoCliente, $dataInicial, $dataFinal),
+                'totais_acumulados' => $this->getTotaisAcumuladosFiltrados($filial, $codigoCliente, $dataInicial, $dataFinal),
                 'filiais' => $this->getFiliaisFromRetornados(),
                 'debug' => [
                     'table_exists' => true,
