@@ -1049,7 +1049,12 @@ class PopItsController
                         OR EXISTS (
                             SELECT 1 FROM pops_its_registros_departamentos rd3
                             INNER JOIN departamentos d3 ON rd3.departamento_id = d3.id
-                            WHERE rd3.registro_id = r.id AND d3.nome = ?
+                            WHERE rd3.registro_id = r.id 
+                            AND (
+                                LOWER(TRIM(d3.nome)) = LOWER(TRIM(?))
+                                OR d3.nome LIKE CONCAT('%', ?, '%')
+                                OR ? LIKE CONCAT('%', d3.nome, '%')
+                            )
                         )
                     )
                     GROUP BY r.id, r.versao, r.nome_arquivo, r.extensao, r.tamanho_arquivo, 
@@ -1067,18 +1072,23 @@ class PopItsController
                                EXISTS (
                                    SELECT 1 FROM pops_its_registros_departamentos rd3
                                    INNER JOIN departamentos d3 ON rd3.departamento_id = d3.id
-                                   WHERE rd3.registro_id = r.id AND d3.nome = ?
+                                   WHERE rd3.registro_id = r.id 
+                                   AND (
+                                       LOWER(TRIM(d3.nome)) = LOWER(TRIM(?))
+                                       OR d3.nome LIKE CONCAT('%', ?, '%')
+                                       OR ? LIKE CONCAT('%', d3.nome, '%')
+                                   )
                                ) as tem_acesso_setor
                         FROM pops_its_registros r
                         LEFT JOIN pops_its_titulos t ON r.titulo_id = t.id
                         WHERE r.status = 'APROVADO' AND r.id = 4
                     ");
-                    $debug_stmt->execute([$user_setor]);
+                    $debug_stmt->execute([$user_setor, $user_setor, $user_setor]);
                     $debug_result = $debug_stmt->fetch(\PDO::FETCH_ASSOC);
                     error_log("DEBUG REGISTRO 4 - NOVA LÓGICA: " . json_encode($debug_result));
                 }
                 
-                $stmt->execute([$user_id, $user_setor]);
+                $stmt->execute([$user_id, $user_setor, $user_setor, $user_setor]);
             }
             
             $registros = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -1333,10 +1343,15 @@ class PopItsController
     {
         try {
             // Buscar o setor do usuário e encontrar o departamento correspondente
+            // Usando comparação case-insensitive e flexível
             $stmt = $this->db->prepare("
                 SELECT u.setor, u.name, d.id as departamento_id 
                 FROM users u 
-                LEFT JOIN departamentos d ON u.setor = d.nome 
+                LEFT JOIN departamentos d ON (
+                    LOWER(TRIM(u.setor)) = LOWER(TRIM(d.nome))
+                    OR d.nome LIKE CONCAT('%', u.setor, '%')
+                    OR u.setor LIKE CONCAT('%', d.nome, '%')
+                )
                 WHERE u.id = ?
             ");
             $stmt->execute([$user_id]);
