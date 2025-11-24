@@ -127,12 +127,16 @@
       </svg>
       🔍 Filtros de Análise
     </h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">🏢 Filial</label>
         <select id="filtroFilial" onchange="updateCharts()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           <option value="">Todas as Filiais</option>
         </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">🔍 Código do Cliente</label>
+        <input type="text" id="filtroCodigoCliente" placeholder="Digite o código..." onchange="updateCharts()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">📅 Data Inicial</label>
@@ -1062,11 +1066,13 @@ let dadosTonersRecuperados = {
 async function loadDashboardData() {
   try {
     const filial = document.getElementById('filtroFilial').value;
+    const codigoCliente = document.getElementById('filtroCodigoCliente').value;
     const dataInicial = document.getElementById('dataInicial').value;
     const dataFinal = document.getElementById('dataFinal').value;
     
     const params = new URLSearchParams();
     if (filial) params.append('filial', filial);
+    if (codigoCliente) params.append('codigo_cliente', codigoCliente);
     if (dataInicial) params.append('data_inicial', dataInicial);
     if (dataFinal) params.append('data_final', dataFinal);
     
@@ -1329,6 +1335,7 @@ function applyFilters() {
 
 function clearFilters() {
   document.getElementById('filtroFilial').value = '';
+  document.getElementById('filtroCodigoCliente').value = '';
   document.getElementById('dataInicial').value = '';
   document.getElementById('dataFinal').value = '';
   loadDashboardData();

@@ -1202,6 +1202,7 @@ class AdminController
             }
             
             $filial = $_GET['filial'] ?? '';
+            $codigoCliente = $_GET['codigo_cliente'] ?? '';
             $dataInicial = $_GET['data_inicial'] ?? '';
             $dataFinal = $_GET['data_final'] ?? '';
             
@@ -1209,9 +1210,9 @@ class AdminController
             $tableStructure = $this->getTableStructure();
             
             $data = [
-                'retornados_mes' => $this->getRetornadosPorMes($filial, $dataInicial, $dataFinal),
-                'retornados_destino' => $this->getRetornadosPorDestino($filial, $dataInicial, $dataFinal),
-                'toners_recuperados' => $this->getTonersRecuperados($filial, $dataInicial, $dataFinal),
+                'retornados_mes' => $this->getRetornadosPorMes($filial, $codigoCliente, $dataInicial, $dataFinal),
+                'retornados_destino' => $this->getRetornadosPorDestino($filial, $codigoCliente, $dataInicial, $dataFinal),
+                'toners_recuperados' => $this->getTonersRecuperados($filial, $codigoCliente, $dataInicial, $dataFinal),
                 'filiais' => $this->getFiliaisFromRetornados(),
                 'debug' => [
                     'table_exists' => true,
@@ -1266,7 +1267,7 @@ class AdminController
     /**
      * Get retornados por mês
      */
-    private function getRetornadosPorMes($filial = '', $dataInicial = '', $dataFinal = '')
+    private function getRetornadosPorMes($filial = '', $codigoCliente = '', $dataInicial = '', $dataFinal = '')
     {
         // Verificar estrutura da tabela e ajustar query
         $dateColumn = $this->getDateColumn();
@@ -1286,6 +1287,11 @@ class AdminController
         if (!empty($filial)) {
             $sql .= " AND {$filialColumn} = ?";
             $params[] = $filial;
+        }
+        
+        if (!empty($codigoCliente)) {
+            $sql .= " AND codigo_cliente LIKE ?";
+            $params[] = '%' . $codigoCliente . '%';
         }
         
         if (!empty($dataInicial)) {
@@ -1331,7 +1337,7 @@ class AdminController
     /**
      * Get retornados por destino
      */
-    private function getRetornadosPorDestino($filial = '', $dataInicial = '', $dataFinal = '')
+    private function getRetornadosPorDestino($filial = '', $codigoCliente = '', $dataInicial = '', $dataFinal = '')
     {
         $dateColumn = $this->getDateColumn();
         $filialColumn = $this->getFilialColumn();
@@ -1350,6 +1356,11 @@ class AdminController
         if (!empty($filial)) {
             $sql .= " AND {$filialColumn} = ?";
             $params[] = $filial;
+        }
+        
+        if (!empty($codigoCliente)) {
+            $sql .= " AND codigo_cliente LIKE ?";
+            $params[] = '%' . $codigoCliente . '%';
         }
         
         if (!empty($dataInicial)) {
@@ -1392,7 +1403,7 @@ class AdminController
     /**
      * Get valor recuperado em toners
      */
-    private function getTonersRecuperados($filial = '', $dataInicial = '', $dataFinal = '')
+    private function getTonersRecuperados($filial = '', $codigoCliente = '', $dataInicial = '', $dataFinal = '')
     {
         $dateColumn = $this->getDateColumn();
         $filialColumn = $this->getFilialColumn();
@@ -1414,6 +1425,11 @@ class AdminController
         if (!empty($filial)) {
             $sql .= " AND {$filialColumn} = ?";
             $params[] = $filial;
+        }
+        
+        if (!empty($codigoCliente)) {
+            $sql .= " AND codigo_cliente LIKE ?";
+            $params[] = '%' . $codigoCliente . '%';
         }
         
         if (!empty($dataInicial)) {
