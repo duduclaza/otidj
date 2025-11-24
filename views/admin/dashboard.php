@@ -991,8 +991,8 @@
 </div>
 
 <!-- Modal de Expansão do Gráfico - Ranking de Clientes -->
-<div id="modalExpandidoRanking" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-8 transition-all duration-500 ease-out" style="z-index: 999999 !important; position: fixed !important;">
-  <div class="relative w-full max-w-7xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRanking">
+<div id="modalExpandidoRanking" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 transition-all duration-500 ease-out" style="z-index: 999999 !important; position: fixed !important;">
+  <div class="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-4 md:p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRanking">
     <!-- Botão Fechar -->
     <button onclick="fecharGraficoRankingExpandido()" class="absolute top-6 right-6 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group" style="z-index: 1000000;">
       <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1035,8 +1035,8 @@
     </div>
     
     <!-- Canvas do Gráfico -->
-    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/50">
-      <canvas id="rankingClientesChartExpandido" height="600"></canvas>
+    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/50" style="height: 70vh; min-height: 400px; max-height: 700px;">
+      <canvas id="rankingClientesChartExpandido"></canvas>
     </div>
   </div>
 </div>
@@ -1663,7 +1663,8 @@ function criarGraficoRankingExpandido() {
     options: {
       indexAxis: 'y',
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: true,
+      aspectRatio: 1.5,
       plugins: {
         legend: {
           display: true,
