@@ -8,10 +8,11 @@ async function initGarantiasTab() {
   // Carregar fornecedores no dropdown
   await carregarFornecedoresGarantias();
   
-  // Definir datas padrão (últimos 30 dias)
+  // Definir datas padrão (01 de janeiro do ano atual até hoje)
   const hoje = new Date();
   const dataFinal = hoje.toISOString().split('T')[0];
-  const dataInicial = new Date(hoje.setDate(hoje.getDate() - 30)).toISOString().split('T')[0];
+  const anoAtual = hoje.getFullYear();
+  const dataInicial = `${anoAtual}-01-01`;
   
   document.getElementById('dataInicialGarantias').value = dataInicial;
   document.getElementById('dataFinalGarantias').value = dataFinal;
@@ -439,7 +440,8 @@ function clearFiltersGarantias() {
   
   const hoje = new Date();
   const dataFinal = hoje.toISOString().split('T')[0];
-  const dataInicial = new Date(hoje.setDate(hoje.getDate() - 30)).toISOString().split('T')[0];
+  const anoAtual = hoje.getFullYear();
+  const dataInicial = `${anoAtual}-01-01`;
   
   document.getElementById('dataInicialGarantias').value = dataInicial;
   document.getElementById('dataFinalGarantias').value = dataFinal;
