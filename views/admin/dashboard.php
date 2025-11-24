@@ -268,26 +268,18 @@
         </button>
       </div>
       <!-- Filtros específicos para este gráfico -->
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <label class="text-sm font-medium text-gray-700">🎯 Filtrar por Destino:</label>
-          <select id="filtroDestinoRanking" onchange="updateRankingChart()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            <option value="">Todos os Destinos</option>
-            <option value="ESTOQUE">Estoque</option>
-            <option value="DESCARTE">Descarte</option>
-            <option value="USO_INTERNO">Uso Interno</option>
-            <option value="GARANTIA">Garantia</option>
-          </select>
-          <span class="text-xs text-gray-500">
-            (Este filtro afeta apenas o ranking. Datas compartilhadas.)
-          </span>
-        </div>
-        
-        <!-- Checkbox para ocultar sem código -->
-        <div class="flex items-center space-x-2">
-          <input type="checkbox" id="ocultarSemCodigoRanking" onchange="updateRankingChart()" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-          <label for="ocultarSemCodigoRanking" class="text-xs text-gray-600 cursor-pointer">Ocultar sem código</label>
-        </div>
+      <div class="flex items-center space-x-4">
+        <label class="text-sm font-medium text-gray-700">🎯 Filtrar por Destino:</label>
+        <select id="filtroDestinoRanking" onchange="updateRankingChart()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="">Todos os Destinos</option>
+          <option value="ESTOQUE">Estoque</option>
+          <option value="DESCARTE">Descarte</option>
+          <option value="USO_INTERNO">Uso Interno</option>
+          <option value="GARANTIA">Garantia</option>
+        </select>
+        <span class="text-xs text-gray-500">
+          (Este filtro afeta apenas o ranking. Datas compartilhadas.)
+        </span>
       </div>
     </div>
     <div class="p-6">
@@ -1061,12 +1053,63 @@
 </div>
 
 
+<!-- Modal de Expansão do Gráfico - Ranking de Clientes -->
+<div id="modalExpandidoRanking" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
+  <div class="relative w-full max-w-7xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRanking">
+    <!-- Botão Fechar -->
+    <button onclick="fecharGraficoRankingExpandido()" class="absolute top-6 right-6 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group z-10">
+      <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <!-- Título e Filtros -->
+    <div class="mb-6">
+      <div class="text-center mb-4">
+        <h2 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500 flex items-center justify-center gap-3">
+          <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+          </svg>
+          🏆 Top 10 - Ranking de Códigos de Cliente
+        </h2>
+        <p class="text-gray-400 mt-2">Classificação dos clientes com maior volume de retornados</p>
+      </div>
+      
+      <!-- Filtro de Destino -->
+      <div class="flex justify-center">
+        <div class="inline-flex items-center gap-3 bg-gradient-to-r from-gray-800/80 to-gray-900/80 px-6 py-3 rounded-xl border border-gray-700/50 backdrop-blur-sm">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+          </svg>
+          <label class="text-gray-300 font-medium">Filtrar por Destino:</label>
+          <select 
+            id="filtroDestinoRankingExpandido" 
+            onchange="atualizarGraficoRankingExpandido()" 
+            class="bg-gray-700/50 border border-gray-600 text-gray-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer hover:bg-gray-700"
+          >
+            <option value="">Todos os Destinos</option>
+            <option value="ESTOQUE">Estoque</option>
+            <option value="DESCARTE">Descarte</option>
+            <option value="USO_INTERNO">Uso Interno</option>
+            <option value="GARANTIA">Garantia</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Canvas do Gráfico -->
+    <div class="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/50">
+      <canvas id="rankingClientesChartExpandido" height="600"></canvas>
+    </div>
+  </div>
+</div>
+
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 // Variáveis globais para os gráficos
-let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart, rankingClientesChart, retornadosMesChartExpandido, retornadosDestinoChartExpandido, tonersRecuperadosChartExpandido;
+let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart, rankingClientesChart, retornadosMesChartExpandido, retornadosDestinoChartExpandido, tonersRecuperadosChartExpandido, rankingClientesChartExpandido;
 let dashboardData = null;
 
 // Dados iniciais vazios (serão carregados da API)
@@ -1386,7 +1429,6 @@ function clearFilters() {
   document.getElementById('dataInicial').value = '';
   document.getElementById('dataFinal').value = '';
   document.getElementById('filtroDestinoRanking').value = '';
-  document.getElementById('ocultarSemCodigoRanking').checked = false;
   loadDashboardData();
 }
 
@@ -1399,14 +1441,12 @@ async function loadRankingClientes() {
     const destino = document.getElementById('filtroDestinoRanking').value;
     const dataInicial = document.getElementById('dataInicial').value;
     const dataFinal = document.getElementById('dataFinal').value;
-    const ocultarSemCodigo = document.getElementById('ocultarSemCodigoRanking').checked;
     
     const params = new URLSearchParams();
     if (filial) params.append('filial', filial);
     if (destino) params.append('destino', destino);
     if (dataInicial) params.append('data_inicial', dataInicial);
     if (dataFinal) params.append('data_final', dataFinal);
-    if (ocultarSemCodigo) params.append('ocultar_sem_codigo', '1');
     
     const response = await fetch(`/admin/dashboard/ranking-clientes?${params.toString()}`);
     const result = await response.json();
@@ -1537,10 +1577,206 @@ function updateRankingChart() {
   loadRankingClientes();
 }
 
-// Função para expandir gráfico de ranking (placeholder)
+// Função para expandir gráfico de ranking
 function expandirGraficoRanking() {
-  alert('Função de expansão do gráfico de ranking será implementada em breve!');
-  // TODO: Implementar modal de expansão similar aos outros gráficos
+  const modal = document.getElementById('modalExpandidoRanking');
+  const modalContent = document.getElementById('modalContentRanking');
+  
+  // Mostrar modal
+  modal.classList.remove('hidden');
+  
+  // Animação de entrada suave
+  setTimeout(() => {
+    modalContent.style.transform = 'scale(1)';
+    modalContent.style.opacity = '1';
+  }, 50);
+  
+  // Sincronizar filtro de destino
+  sincronizarDestinoRankingExpandido();
+  
+  // Criar gráfico expandido se não existir
+  if (!rankingClientesChartExpandido) {
+    criarGraficoRankingExpandido();
+  } else {
+    // Atualizar gráfico expandido com dados atuais
+    if (rankingClientesChart && rankingClientesChart.data) {
+      rankingClientesChartExpandido.data.labels = [...rankingClientesChart.data.labels];
+      rankingClientesChartExpandido.data.datasets[0].data = [...rankingClientesChart.data.datasets[0].data];
+      rankingClientesChartExpandido.update();
+    }
+  }
+  
+  // Desabilitar scroll do body
+  document.body.style.overflow = 'hidden';
+}
+
+// Criar gráfico expandido de ranking
+function criarGraficoRankingExpandido() {
+  const ctx = document.getElementById('rankingClientesChartExpandido');
+  if (!ctx) return;
+  
+  const dadosAtuais = rankingClientesChart ? {
+    labels: [...rankingClientesChart.data.labels],
+    data: [...rankingClientesChart.data.datasets[0].data]
+  } : {
+    labels: [],
+    data: []
+  };
+  
+  rankingClientesChartExpandido = new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: dadosAtuais.labels,
+      datasets: [{
+        label: 'Quantidade de Retornados',
+        data: dadosAtuais.data,
+        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+        borderColor: 'rgba(99, 102, 241, 1)',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: '#d1d5db',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          titleColor: '#fff',
+          bodyColor: '#d1d5db',
+          borderColor: 'rgba(99, 102, 241, 0.5)',
+          borderWidth: 2,
+          cornerRadius: 12,
+          padding: 16,
+          titleFont: {
+            size: 16,
+            weight: 'bold'
+          },
+          bodyFont: {
+            size: 14
+          },
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ${context.parsed.x} retornados`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)',
+          },
+          ticks: {
+            color: '#9ca3af',
+            font: {
+              size: 14
+            }
+          },
+          title: {
+            display: true,
+            text: 'Quantidade de Retornados',
+            color: '#d1d5db',
+            font: {
+              size: 15,
+              weight: 'bold'
+            }
+          }
+        },
+        y: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#d1d5db',
+            font: {
+              size: 14,
+              weight: '600'
+            }
+          },
+          title: {
+            display: true,
+            text: 'Código do Cliente',
+            color: '#d1d5db',
+            font: {
+              size: 15,
+              weight: 'bold'
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Sincronizar filtro de destino expandido
+function sincronizarDestinoRankingExpandido() {
+  const filtroOriginal = document.getElementById('filtroDestinoRanking');
+  const filtroExpandido = document.getElementById('filtroDestinoRankingExpandido');
+  
+  if (filtroOriginal && filtroExpandido) {
+    filtroExpandido.value = filtroOriginal.value;
+  }
+}
+
+// Atualizar gráfico expandido quando filtro mudar
+async function atualizarGraficoRankingExpandido() {
+  if (!rankingClientesChartExpandido) return;
+  
+  const destino = document.getElementById('filtroDestinoRankingExpandido').value;
+  const filial = document.getElementById('filtroFilial').value;
+  const dataInicial = document.getElementById('dataInicial').value;
+  const dataFinal = document.getElementById('dataFinal').value;
+  
+  const params = new URLSearchParams();
+  if (filial) params.append('filial', filial);
+  if (destino) params.append('destino', destino);
+  if (dataInicial) params.append('data_inicial', dataInicial);
+  if (dataFinal) params.append('data_final', dataFinal);
+  
+  try {
+    const response = await fetch(`/admin/dashboard/ranking-clientes?${params.toString()}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      rankingClientesChartExpandido.data.labels = result.data.labels;
+      rankingClientesChartExpandido.data.datasets[0].data = result.data.data;
+      rankingClientesChartExpandido.update('active');
+    }
+  } catch (error) {
+    console.error('Erro ao atualizar ranking expandido:', error);
+  }
+}
+
+// Fechar gráfico de ranking expandido
+function fecharGraficoRankingExpandido() {
+  const modal = document.getElementById('modalExpandidoRanking');
+  const modalContent = document.getElementById('modalContentRanking');
+  
+  // Animação de saída suave
+  modalContent.style.transform = 'scale(0.95)';
+  modalContent.style.opacity = '0';
+  
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 300);
+  
+  // Reabilitar scroll do body
+  document.body.style.overflow = 'auto';
 }
 
 // Funções do modal de usuário
@@ -1704,12 +1940,16 @@ document.addEventListener('keydown', function(e) {
     const modalRetornados = document.getElementById('modalExpandidoRetornados');
     const modalDestino = document.getElementById('modalExpandidoDestino');
     const modalRecuperados = document.getElementById('modalExpandidoRecuperados');
+    const modalRanking = document.getElementById('modalExpandidoRanking');
     
     if (!modalRetornados.classList.contains('hidden')) {
       fecharGraficoExpandido();
     }
     if (!modalDestino.classList.contains('hidden')) {
       fecharGraficoDestinoExpandido();
+    }
+    if (!modalRanking.classList.contains('hidden')) {
+      fecharGraficoRankingExpandido();
     }
     if (!modalRecuperados.classList.contains('hidden')) {
       fecharGraficoRecuperadosExpandido();
@@ -1735,6 +1975,13 @@ document.getElementById('modalExpandidoDestino').addEventListener('click', funct
 document.getElementById('modalExpandidoRecuperados').addEventListener('click', function(e) {
   if (e.target === this) {
     fecharGraficoRecuperadosExpandido();
+  }
+});
+
+// Fechar ao clicar no fundo escuro - Modal Ranking
+document.getElementById('modalExpandidoRanking').addEventListener('click', function(e) {
+  if (e.target === this) {
+    fecharGraficoRankingExpandido();
   }
 });
 

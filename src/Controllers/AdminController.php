@@ -1250,7 +1250,6 @@ class AdminController
             $destino = $_GET['destino'] ?? '';
             $dataInicial = $_GET['data_inicial'] ?? '';
             $dataFinal = $_GET['data_final'] ?? '';
-            $ocultarSemCodigo = isset($_GET['ocultar_sem_codigo']) && $_GET['ocultar_sem_codigo'] === '1';
             
             $dateColumn = $this->getDateColumn();
             $filialColumn = $this->getFilialColumn();
@@ -1261,14 +1260,10 @@ class AdminController
                     codigo_cliente,
                     SUM(quantidade) as total_retornados
                 FROM retornados 
-                WHERE 1=1
+                WHERE codigo_cliente IS NOT NULL 
+                AND codigo_cliente != ''
                 AND codigo_cliente REGEXP '[0-9]'
             ";
-            
-            // Se checkbox estiver marcado, filtrar apenas registros COM código não vazio
-            if ($ocultarSemCodigo) {
-                $sql .= " AND codigo_cliente IS NOT NULL AND codigo_cliente != ''";
-            }
             
             $params = [];
             
