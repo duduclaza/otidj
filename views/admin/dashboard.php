@@ -251,6 +251,42 @@
     </div>
   </div>
 
+  <!-- Gráfico de Ranking de Códigos de Cliente -->
+  <div class="bg-white rounded-lg shadow-lg border-l-4 border-indigo-500 mt-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+          <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+          </svg>
+          🏆 Ranking de Códigos de Cliente
+        </h3>
+        <button onclick="expandirGraficoRanking()" class="p-2 rounded-lg hover:bg-indigo-50 transition-all duration-200 group" title="Expandir gráfico">
+          <svg class="w-5 h-5 text-indigo-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+          </svg>
+        </button>
+      </div>
+      <!-- Filtro de Destino específico para este gráfico -->
+      <div class="flex items-center space-x-4">
+        <label class="text-sm font-medium text-gray-700">🎯 Filtrar por Destino:</label>
+        <select id="filtroDestinoRanking" onchange="updateRankingChart()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="">Todos os Destinos</option>
+          <option value="ESTOQUE">Estoque</option>
+          <option value="DESCARTE">Descarte</option>
+          <option value="USO_INTERNO">Uso Interno</option>
+          <option value="GARANTIA">Garantia</option>
+        </select>
+        <span class="text-xs text-gray-500">
+          (Este filtro afeta apenas o ranking. Datas compartilhadas com outros gráficos.)
+        </span>
+      </div>
+    </div>
+    <div class="p-6">
+      <canvas id="rankingClientesChart" width="400" height="300"></canvas>
+    </div>
+  </div>
+
   <!-- Gráfico de Toners Recuperados -->
   <div class="bg-white rounded-lg shadow-lg border-l-4 border-purple-500">
     <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -1022,7 +1058,7 @@
 
 <script>
 // Variáveis globais para os gráficos
-let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart, retornadosMesChartExpandido, retornadosDestinoChartExpandido, tonersRecuperadosChartExpandido;
+let retornadosMesChart, retornadosDestinoChart, tonersRecuperadosChart, rankingClientesChart, retornadosMesChartExpandido, retornadosDestinoChartExpandido, tonersRecuperadosChartExpandido;
 let dashboardData = null;
 
 // Dados iniciais vazios (serão carregados da API)
@@ -1141,6 +1177,9 @@ function updateChartsWithData() {
   if (tonersRecuperadosChart) {
     tonersRecuperadosChart.update();
   }
+  
+  // Carregar ranking de clientes
+  loadRankingClientes();
 }
 
 // Popular opções de filiais
@@ -1338,7 +1377,159 @@ function clearFilters() {
   document.getElementById('filtroCodigoCliente').value = '';
   document.getElementById('dataInicial').value = '';
   document.getElementById('dataFinal').value = '';
+  document.getElementById('filtroDestinoRanking').value = '';
   loadDashboardData();
+}
+
+// ===== GRÁFICO DE RANKING DE CLIENTES =====
+
+// Carregar ranking de clientes
+async function loadRankingClientes() {
+  try {
+    const filial = document.getElementById('filtroFilial').value;
+    const destino = document.getElementById('filtroDestinoRanking').value;
+    const dataInicial = document.getElementById('dataInicial').value;
+    const dataFinal = document.getElementById('dataFinal').value;
+    
+    const params = new URLSearchParams();
+    if (filial) params.append('filial', filial);
+    if (destino) params.append('destino', destino);
+    if (dataInicial) params.append('data_inicial', dataInicial);
+    if (dataFinal) params.append('data_final', dataFinal);
+    
+    const response = await fetch(`/admin/dashboard/ranking-clientes?${params.toString()}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      updateRankingClientesChart(result.data);
+    } else {
+      console.error('Erro ao carregar ranking:', result.message);
+    }
+  } catch (error) {
+    console.error('Erro na requisição de ranking:', error);
+  }
+}
+
+// Atualizar gráfico de ranking
+function updateRankingClientesChart(data) {
+  const ctx = document.getElementById('rankingClientesChart');
+  if (!ctx) return;
+  
+  // Destruir gráfico anterior se existir
+  if (rankingClientesChart) {
+    rankingClientesChart.destroy();
+  }
+  
+  // Criar novo gráfico
+  rankingClientesChart = new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        label: 'Quantidade de Retornados',
+        data: data.data,
+        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+        borderColor: 'rgba(99, 102, 241, 1)',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y', // Gráfico horizontal
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: {
+            color: '#374151',
+            font: {
+              size: 13,
+              weight: 'bold'
+            }
+          }
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          titleColor: '#fff',
+          bodyColor: '#d1d5db',
+          borderColor: 'rgba(99, 102, 241, 0.5)',
+          borderWidth: 2,
+          cornerRadius: 8,
+          padding: 12,
+          titleFont: {
+            size: 14,
+            weight: 'bold'
+          },
+          bodyFont: {
+            size: 13
+          },
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ${context.parsed.x} retornados`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)',
+          },
+          ticks: {
+            color: '#6B7280',
+            font: {
+              size: 12
+            }
+          },
+          title: {
+            display: true,
+            text: 'Quantidade de Retornados',
+            color: '#374151',
+            font: {
+              size: 13,
+              weight: 'bold'
+            }
+          }
+        },
+        y: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: '#374151',
+            font: {
+              size: 12,
+              weight: '600'
+            }
+          },
+          title: {
+            display: true,
+            text: 'Código do Cliente',
+            color: '#374151',
+            font: {
+              size: 13,
+              weight: 'bold'
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Atualizar apenas o ranking quando filtro de destino mudar
+function updateRankingChart() {
+  loadRankingClientes();
+}
+
+// Função para expandir gráfico de ranking (placeholder)
+function expandirGraficoRanking() {
+  alert('Função de expansão do gráfico de ranking será implementada em breve!');
+  // TODO: Implementar modal de expansão similar aos outros gráficos
 }
 
 // Funções do modal de usuário

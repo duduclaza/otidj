@@ -102,6 +102,7 @@ $router->get('/admin/diagnostico/permissoes-usuario', [App\Controllers\AdminCont
 // Admin routes
 $router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
 $router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);
+$router->get('/admin/dashboard/ranking-clientes', [App\Controllers\AdminController::class, 'getRankingClientes']);
 $router->get('/admin/dashboard/amostragens-data', [App\Controllers\AdminController::class, 'getAmostragemsDashboardData']);
 $router->get('/admin/dashboard/fornecedores-data', [App\Controllers\AdminController::class, 'fornecedoresData']);
 $router->get('/admin/dashboard/melhorias-data', [App\Controllers\AdminController::class, 'getMelhoriasData']);

@@ -1239,6 +1239,84 @@ class AdminController
     }
 
     /**
+     * Get ranking de códigos de cliente
+     */
+    public function getRankingClientes()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $filial = $_GET['filial'] ?? '';
+            $destino = $_GET['destino'] ?? '';
+            $dataInicial = $_GET['data_inicial'] ?? '';
+            $dataFinal = $_GET['data_final'] ?? '';
+            
+            $dateColumn = $this->getDateColumn();
+            $filialColumn = $this->getFilialColumn();
+            $destinoColumn = $this->getDestinoColumn();
+            
+            $sql = "
+                SELECT 
+                    codigo_cliente,
+                    SUM(quantidade) as total_retornados
+                FROM retornados 
+                WHERE codigo_cliente IS NOT NULL 
+                AND codigo_cliente != ''
+            ";
+            
+            $params = [];
+            
+            if (!empty($filial)) {
+                $sql .= " AND {$filialColumn} = ?";
+                $params[] = $filial;
+            }
+            
+            if (!empty($destino)) {
+                $sql .= " AND {$destinoColumn} = ?";
+                $params[] = $destino;
+            }
+            
+            if (!empty($dataInicial)) {
+                $sql .= " AND {$dateColumn} >= ?";
+                $params[] = $dataInicial;
+            }
+            
+            if (!empty($dataFinal)) {
+                $sql .= " AND {$dateColumn} <= ?";
+                $params[] = $dataFinal;
+            }
+            
+            $sql .= " GROUP BY codigo_cliente ORDER BY total_retornados DESC LIMIT 15";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            $labels = [];
+            $data = [];
+            
+            foreach ($results as $row) {
+                $labels[] = $row['codigo_cliente'];
+                $data[] = (int)$row['total_retornados'];
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'labels' => $labels,
+                    'data' => $data
+                ]
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao carregar ranking: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
      * Check if retornados table exists
      */
     private function checkTableExists()
