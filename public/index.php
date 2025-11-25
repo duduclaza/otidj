@@ -106,6 +106,8 @@ $router->get('/admin/dashboard/ranking-clientes', [App\Controllers\AdminControll
 $router->get('/admin/dashboard/amostragens-data', [App\Controllers\AdminController::class, 'getAmostragemsDashboardData']);
 $router->get('/admin/dashboard/fornecedores-data', [App\Controllers\AdminController::class, 'fornecedoresData']);
 $router->get('/admin/dashboard/melhorias-data', [App\Controllers\AdminController::class, 'getMelhoriasData']);
+// Rota de diagnóstico detalhado do dashboard (apenas para debug)
+$router->get('/admin/dashboard/diagnostico', [App\Controllers\AdminController::class, 'diagnosticoDashboard']);
 $router->get('/admin/users', [App\Controllers\AdminController::class, 'users']);
 $router->get('/admin/invitations', [App\Controllers\AdminController::class, 'invitations']);
 $router->post('/admin/users/create', [App\Controllers\AdminController::class, 'createUser']);

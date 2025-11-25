@@ -57,6 +57,165 @@ class AdminController
             include __DIR__ . '/../../views/layouts/main.php';
         }
     }
+
+    /**
+     * Diagnóstico detalhado do Dashboard
+     * NÃO altera o comportamento normal, apenas ajuda a entender erros 500.
+     * Rota sugerida: /admin/dashboard/diagnostico (GET)
+     */
+    public function diagnosticoDashboard()
+    {
+        // Forçar saída JSON para facilitar debug via navegador
+        header('Content-Type: application/json; charset=utf-8');
+
+        $resultado = [
+            'auth' => false,
+            'permissao_dashboard' => false,
+            'passos' => [],
+        ];
+
+        try {
+            // 1) Autenticação
+            if (!isset($_SESSION['user_id'])) {
+                $resultado['passos'][] = [
+                    'etapa' => 'auth',
+                    'ok' => false,
+                    'mensagem' => 'Usuário não autenticado',
+                ];
+                echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                return;
+            }
+            $resultado['auth'] = true;
+
+            // 2) Permissão de dashboard
+            $hasDashboard = \App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view');
+            $resultado['permissao_dashboard'] = $hasDashboard;
+            if (!$hasDashboard) {
+                $resultado['passos'][] = [
+                    'etapa' => 'permissao_dashboard',
+                    'ok' => false,
+                    'mensagem' => 'Usuário não tem permissão para dashboard',
+                ];
+                echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+                return;
+            }
+
+            // 3) Testar getStats()
+            try {
+                $stats = $this->getStats();
+                $resultado['passos'][] = [
+                    'etapa' => 'getStats',
+                    'ok' => true,
+                    'resumo' => [
+                        'keys' => array_keys((array)$stats),
+                    ],
+                ];
+            } catch (\Throwable $e) {
+                error_log('Dashboard diagnostico - getStats ERRO: ' . $e->getMessage());
+                $resultado['passos'][] = [
+                    'etapa' => 'getStats',
+                    'ok' => false,
+                    'mensagem' => $e->getMessage(),
+                ];
+            }
+
+            // 4) Testar getTotaisAcumuladosGraficos()
+            try {
+                $totais = $this->getTotaisAcumuladosGraficos();
+                $resultado['passos'][] = [
+                    'etapa' => 'getTotaisAcumuladosGraficos',
+                    'ok' => true,
+                    'resumo' => [
+                        'keys' => array_keys((array)$totais),
+                    ],
+                ];
+            } catch (\Throwable $e) {
+                error_log('Dashboard diagnostico - getTotaisAcumuladosGraficos ERRO: ' . $e->getMessage());
+                $resultado['passos'][] = [
+                    'etapa' => 'getTotaisAcumuladosGraficos',
+                    'ok' => false,
+                    'mensagem' => $e->getMessage(),
+                ];
+            }
+
+            // 5) Testar getDashboardTabPermissions()
+            try {
+                $tabs = $this->getDashboardTabPermissions();
+                $resultado['passos'][] = [
+                    'etapa' => 'getDashboardTabPermissions',
+                    'ok' => true,
+                    'resumo' => $tabs,
+                ];
+            } catch (\Throwable $e) {
+                error_log('Dashboard diagnostico - getDashboardTabPermissions ERRO: ' . $e->getMessage());
+                $resultado['passos'][] = [
+                    'etapa' => 'getDashboardTabPermissions',
+                    'ok' => false,
+                    'mensagem' => $e->getMessage(),
+                ];
+            }
+
+            // 6) Testar endpoints de dados do dashboard (sem filtros complexos)
+            // Fornecedores
+            try {
+                $dadosFornecedores = $this->fornecedoresData();
+                $resultado['passos'][] = [
+                    'etapa' => 'fornecedoresData',
+                    'ok' => true,
+                    'tipo' => gettype($dadosFornecedores),
+                ];
+            } catch (\Throwable $e) {
+                error_log('Dashboard diagnostico - fornecedoresData ERRO: ' . $e->getMessage());
+                $resultado['passos'][] = [
+                    'etapa' => 'fornecedoresData',
+                    'ok' => false,
+                    'mensagem' => $e->getMessage(),
+                ];
+            }
+
+            // Amostragens
+            try {
+                $dadosAmostragens = $this->getAmostragemsDashboardData();
+                $resultado['passos'][] = [
+                    'etapa' => 'getAmostragemsDashboardData',
+                    'ok' => true,
+                    'tipo' => gettype($dadosAmostragens),
+                ];
+            } catch (\Throwable $e) {
+                error_log('Dashboard diagnostico - getAmostragemsDashboardData ERRO: ' . $e->getMessage());
+                $resultado['passos'][] = [
+                    'etapa' => 'getAmostragemsDashboardData',
+                    'ok' => false,
+                    'mensagem' => $e->getMessage(),
+                ];
+            }
+
+            // Melhorias
+            try {
+                $dadosMelhorias = $this->getMelhoriasData();
+                $resultado['passos'][] = [
+                    'etapa' => 'getMelhoriasData',
+                    'ok' => true,
+                    'tipo' => gettype($dadosMelhorias),
+                ];
+            } catch (\Throwable $e) {
+                error_log('Dashboard diagnostico - getMelhoriasData ERRO: ' . $e->getMessage());
+                $resultado['passos'][] = [
+                    'etapa' => 'getMelhoriasData',
+                    'ok' => false,
+                    'mensagem' => $e->getMessage(),
+                ];
+            }
+
+            $resultado['sucesso'] = true;
+        } catch (\Throwable $e) {
+            error_log('Dashboard diagnostico - ERRO GERAL: ' . $e->getMessage());
+            $resultado['sucesso'] = false;
+            $resultado['erro_geral'] = $e->getMessage();
+        }
+
+        echo json_encode($resultado, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    }
     
     /**
      * Manage users
