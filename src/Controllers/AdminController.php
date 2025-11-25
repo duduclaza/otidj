@@ -2348,9 +2348,32 @@ class AdminController
             
             error_log("🏭 Buscando dados de fornecedores - Filtros: filial={$filial}, origens=" . implode(',', $origens) . ", periodo={$dataInicial} a {$dataFinal}");
             
-            // Validar datas
+            // Validar datas - se não vier período, retornar dados vazios para não quebrar o dashboard
             if (empty($dataInicial) || empty($dataFinal)) {
-                throw new \Exception('Período é obrigatório');
+                echo json_encode([
+                    'success' => true,
+                    'data' => [
+                        'cards' => [
+                            'qtd_recebida' => 0,
+                            'qtd_testada' => 0,
+                            'qtd_aprovada' => 0,
+                            'qtd_reprovada' => 0,
+                        ],
+                        'quantidades_mes' => [
+                            'labels' => [],
+                            'recebidas' => [],
+                            'testadas' => [],
+                        ],
+                        'fornecedores_taxa' => [
+                            'labels' => [],
+                            'taxa_aprovacao' => [],
+                            'taxa_reprovacao' => [],
+                        ],
+                        'filiais_dropdown' => [],
+                    ],
+                    'mensagem' => 'Período não informado, retornando dados vazios para o dashboard',
+                ]);
+                return;
             }
             
             // 1. Buscar itens comprados das amostragens 2.0
