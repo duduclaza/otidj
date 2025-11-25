@@ -90,7 +90,19 @@ $router->get('/', function() {
 // Home/Início route - acessível a todos os usuários autenticados
 $router->get('/inicio', [App\Controllers\HomeController::class, 'index']);
 
-// Dashboard route - com URL específica
+// Dashboard em manutenção - página informativa bonita
+$router->get('/dashboard-manutencao', function() {
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: /login');
+        exit;
+    }
+
+    $title = 'Dashboard em Manutenção - SGQ OTI DJ';
+    $viewFile = __DIR__ . '/../views/pages/dashboard-manutencao.php';
+    include __DIR__ . '/../views/layouts/main.php';
+});
+
+// Dashboard route - painel administrativo completo
 $router->get('/dashboard', [App\Controllers\AdminController::class, 'dashboard']);
 
 // Rota de diagnóstico POPs (apenas para admins)
