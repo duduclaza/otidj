@@ -2,6 +2,8 @@
 $title = $title ?? 'SGQ OTI - DJ';
 $viewFile = $viewFile ?? __DIR__ . '/../pages/home.php';
 $sidebar = __DIR__ . '/../partials/sidebar.php';
+// Versão centralizada de assets para controle de cache
+$assetVersion = $_ENV['ASSET_VERSION'] ?? '2025.11.25';
 // Safe helper fallbacks in case global helpers are not loaded
 if (!function_exists('e')) {
   function e($value) { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); }
@@ -22,8 +24,8 @@ if (!function_exists('flash')) {
   <title><?= e($title) ?></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="/src/Support/modal-styles.css">
-  <script src="/src/Support/modal-utils.js"></script>
+  <link rel="stylesheet" href="/src/Support/modal-styles.css?v=<?= urlencode($assetVersion) ?>">
+  <script src="/src/Support/modal-utils.js?v=<?= urlencode($assetVersion) ?>"></script>
   <script>
     // ===== TOGGLE SUBMENU - GLOBAL FUNCTION =====
     // Definir PRIMEIRO, antes de qualquer outra coisa
