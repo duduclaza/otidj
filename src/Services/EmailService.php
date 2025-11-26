@@ -17,17 +17,38 @@ class EmailService
         $this->configureMailer();
     }
     
+    /**
+     * Obter variável de ambiente de forma robusta
+     */
+    private function env(string $key, $default = null)
+    {
+        // Tentar $_ENV primeiro
+        if (isset($_ENV[$key]) && $_ENV[$key] !== '') {
+            return $_ENV[$key];
+        }
+        // Depois $_SERVER
+        if (isset($_SERVER[$key]) && $_SERVER[$key] !== '') {
+            return $_SERVER[$key];
+        }
+        // Por último getenv()
+        $value = getenv($key);
+        if ($value !== false && $value !== '') {
+            return $value;
+        }
+        return $default;
+    }
+    
     private function configureMailer(): void
     {
         try {
             // Server settings
             $this->mailer->isSMTP();
-            $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'smtp.hostinger.com';
+            $this->mailer->Host = $this->env('MAIL_HOST', 'smtp.hostinger.com');
             $this->mailer->SMTPAuth = true;
-            $this->mailer->Username = $_ENV['MAIL_USERNAME'] ?? 'suporte@djbr.sgqoti.com.br';
-            $this->mailer->Password = $_ENV['MAIL_PASSWORD'] ?? 'Pandora@1989';
+            $this->mailer->Username = $this->env('MAIL_USERNAME', 'suporte@djbr.sgqoti.com.br');
+            $this->mailer->Password = $this->env('MAIL_PASSWORD', 'Pandora@1989');
             $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $this->mailer->Port = (int)($_ENV['MAIL_PORT'] ?? 465);
+            $this->mailer->Port = (int)$this->env('MAIL_PORT', 465);
             
             // Timeout settings para melhor performance
             $this->mailer->Timeout = 10; // 10 segundos
@@ -41,8 +62,8 @@ class EmailService
             
             // Default sender
             $this->mailer->setFrom(
-                $_ENV['MAIL_FROM_ADDRESS'] ?? 'suporte@djbr.sgqoti.com.br',
-                $_ENV['MAIL_FROM_NAME'] ?? 'SGQ OTI DJ'
+                $this->env('MAIL_FROM_ADDRESS', 'suporte@djbr.sgqoti.com.br'),
+                $this->env('MAIL_FROM_NAME', 'SGQ OTI DJ')
             );
             
             // Content settings
