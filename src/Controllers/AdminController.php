@@ -2648,7 +2648,7 @@ class AdminController
                 $sql = "
                     SELECT 
                         gi.codigo_produto as codigo,
-                        gi.descricao_produto as descricao,
+                        COALESCE(gi.nome_produto, gi.descricao) as descricao,
                         gi.tipo_produto as tipo,
                         gi.quantidade,
                         g.created_at as data_registro,
@@ -2684,18 +2684,19 @@ class AdminController
                         a.codigo_produto as codigo,
                         a.nome_produto as descricao,
                         a.tipo_produto as tipo,
-                        a.quantidade_recebida as quantidade,
+                        a.quantidade_aprovada as quantidade,
                         a.created_at as data_registro,
                         'Amostragem' as origem,
-                        u.name as responsavel,
+                        COALESCE(aprovador.name, u.name) as responsavel,
                         'Aprovado' as status
                     FROM amostragens_2 a
                     INNER JOIN fornecedores f ON a.fornecedor_id = f.id
                     INNER JOIN filiais fil ON a.filial_id = fil.id
                     LEFT JOIN users u ON a.user_id = u.id
+                    LEFT JOIN users aprovador ON a.aprovado_por = aprovador.id
                     WHERE f.id = ?
                     AND DATE(a.created_at) BETWEEN ? AND ?
-                    AND a.status = 'aprovado'
+                    AND a.status_final IN ('aprovado', 'aprovado_parcialmente')
                 ";
                 
                 $params = [$fornecedorId, $dataInicial, $dataFinal];
