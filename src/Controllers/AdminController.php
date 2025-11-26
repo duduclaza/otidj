@@ -2644,34 +2644,35 @@ class AdminController
             $itens = [];
             
             if ($tipo === 'reprovados') {
-                // Buscar itens de garantias (reprovados)
+                // Buscar itens reprovados das amostragens
                 $sql = "
                     SELECT 
-                        gi.codigo_produto as codigo,
-                        COALESCE(gi.nome_produto, gi.descricao) as descricao,
-                        gi.tipo_produto as tipo,
-                        gi.quantidade,
-                        g.created_at as data_registro,
-                        g.origem_garantia as origem,
-                        u.name as responsavel,
+                        a.codigo_produto as codigo,
+                        a.nome_produto as descricao,
+                        a.tipo_produto as tipo,
+                        a.quantidade_reprovada as quantidade,
+                        a.created_at as data_registro,
+                        fil.nome as origem,
+                        COALESCE(aprovador.name, u.name) as responsavel,
                         'Reprovado' as status
-                    FROM garantias g
-                    INNER JOIN garantias_itens gi ON g.id = gi.garantia_id
-                    INNER JOIN fornecedores f ON g.fornecedor_id = f.id
-                    LEFT JOIN users u ON g.user_id = u.id
+                    FROM amostragens_2 a
+                    INNER JOIN fornecedores f ON a.fornecedor_id = f.id
+                    INNER JOIN filiais fil ON a.filial_id = fil.id
+                    LEFT JOIN users u ON a.user_id = u.id
+                    LEFT JOIN users aprovador ON a.aprovado_por = aprovador.id
                     WHERE f.id = ?
-                    AND DATE(g.created_at) BETWEEN ? AND ?
+                    AND DATE(a.created_at) BETWEEN ? AND ?
+                    AND (a.status_final IN ('reprovado') OR a.quantidade_reprovada > 0)
                 ";
                 
                 $params = [$fornecedorId, $dataInicial, $dataFinal];
                 
-                if (!empty($origens)) {
-                    $placeholders = str_repeat('?,', count($origens) - 1) . '?';
-                    $sql .= " AND g.origem_garantia IN ($placeholders)";
-                    $params = array_merge($params, $origens);
+                if (!empty($filial)) {
+                    $sql .= " AND fil.nome = ?";
+                    $params[] = $filial;
                 }
                 
-                $sql .= " ORDER BY g.created_at DESC";
+                $sql .= " ORDER BY a.created_at DESC";
                 
                 $stmt = $this->db->prepare($sql);
                 $stmt->execute($params);
@@ -2686,7 +2687,7 @@ class AdminController
                         a.tipo_produto as tipo,
                         a.quantidade_aprovada as quantidade,
                         a.created_at as data_registro,
-                        'Amostragem' as origem,
+                        fil.nome as origem,
                         COALESCE(aprovador.name, u.name) as responsavel,
                         'Aprovado' as status
                     FROM amostragens_2 a
@@ -2696,7 +2697,7 @@ class AdminController
                     LEFT JOIN users aprovador ON a.aprovado_por = aprovador.id
                     WHERE f.id = ?
                     AND DATE(a.created_at) BETWEEN ? AND ?
-                    AND a.status_final IN ('aprovado', 'aprovado_parcialmente')
+                    AND (a.status_final IN ('aprovado', 'aprovado_parcialmente') OR a.quantidade_aprovada > 0)
                 ";
                 
                 $params = [$fornecedorId, $dataInicial, $dataFinal];
