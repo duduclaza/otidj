@@ -2705,6 +2705,9 @@ async function carregarFiliaisFornecedores() {
   }
 }
 
+// Variável global para armazenar dados dos fornecedores (para uso no tooltip)
+let dadosFornecedoresGlobal = [];
+
 function initChartsFornecedores() {
   // Gráfico principal de qualidade
   const ctxQualidade = document.getElementById('chartQualidadeFornecedores');
@@ -2743,7 +2746,15 @@ function initChartsFornecedores() {
           tooltip: {
             callbacks: {
               label: function(context) {
-                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                const index = context.dataIndex;
+                const fornecedor = dadosFornecedoresGlobal[index];
+                const totalComprados = fornecedor 
+                  ? (fornecedor.toner.comprados + fornecedor.maquina.comprados + fornecedor.peca.comprados)
+                  : 0;
+                return [
+                  context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%',
+                  '📦 Total Comprados: ' + totalComprados.toLocaleString('pt-BR') + ' itens'
+                ];
               }
             }
           }
@@ -2855,6 +2866,9 @@ function updateDashboardFornecedores(data) {
   document.getElementById('totalFornecedores').textContent = data.resumo.total_fornecedores || 0;
   document.getElementById('totalItensComprados').textContent = (data.resumo.total_itens_comprados || 0).toLocaleString('pt-BR');
   document.getElementById('totalGarantias').textContent = (data.resumo.total_garantias || 0).toLocaleString('pt-BR');
+  
+  // Salvar dados dos fornecedores na variável global (para uso no tooltip)
+  dadosFornecedoresGlobal = data.fornecedores;
   
   // Atualizar gráfico de qualidade geral
   if (fornecedoresCharts.qualidade) {
