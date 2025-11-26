@@ -733,12 +733,16 @@ class MelhoriaContinua2Controller
             $criadorId = $_SESSION['user_id'];
             $criadorNome = $_SESSION['user_name'] ?? 'Usuário';
             
-            // 1. Notificar ADMINS sobre nova melhoria
-            $stmt = $this->db->prepare('SELECT id FROM users WHERE role = "admin" AND status = "active" AND id != ?');
-            $stmt->execute([$criadorId]);
+            // 1. Buscar ADMINS e SUPERADMINS para notificar
+            $stmt = $this->db->prepare('SELECT id, email, name FROM users WHERE role IN ("admin", "superadmin") AND status = "active"');
+            $stmt->execute();
             $admins = $stmt->fetchAll(\PDO::FETCH_ASSOC);
             
+            // Notificação no sistema para admins
             foreach ($admins as $admin) {
+                // Pular se for o próprio criador
+                if ($admin['id'] == $criadorId) continue;
+                
                 $stmt = $this->db->prepare('
                     INSERT INTO notifications (user_id, title, message, type, related_type, related_id, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, NOW())
@@ -752,6 +756,9 @@ class MelhoriaContinua2Controller
                     $melhoriaId
                 ]);
             }
+            
+            // 2. ENVIAR EMAIL para todos os ADMINS e SUPERADMINS
+            $this->enviarEmailNovaMelhoria($melhoriaId, $titulo, $criadorNome, $admins);
             
             // 2. Notificar RESPONSÁVEIS selecionados
             if (!empty($responsaveis)) {
@@ -804,6 +811,132 @@ class MelhoriaContinua2Controller
         }
     }
 
+    /**
+     * Enviar email para admins e superadmins sobre nova melhoria
+     */
+    private function enviarEmailNovaMelhoria($melhoriaId, $titulo, $criadorNome, $admins): void
+    {
+        try {
+            // Filtrar apenas emails válidos
+            $emails = [];
+            foreach ($admins as $admin) {
+                if (!empty($admin['email']) && filter_var($admin['email'], FILTER_VALIDATE_EMAIL)) {
+                    $emails[] = $admin['email'];
+                }
+            }
+            
+            if (empty($emails)) {
+                error_log("❌ Nenhum email de admin válido encontrado para notificar nova melhoria");
+                return;
+            }
+            
+            error_log("📧 Enviando email de nova melhoria para " . count($emails) . " admins: " . implode(', ', $emails));
+            
+            // Buscar dados da melhoria
+            $stmt = $this->db->prepare('
+                SELECT m.*, d.nome as departamento_nome
+                FROM melhoria_continua_2 m
+                LEFT JOIN departamentos d ON m.departamento_id = d.id
+                WHERE m.id = ?
+            ');
+            $stmt->execute([$melhoriaId]);
+            $melhoria = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$melhoria) {
+                error_log("❌ Melhoria #{$melhoriaId} não encontrada para envio de email");
+                return;
+            }
+            
+            // Montar email HTML
+            $dataFormatada = date('d/m/Y H:i');
+            $departamento = $melhoria['departamento_nome'] ?? 'Não informado';
+            $idealizador = $melhoria['idealizador'] ?? 'Não informado';
+            
+            $subject = "🚀 Nova Melhoria Contínua: {$titulo}";
+            
+            $body = "
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='UTF-8'>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center; }
+                    .content { background: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; }
+                    .info-box { background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #8b5cf6; }
+                    .label { font-weight: bold; color: #6b7280; font-size: 12px; text-transform: uppercase; }
+                    .value { color: #1f2937; margin-top: 5px; }
+                    .footer { background: #1f2937; color: #9ca3af; padding: 15px; text-align: center; border-radius: 0 0 10px 10px; font-size: 12px; }
+                    .btn { display: inline-block; background: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px; }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h1 style='margin:0;'>🚀 Nova Melhoria Contínua</h1>
+                        <p style='margin:10px 0 0;opacity:0.9;'>Um novo registro foi criado no sistema</p>
+                    </div>
+                    <div class='content'>
+                        <div class='info-box'>
+                            <div class='label'>Título</div>
+                            <div class='value' style='font-size:18px;font-weight:bold;'>{$titulo}</div>
+                        </div>
+                        
+                        <div class='info-box'>
+                            <div class='label'>Criado por</div>
+                            <div class='value'>{$criadorNome}</div>
+                        </div>
+                        
+                        <div class='info-box'>
+                            <div class='label'>Idealizador</div>
+                            <div class='value'>{$idealizador}</div>
+                        </div>
+                        
+                        <div class='info-box'>
+                            <div class='label'>Departamento</div>
+                            <div class='value'>{$departamento}</div>
+                        </div>
+                        
+                        <div class='info-box'>
+                            <div class='label'>Data de Criação</div>
+                            <div class='value'>{$dataFormatada}</div>
+                        </div>
+                        
+                        <div class='info-box'>
+                            <div class='label'>O que fazer?</div>
+                            <div class='value'>" . nl2br(htmlspecialchars($melhoria['o_que'] ?? '')) . "</div>
+                        </div>
+                        
+                        <div style='text-align:center;'>
+                            <a href='https://djbr.sgqoti.com.br/melhoria-continua-2' class='btn'>Ver no Sistema</a>
+                        </div>
+                    </div>
+                    <div class='footer'>
+                        <p>SGQ OTI DJ - Sistema de Gestão da Qualidade</p>
+                        <p>Este é um email automático, não responda.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            ";
+            
+            $altBody = "Nova Melhoria Contínua: {$titulo}\n\nCriado por: {$criadorNome}\nIdealizador: {$idealizador}\nDepartamento: {$departamento}\nData: {$dataFormatada}\n\nAcesse o sistema para mais detalhes.";
+            
+            // Enviar email
+            $emailService = new \App\Services\EmailService();
+            $enviado = $emailService->send($emails, $subject, $body, $altBody);
+            
+            if ($enviado) {
+                error_log("✅ Email de nova melhoria enviado com sucesso para " . count($emails) . " admins");
+            } else {
+                error_log("❌ Falha ao enviar email de nova melhoria");
+            }
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erro ao enviar email de nova melhoria: " . $e->getMessage());
+        }
+    }
 
     // Atualizar Pontuação Inline (Admin)
     public function updatePontuacao($id): void
