@@ -39,7 +39,7 @@ class SuporteController
                     LEFT JOIN users u ON s.solicitante_id = u.id
                     LEFT JOIN users r ON s.resolvido_por = r.id
                     ORDER BY 
-                        FIELD(s.status, "Pendente", "Em Análise", "Concluído"),
+                        FIELD(s.status, "Pendente", "Em Análise", "Em Andamento", "Concluído"),
                         s.created_at DESC
                 ');
                 $stmt->execute();
@@ -149,7 +149,7 @@ class SuporteController
             $resolucao = trim($_POST['resolucao'] ?? '');
 
             // Validações
-            if (!in_array($status, ['Pendente', 'Em Análise', 'Concluído'])) {
+            if (!in_array($status, ['Pendente', 'Em Análise', 'Em Andamento', 'Concluído'])) {
                 echo json_encode(['success' => false, 'message' => 'Status inválido']);
                 return;
             }
@@ -335,7 +335,7 @@ class SuporteController
             $stmt = $db->prepare("
                 SELECT COUNT(*) 
                 FROM suporte_solicitacoes 
-                WHERE status IN ('Pendente', 'Em Análise')
+                WHERE status IN ('Pendente', 'Em Análise', 'Em Andamento')
             ");
             $stmt->execute();
             return (int)$stmt->fetchColumn();
