@@ -22,8 +22,8 @@ class MelhoriaContinua2Controller
             error_log("User ID: " . ($_SESSION['user_id'] ?? 'NULL'));
             error_log("User Role: " . ($_SESSION['user_role'] ?? 'NULL'));
             
-            // Verificar permissão (admin sempre tem acesso)
-            if ($_SESSION['user_role'] !== 'admin' && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
+            // Verificar permissão (admin e superadmin sempre tem acesso)
+            if (!in_array($_SESSION['user_role'], ['admin', 'superadmin']) && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
                 error_log("ACESSO NEGADO - Sem permissão");
                 http_response_code(403);
                 echo "Acesso negado";
@@ -32,7 +32,7 @@ class MelhoriaContinua2Controller
 
             error_log("Permissão OK - Carregando dados");
             $userId = $_SESSION['user_id'];
-            $isAdmin = $_SESSION['user_role'] === 'admin';
+            $isAdmin = in_array($_SESSION['user_role'], ['admin', 'superadmin']);
 
             // PAGINAÇÃO
             $porPagina = isset($_GET['por_pagina']) && in_array($_GET['por_pagina'], [10, 50, 100]) 
@@ -281,7 +281,7 @@ class MelhoriaContinua2Controller
     public function update(): void
     {
         // Admin ou usuário com permissão de view pode editar suas próprias melhorias
-        $isAdmin = $_SESSION['user_role'] === 'admin';
+        $isAdmin = in_array($_SESSION['user_role'], ['admin', 'superadmin']);
         if (!$isAdmin && !PermissionService::hasPermission($_SESSION['user_id'], 'melhoria_continua_2', 'view')) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Acesso negado']);
@@ -303,7 +303,7 @@ class MelhoriaContinua2Controller
             }
 
             // Admin pode editar qualquer melhoria, usuário comum só se for criador e status "Pendente Adaptação"
-            $isAdmin = $_SESSION['user_role'] === 'admin';
+            $isAdmin = in_array($_SESSION['user_role'], ['admin', 'superadmin']);
             if (!$isAdmin && ($melhoria['criado_por'] != $userId || $melhoria['status'] !== 'Pendente Adaptação')) {
                 echo json_encode(['success' => false, 'message' => 'Você não pode editar esta melhoria']);
                 return;
@@ -569,8 +569,10 @@ class MelhoriaContinua2Controller
                 return;
             }
 
-            // Só pode excluir se for o criador e status for "Recusada"
-            if ($melhoria['criado_por'] != $userId || $melhoria['status'] !== 'Recusada') {
+            // Admin e superadmin podem excluir qualquer melhoria
+            // Usuário comum só pode excluir se for o criador e status for "Recusada"
+            $isAdmin = in_array($_SESSION['user_role'], ['admin', 'superadmin']);
+            if (!$isAdmin && ($melhoria['criado_por'] != $userId || $melhoria['status'] !== 'Recusada')) {
                 echo json_encode(['success' => false, 'message' => 'Você não pode excluir esta melhoria']);
                 return;
             }
@@ -1032,7 +1034,7 @@ class MelhoriaContinua2Controller
     {
         try {
             $userId = $_SESSION['user_id'];
-            $isAdmin = $_SESSION['user_role'] === 'admin';
+            $isAdmin = in_array($_SESSION['user_role'], ['admin', 'superadmin']);
 
             // Buscar filtros
             $filters = [];

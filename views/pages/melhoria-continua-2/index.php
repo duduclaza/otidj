@@ -410,7 +410,7 @@ function construirUrlPaginacao($pagina) {
               </button>
               <?php endif; ?>
               
-              <?php if ($melhoria['criado_por'] == $userId && $melhoria['status'] === 'Recusada'): ?>
+              <?php if ($isAdmin || ($melhoria['criado_por'] == $userId && $melhoria['status'] === 'Recusada')): ?>
               <button onclick="deleteMelhoria(<?= $melhoria['id'] ?>)" class="text-red-600 hover:text-red-900" title="Excluir">
                 🗑️ Excluir
               </button>
