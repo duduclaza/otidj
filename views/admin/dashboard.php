@@ -208,7 +208,7 @@
   </div>
 
   <!-- Gráficos dos Retornados -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
     <!-- Gráfico de Barras - Retornados por Mês -->
     <div class="bg-white rounded-lg shadow-lg border-l-4 border-green-500">
       <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
