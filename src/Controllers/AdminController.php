@@ -2613,6 +2613,118 @@ class AdminController
     }
 
     /**
+     * Página de itens do fornecedor (aprovados ou reprovados)
+     */
+    public function fornecedorItens()
+    {
+        $fornecedor = $_GET['fornecedor'] ?? '';
+        $tipo = $_GET['tipo'] ?? 'aprovados'; // 'aprovados' ou 'reprovados'
+        $filial = $_GET['filial'] ?? '';
+        $dataInicial = $_GET['data_inicial'] ?? '';
+        $dataFinal = $_GET['data_final'] ?? '';
+        $origens = isset($_GET['origem']) && is_array($_GET['origem']) ? $_GET['origem'] : [];
+        
+        if (empty($fornecedor)) {
+            echo "Fornecedor não informado";
+            return;
+        }
+        
+        try {
+            // Buscar ID do fornecedor
+            $stmt = $this->db->prepare("SELECT id FROM fornecedores WHERE nome = ?");
+            $stmt->execute([$fornecedor]);
+            $fornecedorData = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$fornecedorData) {
+                echo "Fornecedor não encontrado";
+                return;
+            }
+            
+            $fornecedorId = $fornecedorData['id'];
+            $itens = [];
+            
+            if ($tipo === 'reprovados') {
+                // Buscar itens de garantias (reprovados)
+                $sql = "
+                    SELECT 
+                        gi.codigo_produto as codigo,
+                        gi.descricao_produto as descricao,
+                        gi.tipo_produto as tipo,
+                        gi.quantidade,
+                        g.created_at as data_registro,
+                        g.origem_garantia as origem,
+                        u.name as responsavel,
+                        'Reprovado' as status
+                    FROM garantias g
+                    INNER JOIN garantias_itens gi ON g.id = gi.garantia_id
+                    INNER JOIN fornecedores f ON g.fornecedor_id = f.id
+                    LEFT JOIN users u ON g.user_id = u.id
+                    WHERE f.id = ?
+                    AND DATE(g.created_at) BETWEEN ? AND ?
+                ";
+                
+                $params = [$fornecedorId, $dataInicial, $dataFinal];
+                
+                if (!empty($origens)) {
+                    $placeholders = str_repeat('?,', count($origens) - 1) . '?';
+                    $sql .= " AND g.origem_garantia IN ($placeholders)";
+                    $params = array_merge($params, $origens);
+                }
+                
+                $sql .= " ORDER BY g.created_at DESC";
+                
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute($params);
+                $itens = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                
+            } else {
+                // Buscar itens aprovados das amostragens
+                $sql = "
+                    SELECT 
+                        a.codigo_produto as codigo,
+                        a.nome_produto as descricao,
+                        a.tipo_produto as tipo,
+                        a.quantidade_recebida as quantidade,
+                        a.created_at as data_registro,
+                        'Amostragem' as origem,
+                        u.name as responsavel,
+                        'Aprovado' as status
+                    FROM amostragens_2 a
+                    INNER JOIN fornecedores f ON a.fornecedor_id = f.id
+                    INNER JOIN filiais fil ON a.filial_id = fil.id
+                    LEFT JOIN users u ON a.user_id = u.id
+                    WHERE f.id = ?
+                    AND DATE(a.created_at) BETWEEN ? AND ?
+                    AND a.status = 'aprovado'
+                ";
+                
+                $params = [$fornecedorId, $dataInicial, $dataFinal];
+                
+                if (!empty($filial)) {
+                    $sql .= " AND fil.nome = ?";
+                    $params[] = $filial;
+                }
+                
+                $sql .= " ORDER BY a.created_at DESC";
+                
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute($params);
+                $itens = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            }
+            
+            // Renderizar página
+            $titulo = $tipo === 'reprovados' ? 'Itens Reprovados' : 'Itens Aprovados';
+            $corTema = $tipo === 'reprovados' ? 'red' : 'green';
+            
+            include __DIR__ . '/../../views/admin/fornecedor_itens.php';
+            
+        } catch (\Exception $e) {
+            error_log("Erro em fornecedorItens: " . $e->getMessage());
+            echo "Erro ao carregar dados: " . $e->getMessage();
+        }
+    }
+
+    /**
      * Get melhorias dashboard data - dados reais do módulo Melhoria Contínua 2.0
      */
     public function getMelhoriasData()

@@ -818,6 +818,63 @@
 
 </section>
 
+<!-- Modal de Escolha - Ver Itens Aprovados ou Reprovados do Fornecedor -->
+<div id="modalDetalhesFornecedor" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300" style="z-index: 99999;">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalDetalhesFornecedorContent">
+    <!-- Cabeçalho -->
+    <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+          <span id="modalFornecedorNome">Fornecedor</span>
+        </h3>
+        <button onclick="fecharModalDetalhesFornecedor()" class="p-2 rounded-full hover:bg-white/20 transition-colors">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Corpo -->
+    <div class="p-6">
+      <p class="text-gray-600 text-center mb-6">Qual tipo de item deseja visualizar?</p>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Botão Aprovados -->
+        <button onclick="verItensFornecedor('aprovados')" class="group p-6 bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-xl border-2 border-green-200 hover:border-green-400 transition-all duration-300">
+          <div class="flex flex-col items-center gap-3">
+            <div class="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <span class="font-semibold text-green-700">Aprovados</span>
+            <span id="modalQtdAprovados" class="text-2xl font-bold text-green-600">0</span>
+          </div>
+        </button>
+        
+        <!-- Botão Reprovados -->
+        <button onclick="verItensFornecedor('reprovados')" class="group p-6 bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-200 rounded-xl border-2 border-red-200 hover:border-red-400 transition-all duration-300">
+          <div class="flex flex-col items-center gap-3">
+            <div class="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <span class="font-semibold text-red-700">Reprovados</span>
+            <span id="modalQtdReprovados" class="text-2xl font-bold text-red-600">0</span>
+          </div>
+        </button>
+      </div>
+      
+      <p class="text-xs text-gray-400 text-center mt-4">Os dados serão abertos em uma nova janela</p>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de Expansão do Gráfico - Retornados por Mês -->
 <div id="modalExpandidoRetornados" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
   <div class="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-4 md:p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRetornados">
@@ -2753,9 +2810,19 @@ function initChartsFornecedores() {
                   : 0;
                 return [
                   context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%',
-                  '📦 Total Comprados: ' + totalComprados.toLocaleString('pt-BR') + ' itens'
+                  '📦 Total Comprados: ' + totalComprados.toLocaleString('pt-BR') + ' itens',
+                  '🖱️ Clique para ver detalhes'
                 ];
               }
+            }
+          }
+        },
+        onClick: function(event, elements) {
+          if (elements.length > 0) {
+            const index = elements[0].index;
+            const fornecedor = dadosFornecedoresGlobal[index];
+            if (fornecedor) {
+              abrirModalDetalhesFornecedor(fornecedor);
             }
           }
         }
@@ -2986,6 +3053,95 @@ function clearFiltersFornecedores() {
   document.getElementById('totalItensComprados').textContent = '0';
   document.getElementById('totalGarantias').textContent = '0';
 }
+
+// ==================== MODAL DETALHES FORNECEDOR ====================
+
+let fornecedorSelecionado = null;
+
+function abrirModalDetalhesFornecedor(fornecedor) {
+  fornecedorSelecionado = fornecedor;
+  
+  // Atualizar dados no modal
+  document.getElementById('modalFornecedorNome').textContent = fornecedor.nome;
+  
+  // Calcular totais
+  const totalComprados = fornecedor.toner.comprados + fornecedor.maquina.comprados + fornecedor.peca.comprados;
+  const totalGarantias = fornecedor.toner.garantias + fornecedor.maquina.garantias + fornecedor.peca.garantias;
+  const totalAprovados = totalComprados - totalGarantias;
+  
+  document.getElementById('modalQtdAprovados').textContent = totalAprovados.toLocaleString('pt-BR');
+  document.getElementById('modalQtdReprovados').textContent = totalGarantias.toLocaleString('pt-BR');
+  
+  // Mostrar modal
+  const modal = document.getElementById('modalDetalhesFornecedor');
+  const content = document.getElementById('modalDetalhesFornecedorContent');
+  
+  modal.classList.remove('hidden');
+  
+  setTimeout(() => {
+    content.classList.remove('scale-95', 'opacity-0');
+    content.classList.add('scale-100', 'opacity-100');
+  }, 10);
+}
+
+function fecharModalDetalhesFornecedor() {
+  const modal = document.getElementById('modalDetalhesFornecedor');
+  const content = document.getElementById('modalDetalhesFornecedorContent');
+  
+  content.classList.remove('scale-100', 'opacity-100');
+  content.classList.add('scale-95', 'opacity-0');
+  
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 300);
+}
+
+function verItensFornecedor(tipo) {
+  if (!fornecedorSelecionado) return;
+  
+  // Pegar os filtros atuais
+  const filial = document.getElementById('filtroFilialFornecedores').value;
+  const dataInicial = document.getElementById('dataInicialFornecedores').value;
+  const dataFinal = document.getElementById('dataFinalFornecedores').value;
+  
+  // Pegar múltiplas origens selecionadas
+  const origemSelect = document.getElementById('filtroOrigemFornecedores');
+  const origemSelecionadas = Array.from(origemSelect.selectedOptions).map(option => option.value);
+  
+  // Construir URL com parâmetros
+  const params = new URLSearchParams();
+  params.append('fornecedor', fornecedorSelecionado.nome);
+  params.append('tipo', tipo); // 'aprovados' ou 'reprovados'
+  if (filial) params.append('filial', filial);
+  if (dataInicial) params.append('data_inicial', dataInicial);
+  if (dataFinal) params.append('data_final', dataFinal);
+  origemSelecionadas.forEach(origem => params.append('origem[]', origem));
+  
+  // Abrir nova janela com a página de itens
+  const url = '/admin/fornecedor-itens?' + params.toString();
+  window.open(url, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+  
+  // Fechar modal
+  fecharModalDetalhesFornecedor();
+}
+
+// Fechar modal ao clicar fora
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('modalDetalhesFornecedor');
+  if (e.target === modal) {
+    fecharModalDetalhesFornecedor();
+  }
+});
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('modalDetalhesFornecedor');
+    if (!modal.classList.contains('hidden')) {
+      fecharModalDetalhesFornecedor();
+    }
+  }
+});
 
 // ==================== ABA MELHORIAS ====================
 
