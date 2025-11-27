@@ -429,30 +429,6 @@ class HomologacoesKanbanController
             $stmt = $this->db->prepare("UPDATE homologacoes SET contador_inicial = ?, contador_final = ?, updated_at = NOW() WHERE id = ?");
             $result = $stmt->execute([$contadorInicial, $contadorFinal, $homologacaoId]);
             
-            // DEBUG: Log do resultado
-            error_log("updateContadores - Resultado UPDATE: " . var_export($result, true) . ", Rows affected: " . $stmt->rowCount());
-
-            // Registrar no histórico (opcional, mas útil para auditoria)
-            $stmtHist = $this->db->prepare("INSERT INTO homologacoes_historico (homologacao_id, status_anterior, status_novo, usuario_id, observacao, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
-
-            // Buscar status atual para registrar no histórico
-            $stmtStatus = $this->db->prepare("SELECT status FROM homologacoes WHERE id = ?");
-            $stmtStatus->execute([$homologacaoId]);
-            $rowStatus = $stmtStatus->fetch(PDO::FETCH_ASSOC);
-            $statusAtual = $rowStatus['status'] ?? 'em_homologacao';
-
-            $obs = 'Contadores atualizados: ' .
-                'inicial=' . ($contadorInicial === null ? 'null' : $contadorInicial) . ', ' .
-                'final=' . ($contadorFinal === null ? 'null' : $contadorFinal);
-
-            $stmtHist->execute([
-                $homologacaoId,
-                $statusAtual,
-                $statusAtual,
-                $this->getUsuarioIdLog(),
-                $obs
-            ]);
-
             $this->db->commit();
 
             echo json_encode(['success' => true, 'message' => 'Contadores atualizados com sucesso']);
