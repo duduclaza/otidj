@@ -102,8 +102,22 @@ $router->get('/dashboard-manutencao', function() {
     include __DIR__ . '/../views/layouts/main.php';
 });
 
-// Dashboard route - painel administrativo completo
-$router->get('/dashboard', [App\Controllers\AdminController::class, 'dashboard']);
+// Dashboard route - painel administrativo completo (com verificação de permissão)
+$router->get('/dashboard', function() {
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: /login');
+        exit;
+    }
+    
+    // Verificar se tem permissão para dashboard
+    if (\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+        (new App\Controllers\AdminController())->dashboard();
+    } else {
+        // Sem permissão: redirecionar para página inicial
+        header('Location: /inicio');
+        exit;
+    }
+});
 
 // Rota de diagnóstico POPs (apenas para admins)
 $router->get('/admin/diagnostico/pops-pendentes', [App\Controllers\PopItsController::class, 'diagnosticoPendentes']);
@@ -111,8 +125,22 @@ $router->get('/admin/diagnostico/pops-pendentes', [App\Controllers\PopItsControl
 // Rota de diagnóstico de permissões (apenas para admins)
 $router->get('/admin/diagnostico/permissoes-usuario', [App\Controllers\AdminController::class, 'diagnosticoPermissoes']);
 
-// Admin routes
-$router->get('/admin', [App\Controllers\AdminController::class, 'dashboard']);
+// Admin routes (com verificação de permissão)
+$router->get('/admin', function() {
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: /login');
+        exit;
+    }
+    
+    // Verificar se tem permissão para dashboard/admin
+    if (\App\Services\PermissionService::hasPermission($_SESSION['user_id'], 'dashboard', 'view')) {
+        (new App\Controllers\AdminController())->dashboard();
+    } else {
+        // Sem permissão: redirecionar para página inicial
+        header('Location: /inicio');
+        exit;
+    }
+});
 $router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);
 $router->get('/admin/dashboard/ranking-clientes', [App\Controllers\AdminController::class, 'getRankingClientes']);
 $router->get('/admin/dashboard/amostragens-data', [App\Controllers\AdminController::class, 'getAmostragemsDashboardData']);
