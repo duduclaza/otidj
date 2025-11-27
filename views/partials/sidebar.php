@@ -176,7 +176,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
       <!-- Dashboard só visível se tiver permissão -->
       <?php if (hasPermission('dashboard')): ?>
       <li>
-        <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/admin'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
+        <a href="/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-slate-700 <?php echo $current==='/dashboard'?'bg-blue-600 text-white shadow-lg':'text-slate-300 hover:text-white'; ?>">
           <span class="text-lg">📊</span>
           <span>Dashboard</span>
         </a>
@@ -439,7 +439,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
     </div>
     <nav class="p-3 space-y-1">
       <?php if (hasPermission('dashboard')): ?>
-      <a href="/admin" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200">Dashboard</a>
+      <a href="/dashboard" class="page-link block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition-all duration-200">Dashboard</a>
       <?php endif; ?>
       
       <?php foreach ($menu as $item): 
