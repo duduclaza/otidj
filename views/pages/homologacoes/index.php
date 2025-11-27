@@ -351,35 +351,6 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
-                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <label class="block text-[11px] text-slate-600 mb-1">Contador inicial</label>
-                                <input
-                                    type="number"
-                                    id="contador_inicial_<?= $h['id'] ?>"
-                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
-                                    value="<?= e($h['contador_inicial'] ?? '') ?>"
-                                >
-                            </div>
-                            <div>
-                                <label class="block text-[11px] text-slate-600 mb-1">Contador final</label>
-                                <input
-                                    type="number"
-                                    id="contador_final_<?= $h['id'] ?>"
-                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
-                                    value="<?= e($h['contador_final'] ?? '') ?>"
-                                >
-                            </div>
-                        </div>
-                        <div class="mt-2 flex justify-end">
-                            <button
-                                type="button"
-                                class="px-2 py-1 bg-blue-600 text-white text-[11px] rounded-md hover:bg-blue-700"
-                                onclick="event.stopPropagation(); salvarContadores(<?= $h['id'] ?>)"
-                            >
-                                Salvar contadores
-                            </button>
-                        </div>
                         <?php if (!empty($h['aprovado_por_nome'])): ?>
                         <div class="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
                             <span>🟢</span><span>Aprovado por: <?= e($h['aprovado_por_nome']) ?></span>
