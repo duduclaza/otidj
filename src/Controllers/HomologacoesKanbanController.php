@@ -438,7 +438,7 @@ class HomologacoesKanbanController
                 $this->db->rollBack();
             }
             error_log('Erro ao atualizar contadores da homologação: ' . $e->getMessage());
-            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar contadores']);
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar contadores: ' . $e->getMessage()]);
         }
         exit;
     }
