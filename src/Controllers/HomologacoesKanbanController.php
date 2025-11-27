@@ -397,6 +397,71 @@ class HomologacoesKanbanController
     }
 
     /**
+     * Atualizar contadores (contador_inicial e contador_final) de uma homologação
+     */
+    public function updateContadores($id)
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $homologacaoId = (int)$id;
+
+            if (!$homologacaoId) {
+                echo json_encode(['success' => false, 'message' => 'ID inválido']);
+                exit;
+            }
+
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true) ?: [];
+
+            $contadorInicial = $data['contador_inicial'] ?? null;
+            $contadorFinal = $data['contador_final'] ?? null;
+
+            // Normalizar valores: aceitar null ou inteiros
+            $contadorInicial = ($contadorInicial === null || $contadorInicial === '') ? null : (int)$contadorInicial;
+            $contadorFinal = ($contadorFinal === null || $contadorFinal === '') ? null : (int)$contadorFinal;
+
+            $this->db->beginTransaction();
+
+            $stmt = $this->db->prepare("UPDATE homologacoes SET contador_inicial = ?, contador_final = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$contadorInicial, $contadorFinal, $homologacaoId]);
+
+            // Registrar no histórico (opcional, mas útil para auditoria)
+            $stmtHist = $this->db->prepare("INSERT INTO homologacoes_historico (homologacao_id, status_anterior, status_novo, usuario_id, observacao, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+
+            // Buscar status atual para registrar no histórico
+            $stmtStatus = $this->db->prepare("SELECT status FROM homologacoes WHERE id = ?");
+            $stmtStatus->execute([$homologacaoId]);
+            $rowStatus = $stmtStatus->fetch(PDO::FETCH_ASSOC);
+            $statusAtual = $rowStatus['status'] ?? 'em_homologacao';
+
+            $obs = 'Contadores atualizados: ' .
+                'inicial=' . ($contadorInicial === null ? 'null' : $contadorInicial) . ', ' .
+                'final=' . ($contadorFinal === null ? 'null' : $contadorFinal);
+
+            $stmtHist->execute([
+                $homologacaoId,
+                $statusAtual,
+                $statusAtual,
+                $this->getUsuarioIdLog(),
+                $obs
+            ]);
+
+            $this->db->commit();
+
+            echo json_encode(['success' => true, 'message' => 'Contadores atualizados com sucesso']);
+
+        } catch (\Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log('Erro ao atualizar contadores da homologação: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar contadores']);
+        }
+        exit;
+    }
+
+    /**
      * Atualizar status da homologação
      */
     public function updateStatus()

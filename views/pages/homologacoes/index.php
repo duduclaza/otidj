@@ -277,6 +277,35 @@
                         </button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador inicial</label>
+                                <input
+                                    type="number"
+                                    id="contador_inicial_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_inicial'] ?? '') ?>"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador final</label>
+                                <input
+                                    type="number"
+                                    id="contador_final_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_final'] ?? '') ?>"
+                                >
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-end">
+                            <button
+                                type="button"
+                                class="px-2 py-1 bg-blue-600 text-white text-[11px] rounded-md hover:bg-blue-700"
+                                onclick="event.stopPropagation(); salvarContadores(<?= $h['id'] ?>)"
+                            >
+                                Salvar contadores
+                            </button>
+                        </div>
                         <div class="flex items-center justify-between text-xs mb-6">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -763,6 +792,26 @@ function mostrarCampoDepartamento(homologacaoId) {
             selectDept.value = ''; // Limpar seleção quando ocultar
         }
     }
+}
+
+function alterarPorPagina(porPagina) {
+    const totalCards = document.querySelectorAll('.kanban-card').length;
+    const visibleCards = Array.from(document.querySelectorAll('.kanban-card'))
+        .filter(card => card.style.display !== 'none').length;
+    
+    document.getElementById('totalGeral').textContent = totalCards;
+    salvarContadores(totalCards, visibleCards);
+}
+
+function salvarContadores(totalCards, visibleCards) {
+    fetch('/homologacoes/salvar-contadores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ totalCards, visibleCards })
+    })
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error('Erro ao salvar contadores:', error));
 }
 
 function atualizarContadores() {
