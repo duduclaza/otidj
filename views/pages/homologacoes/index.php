@@ -321,6 +321,35 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador inicial</label>
+                                <input
+                                    type="number"
+                                    id="contador_inicial_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_inicial'] ?? '') ?>"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador final</label>
+                                <input
+                                    type="number"
+                                    id="contador_final_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_final'] ?? '') ?>"
+                                >
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-end">
+                            <button
+                                type="button"
+                                class="px-2 py-1 bg-blue-600 text-white text-[11px] rounded-md hover:bg-blue-700"
+                                onclick="event.stopPropagation(); salvarContadores(<?= $h['id'] ?>)"
+                            >
+                                Salvar contadores
+                            </button>
+                        </div>
                         <div class="flex items-center justify-between text-xs">
                             <span class="text-slate-500">👤 <?= e(substr($h['responsaveis_nomes'] ?? 'N/A', 0, 20)) ?></span>
                             <?php if ($h['total_anexos'] > 0): ?>
@@ -351,6 +380,35 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador inicial</label>
+                                <input
+                                    type="number"
+                                    id="contador_inicial_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_inicial'] ?? '') ?>"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador final</label>
+                                <input
+                                    type="number"
+                                    id="contador_final_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_final'] ?? '') ?>"
+                                >
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-end">
+                            <button
+                                type="button"
+                                class="px-2 py-1 bg-blue-600 text-white text-[11px] rounded-md hover:bg-blue-700"
+                                onclick="event.stopPropagation(); salvarContadores(<?= $h['id'] ?>)"
+                            >
+                                Salvar contadores
+                            </button>
+                        </div>
                         <?php if (!empty($h['aprovado_por_nome'])): ?>
                         <div class="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
                             <span>🟢</span><span>Aprovado por: <?= e($h['aprovado_por_nome']) ?></span>
@@ -460,6 +518,35 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador inicial</label>
+                                <input
+                                    type="number"
+                                    id="contador_inicial_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_inicial'] ?? '') ?>"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador final</label>
+                                <input
+                                    type="number"
+                                    id="contador_final_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_final'] ?? '') ?>"
+                                >
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-end">
+                            <button
+                                type="button"
+                                class="px-2 py-1 bg-blue-600 text-white text-[11px] rounded-md hover:bg-blue-700"
+                                onclick="event.stopPropagation(); salvarContadores(<?= $h['id'] ?>)"
+                            >
+                                Salvar contadores
+                            </button>
+                        </div>
                         <?php if (!empty($h['aprovado_por_nome'])): ?>
                         <div class="text-xs text-green-700 font-medium mb-2 flex items-center gap-1">
                             <span>🟢</span><span>Aprovado por: <?= e($h['aprovado_por_nome']) ?></span>
@@ -500,6 +587,35 @@
                         <button type="button" title="Excluir" onclick="event.stopPropagation(); deleteHomologacao(<?= $h['id'] ?>)" class="absolute top-2 right-2 text-slate-400 hover:text-red-600">🗑️</button>
                         <div class="text-sm font-bold text-slate-700 mb-1"><?= e($h['cod_referencia']) ?></div>
                         <div class="text-xs text-slate-600 mb-2 line-clamp-2"><?= e($h['descricao']) ?></div>
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador inicial</label>
+                                <input
+                                    type="number"
+                                    id="contador_inicial_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_inicial'] ?? '') ?>"
+                                >
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-slate-600 mb-1">Contador final</label>
+                                <input
+                                    type="number"
+                                    id="contador_final_<?= $h['id'] ?>"
+                                    class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                                    value="<?= e($h['contador_final'] ?? '') ?>"
+                                >
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-end">
+                            <button
+                                type="button"
+                                class="px-2 py-1 bg-blue-600 text-white text-[11px] rounded-md hover:bg-blue-700"
+                                onclick="event.stopPropagation(); salvarContadores(<?= $h['id'] ?>)"
+                            >
+                                Salvar contadores
+                            </button>
+                        </div>
                         <?php if (!empty($h['reprovado_por_nome'])): ?>
                         <div class="text-xs text-red-700 font-medium mb-2 flex items-center gap-1">
                             <span>🔴</span><span>Reprovado por: <?= e($h['reprovado_por_nome']) ?></span>
@@ -692,6 +808,52 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarContadores();
 });
 
+// Salvar contadores (contador_inicial e contador_final) para uma homologação via modal de detalhes
+async function salvarContadores(homologacaoId) {
+    const inputInicial = document.getElementById(`contador_inicial_${homologacaoId}`);
+    const inputFinal = document.getElementById(`contador_final_${homologacaoId}`);
+
+    if (!inputInicial || !inputFinal) {
+        alert('❌ Campos de contador não encontrados.');
+        return;
+    }
+
+    const contadorInicial = inputInicial.value !== '' ? parseInt(inputInicial.value, 10) : null;
+    const contadorFinal = inputFinal.value !== '' ? parseInt(inputFinal.value, 10) : null;
+
+    if (Number.isNaN(contadorInicial) && inputInicial.value !== '') {
+        alert('❌ Contador inicial inválido.');
+        return;
+    }
+
+    if (Number.isNaN(contadorFinal) && inputFinal.value !== '') {
+        alert('❌ Contador final inválido.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/homologacoes/${homologacaoId}/contadores`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contador_inicial: contadorInicial,
+                contador_final: contadorFinal
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('✅ Contadores salvos com sucesso!');
+        } else {
+            alert('❌ ' + (result.message || 'Erro ao salvar contadores'));
+        }
+    } catch (error) {
+        console.error('Erro ao salvar contadores:', error);
+        alert('❌ Erro ao salvar contadores');
+    }
+}
+
 // ===== SISTEMA DE FILTROS =====
 function aplicarFiltros() {
     const pesquisa = document.getElementById('filtroPesquisa').value.toLowerCase().trim();
@@ -800,10 +962,10 @@ function alterarPorPagina(porPagina) {
         .filter(card => card.style.display !== 'none').length;
     
     document.getElementById('totalGeral').textContent = totalCards;
-    salvarContadores(totalCards, visibleCards);
+    salvarEstatisticasHomologacoes(totalCards, visibleCards);
 }
 
-function salvarContadores(totalCards, visibleCards) {
+function salvarEstatisticasHomologacoes(totalCards, visibleCards) {
     fetch('/homologacoes/salvar-contadores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -811,7 +973,7 @@ function salvarContadores(totalCards, visibleCards) {
     })
     .then(response => response.json())
     .then(data => console.log(data))
-    .catch(error => console.error('Erro ao salvar contadores:', error));
+    .catch(error => console.error('Erro ao salvar estatísticas de homologações:', error));
 }
 
 function atualizarContadores() {
@@ -994,6 +1156,35 @@ function renderDetails(data) {
                     <div><span class="text-sm text-slate-600">Código:</span><p class="font-bold">${h.cod_referencia}</p></div>
                     <div><span class="text-sm text-slate-600">Status:</span><span class="badge-status badge-${h.status}">${statusLabels[h.status]}</span></div>
                     <div class="col-span-2"><span class="text-sm text-slate-600">Descrição:</span><p class="mt-1">${h.descricao}</p></div>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Contador inicial</label>
+                        <input
+                            type="number"
+                            id="contador_inicial_${h.id}"
+                            class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                            value="${h.contador_inicial !== null && h.contador_inicial !== undefined ? h.contador_inicial : ''}"
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Contador final</label>
+                        <input
+                            type="number"
+                            id="contador_final_${h.id}"
+                            class="w-full px-2 py-1 border border-slate-300 rounded-md text-xs"
+                            value="${h.contador_final !== null && h.contador_final !== undefined ? h.contador_final : ''}"
+                        >
+                    </div>
+                </div>
+                <div class="mt-2 flex justify-end">
+                    <button
+                        type="button"
+                        class="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700"
+                        onclick="salvarContadores(${h.id})"
+                    >
+                        Salvar contadores
+                    </button>
                 </div>
             </div>
             
