@@ -31,40 +31,69 @@ function construirUrlPaginacao($pagina) {
 
   <!-- Filtros -->
   <div class="bg-white border rounded-lg p-4">
-    <form method="GET" action="/melhoria-continua-2" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-        <input type="text" name="search" value="<?= $_GET['search'] ?? '' ?>" placeholder="Título, descrição..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    <form method="GET" action="/melhoria-continua-2" class="space-y-4">
+      <!-- Primeira linha de filtros -->
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+          <input type="text" name="search" value="<?= $_GET['search'] ?? '' ?>" placeholder="Título, descrição..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
+          <select name="departamento_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Todos</option>
+            <?php foreach ($departamentos as $dept): ?>
+              <option value="<?= $dept['id'] ?>" <?= ($_GET['departamento_id'] ?? '') == $dept['id'] ? 'selected' : '' ?>>
+                <?= e($dept['nome']) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Todos</option>
+            <option value="pendente" <?= ($_GET['status'] ?? '') == 'pendente' ? 'selected' : '' ?>>⏳ Pendente</option>
+            <option value="em_analise" <?= ($_GET['status'] ?? '') == 'em_analise' ? 'selected' : '' ?>>🔍 Em Análise</option>
+            <option value="aprovado" <?= ($_GET['status'] ?? '') == 'aprovado' ? 'selected' : '' ?>>✅ Aprovado</option>
+            <option value="reprovado" <?= ($_GET['status'] ?? '') == 'reprovado' ? 'selected' : '' ?>>❌ Reprovado</option>
+            <option value="implementado" <?= ($_GET['status'] ?? '') == 'implementado' ? 'selected' : '' ?>>🚀 Implementado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Idealizador</label>
+          <input type="text" name="idealizador" value="<?= $_GET['idealizador'] ?? '' ?>" placeholder="Nome do idealizador..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Pontuação Mín.</label>
+          <input type="number" name="pontuacao_min" value="<?= $_GET['pontuacao_min'] ?? '' ?>" placeholder="0" min="0" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Pontuação Máx.</label>
+          <input type="number" name="pontuacao_max" value="<?= $_GET['pontuacao_max'] ?? '' ?>" placeholder="100" min="0" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
       </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Departamento</label>
-        <select name="departamento_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-          <option value="">Todos</option>
-          <?php foreach ($departamentos as $dept): ?>
-            <option value="<?= $dept['id'] ?>" <?= ($_GET['departamento_id'] ?? '') == $dept['id'] ? 'selected' : '' ?>>
-              <?= e($dept['nome']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
-        <input type="date" name="data_inicio" value="<?= $_GET['data_inicio'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
-        <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      </div>
-      <div class="flex items-end gap-1.5">
-        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
-          Filtrar
-        </button>
-        <a href="/melhoria-continua-2" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap text-center">
-          Limpar
-        </a>
-        <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
-          📊 Exportar
-        </button>
+      <!-- Segunda linha de filtros -->
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
+          <input type="date" name="data_inicio" value="<?= $_GET['data_inicio'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
+          <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div class="md:col-span-4 flex items-end gap-2">
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
+            🔍 Filtrar
+          </button>
+          <a href="/melhoria-continua-2" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap text-center">
+            🧹 Limpar
+          </a>
+          <button type="button" onclick="exportarExcel()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors font-medium shadow-md whitespace-nowrap">
+            📊 Exportar
+          </button>
+        </div>
       </div>
     </form>
   </div>

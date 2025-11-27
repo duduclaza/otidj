@@ -2735,6 +2735,66 @@ class AdminController
         header('Content-Type: application/json');
         
         try {
+            // Coletar filtros
+            $departamentoId = $_GET['departamento_id'] ?? '';
+            $status = $_GET['status'] ?? '';
+            $idealizador = $_GET['idealizador'] ?? '';
+            $dataInicio = $_GET['data_inicio'] ?? '';
+            $dataFim = $_GET['data_fim'] ?? '';
+            $pontuacaoMin = $_GET['pontuacao_min'] ?? '';
+            $pontuacaoMax = $_GET['pontuacao_max'] ?? '';
+            
+            // Mapeamento de status do filtro para o banco
+            $statusMap = [
+                'pendente_analise' => 'Pendente análise',
+                'enviado_aprovacao' => 'Enviado para Aprovação',
+                'em_andamento' => 'Em andamento',
+                'concluida' => 'Concluída',
+                'reprovada' => 'Recusada',
+                'cancelada' => 'Cancelada'
+            ];
+            
+            // Construir WHERE clause
+            $where = [];
+            $params = [];
+            
+            if (!empty($departamentoId)) {
+                $where[] = "m.departamento_id = :departamento_id";
+                $params[':departamento_id'] = $departamentoId;
+            }
+            
+            if (!empty($status) && isset($statusMap[$status])) {
+                $where[] = "m.status = :status";
+                $params[':status'] = $statusMap[$status];
+            }
+            
+            if (!empty($idealizador)) {
+                $where[] = "m.idealizador LIKE :idealizador";
+                $params[':idealizador'] = '%' . $idealizador . '%';
+            }
+            
+            if (!empty($dataInicio)) {
+                $where[] = "DATE(m.created_at) >= :data_inicio";
+                $params[':data_inicio'] = $dataInicio;
+            }
+            
+            if (!empty($dataFim)) {
+                $where[] = "DATE(m.created_at) <= :data_fim";
+                $params[':data_fim'] = $dataFim;
+            }
+            
+            if ($pontuacaoMin !== '') {
+                $where[] = "COALESCE(m.pontuacao, 0) >= :pontuacao_min";
+                $params[':pontuacao_min'] = (int)$pontuacaoMin;
+            }
+            
+            if ($pontuacaoMax !== '') {
+                $where[] = "COALESCE(m.pontuacao, 0) <= :pontuacao_max";
+                $params[':pontuacao_max'] = (int)$pontuacaoMax;
+            }
+            
+            $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+            
             $data = [
                 'success' => true,
                 'statusDistribution' => [],
@@ -2749,71 +2809,93 @@ class AdminController
                 ]
             ];
 
-            // 1. Distribuição por Status
-            $stmt = $this->db->query("
-                SELECT status, COUNT(*) as total
-                FROM melhoria_continua_2
-                GROUP BY status
-                ORDER BY total DESC
-            ");
+            // 1. Distribuição por Status (com filtros)
+            $sql = "SELECT m.status, COUNT(*) as total FROM melhoria_continua_2 m $whereClause GROUP BY m.status ORDER BY total DESC";
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->execute();
             $data['statusDistribution'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            // 2. Melhorias por Mês (últimos 12 meses)
-            $stmt = $this->db->query("
-                SELECT 
-                    DATE_FORMAT(created_at, '%Y-%m') as mes,
-                    COUNT(*) as total
-                FROM melhoria_continua_2
-                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
-                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-                ORDER BY mes ASC
-            ");
+            // 2. Melhorias por Mês (últimos 12 meses, com filtros)
+            $whereClauseMes = $whereClause;
+            if (empty($whereClauseMes)) {
+                $whereClauseMes = "WHERE m.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)";
+            } else {
+                $whereClauseMes .= " AND m.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)";
+            }
+            
+            $sql = "SELECT DATE_FORMAT(m.created_at, '%Y-%m') as mes, COUNT(*) as total FROM melhoria_continua_2 m $whereClauseMes GROUP BY DATE_FORMAT(m.created_at, '%Y-%m') ORDER BY mes ASC";
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->execute();
             $data['melhoriasPorMes'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            // 3. Melhorias por Departamento (Top 10)
-            $stmt = $this->db->query("
-                SELECT 
-                    d.nome as departamento,
-                    COUNT(m.id) as total
-                FROM melhoria_continua_2 m
-                LEFT JOIN departamentos d ON m.departamento_id = d.id
-                GROUP BY d.nome
-                ORDER BY total DESC
-                LIMIT 10
-            ");
+            // 3. Melhorias por Departamento (Top 10, com filtros)
+            $sql = "SELECT d.nome as departamento, COUNT(m.id) as total FROM melhoria_continua_2 m LEFT JOIN departamentos d ON m.departamento_id = d.id $whereClause GROUP BY d.nome ORDER BY total DESC LIMIT 10";
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->execute();
             $data['melhoriasPorDepartamento'] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            // 4. Pontuação Média
-            $stmt = $this->db->query("
-                SELECT AVG(pontuacao) as media
-                FROM melhoria_continua_2
-                WHERE pontuacao IS NOT NULL AND pontuacao > 0
-            ");
+            // 4. Pontuação Média (com filtros)
+            $whereClausePont = $whereClause;
+            if (empty($whereClausePont)) {
+                $whereClausePont = "WHERE m.pontuacao IS NOT NULL AND m.pontuacao > 0";
+            } else {
+                $whereClausePont .= " AND m.pontuacao IS NOT NULL AND m.pontuacao > 0";
+            }
+            
+            $sql = "SELECT AVG(m.pontuacao) as media FROM melhoria_continua_2 m $whereClausePont";
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->execute();
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             $data['pontuacaoMedia'] = round($result['media'] ?? 0, 2);
 
-            // 5. Totais e contagem individual por status
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2");
+            // 5. Totais (com filtros)
+            $sql = "SELECT COUNT(*) as total FROM melhoria_continua_2 m $whereClause";
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+            $stmt->execute();
             $data['totais']['total'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
 
-            // Contagem individual de cada status
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Pendente análise'");
-            $data['totais']['pendente_analise'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
-
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Enviado para Aprovação'");
-            $data['totais']['enviado_aprovacao'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
-
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Em andamento'");
-            $data['totais']['em_andamento'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
-
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Concluída'");
-            $data['totais']['concluida'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
-
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Recusada'");
-            $data['totais']['recusada'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
-
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM melhoria_continua_2 WHERE status = 'Pendente Adaptação'");
-            $data['totais']['pendente_adaptacao'] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+            // Contagem individual de cada status (com filtros base)
+            $statusList = [
+                'pendente_analise' => 'Pendente análise',
+                'enviado_aprovacao' => 'Enviado para Aprovação',
+                'em_andamento' => 'Em andamento',
+                'concluida' => 'Concluída',
+                'recusada' => 'Recusada',
+                'pendente_adaptacao' => 'Pendente Adaptação'
+            ];
+            
+            foreach ($statusList as $key => $statusValue) {
+                $whereClauseStatus = $whereClause;
+                if (empty($whereClauseStatus)) {
+                    $whereClauseStatus = "WHERE m.status = :status_filter";
+                } else {
+                    $whereClauseStatus .= " AND m.status = :status_filter";
+                }
+                
+                $sql = "SELECT COUNT(*) as total FROM melhoria_continua_2 m $whereClauseStatus";
+                $stmt = $this->db->prepare($sql);
+                foreach ($params as $k => $v) {
+                    $stmt->bindValue($k, $v);
+                }
+                $stmt->bindValue(':status_filter', $statusValue);
+                $stmt->execute();
+                $data['totais'][$key] = (int)$stmt->fetch(\PDO::FETCH_ASSOC)['total'];
+            }
 
             echo json_encode($data);
 
@@ -2822,6 +2904,30 @@ class AdminController
             echo json_encode([
                 'success' => false,
                 'message' => 'Erro ao buscar dados: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+    
+    /**
+     * Get lista de departamentos para filtros
+     */
+    public function getDepartamentos()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->query("SELECT id, nome FROM departamentos ORDER BY nome ASC");
+            $departamentos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'departamentos' => $departamentos
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao buscar departamentos: ' . $e->getMessage()
             ]);
         }
         exit;

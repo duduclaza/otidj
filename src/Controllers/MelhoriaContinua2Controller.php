@@ -73,6 +73,30 @@ class MelhoriaContinua2Controller
                 $params[':departamento_id'] = $_GET['departamento_id'];
             }
 
+            // Filtro por status
+            if (!empty($_GET['status'])) {
+                $where[] = "m.status = :status";
+                $params[':status'] = $_GET['status'];
+            }
+
+            // Filtro por idealizador
+            if (!empty($_GET['idealizador'])) {
+                $where[] = "m.idealizador LIKE :idealizador";
+                $params[':idealizador'] = '%' . $_GET['idealizador'] . '%';
+            }
+
+            // Filtro por pontuação mínima
+            if (isset($_GET['pontuacao_min']) && $_GET['pontuacao_min'] !== '') {
+                $where[] = "COALESCE(m.pontuacao_total, 0) >= :pontuacao_min";
+                $params[':pontuacao_min'] = (int)$_GET['pontuacao_min'];
+            }
+
+            // Filtro por pontuação máxima
+            if (!empty($_GET['pontuacao_max'])) {
+                $where[] = "COALESCE(m.pontuacao_total, 0) <= :pontuacao_max";
+                $params[':pontuacao_max'] = (int)$_GET['pontuacao_max'];
+            }
+
         // Buscar melhorias baseado nas regras de visibilidade
         if ($isAdmin) {
             // Construir WHERE clause

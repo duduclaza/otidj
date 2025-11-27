@@ -668,6 +668,63 @@
   <?php if ($tabPermissions['melhorias']): ?>
   <div id="content-melhorias" class="tab-content space-y-6">
     
+    <!-- Filtros de Melhorias -->
+    <div class="bg-white rounded-lg shadow-lg p-4 border-l-4 border-purple-500">
+      <div class="flex items-center gap-2 mb-4">
+        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+        <h3 class="font-semibold text-gray-800">Filtros do Dashboard</h3>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Departamento</label>
+          <select id="filtro-melhorias-departamento" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Status</label>
+          <select id="filtro-melhorias-status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+            <option value="">Todos</option>
+            <option value="pendente_analise">⏳ Pendente Análise</option>
+            <option value="enviado_aprovacao">📤 Enviado para Aprovação</option>
+            <option value="em_andamento">🔄 Em Andamento</option>
+            <option value="concluida">✅ Concluída</option>
+            <option value="reprovada">❌ Reprovada</option>
+            <option value="cancelada">🚫 Cancelada</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Idealizador</label>
+          <input type="text" id="filtro-melhorias-idealizador" placeholder="Nome..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Data Início</label>
+          <input type="date" id="filtro-melhorias-data-inicio" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Data Fim</label>
+          <input type="date" id="filtro-melhorias-data-fim" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Pontuação</label>
+          <div class="flex gap-1">
+            <input type="number" id="filtro-melhorias-pont-min" placeholder="Min" min="0" max="100" class="w-1/2 border border-gray-300 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+            <input type="number" id="filtro-melhorias-pont-max" placeholder="Max" min="0" max="100" class="w-1/2 border border-gray-300 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button onclick="aplicarFiltrosMelhorias()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md">
+          🔍 Aplicar Filtros
+        </button>
+        <button onclick="limparFiltrosMelhorias()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-md">
+          🧹 Limpar
+        </button>
+      </div>
+    </div>
+
     <!-- Cards de Status (baseados nos status reais do grid) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       
@@ -2515,6 +2572,7 @@ function switchTab(tabName) {
   // Carregar dados da aba se for melhorias
   if (tabName === 'melhorias' && !window.melhorias_loaded) {
     console.log('🚀 Inicializando aba Melhorias...');
+    carregarDepartamentosMelhorias();
     loadMelhoriasData();
     window.melhorias_loaded = true;
   }
@@ -3149,9 +3207,70 @@ let chartMelhoriasStatus = null;
 let chartMelhoriasMes = null;
 let chartMelhoriasDepartamentos = null;
 
+// Carregar departamentos no dropdown de filtro
+async function carregarDepartamentosMelhorias() {
+  try {
+    const response = await fetch('/admin/dashboard/departamentos');
+    const data = await response.json();
+    
+    if (data.success && data.departamentos) {
+      const select = document.getElementById('filtro-melhorias-departamento');
+      if (select) {
+        data.departamentos.forEach(dept => {
+          const option = document.createElement('option');
+          option.value = dept.id;
+          option.textContent = dept.nome;
+          select.appendChild(option);
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar departamentos:', error);
+  }
+}
+
+// Aplicar filtros de melhorias
+function aplicarFiltrosMelhorias() {
+  loadMelhoriasData();
+}
+
+// Limpar filtros de melhorias
+function limparFiltrosMelhorias() {
+  document.getElementById('filtro-melhorias-departamento').value = '';
+  document.getElementById('filtro-melhorias-status').value = '';
+  document.getElementById('filtro-melhorias-idealizador').value = '';
+  document.getElementById('filtro-melhorias-data-inicio').value = '';
+  document.getElementById('filtro-melhorias-data-fim').value = '';
+  document.getElementById('filtro-melhorias-pont-min').value = '';
+  document.getElementById('filtro-melhorias-pont-max').value = '';
+  loadMelhoriasData();
+}
+
 async function loadMelhoriasData() {
   try {
-    const response = await fetch('/admin/dashboard/melhorias-data');
+    // Coletar valores dos filtros
+    const departamento = document.getElementById('filtro-melhorias-departamento')?.value || '';
+    const status = document.getElementById('filtro-melhorias-status')?.value || '';
+    const idealizador = document.getElementById('filtro-melhorias-idealizador')?.value || '';
+    const dataInicio = document.getElementById('filtro-melhorias-data-inicio')?.value || '';
+    const dataFim = document.getElementById('filtro-melhorias-data-fim')?.value || '';
+    const pontMin = document.getElementById('filtro-melhorias-pont-min')?.value || '';
+    const pontMax = document.getElementById('filtro-melhorias-pont-max')?.value || '';
+    
+    // Construir query string com filtros
+    const params = new URLSearchParams();
+    if (departamento) params.append('departamento_id', departamento);
+    if (status) params.append('status', status);
+    if (idealizador) params.append('idealizador', idealizador);
+    if (dataInicio) params.append('data_inicio', dataInicio);
+    if (dataFim) params.append('data_fim', dataFim);
+    if (pontMin) params.append('pontuacao_min', pontMin);
+    if (pontMax) params.append('pontuacao_max', pontMax);
+    
+    const queryString = params.toString();
+    const url = '/admin/dashboard/melhorias-data' + (queryString ? '?' + queryString : '');
+    
+    const response = await fetch(url);
     const data = await response.json();
     
     if (!data.success) {
