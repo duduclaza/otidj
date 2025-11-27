@@ -421,10 +421,16 @@ class HomologacoesKanbanController
             $contadorInicial = ($contadorInicial === null || $contadorInicial === '') ? null : (int)$contadorInicial;
             $contadorFinal = ($contadorFinal === null || $contadorFinal === '') ? null : (int)$contadorFinal;
 
+            // DEBUG: Log para verificar valores recebidos
+            error_log("updateContadores - ID: $homologacaoId, Inicial: " . var_export($contadorInicial, true) . ", Final: " . var_export($contadorFinal, true));
+
             $this->db->beginTransaction();
 
             $stmt = $this->db->prepare("UPDATE homologacoes SET contador_inicial = ?, contador_final = ?, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$contadorInicial, $contadorFinal, $homologacaoId]);
+            $result = $stmt->execute([$contadorInicial, $contadorFinal, $homologacaoId]);
+            
+            // DEBUG: Log do resultado
+            error_log("updateContadores - Resultado UPDATE: " . var_export($result, true) . ", Rows affected: " . $stmt->rowCount());
 
             // Registrar no histórico (opcional, mas útil para auditoria)
             $stmtHist = $this->db->prepare("INSERT INTO homologacoes_historico (homologacao_id, status_anterior, status_novo, usuario_id, observacao, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
