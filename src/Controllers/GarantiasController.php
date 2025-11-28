@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Config\Database;
+use App\Services\EmailService;
 use PDO;
 
 class GarantiasController
@@ -132,6 +133,16 @@ class GarantiasController
             
             $id = $this->db->lastInsertId();
             
+            // Enviar notificação por email para admins, compras e qualidade
+            $this->enviarNotificacaoNovaRequisicao([
+                'ticket' => $ticket,
+                'nome_requisitante' => $nome_requisitante,
+                'produto' => $produto,
+                'descricao_defeito' => $descricao_defeito,
+                'data' => date('d/m/Y H:i'),
+                'qtd_imagens' => count($imagens)
+            ]);
+            
             echo json_encode([
                 'success' => true,
                 'message' => 'Requisição criada com sucesso!',
@@ -152,6 +163,93 @@ class GarantiasController
                 'success' => false,
                 'message' => 'Erro ao criar requisição: ' . $e->getMessage()
             ]);
+        }
+    }
+    
+    // Enviar notificação de nova requisição por email
+    private function enviarNotificacaoNovaRequisicao(array $dados)
+    {
+        try {
+            // Buscar emails dos usuários: admins, super_admins, compras, qualidade
+            $stmt = $this->db->prepare("
+                SELECT DISTINCT email FROM users 
+                WHERE (role IN ('admin', 'super_admin', 'superadmin', 'compras', 'qualidade'))
+                AND email IS NOT NULL 
+                AND email != ''
+                AND active = 1
+            ");
+            $stmt->execute();
+            $emails = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            if (empty($emails)) {
+                error_log("📧 Nenhum destinatário encontrado para notificação de requisição");
+                return;
+            }
+            
+            error_log("📧 Enviando notificação para: " . implode(', ', $emails));
+            
+            $emailService = new EmailService();
+            
+            $subject = "🔔 Nova Requisição de Garantia: {$dados['ticket']}";
+            
+            $body = "
+            <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                <div style='background: linear-gradient(135deg, #f97316, #ea580c); padding: 20px; border-radius: 10px 10px 0 0;'>
+                    <h1 style='color: white; margin: 0; font-size: 24px;'>📋 Nova Requisição de Garantia</h1>
+                </div>
+                
+                <div style='background: #fff; padding: 25px; border: 1px solid #e5e7eb; border-top: none;'>
+                    <div style='background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 20px; border-radius: 0 8px 8px 0;'>
+                        <p style='margin: 0; font-weight: bold; color: #92400e;'>Ticket: {$dados['ticket']}</p>
+                        <p style='margin: 5px 0 0 0; color: #a16207;'>Status: Aguardando Recebimento</p>
+                    </div>
+                    
+                    <table style='width: 100%; border-collapse: collapse;'>
+                        <tr>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151; width: 140px;'>Requisitante:</td>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;'>{$dados['nome_requisitante']}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151;'>Produto:</td>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;'>{$dados['produto']}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151;'>Data:</td>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;'>{$dados['data']}</td>
+                        </tr>
+                        <tr>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: bold; color: #374151;'>Imagens:</td>
+                            <td style='padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;'>{$dados['qtd_imagens']} anexada(s)</td>
+                        </tr>
+                    </table>
+                    
+                    <div style='margin-top: 20px;'>
+                        <p style='font-weight: bold; color: #374151; margin-bottom: 10px;'>Descrição do Defeito:</p>
+                        <div style='background: #f9fafb; padding: 15px; border-radius: 8px; color: #4b5563;'>
+                            " . nl2br(htmlspecialchars($dados['descricao_defeito'])) . "
+                        </div>
+                    </div>
+                    
+                    <div style='margin-top: 25px; text-align: center;'>
+                        <a href='https://djbr.sgqoti.com.br/garantias/pendentes' style='display: inline-block; background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;'>
+                            Ver Requisições Pendentes
+                        </a>
+                    </div>
+                </div>
+                
+                <div style='background: #f3f4f6; padding: 15px; border-radius: 0 0 10px 10px; text-align: center; border: 1px solid #e5e7eb; border-top: none;'>
+                    <p style='margin: 0; color: #6b7280; font-size: 12px;'>
+                        SGQ OTI DJ - Sistema de Gestão da Qualidade<br>
+                        Esta é uma mensagem automática, por favor não responda.
+                    </p>
+                </div>
+            </div>
+            ";
+            
+            $emailService->send($emails, $subject, $body);
+            
+        } catch (\Exception $e) {
+            error_log("❌ Erro ao enviar notificação de requisição: " . $e->getMessage());
         }
     }
     
