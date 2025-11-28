@@ -292,11 +292,9 @@ class GarantiasController
             
             // Primeiro buscar na tabela de garantias registradas
             $stmt = $this->db->prepare("
-                SELECT g.*, 
-                       c.nome as nome_cliente,
+                SELECT g.*,
                        'registrada' as origem
                 FROM garantias g
-                LEFT JOIN clientes c ON g.cliente_id = c.id
                 WHERE g.numero_ticket LIKE :termo
                    OR g.numero_ticket_os LIKE :termo
                    OR g.numero_serie LIKE :termo
