@@ -2233,7 +2233,9 @@ document.addEventListener('DOMContentLoaded', function() {
     'modalExpandidoRetornados',
     'modalExpandidoDestino',
     'modalExpandidoRecuperados',
-    'modalExpandidoRanking'
+    'modalExpandidoRanking',
+    'modalDetalhesCliente',
+    'modalDetalhesFornecedor'
   ];
   
   modalsToMove.forEach(function(modalId) {
