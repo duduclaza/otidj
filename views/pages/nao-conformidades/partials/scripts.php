@@ -7,6 +7,17 @@ function mudarAba(nome) {
   document.getElementById('aba-' + nome).classList.remove('hidden');
 }
 
+// Mover modais para o body principal (funciona dentro de iframe)
+document.addEventListener('DOMContentLoaded', function() {
+  const modais = ['modalNovaNC', 'modalDetalhes', 'modalAcao'];
+  modais.forEach(id => {
+    const modal = document.getElementById(id);
+    if (modal && modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
+  });
+});
+
 // Modal Nova NC
 function abrirModalNovaNC() {
   console.log('🔴 Função abrirModalNovaNC chamada!');
@@ -175,21 +186,6 @@ function fecharModalAcao() {
   document.getElementById('formAcao').reset();
   document.body.style.overflow = '';
 }
-
-// Registrar Ação
-document.getElementById('formAcao').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const ncId = document.getElementById('acaoNcId').value;
-  const formData = new FormData(e.target);
-  const res = await fetch(`/nao-conformidades/registrar-acao/${ncId}`, { method: 'POST', body: formData });
-  const data = await res.json();
-  if (data.success) {
-    alert(data.message);
-    location.reload();
-  } else {
-    alert('Erro: ' + data.message);
-  }
-});
 
 // Marcar como solucionada
 async function marcarSolucionada(ncId) {
