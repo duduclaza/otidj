@@ -933,7 +933,7 @@
 </div>
 
 <!-- Modal de Detalhes do Cliente - Toners Retornados (Fullscreen) -->
-<div id="modalDetalhesCliente" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
+<div id="modalDetalhesCliente" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-8 transition-all duration-500 ease-out" style="z-index: 999999;">
   <div class="relative w-full max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700/50 transform transition-all duration-500 ease-out scale-95 opacity-0" id="modalDetalhesClienteContent">
     
     <!-- Botão Fechar -->
