@@ -19,7 +19,7 @@ class ClientesController
     private function isAdmin(): bool
     {
         return isset($_SESSION['user_role']) && 
-               in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+               in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
     }
 
     /**
@@ -27,7 +27,14 @@ class ClientesController
      */
     public function index()
     {
+        // Verificar se está logado
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
+            exit;
+        }
+        
         if (!$this->isAdmin()) {
+            $_SESSION['error'] = 'Acesso restrito a administradores.';
             header('Location: /');
             exit;
         }
@@ -37,6 +44,7 @@ class ClientesController
             $clientes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             $clientes = [];
+            error_log('Erro ao carregar clientes: ' . $e->getMessage());
         }
 
         $title = 'Cadastro de Clientes - SGQ OTI';

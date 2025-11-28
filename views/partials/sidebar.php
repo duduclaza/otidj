@@ -207,7 +207,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           foreach ($item['submenu'] as $sub) {
             // Verificar se é admin_only e se o usuário é admin
             if (isset($sub['admin_only']) && $sub['admin_only']) {
-              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
               if (!$isAdmin) continue;
               // Para admin_only, adicionar direto sem verificar banco
               $visibleSubmenus[] = $sub;
@@ -229,7 +229,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                   foreach ($sub['submenu'] as $nestedSub) {
                     // Verificar se é admin_only
                     if (isset($nestedSub['admin_only']) && $nestedSub['admin_only']) {
-                      $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                      $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
                       if ($isAdmin) {
                         $visibleSubmenus[] = $sub;
                         break; // Encontrou pelo menos um, adicionar o pai
@@ -273,7 +273,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                 <?php foreach ($item['submenu'] as $sub):
                   // Verificar se é admin_only
                   if (isset($sub['admin_only']) && $sub['admin_only']) {
-                    $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                    $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
                     if (!$isAdmin) continue;
                     // Para admin_only, não precisa verificar permissão no banco
                     $subActive = rtrim($sub['href'], '/') === $current;
@@ -305,7 +305,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
                           <?php foreach ($sub['submenu'] as $nestedSub):
                             // Verificar se é admin_only
                             if (isset($nestedSub['admin_only']) && $nestedSub['admin_only']) {
-                              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
                               if (!$isAdmin) continue;
                             } elseif (isset($nestedSub['module']) && !hasPermission($nestedSub['module'])) {
                               continue;
@@ -452,7 +452,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           foreach ($item['submenu'] as $sub) {
             // Verificar se é admin_only
             if (isset($sub['admin_only']) && $sub['admin_only']) {
-              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+              $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
               if ($isAdmin) {
                 $hasPermissionForItem = true;
                 break;
@@ -468,7 +468,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
               foreach ($sub['submenu'] as $nestedSub) {
                 // Verificar se é admin_only
                 if (isset($nestedSub['admin_only']) && $nestedSub['admin_only']) {
-                  $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                  $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
                   if ($isAdmin) {
                     $hasPermissionForItem = true;
                     break 2;
@@ -503,7 +503,7 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
             <?php 
               // Verificar se é admin_only
               if (isset($sub['admin_only']) && $sub['admin_only']) {
-                $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin']);
+                $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
                 if (!$isAdmin) continue;
                 // Admin pode ver
               } elseif (isset($sub['module'])) {
