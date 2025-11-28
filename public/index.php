@@ -517,10 +517,15 @@ $router->get('/cadastros/contratos', function() {
     $viewFile = __DIR__ . '/../views/pages/cadastros/contratos.php';
     include __DIR__ . '/../views/layouts/main.php';
 });
-$router->get('/cadastros/clientes', function() {
-    $viewFile = __DIR__ . '/../views/pages/cadastros/clientes.php';
-    include __DIR__ . '/../views/layouts/main.php';
-});
+
+// Cadastro de Clientes (Admin Only)
+$router->get('/cadastros/clientes', [App\Controllers\ClientesController::class, 'index']);
+$router->get('/cadastros/clientes/listar', [App\Controllers\ClientesController::class, 'listar']);
+$router->post('/cadastros/clientes/criar', [App\Controllers\ClientesController::class, 'criar']);
+$router->post('/cadastros/clientes/atualizar', [App\Controllers\ClientesController::class, 'atualizar']);
+$router->post('/cadastros/clientes/excluir', [App\Controllers\ClientesController::class, 'excluir']);
+$router->post('/cadastros/clientes/importar', [App\Controllers\ClientesController::class, 'importar']);
+$router->get('/cadastros/clientes/template', [App\Controllers\ClientesController::class, 'template']);
 
 // Registros routes
 $router->get('/registros/filiais', [App\Controllers\RegistrosController::class, 'filiais']);
