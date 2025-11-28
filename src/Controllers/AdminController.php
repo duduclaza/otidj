@@ -1498,38 +1498,40 @@ class AdminController
             
             $sql = "
                 SELECT 
-                    codigo_cliente,
-                    SUM(quantidade) as total_retornados
-                FROM retornados 
-                WHERE codigo_cliente IS NOT NULL 
-                AND codigo_cliente != ''
-                AND codigo_cliente REGEXP '[0-9]'
-                AND codigo_cliente NOT IN ('1', '01', '001', '0001', '0000', '00002852')
+                    r.codigo_cliente,
+                    c.nome as nome_cliente,
+                    SUM(r.quantidade) as total_retornados
+                FROM retornados r
+                LEFT JOIN clientes c ON r.codigo_cliente = c.codigo
+                WHERE r.codigo_cliente IS NOT NULL 
+                AND r.codigo_cliente != ''
+                AND r.codigo_cliente REGEXP '[0-9]'
+                AND r.codigo_cliente NOT IN ('1', '01', '001', '0001', '0000', '00002852')
             ";
             
             $params = [];
             
             if (!empty($filial)) {
-                $sql .= " AND {$filialColumn} = ?";
+                $sql .= " AND r.{$filialColumn} = ?";
                 $params[] = $filial;
             }
             
             if (!empty($destino)) {
-                $sql .= " AND {$destinoColumn} = ?";
+                $sql .= " AND r.{$destinoColumn} = ?";
                 $params[] = $destino;
             }
             
             if (!empty($dataInicial)) {
-                $sql .= " AND {$dateColumn} >= ?";
+                $sql .= " AND r.{$dateColumn} >= ?";
                 $params[] = $dataInicial;
             }
             
             if (!empty($dataFinal)) {
-                $sql .= " AND {$dateColumn} <= ?";
+                $sql .= " AND r.{$dateColumn} <= ?";
                 $params[] = $dataFinal;
             }
             
-            $sql .= " GROUP BY codigo_cliente ORDER BY total_retornados DESC LIMIT 10";
+            $sql .= " GROUP BY r.codigo_cliente, c.nome ORDER BY total_retornados DESC LIMIT 10";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
@@ -1539,12 +1541,12 @@ class AdminController
             $data = [];
             
             foreach ($results as $row) {
-                // Se o código estiver vazio, mostrar como "Sem Código"
-                $codigo = $row['codigo_cliente'];
-                if (empty($codigo)) {
-                    $codigo = 'Sem Código';
+                // Prioriza o nome do cliente, se não tiver usa o código
+                $label = $row['nome_cliente'] ?? null;
+                if (empty($label)) {
+                    $label = $row['codigo_cliente'] ?: 'Sem Código';
                 }
-                $labels[] = $codigo;
+                $labels[] = $label;
                 $data[] = (int)$row['total_retornados'];
             }
             
