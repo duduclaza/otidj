@@ -40,14 +40,118 @@ class GarantiasController
     public function requisicao()
     {
         try {
-            $fornecedores = $this->getFornecedores();
-            $filiais = $this->getFiliais();
-            
             $title = 'Requisição de Garantias - SGQ OTI DJ';
             $viewFile = __DIR__ . '/../../views/pages/garantias/requisicao.php';
             include __DIR__ . '/../../views/layouts/main.php';
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+    
+    // Criar nova requisição de garantia (formulário simples)
+    public function criarRequisicao()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $nome_requisitante = trim($_POST['nome_requisitante'] ?? '');
+            $produto = trim($_POST['produto'] ?? '');
+            $descricao_defeito = trim($_POST['descricao_defeito'] ?? '');
+            $usuario_id = $_SESSION['user_id'] ?? null;
+            
+            // Validações
+            if (empty($nome_requisitante)) {
+                echo json_encode(['success' => false, 'message' => 'Nome do requisitante é obrigatório']);
+                return;
+            }
+            
+            if (empty($produto)) {
+                echo json_encode(['success' => false, 'message' => 'Produto é obrigatório']);
+                return;
+            }
+            
+            if (empty($descricao_defeito)) {
+                echo json_encode(['success' => false, 'message' => 'Descrição do defeito é obrigatória']);
+                return;
+            }
+            
+            // Gerar ticket único: RQG-YYYYMMDD-XXXX
+            $prefixo = "RQG-" . date('Ymd');
+            
+            $stmt = $this->db->prepare("
+                SELECT ticket FROM requisicoes_garantia 
+                WHERE ticket LIKE ? 
+                ORDER BY ticket DESC 
+                LIMIT 1
+            ");
+            $stmt->execute(["{$prefixo}-%"]);
+            $ultimoTicket = $stmt->fetchColumn();
+            
+            if ($ultimoTicket) {
+                $partes = explode('-', $ultimoTicket);
+                $sequencial = intval(end($partes)) + 1;
+            } else {
+                $sequencial = 1;
+            }
+            
+            $ticket = sprintf("%s-%04d", $prefixo, $sequencial);
+            
+            // Processar imagens
+            $imagens = [];
+            if (!empty($_FILES['imagens'])) {
+                foreach ($_FILES['imagens']['tmp_name'] as $key => $tmp_name) {
+                    if (!empty($tmp_name) && is_uploaded_file($tmp_name)) {
+                        $nome = $_FILES['imagens']['name'][$key];
+                        $tipo = $_FILES['imagens']['type'][$key];
+                        $conteudo = base64_encode(file_get_contents($tmp_name));
+                        
+                        $imagens[] = [
+                            'nome' => $nome,
+                            'tipo' => $tipo,
+                            'conteudo' => $conteudo
+                        ];
+                    }
+                }
+            }
+            
+            // Inserir no banco
+            $stmt = $this->db->prepare("
+                INSERT INTO requisicoes_garantia (
+                    ticket, nome_requisitante, produto, descricao_defeito, imagens, usuario_id, status
+                ) VALUES (?, ?, ?, ?, ?, ?, 'aberta')
+            ");
+            
+            $stmt->execute([
+                $ticket,
+                $nome_requisitante,
+                $produto,
+                $descricao_defeito,
+                !empty($imagens) ? json_encode($imagens) : null,
+                $usuario_id
+            ]);
+            
+            $id = $this->db->lastInsertId();
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Requisição criada com sucesso!',
+                'data' => [
+                    'id' => $id,
+                    'ticket' => $ticket,
+                    'nome_requisitante' => $nome_requisitante,
+                    'produto' => $produto,
+                    'descricao_defeito' => $descricao_defeito,
+                    'qtd_imagens' => count($imagens),
+                    'data' => date('d/m/Y H:i')
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao criar requisição: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao criar requisição: ' . $e->getMessage()
+            ]);
         }
     }
     

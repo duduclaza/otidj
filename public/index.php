@@ -271,6 +271,7 @@ $router->post('/garantias/anexo/{id}/delete', [App\Controllers\GarantiasControll
 $router->get('/garantias/ficha', [App\Controllers\GarantiasController::class, 'ficha']);
 $router->post('/garantias/gerar-ticket', [App\Controllers\GarantiasController::class, 'gerarTicket']);
 $router->get('/garantias/requisicao', [App\Controllers\GarantiasController::class, 'requisicao']);
+$router->post('/garantias/requisicao/criar', [App\Controllers\GarantiasController::class, 'criarRequisicao']);
 $router->get('/garantias/pendentes', [App\Controllers\GarantiasController::class, 'pendentes']);
 
 // Controle de Descartes routes
