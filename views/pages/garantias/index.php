@@ -729,10 +729,40 @@ async function verificarRequisicaoPendente() {
             const container = document.getElementById('garantiaFormContainer');
             if (container) container.classList.remove('hidden');
             
-            // Pré-preencher campos
+            // Pré-preencher Número Ticket/OS com o número da requisição
+            const ticketOs = document.querySelector('[name="numero_ticket_os"]');
+            if (ticketOs) {
+                ticketOs.value = req.ticket;
+            }
+            
+            // Pré-preencher Descrição do Defeito (sem o ticket, pois já está no campo acima)
             const descricaoDefeito = document.querySelector('[name="descricao_defeito"]');
             if (descricaoDefeito) {
-                descricaoDefeito.value = `[Requisição ${req.ticket}]\n\nRequisitante: ${req.nome_requisitante}\nProduto: ${req.produto}\n\nDefeito Reportado:\n${req.descricao_defeito}`;
+                descricaoDefeito.value = `Requisitante: ${req.nome_requisitante}\nProduto: ${req.produto}\n\nDefeito Reportado:\n${req.descricao_defeito}`;
+            }
+            
+            // Carregar imagens da requisição no preview de evidências
+            if (req.imagens) {
+                try {
+                    const imagens = JSON.parse(req.imagens);
+                    if (imagens && imagens.length > 0) {
+                        const previewContainer = document.getElementById('preview_evidencias');
+                        if (previewContainer) {
+                            previewContainer.innerHTML = imagens.map((img, i) => `
+                                <div class="relative" data-requisicao-img="${i}">
+                                    <img src="data:${img.tipo};base64,${img.conteudo}" class="w-full h-24 object-cover rounded-lg border border-gray-600">
+                                    <p class="text-xs text-gray-400 truncate mt-1">${img.nome}</p>
+                                    <span class="absolute top-1 left-1 bg-orange-500 text-white text-xs px-1 rounded">Requisição</span>
+                                </div>
+                            `).join('');
+                            
+                            // Guardar as imagens para enviar junto
+                            window.imagensRequisicao = imagens;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Erro ao parsear imagens:', e);
+                }
             }
             
             // Guardar ID da requisição para marcar como processada depois
@@ -749,7 +779,7 @@ async function verificarRequisicaoPendente() {
                     </svg>
                     <div>
                         <strong>Dados pré-preenchidos da Requisição ${req.ticket}</strong>
-                        <p class="text-sm">Complete o registro. Após salvar, a requisição será marcada como processada.</p>
+                        <p class="text-sm">Ticket preenchido, descrição e ${req.imagens ? JSON.parse(req.imagens).length : 0} imagem(ns) de evidência carregadas.</p>
                     </div>
                 </div>
             `;
@@ -1090,6 +1120,12 @@ function submitGarantia(e) {
     // Adicionar itens ao FormData
     formData.append('itens', JSON.stringify(itensData));
     console.log('JSON dos itens:', JSON.stringify(itensData));
+    
+    // Se há imagens da requisição, adicionar ao FormData
+    if (window.imagensRequisicao && window.imagensRequisicao.length > 0) {
+        formData.append('imagens_requisicao', JSON.stringify(window.imagensRequisicao));
+        console.log('Imagens da requisição adicionadas:', window.imagensRequisicao.length);
+    }
     
     // Debug FormData
     console.log('Dados do formulário:');

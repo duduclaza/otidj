@@ -409,6 +409,9 @@ class GarantiasController
             // Processar anexos
             $this->processarAnexos($garantia_id);
             
+            // Processar imagens vindas da requisição (se houver)
+            $this->processarImagensRequisicao($garantia_id);
+            
             // Processar dados de logística se fornecidos
             $this->processarLogistica($garantia_id);
 
@@ -1059,6 +1062,53 @@ class GarantiasController
                     $this->salvarAnexo($garantia_id, $arquivo, 'evidencia');
                 }
             }
+        }
+    }
+    
+    // Processar imagens vindas de uma requisição de garantia
+    private function processarImagensRequisicao($garantia_id)
+    {
+        if (empty($_POST['imagens_requisicao'])) {
+            return;
+        }
+        
+        try {
+            $imagens = json_decode($_POST['imagens_requisicao'], true);
+            
+            if (!$imagens || !is_array($imagens)) {
+                return;
+            }
+            
+            error_log("📷 Processando " . count($imagens) . " imagens da requisição");
+            
+            foreach ($imagens as $img) {
+                if (empty($img['conteudo']) || empty($img['tipo']) || empty($img['nome'])) {
+                    continue;
+                }
+                
+                // Decodificar base64
+                $conteudo = base64_decode($img['conteudo']);
+                $tamanho = strlen($conteudo);
+                
+                // Inserir como anexo de evidência
+                $stmt = $this->db->prepare("
+                    INSERT INTO garantias_anexos (
+                        garantia_id, tipo_anexo, nome_arquivo, tipo_mime, tamanho_bytes, conteudo_arquivo
+                    ) VALUES (?, 'evidencia', ?, ?, ?, ?)
+                ");
+                
+                $stmt->execute([
+                    $garantia_id,
+                    $img['nome'],
+                    $img['tipo'],
+                    $tamanho,
+                    $conteudo
+                ]);
+                
+                error_log("✅ Imagem '{$img['nome']}' salva como evidência");
+            }
+        } catch (\Exception $e) {
+            error_log("❌ Erro ao processar imagens da requisição: " . $e->getMessage());
         }
     }
 
