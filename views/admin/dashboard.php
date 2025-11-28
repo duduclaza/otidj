@@ -1883,6 +1883,18 @@ function criarGraficoRankingExpandido() {
       responsive: true,
       maintainAspectRatio: true,
       aspectRatio: 1.5,
+      onClick: function(evt, elements) {
+        if (elements.length > 0) {
+          const index = elements[0].index;
+          const codigoCliente = dadosRankingClientes[index];
+          if (codigoCliente) {
+            abrirModalDetalhesCliente(codigoCliente);
+          }
+        }
+      },
+      onHover: function(evt, elements) {
+        evt.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+      },
       plugins: {
         legend: {
           display: true,
@@ -1913,6 +1925,9 @@ function criarGraficoRankingExpandido() {
           callbacks: {
             label: function(context) {
               return `${context.label}: ${context.parsed.x} retornados`;
+            },
+            afterLabel: function(context) {
+              return '🖱️ Clique para ver detalhes';
             }
           }
         }
@@ -1952,7 +1967,7 @@ function criarGraficoRankingExpandido() {
           },
           title: {
             display: true,
-            text: 'Código do Cliente',
+            text: 'Cliente',
             color: '#d1d5db',
             font: {
               size: 15,
