@@ -273,6 +273,8 @@ $router->post('/garantias/gerar-ticket', [App\Controllers\GarantiasController::c
 $router->get('/garantias/requisicao', [App\Controllers\GarantiasController::class, 'requisicao']);
 $router->post('/garantias/requisicao/criar', [App\Controllers\GarantiasController::class, 'criarRequisicao']);
 $router->get('/garantias/pendentes', [App\Controllers\GarantiasController::class, 'pendentes']);
+$router->get('/garantias/consulta', [App\Controllers\GarantiasController::class, 'consulta']);
+$router->get('/garantias/consulta/buscar', [App\Controllers\GarantiasController::class, 'buscarGarantia']);
 $router->get('/garantias/requisicoes/list', [App\Controllers\GarantiasController::class, 'listarRequisicoes']);
 $router->get('/garantias/requisicoes/{id}', [App\Controllers\GarantiasController::class, 'getRequisicao']);
 $router->post('/garantias/requisicoes/{id}/processar', [App\Controllers\GarantiasController::class, 'marcarRequisicaoProcessada']);

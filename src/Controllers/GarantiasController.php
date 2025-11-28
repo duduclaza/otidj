@@ -265,6 +265,71 @@ class GarantiasController
         }
     }
     
+    // Página de Consulta de Garantias
+    public function consulta()
+    {
+        try {
+            $title = 'Consulta de Garantias - SGQ OTI DJ';
+            $viewFile = __DIR__ . '/../../views/pages/garantias/consulta.php';
+            include __DIR__ . '/../../views/layouts/main.php';
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+    
+    // Buscar garantia por ticket ou número de série (API)
+    public function buscarGarantia()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $termo = trim($_GET['termo'] ?? '');
+            
+            if (empty($termo)) {
+                echo json_encode(['success' => false, 'message' => 'Informe um termo de busca']);
+                return;
+            }
+            
+            // Buscar por número de ticket, ticket/OS ou número de série
+            $stmt = $this->db->prepare("
+                SELECT g.*, 
+                       p.nome as produto_nome,
+                       c.nome as nome_cliente
+                FROM garantias g
+                LEFT JOIN produtos p ON g.produto_id = p.id
+                LEFT JOIN clientes c ON g.cliente_id = c.id
+                WHERE g.numero_ticket LIKE :termo
+                   OR g.numero_ticket_os LIKE :termo
+                   OR g.numero_serie LIKE :termo
+                   OR g.numero_ticket_interno LIKE :termo
+                ORDER BY g.created_at DESC
+                LIMIT 1
+            ");
+            
+            $stmt->execute(['termo' => '%' . $termo . '%']);
+            $garantia = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($garantia) {
+                echo json_encode([
+                    'success' => true,
+                    'data' => $garantia
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Nenhuma garantia encontrada com o termo: ' . $termo
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            error_log("Erro ao buscar garantia: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao realizar busca: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
     // Listar requisições pendentes (API)
     public function listarRequisicoes()
     {
