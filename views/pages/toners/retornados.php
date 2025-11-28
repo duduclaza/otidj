@@ -223,24 +223,44 @@ let deleteId = null;
 
 // Filter and export functions
 window.filterData = function filterData() {
-  const search = document.getElementById('searchInput').value.toLowerCase();
-  const dateFrom = document.getElementById('dateFrom').value;
-  const dateTo = document.getElementById('dateTo').value;
+  const searchInput = document.getElementById('searchInput');
+  const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const dateFrom = document.getElementById('dateFrom')?.value || '';
+  const dateTo = document.getElementById('dateTo')?.value || '';
   
-  console.log('Filtering with:', { search, dateFrom, dateTo });
+  console.log('🔍 Buscando:', { search, dateFrom, dateTo });
   
-  // Get all table rows (excluding header)
-  const rows = document.querySelectorAll('#retornadosTable tr');
+  // Get all table rows from tbody
+  const tbody = document.getElementById('retornadosTable');
+  if (!tbody) {
+    console.error('❌ Tabela retornadosTable não encontrada!');
+    return;
+  }
+  
+  const rows = tbody.querySelectorAll('tr');
   let visibleCount = 0;
+  let totalCount = rows.length;
   
-  rows.forEach(row => {
+  console.log(`📊 Total de linhas: ${totalCount}`);
+  
+  rows.forEach((row, index) => {
     let show = true;
     
-    // Text search filter
+    // Text search filter - busca em todas as colunas
     if (search) {
-      const text = row.textContent.toLowerCase();
-      if (!text.includes(search)) {
-        show = false;
+      const cells = row.querySelectorAll('td');
+      let rowText = '';
+      cells.forEach(cell => {
+        rowText += ' ' + cell.textContent.toLowerCase();
+      });
+      
+      // Busca parcial - cada termo deve estar presente
+      const searchTerms = search.split(' ').filter(t => t.length > 0);
+      for (const term of searchTerms) {
+        if (!rowText.includes(term)) {
+          show = false;
+          break;
+        }
       }
     }
     
@@ -268,8 +288,12 @@ window.filterData = function filterData() {
     if (show) visibleCount++;
   });
   
-  // Show feedback
-  showNotification(`Filtro aplicado: ${visibleCount} registro(s) encontrado(s)`, 'info');
+  console.log(`✅ Resultado: ${visibleCount} de ${totalCount} registros`);
+  
+  // Show feedback only if there was a search term
+  if (search || dateFrom || dateTo) {
+    showNotification(`${visibleCount} de ${totalCount} registro(s) encontrado(s)`, 'info');
+  }
 }
 
 // Clear filters function
@@ -445,6 +469,29 @@ document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('retornadoForm');
   if (form) {
     form.addEventListener('submit', submitRetornado);
+  }
+  
+  // Bind da busca em tempo real
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    // Busca enquanto digita (com debounce)
+    let searchTimeout;
+    searchInput.addEventListener('input', function(e) {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        filterData();
+      }, 300);
+    });
+    
+    // Busca ao pressionar Enter
+    searchInput.addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        clearTimeout(searchTimeout);
+        filterData();
+      }
+    });
+    
+    console.log('✅ Busca em tempo real configurada');
   }
   
   // Teste direto da API
