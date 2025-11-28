@@ -100,9 +100,27 @@ $userName = $_SESSION['user_name'] ?? $_SESSION['name'] ?? '';
 
 <!-- Modal de Ticket Gerado (para impressão) -->
 <div id="modalTicket" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" style="z-index: 999999;">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" id="ticketContent">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative" id="ticketContent">
+        
+        <!-- Botão X para fechar -->
+        <button onclick="fecharModal()" class="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/40 rounded-full p-2 transition-all print:hidden">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
         <!-- Cabeçalho do Ticket -->
         <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6 text-center">
+            <!-- Mensagem de Sucesso -->
+            <div class="bg-green-500/20 border border-green-400/50 rounded-xl px-4 py-3 mb-4 print:hidden">
+                <div class="flex items-center justify-center gap-2 text-green-100">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-bold text-lg">Requisição aberta com sucesso!</span>
+                </div>
+            </div>
+            
             <div class="flex justify-center mb-3">
                 <img src="/assets/img/logo-oti.png" alt="OTI Logo" class="h-12" onerror="this.style.display='none'">
             </div>
