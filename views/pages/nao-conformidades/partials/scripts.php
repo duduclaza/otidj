@@ -18,41 +18,87 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-// Modal Nova NC
+// Modal Nova NC - Criar dinamicamente fora do container
 function abrirModalNovaNC() {
   console.log('🔴 Função abrirModalNovaNC chamada!');
-  const modal = document.getElementById('modalNovaNC');
-  console.log('Modal encontrado:', modal);
   
-  if (!modal) {
-    console.error('❌ Modal não encontrado! ID: modalNovaNC');
-    alert('Erro: Modal não encontrado. Verifique o console.');
+  // Remover modal existente se houver
+  let existingModal = document.getElementById('modalNovaNCDynamic');
+  if (existingModal) existingModal.remove();
+  
+  // Pegar o conteúdo do modal original
+  const modalOriginal = document.getElementById('modalNovaNC');
+  if (!modalOriginal) {
+    alert('Erro: Template do modal não encontrado');
     return;
   }
   
-  // Forçar estilos para garantir visibilidade
+  // Criar novo modal fora de qualquer container
+  const modal = document.createElement('div');
+  modal.id = 'modalNovaNCDynamic';
+  modal.innerHTML = modalOriginal.innerHTML;
   modal.style.cssText = `
-    display: flex !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background-color: rgba(0, 0, 0, 0.75) !important;
-    z-index: 999999 !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 999999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
   `;
-  modal.classList.remove('hidden');
+  
+  // Estilizar o conteúdo interno
+  const content = modal.querySelector('.modal-content') || modal.firstElementChild;
+  if (content) {
+    content.style.cssText = `
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      max-width: 42rem;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    `;
+  }
+  
+  // Adicionar ao body (fora de qualquer container)
+  document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
-  console.log('✅ Modal aberto com sucesso!');
+  
+  // Fechar ao clicar fora
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) fecharModalNovaNC();
+  });
+  
+  // Configurar submit do formulário
+  const form = modal.querySelector('#formNovaNC');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const res = await fetch('/nao-conformidades/criar', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message);
+        location.reload();
+      } else {
+        alert('Erro: ' + data.message);
+      }
+    });
+  }
+  
+  console.log('✅ Modal criado e aberto com sucesso!');
 }
+
 function fecharModalNovaNC() {
-  const modal = document.getElementById('modalNovaNC');
-  modal.style.display = 'none';
-  modal.classList.add('hidden');
-  document.getElementById('formNovaNC').reset();
-  document.body.style.overflow = ''; // Restaurar scroll
+  const modal = document.getElementById('modalNovaNCDynamic');
+  if (modal) modal.remove();
+  document.body.style.overflow = '';
 }
 
 // Aguardar DOM carregar
