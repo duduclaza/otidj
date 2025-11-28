@@ -30,12 +30,26 @@ function abrirModalNovaNC() {
     return;
   }
   
+  // Forçar estilos para garantir visibilidade
+  modal.style.cssText = `
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    z-index: 999999 !important;
+    align-items: center !important;
+    justify-content: center !important;
+  `;
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
   console.log('✅ Modal aberto com sucesso!');
 }
 function fecharModalNovaNC() {
   const modal = document.getElementById('modalNovaNC');
+  modal.style.display = 'none';
   modal.classList.add('hidden');
   document.getElementById('formNovaNC').reset();
   document.body.style.overflow = ''; // Restaurar scroll
