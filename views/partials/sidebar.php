@@ -73,6 +73,7 @@ $menu = [
           ['label' => 'Registro de Garantias', 'href' => '/garantias', 'icon' => '📝', 'module' => 'garantias'],
           ['label' => 'Requisição de Garantias', 'href' => '/garantias/requisicao', 'icon' => '📋', 'module' => 'garantias'],
           ['label' => 'Requisições Pendentes', 'href' => '/garantias/pendentes', 'icon' => '⏳', 'module' => 'garantias'],
+          ['label' => 'Consulta de Garantias', 'href' => '/garantias/consulta', 'icon' => '🔍', 'module' => 'garantias'],
         ]
       ],
       ['label' => 'Formulários Online', 'href' => '/nps', 'icon' => '📊', 'module' => 'nps'],
