@@ -1394,7 +1394,7 @@ function submitRetornado(e) {
     <div class="grid grid-cols-1 lg:grid-cols-6 gap-3">
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-        <input type="text" id="searchInput" placeholder="Modelo, código..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        <input type="text" id="searchInput" placeholder="Modelo, cód. cliente, usuário..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       </div>
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
