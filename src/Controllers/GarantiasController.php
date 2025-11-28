@@ -291,14 +291,15 @@ class GarantiasController
             }
             
             // Primeiro buscar na tabela de garantias registradas
+            // Colunas: numero_serie, numero_lote, numero_ticket_os, numero_ticket_interno, status
             $stmt = $this->db->prepare("
                 SELECT g.*,
                        'registrada' as origem
                 FROM garantias g
-                WHERE g.numero_ticket LIKE :termo
-                   OR g.numero_ticket_os LIKE :termo
+                WHERE g.numero_ticket_os LIKE :termo
                    OR g.numero_serie LIKE :termo
                    OR g.numero_ticket_interno LIKE :termo
+                   OR g.numero_lote LIKE :termo
                 ORDER BY g.created_at DESC
                 LIMIT 1
             ");
