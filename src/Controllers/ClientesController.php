@@ -40,7 +40,8 @@ class ClientesController
         }
 
         $title = 'Cadastro de Clientes - SGQ OTI';
-        include __DIR__ . '/../../views/pages/cadastros/clientes.php';
+        $viewFile = __DIR__ . '/../../views/pages/cadastros/clientes.php';
+        include __DIR__ . '/../../views/layouts/main.php';
     }
 
     /**
