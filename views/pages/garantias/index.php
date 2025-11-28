@@ -704,7 +704,65 @@ document.addEventListener('DOMContentLoaded', function() {
     carregarGarantias();
     configurarEventos();
     inicializarScrollSincronizado();
+    
+    // Verificar se veio de uma requisição pendente
+    verificarRequisicaoPendente();
 });
+
+// Verificar se há requisição pendente para pré-preencher
+async function verificarRequisicaoPendente() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const requisicaoId = urlParams.get('requisicao_id');
+    
+    if (!requisicaoId) return;
+    
+    console.log('📋 Requisição pendente detectada:', requisicaoId);
+    
+    try {
+        const response = await fetch(`/garantias/requisicoes/${requisicaoId}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const req = result.data;
+            
+            // Abrir formulário de nova garantia
+            const container = document.getElementById('garantiaFormContainer');
+            if (container) container.classList.remove('hidden');
+            
+            // Pré-preencher campos
+            const descricaoDefeito = document.querySelector('[name="descricao_defeito"]');
+            if (descricaoDefeito) {
+                descricaoDefeito.value = `[Requisição ${req.ticket}]\n\nRequisitante: ${req.nome_requisitante}\nProduto: ${req.produto}\n\nDefeito Reportado:\n${req.descricao_defeito}`;
+            }
+            
+            // Guardar ID da requisição para marcar como processada depois
+            window.requisicaoIdPendente = requisicaoId;
+            
+            // Mostrar alerta informativo
+            const alertDiv = document.createElement('div');
+            alertDiv.id = 'alertaRequisicao';
+            alertDiv.className = 'bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-4 rounded';
+            alertDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <strong>Dados pré-preenchidos da Requisição ${req.ticket}</strong>
+                        <p class="text-sm">Complete o registro. Após salvar, a requisição será marcada como processada.</p>
+                    </div>
+                </div>
+            `;
+            container.insertBefore(alertDiv, container.firstChild.nextSibling);
+            
+            // Scroll suave até o formulário
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+        }
+    } catch (error) {
+        console.error('Erro ao carregar requisição:', error);
+    }
+}
 
 // Configurar eventos
 function configurarEventos() {
@@ -1069,10 +1127,30 @@ function submitGarantia(e) {
             throw new Error('Resposta inválida do servidor. Verifique se a rota /garantias existe e retorna JSON válido.');
         }
     })
-    .then(result => {
+    .then(async result => {
         console.log('✅ Resultado parseado:', result);
         
         if (result && result.success) {
+            // Se veio de uma requisição pendente, marcar como processada
+            if (window.requisicaoIdPendente && !isEdicao) {
+                try {
+                    await fetch(`/garantias/requisicoes/${window.requisicaoIdPendente}/processar`, {
+                        method: 'POST'
+                    });
+                    console.log('✅ Requisição marcada como processada');
+                    
+                    // Remover o parâmetro da URL
+                    window.history.replaceState({}, document.title, '/garantias');
+                    window.requisicaoIdPendente = null;
+                    
+                    // Remover o alerta
+                    const alerta = document.getElementById('alertaRequisicao');
+                    if (alerta) alerta.remove();
+                } catch (e) {
+                    console.error('Erro ao marcar requisição como processada:', e);
+                }
+            }
+            
             showNotification(`Garantia ${operacao} com sucesso!`, 'success');
             cancelGarantiaForm();
             carregarGarantias();
