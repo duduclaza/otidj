@@ -4,6 +4,7 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: /login');
     exit();
 }
+$isAdmin = in_array($_SESSION['role'] ?? '', ['admin', 'super_admin', 'superadmin']);
 ?>
 
 <section class="space-y-6">
@@ -139,6 +140,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <script>
 let requisicaoAtual = null;
+const isAdmin = <?= $isAdmin ? 'true' : 'false' ?>;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Mover modais para o body
@@ -213,6 +215,14 @@ async function carregarRequisicoes() {
                                     </svg>
                                     Puxar para Registro
                                 </button>
+                                ${isAdmin ? `
+                                <button onclick="excluirRequisicao(${req.id}, '${req.ticket}')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    Excluir
+                                </button>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
@@ -308,6 +318,29 @@ function puxarParaRegistro() {
 function puxarParaRegistroDireto(id) {
     // Redirecionar para a página de registro de garantias com o ID da requisição
     window.location.href = `/garantias?requisicao_id=${id}`;
+}
+
+async function excluirRequisicao(id, ticket) {
+    if (!confirm(`Tem certeza que deseja excluir a requisição ${ticket}?\n\nEsta ação não pode ser desfeita.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/garantias/requisicoes/${id}/excluir`, {
+            method: 'POST'
+        });
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Requisição excluída com sucesso!');
+            carregarRequisicoes();
+        } else {
+            alert('Erro: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao excluir requisição');
+    }
 }
 
 function formatarData(dataStr) {

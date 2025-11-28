@@ -276,6 +276,7 @@ $router->get('/garantias/pendentes', [App\Controllers\GarantiasController::class
 $router->get('/garantias/requisicoes/list', [App\Controllers\GarantiasController::class, 'listarRequisicoes']);
 $router->get('/garantias/requisicoes/{id}', [App\Controllers\GarantiasController::class, 'getRequisicao']);
 $router->post('/garantias/requisicoes/{id}/processar', [App\Controllers\GarantiasController::class, 'marcarRequisicaoProcessada']);
+$router->post('/garantias/requisicoes/{id}/excluir', [App\Controllers\GarantiasController::class, 'excluirRequisicao']);
 
 // Controle de Descartes routes
 $router->get('/controle-descartes', [App\Controllers\ControleDescartesController::class, 'index']);

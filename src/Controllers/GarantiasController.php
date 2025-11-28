@@ -245,6 +245,42 @@ class GarantiasController
         }
     }
     
+    // Excluir requisição (apenas admins)
+    public function excluirRequisicao($id)
+    {
+        header('Content-Type: application/json');
+        
+        // Verificar se é admin
+        $role = $_SESSION['role'] ?? '';
+        if (!in_array($role, ['admin', 'super_admin', 'superadmin'])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Acesso negado. Apenas administradores podem excluir requisições.'
+            ]);
+            return;
+        }
+        
+        try {
+            $stmt = $this->db->prepare("DELETE FROM requisicoes_garantia WHERE id = ?");
+            $stmt->execute([$id]);
+            
+            if ($stmt->rowCount() === 0) {
+                echo json_encode(['success' => false, 'message' => 'Requisição não encontrada']);
+                return;
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Requisição excluída com sucesso'
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao excluir requisição: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
     // Gerar número de ticket único
     public function gerarTicket()
     {
