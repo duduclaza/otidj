@@ -290,13 +290,12 @@ class GarantiasController
                 return;
             }
             
-            // Buscar por número de ticket, ticket/OS ou número de série
+            // Primeiro buscar na tabela de garantias registradas
             $stmt = $this->db->prepare("
                 SELECT g.*, 
-                       p.nome as produto_nome,
-                       c.nome as nome_cliente
+                       c.nome as nome_cliente,
+                       'registrada' as origem
                 FROM garantias g
-                LEFT JOIN produtos p ON g.produto_id = p.id
                 LEFT JOIN clientes c ON g.cliente_id = c.id
                 WHERE g.numero_ticket LIKE :termo
                    OR g.numero_ticket_os LIKE :termo
@@ -310,16 +309,46 @@ class GarantiasController
             $garantia = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($garantia) {
+                $garantia['tipo_registro'] = 'Garantia Registrada';
                 echo json_encode([
                     'success' => true,
                     'data' => $garantia
                 ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Nenhuma garantia encontrada com o termo: ' . $termo
-                ]);
+                return;
             }
+            
+            // Se não encontrou, buscar nas requisições pendentes
+            $stmt = $this->db->prepare("
+                SELECT r.*,
+                       r.nome_requisitante as nome_cliente,
+                       r.ticket as numero_ticket,
+                       r.descricao_defeito,
+                       'pendente' as origem
+                FROM requisicoes_garantia r
+                WHERE r.ticket LIKE :termo
+                   OR r.produto LIKE :termo
+                ORDER BY r.created_at DESC
+                LIMIT 1
+            ");
+            
+            $stmt->execute(['termo' => '%' . $termo . '%']);
+            $requisicao = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($requisicao) {
+                $requisicao['tipo_registro'] = 'Requisição Pendente';
+                $requisicao['numero_ticket'] = $requisicao['ticket'];
+                $requisicao['produto_nome'] = $requisicao['produto'];
+                echo json_encode([
+                    'success' => true,
+                    'data' => $requisicao
+                ]);
+                return;
+            }
+            
+            echo json_encode([
+                'success' => false,
+                'message' => 'Nenhuma garantia ou requisição encontrada com o termo: ' . $termo
+            ]);
             
         } catch (\Exception $e) {
             error_log("Erro ao buscar garantia: " . $e->getMessage());

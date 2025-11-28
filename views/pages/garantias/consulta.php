@@ -123,28 +123,45 @@ async function pesquisarGarantia() {
 
 function exibirResultado(garantia) {
     const container = document.getElementById('resultadoBusca');
+    const isPendente = garantia.origem === 'pendente';
     
     // Definir cores do status
     const statusConfig = {
         'Em análise': { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: '🔍' },
         'Aguardando peças': { bg: 'bg-orange-100', text: 'text-orange-800', icon: '📦' },
+        'Aguardando Recebimento': { bg: 'bg-purple-100', text: 'text-purple-800', icon: '📥' },
         'Em reparo': { bg: 'bg-blue-100', text: 'text-blue-800', icon: '🔧' },
         'Aprovada': { bg: 'bg-green-100', text: 'text-green-800', icon: '✅' },
         'Reprovada': { bg: 'bg-red-100', text: 'text-red-800', icon: '❌' },
         'Concluída': { bg: 'bg-green-100', text: 'text-green-800', icon: '🎉' },
-        'Cancelada': { bg: 'bg-gray-100', text: 'text-gray-800', icon: '🚫' }
+        'Cancelada': { bg: 'bg-gray-100', text: 'text-gray-800', icon: '🚫' },
+        'Processada': { bg: 'bg-green-100', text: 'text-green-800', icon: '✅' }
     };
     
     const config = statusConfig[garantia.status] || { bg: 'bg-gray-100', text: 'text-gray-800', icon: '📋' };
     
+    // Cor do header baseado no tipo
+    const headerGradient = isPendente 
+        ? 'from-orange-500 to-orange-600' 
+        : 'from-blue-600 to-blue-700';
+    const headerTextLight = isPendente ? 'text-orange-200' : 'text-blue-200';
+    
     container.innerHTML = `
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Tipo de Registro -->
+            ${garantia.tipo_registro ? `
+            <div class="px-6 py-2 ${isPendente ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-blue-700'} text-sm font-medium flex items-center gap-2">
+                <span>${isPendente ? '⏳' : '✅'}</span>
+                ${garantia.tipo_registro}
+            </div>
+            ` : ''}
+            
             <!-- Header com Status -->
-            <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+            <div class="bg-gradient-to-r ${headerGradient} p-6 text-white">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-blue-200 text-sm mb-1">Número do Ticket</p>
-                        <h2 class="text-2xl font-bold">${garantia.numero_ticket || 'N/A'}</h2>
+                        <p class="${headerTextLight} text-sm mb-1">Número do Ticket</p>
+                        <h2 class="text-2xl font-bold">${garantia.numero_ticket || garantia.ticket || 'N/A'}</h2>
                     </div>
                     <div class="text-right">
                         <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-lg font-semibold ${config.bg} ${config.text}">
@@ -157,8 +174,8 @@ function exibirResultado(garantia) {
             
             <!-- Informações Principais -->
             <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                    <!-- Cliente -->
+                <div class="grid grid-cols-1 md:grid-cols-2 ${isPendente ? '' : 'lg:grid-cols-3'} gap-6 mb-6">
+                    <!-- Cliente/Requisitante -->
                     <div class="bg-gray-50 rounded-lg p-4">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -166,9 +183,9 @@ function exibirResultado(garantia) {
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
                             </div>
-                            <span class="text-sm text-gray-500 font-medium">Cliente</span>
+                            <span class="text-sm text-gray-500 font-medium">${isPendente ? 'Requisitante' : 'Cliente'}</span>
                         </div>
-                        <p class="text-gray-900 font-semibold">${garantia.nome_cliente || 'N/A'}</p>
+                        <p class="text-gray-900 font-semibold">${garantia.nome_cliente || garantia.nome_requisitante || 'N/A'}</p>
                     </div>
                     
                     <!-- Produto -->
@@ -184,7 +201,8 @@ function exibirResultado(garantia) {
                         <p class="text-gray-900 font-semibold">${garantia.produto_nome || garantia.produto || 'N/A'}</p>
                     </div>
                     
-                    <!-- Número de Série -->
+                    <!-- Número de Série (apenas para garantias registradas) -->
+                    ${!isPendente ? `
                     <div class="bg-gray-50 rounded-lg p-4">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
@@ -196,6 +214,7 @@ function exibirResultado(garantia) {
                         </div>
                         <p class="text-gray-900 font-semibold">${garantia.numero_serie || 'N/A'}</p>
                     </div>
+                    ` : ''}
                 </div>
                 
                 <!-- Datas -->
