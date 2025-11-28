@@ -349,8 +349,8 @@ class GarantiasController
         header('Content-Type: application/json');
         
         // Verificar se é admin
-        $role = $_SESSION['role'] ?? '';
-        if (!in_array($role, ['admin', 'super_admin', 'superadmin'])) {
+        $role = strtolower($_SESSION['role'] ?? '');
+        if (!in_array($role, ['admin', 'super_admin', 'superadmin', 'administrador', 'master'])) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Acesso negado. Apenas administradores podem excluir requisições.'
