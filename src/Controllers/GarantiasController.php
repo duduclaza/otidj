@@ -292,19 +292,20 @@ class GarantiasController
             
             // Primeiro buscar na tabela de garantias registradas
             // Colunas: numero_serie, numero_lote, numero_ticket_os, numero_ticket_interno, status
+            $termoLike = '%' . $termo . '%';
             $stmt = $this->db->prepare("
                 SELECT g.*,
                        'registrada' as origem
                 FROM garantias g
-                WHERE g.numero_ticket_os LIKE :termo
-                   OR g.numero_serie LIKE :termo
-                   OR g.numero_ticket_interno LIKE :termo
-                   OR g.numero_lote LIKE :termo
+                WHERE g.numero_ticket_os LIKE ?
+                   OR g.numero_serie LIKE ?
+                   OR g.numero_ticket_interno LIKE ?
+                   OR g.numero_lote LIKE ?
                 ORDER BY g.created_at DESC
                 LIMIT 1
             ");
             
-            $stmt->execute(['termo' => '%' . $termo . '%']);
+            $stmt->execute([$termoLike, $termoLike, $termoLike, $termoLike]);
             $garantia = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($garantia) {
@@ -324,13 +325,13 @@ class GarantiasController
                        r.descricao_defeito,
                        'pendente' as origem
                 FROM requisicoes_garantia r
-                WHERE r.ticket LIKE :termo
-                   OR r.produto LIKE :termo
+                WHERE r.ticket LIKE ?
+                   OR r.produto LIKE ?
                 ORDER BY r.created_at DESC
                 LIMIT 1
             ");
             
-            $stmt->execute(['termo' => '%' . $termo . '%']);
+            $stmt->execute([$termoLike, $termoLike]);
             $requisicao = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($requisicao) {
