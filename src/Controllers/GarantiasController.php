@@ -167,6 +167,84 @@ class GarantiasController
         }
     }
     
+    // Listar requisições pendentes (API)
+    public function listarRequisicoes()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("
+                SELECT * FROM requisicoes_garantia 
+                WHERE status NOT IN ('Processada', 'Cancelada')
+                ORDER BY created_at DESC
+            ");
+            $stmt->execute();
+            $requisicoes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $requisicoes
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao listar requisições: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    // Obter requisição específica (API)
+    public function getRequisicao($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("SELECT * FROM requisicoes_garantia WHERE id = ?");
+            $stmt->execute([$id]);
+            $requisicao = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$requisicao) {
+                echo json_encode(['success' => false, 'message' => 'Requisição não encontrada']);
+                return;
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'data' => $requisicao
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao buscar requisição: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    // Marcar requisição como processada
+    public function marcarRequisicaoProcessada($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $stmt = $this->db->prepare("
+                UPDATE requisicoes_garantia 
+                SET status = 'Processada', updated_at = CURRENT_TIMESTAMP 
+                WHERE id = ?
+            ");
+            $stmt->execute([$id]);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Requisição marcada como processada'
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao atualizar requisição: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
     // Gerar número de ticket único
     public function gerarTicket()
     {
