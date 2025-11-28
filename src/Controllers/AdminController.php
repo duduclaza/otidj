@@ -1539,6 +1539,7 @@ class AdminController
             
             $labels = [];
             $data = [];
+            $codigos = [];
             
             foreach ($results as $row) {
                 // Prioriza o nome do cliente, se não tiver usa o código
@@ -1548,19 +1549,94 @@ class AdminController
                 }
                 $labels[] = $label;
                 $data[] = (int)$row['total_retornados'];
+                $codigos[] = $row['codigo_cliente'];
             }
             
             echo json_encode([
                 'success' => true,
                 'data' => [
                     'labels' => $labels,
-                    'data' => $data
+                    'data' => $data,
+                    'codigos' => $codigos
                 ]
             ]);
         } catch (\Exception $e) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Erro ao carregar ranking: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    /**
+     * Get toners detalhados por cliente (para popup do ranking)
+     */
+    public function getTonersPorCliente()
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            $codigoCliente = $_GET['codigo'] ?? '';
+            $dataInicial = $_GET['data_inicial'] ?? '';
+            $dataFinal = $_GET['data_final'] ?? '';
+            
+            if (empty($codigoCliente)) {
+                echo json_encode(['success' => false, 'message' => 'Código do cliente não informado']);
+                exit;
+            }
+            
+            $dateColumn = $this->getDateColumn();
+            
+            // Buscar nome do cliente
+            $stmtNome = $this->db->prepare("SELECT nome FROM clientes WHERE codigo = ?");
+            $stmtNome->execute([$codigoCliente]);
+            $clienteRow = $stmtNome->fetch(\PDO::FETCH_ASSOC);
+            $nomeCliente = $clienteRow['nome'] ?? $codigoCliente;
+            
+            // Buscar toners agrupados por modelo
+            $sql = "
+                SELECT 
+                    modelo,
+                    SUM(quantidade) as total
+                FROM retornados 
+                WHERE codigo_cliente COLLATE utf8mb4_unicode_ci = ?
+            ";
+            
+            $params = [$codigoCliente];
+            
+            if (!empty($dataInicial)) {
+                $sql .= " AND {$dateColumn} >= ?";
+                $params[] = $dataInicial;
+            }
+            
+            if (!empty($dataFinal)) {
+                $sql .= " AND {$dateColumn} <= ?";
+                $params[] = $dataFinal;
+            }
+            
+            $sql .= " GROUP BY modelo ORDER BY total DESC";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $toners = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Calcular total geral
+            $totalGeral = array_sum(array_column($toners, 'total'));
+            
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'codigo' => $codigoCliente,
+                    'nome' => $nomeCliente,
+                    'toners' => $toners,
+                    'total' => $totalGeral
+                ]
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Erro ao carregar toners: ' . $e->getMessage()
             ]);
         }
         exit;

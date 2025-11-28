@@ -143,6 +143,7 @@ $router->get('/admin', function() {
 });
 $router->get('/admin/dashboard/data', [App\Controllers\AdminController::class, 'getDashboardData']);
 $router->get('/admin/dashboard/ranking-clientes', [App\Controllers\AdminController::class, 'getRankingClientes']);
+$router->get('/admin/dashboard/toners-por-cliente', [App\Controllers\AdminController::class, 'getTonersPorCliente']);
 $router->get('/admin/dashboard/amostragens-data', [App\Controllers\AdminController::class, 'getAmostragemsDashboardData']);
 $router->get('/admin/dashboard/fornecedores-data', [App\Controllers\AdminController::class, 'fornecedoresData']);
 $router->get('/admin/fornecedor-itens', [App\Controllers\AdminController::class, 'fornecedorItens']);

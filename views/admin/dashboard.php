@@ -932,6 +932,75 @@
   </div>
 </div>
 
+<!-- Modal de Detalhes do Cliente - Toners Retornados -->
+<div id="modalDetalhesCliente" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300" style="z-index: 99999;">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalDetalhesClienteContent">
+    <!-- Cabeçalho -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          <span id="modalClienteNome">Cliente</span>
+        </h3>
+        <button onclick="fecharModalDetalhesCliente()" class="p-2 rounded-full hover:bg-white/20 transition-colors">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <p class="text-blue-100 text-sm mt-1">Código: <span id="modalClienteCodigo" class="font-mono bg-blue-800/50 px-2 py-0.5 rounded">-</span></p>
+    </div>
+    
+    <!-- Corpo -->
+    <div class="p-6">
+      <!-- Loading -->
+      <div id="modalClienteLoading" class="text-center py-8">
+        <svg class="w-10 h-10 mx-auto text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-gray-500 mt-2">Carregando toners...</p>
+      </div>
+      
+      <!-- Conteúdo -->
+      <div id="modalClienteConteudo" class="hidden">
+        <!-- Total -->
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 mb-4 border border-blue-200">
+          <div class="flex items-center justify-between">
+            <span class="text-blue-700 font-medium">Total de Retornados</span>
+            <span id="modalClienteTotal" class="text-2xl font-bold text-blue-600">0</span>
+          </div>
+        </div>
+        
+        <!-- Lista de Toners -->
+        <div class="max-h-[40vh] overflow-y-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 sticky top-0">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Modelo do Toner</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantidade</th>
+              </tr>
+            </thead>
+            <tbody id="modalClienteToners" class="divide-y divide-gray-100">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Erro -->
+      <div id="modalClienteErro" class="hidden text-center py-8">
+        <svg class="w-12 h-12 mx-auto text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-red-500" id="modalClienteErroMsg">Erro ao carregar dados</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de Expansão do Gráfico - Retornados por Mês -->
 <div id="modalExpandidoRetornados" class="hidden fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
   <div class="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700 p-4 md:p-8 transition-all duration-500 ease-out transform scale-95 opacity-0" id="modalContentRetornados">
@@ -1603,6 +1672,9 @@ function updateRankingClientesChart(data) {
   const ctx = document.getElementById('rankingClientesChart');
   if (!ctx) return;
   
+  // Armazenar códigos para uso no click
+  dadosRankingClientes = data.codigos || [];
+  
   // Destruir gráfico anterior se existir
   if (rankingClientesChart) {
     rankingClientesChart.destroy();
@@ -1627,6 +1699,18 @@ function updateRankingClientesChart(data) {
       indexAxis: 'y', // Gráfico horizontal
       responsive: true,
       maintainAspectRatio: false,
+      onClick: function(evt, elements) {
+        if (elements.length > 0) {
+          const index = elements[0].index;
+          const codigoCliente = dadosRankingClientes[index];
+          if (codigoCliente) {
+            abrirModalDetalhesCliente(codigoCliente);
+          }
+        }
+      },
+      onHover: function(evt, elements) {
+        evt.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+      },
       plugins: {
         legend: {
           display: true,
@@ -1657,6 +1741,9 @@ function updateRankingClientesChart(data) {
           callbacks: {
             label: function(context) {
               return `${context.label}: ${context.parsed.x} retornados`;
+            },
+            afterLabel: function(context) {
+              return '🖱️ Clique para ver detalhes';
             }
           }
         }
@@ -1696,7 +1783,7 @@ function updateRankingClientesChart(data) {
           },
           title: {
             display: true,
-            text: 'Código do Cliente',
+            text: 'Cliente',
             color: '#374151',
             font: {
               size: 13,
@@ -3198,6 +3285,108 @@ document.addEventListener('keydown', function(e) {
     if (!modal.classList.contains('hidden')) {
       fecharModalDetalhesFornecedor();
     }
+    const modalCliente = document.getElementById('modalDetalhesCliente');
+    if (modalCliente && !modalCliente.classList.contains('hidden')) {
+      fecharModalDetalhesCliente();
+    }
+  }
+});
+
+// ==================== MODAL DETALHES CLIENTE ====================
+
+// Armazenar dados do ranking para uso no click
+let dadosRankingClientes = [];
+
+async function abrirModalDetalhesCliente(codigoCliente) {
+  const modal = document.getElementById('modalDetalhesCliente');
+  const content = document.getElementById('modalDetalhesClienteContent');
+  
+  // Resetar estados
+  document.getElementById('modalClienteLoading').classList.remove('hidden');
+  document.getElementById('modalClienteConteudo').classList.add('hidden');
+  document.getElementById('modalClienteErro').classList.add('hidden');
+  document.getElementById('modalClienteNome').textContent = 'Carregando...';
+  document.getElementById('modalClienteCodigo').textContent = codigoCliente;
+  
+  // Mostrar modal
+  modal.classList.remove('hidden');
+  setTimeout(() => {
+    content.classList.remove('scale-95', 'opacity-0');
+    content.classList.add('scale-100', 'opacity-100');
+  }, 10);
+  
+  try {
+    // Pegar filtros de data atuais
+    const dataInicial = document.getElementById('dataInicial')?.value || '';
+    const dataFinal = document.getElementById('dataFinal')?.value || '';
+    
+    const params = new URLSearchParams({
+      codigo: codigoCliente,
+      data_inicial: dataInicial,
+      data_final: dataFinal
+    });
+    
+    const response = await fetch(`/admin/dashboard/toners-por-cliente?${params}`);
+    const result = await response.json();
+    
+    if (result.success) {
+      // Atualizar cabeçalho
+      document.getElementById('modalClienteNome').textContent = result.data.nome;
+      document.getElementById('modalClienteCodigo').textContent = result.data.codigo;
+      document.getElementById('modalClienteTotal').textContent = result.data.total.toLocaleString('pt-BR');
+      
+      // Preencher tabela de toners
+      const tbody = document.getElementById('modalClienteToners');
+      tbody.innerHTML = '';
+      
+      if (result.data.toners.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="px-4 py-8 text-center text-gray-500">Nenhum toner encontrado</td></tr>';
+      } else {
+        result.data.toners.forEach((toner, index) => {
+          const tr = document.createElement('tr');
+          tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+          tr.innerHTML = `
+            <td class="px-4 py-3 text-sm font-medium text-gray-900">${toner.modelo || 'N/A'}</td>
+            <td class="px-4 py-3 text-sm text-right">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                ${parseInt(toner.total).toLocaleString('pt-BR')}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+      
+      // Mostrar conteúdo
+      document.getElementById('modalClienteLoading').classList.add('hidden');
+      document.getElementById('modalClienteConteudo').classList.remove('hidden');
+    } else {
+      throw new Error(result.message);
+    }
+  } catch (error) {
+    document.getElementById('modalClienteLoading').classList.add('hidden');
+    document.getElementById('modalClienteErro').classList.remove('hidden');
+    document.getElementById('modalClienteErroMsg').textContent = error.message;
+  }
+}
+
+function fecharModalDetalhesCliente() {
+  const modal = document.getElementById('modalDetalhesCliente');
+  const content = document.getElementById('modalDetalhesClienteContent');
+  
+  content.classList.remove('scale-100', 'opacity-100');
+  content.classList.add('scale-95', 'opacity-0');
+  
+  setTimeout(() => {
+    modal.classList.add('hidden');
+  }, 300);
+}
+
+// Fechar modal ao clicar fora
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('modalDetalhesCliente');
+  if (e.target === modal) {
+    fecharModalDetalhesCliente();
   }
 });
 
