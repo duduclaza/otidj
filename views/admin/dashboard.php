@@ -932,59 +932,73 @@
   </div>
 </div>
 
-<!-- Modal de Detalhes do Cliente - Toners Retornados -->
-<div id="modalDetalhesCliente" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 transition-all duration-300" style="z-index: 99999;">
-  <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="modalDetalhesClienteContent">
+<!-- Modal de Detalhes do Cliente - Toners Retornados (Fullscreen) -->
+<div id="modalDetalhesCliente" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-8 transition-all duration-500 ease-out" style="z-index: 99999;">
+  <div class="relative w-full max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl shadow-2xl border border-gray-700/50 transform transition-all duration-500 ease-out scale-95 opacity-0" id="modalDetalhesClienteContent">
+    
+    <!-- Botão Fechar -->
+    <button onclick="fecharModalDetalhesCliente()" class="absolute top-4 right-4 p-3 rounded-full bg-red-500/20 hover:bg-red-500/40 transition-all duration-300 group z-10">
+      <svg class="w-6 h-6 text-red-400 group-hover:text-red-300 group-hover:rotate-90 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
     <!-- Cabeçalho -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-      <div class="flex justify-between items-center">
-        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 px-8 py-6 border-b border-gray-700/50">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
           </svg>
-          <span id="modalClienteNome">Cliente</span>
-        </h3>
-        <button onclick="fecharModalDetalhesCliente()" class="p-2 rounded-full hover:bg-white/20 transition-colors">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400" id="modalClienteNome">Cliente</h3>
+          <p class="text-gray-400 text-sm mt-1">Código: <span id="modalClienteCodigo" class="font-mono bg-gray-700/50 px-2 py-0.5 rounded text-blue-300">-</span></p>
+        </div>
       </div>
-      <p class="text-blue-100 text-sm mt-1">Código: <span id="modalClienteCodigo" class="font-mono bg-blue-800/50 px-2 py-0.5 rounded">-</span></p>
     </div>
     
     <!-- Corpo -->
-    <div class="p-6">
+    <div class="p-8 overflow-y-auto" style="max-height: calc(90vh - 140px);">
       <!-- Loading -->
-      <div id="modalClienteLoading" class="text-center py-8">
-        <svg class="w-10 h-10 mx-auto text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <p class="text-gray-500 mt-2">Carregando toners...</p>
+      <div id="modalClienteLoading" class="text-center py-16">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-500/20 rounded-full mb-4">
+          <svg class="w-10 h-10 text-blue-400 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <p class="text-gray-400">Carregando toners...</p>
       </div>
       
       <!-- Conteúdo -->
       <div id="modalClienteConteudo" class="hidden">
         <!-- Total -->
-        <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 mb-4 border border-blue-200">
+        <div class="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 rounded-2xl p-6 mb-6 border border-blue-500/20">
           <div class="flex items-center justify-between">
-            <span class="text-blue-700 font-medium">Total de Retornados</span>
-            <span id="modalClienteTotal" class="text-2xl font-bold text-blue-600">0</span>
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+              </div>
+              <span class="text-gray-300 font-medium text-lg">Total de Retornados</span>
+            </div>
+            <span id="modalClienteTotal" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">0</span>
           </div>
         </div>
         
         <!-- Lista de Toners -->
-        <div class="max-h-[40vh] overflow-y-auto">
+        <div class="bg-gray-800/50 rounded-2xl border border-gray-700/50 overflow-hidden">
           <table class="w-full">
-            <thead class="bg-gray-50 sticky top-0">
+            <thead class="bg-gray-700/50">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Modelo do Toner</th>
-                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Destino</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Qtd</th>
+                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider">Modelo do Toner</th>
+                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-300 uppercase tracking-wider">Destino</th>
+                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-300 uppercase tracking-wider">Quantidade</th>
               </tr>
             </thead>
-            <tbody id="modalClienteToners" class="divide-y divide-gray-100">
+            <tbody id="modalClienteToners" class="divide-y divide-gray-700/50">
               <!-- Preenchido via JS -->
             </tbody>
           </table>
@@ -992,11 +1006,13 @@
       </div>
       
       <!-- Erro -->
-      <div id="modalClienteErro" class="hidden text-center py-8">
-        <svg class="w-12 h-12 mx-auto text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <p class="text-red-500" id="modalClienteErroMsg">Erro ao carregar dados</p>
+      <div id="modalClienteErro" class="hidden text-center py-16">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-red-500/20 rounded-full mb-4">
+          <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <p class="text-red-400 text-lg" id="modalClienteErroMsg">Erro ao carregar dados</p>
       </div>
     </div>
   </div>
@@ -3341,32 +3357,33 @@ async function abrirModalDetalhesCliente(codigoCliente) {
       tbody.innerHTML = '';
       
       if (result.data.toners.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Nenhum toner encontrado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-12 text-center text-gray-500">Nenhum toner encontrado</td></tr>';
       } else {
         result.data.toners.forEach((toner, index) => {
           const tr = document.createElement('tr');
-          tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+          tr.className = index % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-800/10';
+          tr.className += ' hover:bg-gray-700/50 transition-colors';
           
-          // Definir cor do badge de destino
-          let destinoBadgeClass = 'bg-gray-100 text-gray-800';
+          // Definir cor do badge de destino (tema escuro)
+          let destinoBadgeClass = 'bg-gray-600/50 text-gray-300';
           const destino = (toner.destino || 'N/A').toUpperCase();
           if (destino.includes('DESCARTE') || destino.includes('LIXO')) {
-            destinoBadgeClass = 'bg-red-100 text-red-800';
+            destinoBadgeClass = 'bg-red-500/20 text-red-400 border border-red-500/30';
           } else if (destino.includes('RECARGA') || destino.includes('REMANUFATURA')) {
-            destinoBadgeClass = 'bg-green-100 text-green-800';
+            destinoBadgeClass = 'bg-green-500/20 text-green-400 border border-green-500/30';
           } else if (destino.includes('GARANTIA')) {
-            destinoBadgeClass = 'bg-yellow-100 text-yellow-800';
+            destinoBadgeClass = 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
           }
           
           tr.innerHTML = `
-            <td class="px-4 py-3 text-sm font-medium text-gray-900">${toner.modelo || 'N/A'}</td>
-            <td class="px-4 py-3 text-center">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${destinoBadgeClass}">
+            <td class="px-6 py-4 text-sm font-medium text-gray-200">${toner.modelo || 'N/A'}</td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${destinoBadgeClass}">
                 ${toner.destino || 'N/A'}
               </span>
             </td>
-            <td class="px-4 py-3 text-sm text-right">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <td class="px-6 py-4 text-right">
+              <span class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
                 ${parseInt(toner.total).toLocaleString('pt-BR')}
               </span>
             </td>
