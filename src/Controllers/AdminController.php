@@ -1502,7 +1502,7 @@ class AdminController
                     MAX(c.nome) as nome_cliente,
                     SUM(r.quantidade) as total_retornados
                 FROM retornados r
-                LEFT JOIN clientes c ON r.codigo_cliente = c.codigo
+                LEFT JOIN clientes c ON r.codigo_cliente COLLATE utf8mb4_unicode_ci = c.codigo
                 WHERE r.codigo_cliente IS NOT NULL 
                 AND r.codigo_cliente != ''
                 AND r.codigo_cliente REGEXP '[0-9]'
