@@ -1594,10 +1594,13 @@ class AdminController
             $clienteRow = $stmtNome->fetch(\PDO::FETCH_ASSOC);
             $nomeCliente = $clienteRow['nome'] ?? $codigoCliente;
             
-            // Buscar toners agrupados por modelo
+            $destinoColumn = $this->getDestinoColumn();
+            
+            // Buscar toners agrupados por modelo e destino
             $sql = "
                 SELECT 
                     modelo,
+                    {$destinoColumn} as destino,
                     SUM(quantidade) as total
                 FROM retornados 
                 WHERE codigo_cliente COLLATE utf8mb4_unicode_ci = ?
@@ -1615,7 +1618,7 @@ class AdminController
                 $params[] = $dataFinal;
             }
             
-            $sql .= " GROUP BY modelo ORDER BY total DESC";
+            $sql .= " GROUP BY modelo, {$destinoColumn} ORDER BY total DESC";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);

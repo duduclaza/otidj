@@ -980,7 +980,8 @@
             <thead class="bg-gray-50 sticky top-0">
               <tr>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Modelo do Toner</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantidade</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Destino</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Qtd</th>
               </tr>
             </thead>
             <tbody id="modalClienteToners" class="divide-y divide-gray-100">
@@ -3340,13 +3341,30 @@ async function abrirModalDetalhesCliente(codigoCliente) {
       tbody.innerHTML = '';
       
       if (result.data.toners.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="2" class="px-4 py-8 text-center text-gray-500">Nenhum toner encontrado</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">Nenhum toner encontrado</td></tr>';
       } else {
         result.data.toners.forEach((toner, index) => {
           const tr = document.createElement('tr');
           tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+          
+          // Definir cor do badge de destino
+          let destinoBadgeClass = 'bg-gray-100 text-gray-800';
+          const destino = (toner.destino || 'N/A').toUpperCase();
+          if (destino.includes('DESCARTE') || destino.includes('LIXO')) {
+            destinoBadgeClass = 'bg-red-100 text-red-800';
+          } else if (destino.includes('RECARGA') || destino.includes('REMANUFATURA')) {
+            destinoBadgeClass = 'bg-green-100 text-green-800';
+          } else if (destino.includes('GARANTIA')) {
+            destinoBadgeClass = 'bg-yellow-100 text-yellow-800';
+          }
+          
           tr.innerHTML = `
             <td class="px-4 py-3 text-sm font-medium text-gray-900">${toner.modelo || 'N/A'}</td>
+            <td class="px-4 py-3 text-center">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${destinoBadgeClass}">
+                ${toner.destino || 'N/A'}
+              </span>
+            </td>
             <td class="px-4 py-3 text-sm text-right">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                 ${parseInt(toner.total).toLocaleString('pt-BR')}
