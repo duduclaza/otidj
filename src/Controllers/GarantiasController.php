@@ -349,7 +349,7 @@ class GarantiasController
         header('Content-Type: application/json');
         
         // Verificar se é admin
-        $role = strtolower($_SESSION['role'] ?? '');
+        $role = strtolower($_SESSION['user_role'] ?? '');
         if (!in_array($role, ['admin', 'super_admin', 'superadmin', 'administrador', 'master'])) {
             echo json_encode([
                 'success' => false,

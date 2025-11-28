@@ -4,9 +4,7 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: /login');
     exit();
 }
-$isAdmin = in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'super_admin', 'superadmin', 'administrador', 'master']);
-// Debug temporário - remover depois
-error_log("DEBUG - Role atual: " . ($_SESSION['role'] ?? 'nenhuma') . " | isAdmin: " . ($isAdmin ? 'true' : 'false'));
+$isAdmin = in_array(strtolower($_SESSION['user_role'] ?? ''), ['admin', 'super_admin', 'superadmin', 'administrador', 'master']);
 ?>
 
 <section class="space-y-6">
@@ -15,8 +13,6 @@ error_log("DEBUG - Role atual: " . ($_SESSION['role'] ?? 'nenhuma') . " | isAdmi
         <div>
             <h1 class="text-2xl font-semibold text-gray-900">Requisições Pendentes</h1>
             <p class="text-gray-600 mt-1">Requisições aguardando processamento para registro de garantia</p>
-            <!-- DEBUG temporário -->
-            <p class="text-xs text-red-500 mt-1">DEBUG: Role = "<?= htmlspecialchars($_SESSION['role'] ?? 'N/A') ?>" | isAdmin = <?= $isAdmin ? 'SIM' : 'NÃO' ?></p>
         </div>
         <div class="flex space-x-3">
             <a href="/garantias" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
