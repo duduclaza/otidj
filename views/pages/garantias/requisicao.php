@@ -144,8 +144,8 @@ $userName = $_SESSION['user_name'] ?? $_SESSION['name'] ?? '';
                 </div>
                 <div>
                     <p class="text-sm text-gray-500 font-medium">Status</p>
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                        Aberta
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                        Aguardando Recebimento
                     </span>
                 </div>
             </div>

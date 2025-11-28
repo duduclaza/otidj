@@ -118,7 +118,7 @@ class GarantiasController
             $stmt = $this->db->prepare("
                 INSERT INTO requisicoes_garantia (
                     ticket, nome_requisitante, produto, descricao_defeito, imagens, usuario_id, status
-                ) VALUES (?, ?, ?, ?, ?, ?, 'aberta')
+                ) VALUES (?, ?, ?, ?, ?, ?, 'Aguardando Recebimento')
             ");
             
             $stmt->execute([
