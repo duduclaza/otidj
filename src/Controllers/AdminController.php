@@ -1499,7 +1499,7 @@ class AdminController
             $sql = "
                 SELECT 
                     r.codigo_cliente,
-                    c.nome as nome_cliente,
+                    MAX(c.nome) as nome_cliente,
                     SUM(r.quantidade) as total_retornados
                 FROM retornados r
                 LEFT JOIN clientes c ON r.codigo_cliente = c.codigo
@@ -1531,7 +1531,7 @@ class AdminController
                 $params[] = $dataFinal;
             }
             
-            $sql .= " GROUP BY r.codigo_cliente, c.nome ORDER BY total_retornados DESC LIMIT 10";
+            $sql .= " GROUP BY r.codigo_cliente ORDER BY total_retornados DESC LIMIT 10";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
