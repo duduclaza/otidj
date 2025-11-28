@@ -330,7 +330,6 @@ $router->post('/nps/toggle-status', [App\Controllers\NpsController::class, 'togg
 $router->post('/nps/excluir', [App\Controllers\NpsController::class, 'excluir']);
 $router->get('/nps/{id}/detalhes', [App\Controllers\NpsController::class, 'detalhes']);
 $router->get('/nps/{id}/respostas', [App\Controllers\NpsController::class, 'verRespostas']);
-$router->get('/nps/debug', [App\Controllers\NpsController::class, 'debug']);
 $router->post('/nps/excluir-resposta', [App\Controllers\NpsController::class, 'excluirResposta']);
 // Rotas públicas (SEM autenticação)
 $router->get('/nps/responder/{id}', [App\Controllers\NpsController::class, 'responder']);
@@ -343,7 +342,6 @@ $router->post('/suporte/update-status', [App\Controllers\SuporteController::clas
 $router->post('/suporte/delete', [App\Controllers\SuporteController::class, 'delete']);
 $router->get('/suporte/{id}/details', [App\Controllers\SuporteController::class, 'details']);
 $router->get('/suporte/anexo/{anexoId}', [App\Controllers\SuporteController::class, 'downloadAnexo']);
-$router->get('/suporte/debug', [App\Controllers\SuporteDebugController::class, 'debug']);
 
 // Admin/Config maintenance endpoints
 $router->post('/admin/db/patch-amostragens', [App\Controllers\ConfigController::class, 'patchAmostragens']);
@@ -352,8 +350,6 @@ $router->get('/admin/db/run-migrations', [App\Controllers\ConfigController::clas
 // Admin: sincronizar permissões do Administrador
 $router->post('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);
 $router->get('/admin/sync-admin-permissions', [App\Controllers\ConfigController::class, 'syncAdminPermissions']);
-// Debug temporário POPs e ITs
-$router->get('/debug/pops-its', [App\Controllers\ConfigController::class, 'debugPopIts']);
 
 // Profiles routes
 $router->get('/admin/profiles', [App\Controllers\ProfilesController::class, 'index']);
@@ -425,7 +421,6 @@ $router->post('/pops-its/registro/create', [App\Controllers\PopItsController::cl
 $router->post('/pops-its/registro/editar', [App\Controllers\PopItsController::class, 'editarRegistro']);
 $router->get('/pops-its/registros/meus', [App\Controllers\PopItsController::class, 'listMeusRegistros']);
 $router->get('/pops-its/arquivo/{id}', [App\Controllers\PopItsController::class, 'downloadArquivo']);
-$router->get('/pops-its/debug-arquivo/{id}', [App\Controllers\PopItsController::class, 'debugArquivo']);
 $router->post('/pops-its/registro/update', [App\Controllers\PopItsController::class, 'updateRegistro']);
 $router->post('/pops-its/registro/delete', [App\Controllers\PopItsController::class, 'deleteRegistro']);
 // Aba 3: Pendente Aprovação
