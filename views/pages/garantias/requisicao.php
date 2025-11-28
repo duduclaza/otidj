@@ -232,6 +232,12 @@ $userName = $_SESSION['user_name'] ?? $_SESSION['name'] ?? '';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Mover modal para o body para ficar fullscreen
+    const modal = document.getElementById('modalTicket');
+    if (modal && modal.parentElement !== document.body) {
+        document.body.appendChild(modal);
+    }
+    
     const form = document.getElementById('formRequisicao');
     const dropZone = document.getElementById('dropZone');
     const inputImagens = document.getElementById('imagens');
