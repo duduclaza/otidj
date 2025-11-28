@@ -1504,7 +1504,7 @@ class AdminController
                 WHERE codigo_cliente IS NOT NULL 
                 AND codigo_cliente != ''
                 AND codigo_cliente REGEXP '[0-9]'
-                AND codigo_cliente NOT IN ('1', '01', '001', '0001')
+                AND codigo_cliente NOT IN ('1', '01', '001', '0001', '0000')
             ";
             
             $params = [];
