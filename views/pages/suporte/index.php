@@ -117,11 +117,17 @@ $isAdmin = isAdmin() && !$isSuperAdmin; // Admin comum (não super)
                 👁️ Ver
               </button>
               
-              <?php if ($isSuperAdmin && $sol['status'] !== 'Concluído'): ?>
-              <!-- Botão de gerenciar APENAS para Super Admin -->
+              <?php if ($isSuperAdmin): ?>
+              <!-- Botão de gerenciar/editar APENAS para Super Admin -->
+              <?php if ($sol['status'] === 'Concluído'): ?>
+              <button onclick="editarResposta(<?= $sol['id'] ?>)" class="text-amber-600 hover:text-amber-900">
+                ✏️ Editar Resposta
+              </button>
+              <?php else: ?>
               <button onclick="resolverSolicitacao(<?= $sol['id'] ?>)" class="text-green-600 hover:text-green-900">
                 ⚙️ Gerenciar
               </button>
+              <?php endif; ?>
               <?php endif; ?>
               
               <?php if ($isAdmin): ?>
@@ -379,12 +385,48 @@ function fecharModal() {
 }
 
 <?php if ($isSuperAdmin): ?>
-// Resolver solicitação
+// Resolver solicitação (nova)
 function resolverSolicitacao(id) {
   document.getElementById('resolucaoId').value = id;
+  document.getElementById('formResolucao').reset();
+  document.querySelector('#formResolucao select[name="status"]').value = 'Pendente';
+  
+  // Atualizar título do modal
+  document.querySelector('#modalResolucao h3').textContent = 'Gerenciar Solicitação';
+  
   const modal = document.getElementById('modalResolucao');
   modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden'; // Bloquear scroll da página
+  document.body.style.overflow = 'hidden';
+}
+
+// Editar resposta existente (solicitação já concluída)
+async function editarResposta(id) {
+  try {
+    // Buscar dados atuais da solicitação
+    const response = await fetch(`/suporte/${id}/details`);
+    const result = await response.json();
+    
+    if (result.success) {
+      const sol = result.data;
+      
+      // Preencher formulário com dados atuais
+      document.getElementById('resolucaoId').value = id;
+      document.querySelector('#formResolucao select[name="status"]').value = sol.status || 'Concluído';
+      document.querySelector('#formResolucao textarea[name="resolucao"]').value = sol.resolucao || '';
+      
+      // Atualizar título do modal
+      document.querySelector('#modalResolucao h3').textContent = '✏️ Editar Resposta';
+      
+      const modal = document.getElementById('modalResolucao');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    } else {
+      alert('Erro ao carregar dados: ' + result.message);
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    alert('Erro ao carregar dados da solicitação');
+  }
 }
 
 // Fechar modal resolução

@@ -163,10 +163,16 @@ class SuporteController
             $sql = 'UPDATE suporte_solicitacoes SET status = :status';
             $params = [':id' => $id, ':status' => $status];
 
-            if ($status === 'Concluído') {
-                $sql .= ', resolucao = :resolucao, resolvido_por = :resolvido_por, resolvido_em = NOW()';
+            // Sempre atualizar a resolução se fornecida (permite editar observações)
+            if (!empty($resolucao)) {
+                $sql .= ', resolucao = :resolucao, resolvido_por = :resolvido_por';
                 $params[':resolucao'] = $resolucao;
                 $params[':resolvido_por'] = $_SESSION['user_id'];
+                
+                // Atualizar data de resolução apenas se status for Concluído
+                if ($status === 'Concluído') {
+                    $sql .= ', resolvido_em = NOW()';
+                }
             }
 
             $sql .= ', updated_at = NOW() WHERE id = :id';

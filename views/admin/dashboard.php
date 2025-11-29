@@ -268,18 +268,39 @@
         </button>
       </div>
       <!-- Filtros específicos para este gráfico -->
-      <div class="flex items-center space-x-4">
-        <label class="text-sm font-medium text-gray-700">🎯 Filtrar por Destino:</label>
-        <select id="filtroDestinoRanking" onchange="updateRankingChart()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-          <option value="">Todos os Destinos</option>
-          <option value="ESTOQUE">Estoque</option>
-          <option value="DESCARTE">Descarte</option>
-          <option value="USO_INTERNO">Uso Interno</option>
-          <option value="GARANTIA">Garantia</option>
-        </select>
-        <span class="text-xs text-gray-500">
-          (Este filtro afeta apenas o ranking. Datas compartilhadas.)
-        </span>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mt-2">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">🏢 Filial</label>
+          <select id="filtroFilialRanking" onchange="updateRankingChart()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">Todas as Filiais</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">📅 Data Inicial</label>
+          <input type="date" id="dataInicialRanking" onchange="updateRankingChart()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">📅 Data Final</label>
+          <input type="date" id="dataFinalRanking" onchange="updateRankingChart()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">🎯 Destino</label>
+          <select id="filtroDestinoRanking" onchange="updateRankingChart()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <option value="">Todos os Destinos</option>
+            <option value="ESTOQUE">Estoque</option>
+            <option value="DESCARTE">Descarte</option>
+            <option value="USO_INTERNO">Uso Interno</option>
+            <option value="GARANTIA">Garantia</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button onclick="limparFiltrosRanking()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Limpar
+          </button>
+        </div>
       </div>
     </div>
     <div class="p-6">
@@ -1476,6 +1497,33 @@ function populateFilialOptions(filiais) {
   
   // Restaurar valor selecionado
   select.value = currentValue;
+  
+  // Popular também o dropdown específico do ranking
+  populateFilialOptionsRanking(filiais);
+}
+
+// Popular opções de filiais do Ranking
+function populateFilialOptionsRanking(filiais) {
+  const select = document.getElementById('filtroFilialRanking');
+  if (!select) return;
+  
+  const currentValue = select.value;
+  
+  // Limpar opções existentes (exceto "Todas as Filiais")
+  while (select.children.length > 1) {
+    select.removeChild(select.lastChild);
+  }
+  
+  // Adicionar filiais
+  filiais.forEach(filial => {
+    const option = document.createElement('option');
+    option.value = filial;
+    option.textContent = filial;
+    select.appendChild(option);
+  });
+  
+  // Restaurar valor selecionado
+  select.value = currentValue;
 }
 
 // Inicializar gráficos
@@ -1660,10 +1708,15 @@ function clearFilters() {
 // Carregar ranking de clientes
 async function loadRankingClientes() {
   try {
-    const filial = document.getElementById('filtroFilial').value;
-    const destino = document.getElementById('filtroDestinoRanking').value;
-    const dataInicial = document.getElementById('dataInicial').value;
-    const dataFinal = document.getElementById('dataFinal').value;
+    // Usar filtros específicos do ranking (se existirem), senão usar os globais
+    const filialRanking = document.getElementById('filtroFilialRanking');
+    const dataInicialRanking = document.getElementById('dataInicialRanking');
+    const dataFinalRanking = document.getElementById('dataFinalRanking');
+    
+    const filial = filialRanking ? filialRanking.value : document.getElementById('filtroFilial')?.value || '';
+    const destino = document.getElementById('filtroDestinoRanking')?.value || '';
+    const dataInicial = dataInicialRanking ? dataInicialRanking.value : document.getElementById('dataInicial')?.value || '';
+    const dataFinal = dataFinalRanking ? dataFinalRanking.value : document.getElementById('dataFinal')?.value || '';
     
     const params = new URLSearchParams();
     if (filial) params.append('filial', filial);
@@ -1682,6 +1735,21 @@ async function loadRankingClientes() {
   } catch (error) {
     console.error('Erro na requisição de ranking:', error);
   }
+}
+
+// Limpar filtros específicos do ranking
+function limparFiltrosRanking() {
+  const filialRanking = document.getElementById('filtroFilialRanking');
+  const dataInicialRanking = document.getElementById('dataInicialRanking');
+  const dataFinalRanking = document.getElementById('dataFinalRanking');
+  const destinoRanking = document.getElementById('filtroDestinoRanking');
+  
+  if (filialRanking) filialRanking.value = '';
+  if (dataInicialRanking) dataInicialRanking.value = '';
+  if (dataFinalRanking) dataFinalRanking.value = '';
+  if (destinoRanking) destinoRanking.value = '';
+  
+  updateRankingChart();
 }
 
 // Atualizar gráfico de ranking
