@@ -1254,6 +1254,9 @@ function switchChecklistTab(tab) {
         tabNovo.classList.add('border-transparent', 'text-gray-600');
         contentLista.classList.remove('hidden');
         contentNovo.classList.add('hidden');
+        
+        // Carregar checklists ao abrir a aba
+        carregarChecklists();
     } else {
         tabNovo.classList.add('border-blue-600', 'text-blue-600', 'font-medium');
         tabNovo.classList.remove('border-transparent', 'text-gray-600');
