@@ -1226,12 +1226,29 @@ async function deleteHomologacao(id) {
 // ===== FUNÇÕES DE CHECKLIST =====
 
 let checklistItemCounter = 0;
+let checklistEditandoId = null; // ID do checklist sendo editado (null = novo)
 
 // Abrir modal de checklists
 function openModalChecklists() {
     document.getElementById('modalChecklists').classList.remove('hidden');
-    switchChecklistTab('novo'); // Mudar para abrir em "novo" ao invés de "lista"
+    checklistEditandoId = null; // Resetar para modo criação
+    atualizarTituloFormularioChecklist();
+    switchChecklistTab('novo');
     lockBodyScroll();
+}
+
+// Atualizar título do formulário conforme modo (criar/editar)
+function atualizarTituloFormularioChecklist() {
+    const btnSubmit = document.querySelector('#formNovoChecklist button[type="submit"]');
+    const tabNovo = document.getElementById('tabNovoChecklist');
+    
+    if (checklistEditandoId) {
+        btnSubmit.innerHTML = '💾 Atualizar Checklist';
+        tabNovo.innerHTML = '✏️ Editar Checklist';
+    } else {
+        btnSubmit.innerHTML = '💾 Salvar Checklist';
+        tabNovo.innerHTML = '➕ Novo Checklist';
+    }
 }
 
 // Fechar modal de checklists
@@ -1345,7 +1362,19 @@ async function salvarChecklist(event) {
     });
     
     try {
-        const response = await fetch('/homologacoes/checklists/create', {
+        let url, successMessage;
+        
+        if (checklistEditandoId) {
+            // Modo edição
+            url = `/homologacoes/checklists/${checklistEditandoId}/update`;
+            successMessage = '✅ Checklist atualizado com sucesso!';
+        } else {
+            // Modo criação
+            url = '/homologacoes/checklists/create';
+            successMessage = '✅ Checklist criado com sucesso!';
+        }
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ titulo, descricao, itens })
@@ -1354,7 +1383,7 @@ async function salvarChecklist(event) {
         const result = await response.json();
         
         if (result.success) {
-            alert('✅ Checklist criado com sucesso!');
+            alert(successMessage);
             cancelarNovoChecklist();
             switchChecklistTab('lista');
             carregarChecklists();
@@ -1372,6 +1401,8 @@ function cancelarNovoChecklist() {
     document.getElementById('formNovoChecklist').reset();
     document.getElementById('checklistItens').innerHTML = '';
     checklistItemCounter = 0;
+    checklistEditandoId = null; // Resetar modo de edição
+    atualizarTituloFormularioChecklist();
 }
 
 // Carregar lista de checklists
@@ -1395,6 +1426,10 @@ async function carregarChecklists() {
                             </p>
                         </div>
                         <div class="flex gap-2">
+                            <button onclick="editarChecklist(${checklist.id})" 
+                                    class="px-3 py-1 text-sm bg-amber-100 text-amber-700 rounded hover:bg-amber-200">
+                                ✏️ Editar
+                            </button>
                             <button onclick="visualizarChecklist(${checklist.id})" 
                                     class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
                                 👁️ Ver
@@ -1433,6 +1468,51 @@ async function visualizarChecklist(id) {
         }
     } catch (error) {
         console.error('Erro:', error);
+    }
+}
+
+// Editar checklist existente
+async function editarChecklist(id) {
+    try {
+        const response = await fetch(`/homologacoes/checklists/${id}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const checklist = result.data;
+            
+            // Definir modo de edição
+            checklistEditandoId = id;
+            
+            // Preencher campos do formulário
+            document.getElementById('checklistTitulo').value = checklist.titulo || '';
+            document.getElementById('checklistDescricao').value = checklist.descricao || '';
+            
+            // Limpar itens existentes
+            document.getElementById('checklistItens').innerHTML = '';
+            checklistItemCounter = 0;
+            
+            // Adicionar itens do checklist
+            if (checklist.itens && checklist.itens.length > 0) {
+                checklist.itens.forEach(item => {
+                    adicionarItemChecklist();
+                    const index = checklistItemCounter - 1;
+                    document.getElementById(`checklistItemTitulo${index}`).value = item.titulo || '';
+                    document.getElementById(`checklistItemTipo${index}`).value = item.tipo_resposta || 'sim_nao';
+                });
+            } else {
+                // Adicionar pelo menos um item vazio
+                adicionarItemChecklist();
+            }
+            
+            // Atualizar interface
+            atualizarTituloFormularioChecklist();
+            switchChecklistTab('novo'); // Ir para aba do formulário
+        } else {
+            alert('❌ Erro ao carregar checklist para edição');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('❌ Erro ao carregar checklist');
     }
 }
 

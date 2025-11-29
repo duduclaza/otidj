@@ -488,6 +488,7 @@ $router->get('/homologacoes/{id}/details', [App\Controllers\HomologacoesKanbanCo
 $router->post('/homologacoes/checklists/create', [App\Controllers\ChecklistsController::class, 'create']);
 $router->get('/homologacoes/checklists/list', [App\Controllers\ChecklistsController::class, 'list']);
 $router->get('/homologacoes/checklists/{id}', [App\Controllers\ChecklistsController::class, 'show']);
+$router->post('/homologacoes/checklists/{id}/update', [App\Controllers\ChecklistsController::class, 'update']);
 $router->delete('/homologacoes/checklists/{id}', [App\Controllers\ChecklistsController::class, 'delete']);
 $router->post('/homologacoes/checklists/salvar-respostas', [App\Controllers\ChecklistsController::class, 'salvarRespostas']);
 $router->get('/homologacoes/checklists/respostas/{id}', [App\Controllers\ChecklistsController::class, 'buscarRespostas']);

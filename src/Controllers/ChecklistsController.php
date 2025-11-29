@@ -322,4 +322,94 @@ class ChecklistsController
             echo json_encode(['success' => false, 'message' => 'Erro ao buscar respostas']);
         }
     }
+
+    // Atualizar checklist existente
+    public function update($id)
+    {
+        header('Content-Type: application/json');
+        
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Não autenticado']);
+                return;
+            }
+
+            $user_id = $_SESSION['user_id'];
+            
+            // Verificar se é admin ou super admin
+            if (!PermissionService::isAdmin($user_id) && !PermissionService::isSuperAdmin($user_id)) {
+                echo json_encode(['success' => false, 'message' => 'Sem permissão']);
+                return;
+            }
+
+            $data = json_decode(file_get_contents('php://input'), true);
+            
+            $titulo = trim($data['titulo'] ?? '');
+            $descricao = trim($data['descricao'] ?? '');
+            $itens = $data['itens'] ?? [];
+
+            if (empty($titulo)) {
+                echo json_encode(['success' => false, 'message' => 'Título obrigatório']);
+                return;
+            }
+
+            if (empty($itens)) {
+                echo json_encode(['success' => false, 'message' => 'Adicione pelo menos um item']);
+                return;
+            }
+
+            // Verificar se checklist existe
+            $stmt = $this->db->prepare("SELECT id FROM homologacao_checklists WHERE id = ? AND ativo = 1");
+            $stmt->execute([$id]);
+            if (!$stmt->fetch()) {
+                echo json_encode(['success' => false, 'message' => 'Checklist não encontrado']);
+                return;
+            }
+
+            // Iniciar transação
+            $this->db->beginTransaction();
+
+            // Atualizar checklist
+            $stmt = $this->db->prepare("
+                UPDATE homologacao_checklists 
+                SET titulo = ?, descricao = ?, atualizado_em = NOW()
+                WHERE id = ?
+            ");
+            $stmt->execute([$titulo, $descricao, $id]);
+
+            // Remover itens antigos
+            $stmt = $this->db->prepare("DELETE FROM homologacao_checklist_itens WHERE checklist_id = ?");
+            $stmt->execute([$id]);
+
+            // Inserir novos itens
+            $stmt = $this->db->prepare("
+                INSERT INTO homologacao_checklist_itens 
+                (checklist_id, titulo, ordem, tipo_resposta)
+                VALUES (?, ?, ?, ?)
+            ");
+
+            foreach ($itens as $item) {
+                $stmt->execute([
+                    $id,
+                    $item['titulo'],
+                    $item['ordem'],
+                    $item['tipo_resposta']
+                ]);
+            }
+
+            $this->db->commit();
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Checklist atualizado com sucesso'
+            ]);
+
+        } catch (\Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log("Erro ao atualizar checklist: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Erro ao atualizar checklist']);
+        }
+    }
 }
