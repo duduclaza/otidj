@@ -13,6 +13,16 @@ class AreaTecnicaController
     {
         $this->db = Database::getInstance();
     }
+    
+    // Verificar se usuário tem acesso ao módulo (admin, super_admin, supervisor)
+    private function hasAccess()
+    {
+        if (!isset($_SESSION['user_id'])) {
+            return false;
+        }
+        $role = $_SESSION['user_role'] ?? '';
+        return in_array($role, ['admin', 'super_admin', 'superadmin', 'supervisor']);
+    }
 
     // ========================================
     // SISTEMA DE TRIAL (7 dias grátis)
@@ -107,7 +117,7 @@ class AreaTecnicaController
     
     public function index()
     {
-        if (!isset($_SESSION['user_id'])) {
+        if (!$this->hasAccess()) {
             header('Location: /login');
             exit;
         }
@@ -224,7 +234,7 @@ class AreaTecnicaController
     
     public function consultaChecklists()
     {
-        if (!isset($_SESSION['user_id'])) {
+        if (!$this->hasAccess()) {
             header('Location: /login');
             exit;
         }

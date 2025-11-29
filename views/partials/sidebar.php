@@ -152,18 +152,18 @@ $menu = [
           ['label' => 'Estoque Técnico', 'href' => '/logistica/estoque-tecnico', 'icon' => '🔧', 'admin_only' => true],
         ]
       ],
-      // Área Técnica
+      // Área Técnica (Admin, Super Admin e Supervisores)
       [
         'label' => 'Área Técnica',
         'href' => '#',
         'icon' => '🔧',
-        'admin_only' => true,
         'has_submenu' => true,
         'badge' => 'R$ 200/mês',
+        'roles' => ['admin', 'super_admin', 'superadmin', 'supervisor'],
         'submenu' => [
-          ['label' => 'Visão Geral', 'href' => '/area-tecnica', 'icon' => '📊', 'admin_only' => true],
-          ['label' => 'Checklist Virtual', 'href' => '/area-tecnica/checklist', 'icon' => '📋', 'admin_only' => true],
-          ['label' => 'Consulta de Checklists', 'href' => '/area-tecnica/consulta', 'icon' => '🔍', 'admin_only' => true],
+          ['label' => 'Visão Geral', 'href' => '/area-tecnica', 'icon' => '📊', 'roles' => ['admin', 'super_admin', 'superadmin', 'supervisor']],
+          ['label' => 'Checklist Virtual', 'href' => '/area-tecnica/checklist', 'icon' => '📋', 'roles' => ['admin', 'super_admin', 'superadmin', 'supervisor']],
+          ['label' => 'Consulta de Checklists', 'href' => '/area-tecnica/consulta', 'icon' => '🔍', 'roles' => ['admin', 'super_admin', 'superadmin', 'supervisor']],
         ]
       ],
     ]
@@ -220,6 +220,17 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
           // Para submenus, verificar se tem permissão para pelo menos um submenu
           $visibleSubmenus = [];
           foreach ($item['submenu'] as $sub) {
+            // Verificar se tem roles específicos
+            if (isset($sub['roles']) && is_array($sub['roles'])) {
+              $userRole = $_SESSION['user_role'] ?? '';
+              if (in_array($userRole, $sub['roles'])) {
+                $visibleSubmenus[] = $sub;
+                if (rtrim($sub['href'], '/') === $current) {
+                  $submenuActive = true;
+                }
+              }
+              continue;
+            }
             // Verificar se é admin_only e se o usuário é admin
             if (isset($sub['admin_only']) && $sub['admin_only']) {
               $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
@@ -286,8 +297,14 @@ $current = rtrim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/',
               </button>
               <ul class="submenu ml-6 mt-2 space-y-1 hidden">
                 <?php foreach ($item['submenu'] as $sub):
+                  // Verificar se tem roles específicos
+                  if (isset($sub['roles']) && is_array($sub['roles'])) {
+                    $userRole = $_SESSION['user_role'] ?? '';
+                    if (!in_array($userRole, $sub['roles'])) continue;
+                    $subActive = rtrim($sub['href'], '/') === $current;
+                  }
                   // Verificar se é admin_only
-                  if (isset($sub['admin_only']) && $sub['admin_only']) {
+                  elseif (isset($sub['admin_only']) && $sub['admin_only']) {
                     $isAdmin = isset($_SESSION['user_role']) && in_array($_SESSION['user_role'], ['admin', 'super_admin', 'superadmin']);
                     if (!$isAdmin) continue;
                     // Para admin_only, não precisa verificar permissão no banco
