@@ -152,6 +152,20 @@ $menu = [
           ['label' => 'Estoque Técnico', 'href' => '/logistica/estoque-tecnico', 'icon' => '🔧', 'admin_only' => true],
         ]
       ],
+      // Área Técnica
+      [
+        'label' => 'Área Técnica',
+        'href' => '#',
+        'icon' => '🔧',
+        'admin_only' => true,
+        'has_submenu' => true,
+        'badge' => 'R$ 200/mês',
+        'submenu' => [
+          ['label' => 'Visão Geral', 'href' => '/area-tecnica', 'icon' => '📊', 'admin_only' => true],
+          ['label' => 'Checklist Virtual', 'href' => '/area-tecnica/checklist', 'icon' => '📋', 'admin_only' => true],
+          ['label' => 'Consulta de Checklists', 'href' => '/area-tecnica/consulta', 'icon' => '🔍', 'admin_only' => true],
+        ]
+      ],
     ]
   ],
 ];

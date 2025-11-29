@@ -615,6 +615,19 @@ $router->post('/registros/departamentos/delete', [App\Controllers\RegistrosContr
 $router->post('/registros/fornecedores/delete', [App\Controllers\RegistrosController::class, 'deleteFornecedor']);
 $router->post('/registros/parametros/delete', [App\Controllers\RegistrosController::class, 'deleteParametro']);
 
+// ===== MÓDULO ÁREA TÉCNICA =====
+$router->get('/area-tecnica', [App\Controllers\AreaTecnicaController::class, 'index']);
+$router->post('/area-tecnica/ativar-trial', [App\Controllers\AreaTecnicaController::class, 'ativarTrial']);
+$router->get('/area-tecnica/trial-status', [App\Controllers\AreaTecnicaController::class, 'getTrialStatus']);
+// Checklist Virtual (rota pública - sem login)
+$router->get('/area-tecnica/checklist', [App\Controllers\AreaTecnicaController::class, 'checklistPublico']);
+$router->post('/area-tecnica/checklist/salvar', [App\Controllers\AreaTecnicaController::class, 'salvarChecklist']);
+// Consulta de Checklists
+$router->get('/area-tecnica/consulta', [App\Controllers\AreaTecnicaController::class, 'consultaChecklists']);
+$router->get('/area-tecnica/checklists/buscar', [App\Controllers\AreaTecnicaController::class, 'buscarChecklists']);
+$router->get('/area-tecnica/checklists/listar', [App\Controllers\AreaTecnicaController::class, 'listarTodosChecklists']);
+$router->get('/area-tecnica/checklists/{id}', [App\Controllers\AreaTecnicaController::class, 'verChecklist']);
+
 // Dispatch
 try {
     $currentRoute = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
@@ -632,7 +645,8 @@ try {
         strpos($currentRoute, '/request-access') === 0 ||
         strpos($currentRoute, '/access-request') === 0 ||
         strpos($currentRoute, '/nps/responder/') === 0 ||  // Formulário público NPS
-        strpos($currentRoute, '/nps/salvar-resposta') === 0  // Salvar resposta pública NPS
+        strpos($currentRoute, '/nps/salvar-resposta') === 0 ||  // Salvar resposta pública NPS
+        strpos($currentRoute, '/area-tecnica/checklist') === 0  // Checklist Virtual público
     );
 
     if (!$isPublicAuthRoute) {
